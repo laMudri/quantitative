@@ -2,7 +2,7 @@ open import Lib.Setoid
 
 module Lib.Structure {c l} (S : Setoid c l) where
 
-open import Lib.Base hiding (refl) renaming (_*_ to _×_)
+open import Lib.Base hiding (refl)
 open import Lib.FunctionProperties S
 
 open Setoid S

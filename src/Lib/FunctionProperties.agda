@@ -2,7 +2,7 @@ open import Lib.Setoid
 
 module Lib.FunctionProperties {c l} (S : Setoid c l) where
 
-open import Lib.Base renaming (_*_ to _×_)
+open import Lib.Base
 
 open Setoid S
 

@@ -253,13 +253,13 @@ succ m <=? succ n = mapDec s<=s (\ { (s<=s le) -> le }) (m <=? n)
 _<?_ : forall m n -> Dec (m < n)
 m <? n = succ m <=? n
 
-_*?_ : forall {a b A B} -> Dec {a} A -> Dec {b} B -> Dec (A * B)
-_*?_ (yes a) (yes b) = yes (a , b)
-_*?_ (yes a) (no nb) = no (\ { (_ , b) -> nb b })
-_*?_ (no na) B? = no (\ { (a , b) -> na a })
+_×?_ : forall {a b A B} -> Dec {a} A -> Dec {b} B -> Dec (A × B)
+_×?_ (yes a) (yes b) = yes (a , b)
+_×?_ (yes a) (no nb) = no (\ { (_ , b) -> nb b })
+_×?_ (no na) B? = no (\ { (a , b) -> na a })
 
-==* : forall {a b A B} {p q : _*_ {a} {b} A B} -> p == q -> (fst p == fst q) * (snd p == snd q)
-==* refl = refl , refl
+==× : forall {a b A B} {p q : _×_ {a} {b} A B} -> p == q -> (fst p == fst q) × (snd p == snd q)
+==× refl = refl , refl
 
 data Fin : Nat -> Set where
   zero : forall {n} -> Fin (succ n)
@@ -311,10 +311,10 @@ nil !! ()
 ++Assoc (x :: l1) l2 l3 rewrite ++Assoc l1 l2 l3 = refl
 
 ::Inj : forall {a} {A : Set a} {x0 x1 : A} {l0 l1} ->
-        x0 :: l0 == x1 :: l1 -> (x0 == x1) * (l0 == l1)
+        x0 :: l0 == x1 :: l1 -> (x0 == x1) × (l0 == l1)
 ::Inj refl = refl , refl
 
-++==nil : forall {a} {A : Set a} xs {ys : List A} -> xs ++ ys == nil -> (xs == nil) * (ys == nil)
+++==nil : forall {a} {A : Set a} xs {ys : List A} -> xs ++ ys == nil -> (xs == nil) × (ys == nil)
 ++==nil nil {nil} eq = refl , refl
 ++==nil nil {x :: ys} ()
 ++==nil (x :: xs) {ys} ()
@@ -379,7 +379,7 @@ infixr 30 _-o_
 data LTy : Set where
   KEY           : LTy
   LIST          : LTy -> LTy
-  _-o_ _<**>_ _&_  : LTy -> LTy -> LTy
+  _-o_ _<××>_ _&_  : LTy -> LTy -> LTy
 
 data _elem_ {x} {X : Set x} (x : X) : List X -> Set where
   here : forall {l} -> x elem (x :: l)
@@ -395,7 +395,7 @@ nil !!Elem ()
 (x :: xs) !!Elem zero = here
 (x :: xs) !!Elem succ i = there (xs !!Elem i)
 
-elemSplit : forall {a A x} {xs : List {a} A} -> x elem xs -> List A * List A
+elemSplit : forall {a A x} {xs : List {a} A} -> x elem xs -> List A × List A
 elemSplit (here {xs}) = nil , xs
 elemSplit (there {_} {y} e) with elemSplit e
 ... | xs , ys = y :: xs , ys
@@ -414,72 +414,6 @@ insertPreservesElem : forall {a A x y xs} (m : Mele {a} {A} xs) ->
 insertPreservesElem here e = there e
 insertPreservesElem (there m) here = here
 insertPreservesElem (there m) (there e) = there (insertPreservesElem m e)
-
-Ctx : Set
-Ctx = List LTy
-
---------------------------------------------------------------------------------
--- semantics of types
-
-[[_]]T : LTy -> Set
-[[ KEY ]]T      = Nat
-[[ LIST T ]]T   = List [[ T ]]T
-[[ S -o T ]]T   = [[ S ]]T -> [[ T ]]T
-[[ S <**> T ]]T = [[ S ]]T * [[ T ]]T
-[[ S & T ]]T    = [[ S ]]T * [[ T ]]T
-
-[[_]]C : Ctx -> Set
-[[ nil ]]C    = One
-[[ S :: G ]]C = [[ S ]]T * [[ G ]]C
-
--- different from fold
-foldright : {X Y : Set} -> X -> (Y -> (List Y * X) -> X) -> List Y -> X
-foldright n c nil       = n
-foldright n c (y :: ys) = c y (ys , foldright n c ys)
-
-compare : {X : Set} -> Nat -> Nat -> ((Nat -> Nat -> X) * (Nat -> Nat -> X)) -> X
-compare m n (GTE , LT) with compareNat m n
-compare m .(succ (m +N k)) (GTE , LT) | lt .m k  = LT (succ (m +N k)) m
-compare .(n +N k) n        (GTE , LT) | gte k .n = GTE (n +N k) n
-
---------------------------------------------------------------------------------
--- Logical Predicates to prove the permutation property
-
-KeySet : Set
-KeySet = List Nat
-
-[_|=_contains_] : KeySet -> (T : LTy) -> [[ T ]]T -> Set
-[ K |= KEY contains n ]            = (n :: nil) >< K
-[ K |= LIST T contains nil ]       = nil >< K
-[ K |= LIST T contains (t :: ts) ] = Sg KeySet \ K1 -> Sg KeySet \ K2 -> (K1 ++ K2) >< K * [ K1 |= T contains t ] * [ K2 |= LIST T contains ts ]
-[ K |= S -o T contains f ]         = forall K' s -> [ K' |= S contains s ] -> [ K ++ K' |= T contains f s ]
-[ K |= S <**> T contains (s , t) ] = Sg KeySet \ K1 -> Sg KeySet \ K2 -> (K1 ++ K2) >< K * [ K1 |= S contains s ] * [ K2 |= T contains t ]
-[ K |= S & T contains (s , t) ]    = [ K |= S contains s ] * [ K |= T contains t ]
-
-repList : forall K K' -> [ K |= LIST KEY contains K' ] -> K' >< K
-repList K nil       phi                           rewrite nilPerm phi    = permRefl nil
-repList K (k :: ks) (K1 , K2 , phi , psi1 , psi2) rewrite singlPerm psi1 = permTrans (permSkip (repList _ _ psi2)) phi
-
-listRep : forall K -> [ K |= LIST KEY contains K ]
-listRep nil      = permNil
-listRep (k :: K) = (k :: nil) , K , permRefl (k :: K) , permRefl (k :: nil) , listRep K
-
-preservePerm : forall {K K'} -> (T : LTy) -> (x : [[ T ]]T) -> K >< K' -> [ K |= T contains x ] -> [ K' |= T contains x ]
-preservePerm KEY        n         p prf = permTrans prf p
-preservePerm (LIST T)   nil       p phi  = permTrans phi p
-preservePerm (LIST T)   (t :: ts) p (K1 , K2 , p' , r1 , r2) = K1 , K2 , permTrans p' p , r1 , r2
-preservePerm (S -o T)   f         p prf = \ K' s x -> preservePerm T (f s) (permAppL p) (prf K' s x)
-preservePerm (S <**> T) (s , t)   p (K1 , K2 , p' , r1 , r2) = K1 , K2 , permTrans p' p , r1 , r2
-preservePerm (S & T)    (s , t)   p (r1 , r2) = preservePerm S s p r1 , preservePerm T t p r2
-
-lem-1 : forall {A : Set} -> (l0 l1 l2 : List A) -> ((l2 ++ l0) ++ l1) >< ((l0 ++ l1) ++ l2)
-lem-1 l0 l1 l2 = permTrans (permAppL (permSwap++ l2 l0))
-                           (permTrans (permAssoc l0 l2 l1)
-                                      (permTrans (permAppR l0 (permSwap++ l2 l1))
-                                                 (permSymm (permAssoc l0 l1 l2))))
-
-lem-2 : forall {A : Set} -> (l0 l1 l2 : List A) -> ((l2 ++ l1) ++ l0) >< ((l0 ++ l1) ++ l2)
-lem-2 l0 l1 l2 = permTrans (permAppL (permSwap++ l2 l1)) (permTrans (permSwap++ (l1 ++ l2) l0) (permSymm (permAssoc l0 l1 l2)))
 
 --------------------------------------------------------------------------------
 -- resource annotations to contexts
@@ -521,7 +455,7 @@ allTagsLength nil = refl
 allTagsLength (y :: ys) = cong succ (allTagsLength ys)
 
 takeDropAll : forall {x p} {X : Set x} {P : X -> Set p} l0 {l1 : List X} ->
-              All P (l0 ++ l1) -> All P l0 * All P l1
+              All P (l0 ++ l1) -> All P l0 × All P l1
 takeDropAll nil ps = nil , ps
 takeDropAll (x :: l0) (p :: ps) with takeDropAll l0 ps
 ... | pxs , pys = p :: pxs , pys
@@ -551,12 +485,12 @@ zipAll-zip f (p :: ps) (q :: qs) = cong2 _::_ refl (zipAll-zip f ps qs)
 
 ::AllInj : forall {x p} {X : Set x} {P : X -> Set p}
            {x : X} {l : List X} {p p' : P x} {ps ps' : All P l} ->
-           _==_ {A = All P (x :: l)} (p :: ps) (p' :: ps') -> (p == p') * (ps == ps')
+           _==_ {A = All P (x :: l)} (p :: ps) (p' :: ps') -> (p == p') × (ps == ps')
 ::AllInj refl = refl , refl
 
 ++AllInj : forall {x p} {X : Set x} {P : X -> Set p}
            {xs ys : List X} (pxs pxs' : All P xs) {pys pys' : All P ys} ->
-           (pxs ++All pys) == (pxs' ++All pys') -> (pxs == pxs') * (pys == pys')
+           (pxs ++All pys) == (pxs' ++All pys') -> (pxs == pxs') × (pys == pys')
 ++AllInj nil nil eq = refl , eq
 ++AllInj (px :: pxs) (px' :: pxs') eq with ::AllInj eq
 ... | pxeq , pseq with ++AllInj pxs pxs' pseq
@@ -587,7 +521,7 @@ fullPartition : forall {x} {X : Set x} {l : List X} -> Partition l
 fullPartition = mapAll (\ _ -> tt) emptyPartition
 
 elemSplitAll : forall {a p A P x xs} (e : x elem xs) ->
-               All {a} {p} {A} P xs -> uncurry _*_ (map* (All P) (All P) (elemSplit e))
+               All {a} {p} {A} P xs -> uncurry _×_ (map× (All P) (All P) (elemSplit e))
 elemSplitAll here (p :: ps) = nil , ps
 elemSplitAll (there e) (p :: ps) with elemSplitAll e ps
 ... | qs , rs = p :: qs , rs
@@ -952,7 +886,7 @@ thickenList xs th = fst (thickenLengthedList th (xs , refl))
 
 elemSplitThinnings : forall {a A x} {xs : List {a} A} (e : x elem xs) ->
                      let ys , zs = elemSplit e in
-                     (length ys ≤th length xs) * (length zs ≤th length xs)
+                     (length ys ≤th length xs) × (length zs ≤th length xs)
 elemSplitThinnings here = z≤th _ , o' (≤th-refl _)
 elemSplitThinnings (there e) with elemSplitThinnings e
 ... | yth , zth = os yth , o' zth
@@ -1253,7 +1187,7 @@ mapMaybe : forall {a b} {A : Set a} {B : Set b} -> (A -> B) -> Maybe A -> Maybe 
 mapMaybe f (just x) = just (f x)
 mapMaybe f nothing = nothing
 
-infixr 4 _>>=_ _*M_
+infixr 4 _>>=_ _×M_
 _>>=_ : forall {a b} {A : Set a} {B : Set b} -> Maybe A -> (A -> Maybe B) -> Maybe B
 just a >>= amb = amb a
 nothing >>= amb = nothing
@@ -1262,10 +1196,10 @@ Dec->Maybe : forall {a A} -> Dec {a} A -> Maybe A
 Dec->Maybe (yes p) = just p
 Dec->Maybe (no np) = nothing
 
-_*M_ : forall {a b A B} -> Maybe {a} A -> Maybe {b} B -> Maybe (A * B)
-just x *M just y = just (x , y)
-just x *M nothing = nothing
-nothing *M mb = nothing
+_×M_ : forall {a b A B} -> Maybe {a} A -> Maybe {b} B -> Maybe (A × B)
+just x ×M just y = just (x , y)
+just x ×M nothing = nothing
+nothing ×M mb = nothing
 
 IfJust : forall {a p A} -> Maybe {a} A -> (A -> Set p) -> Set p
 IfJust (just x) P = P x
