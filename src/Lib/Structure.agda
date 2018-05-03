@@ -62,8 +62,8 @@ module Lib.Structure {c l} (S : Setoid c l) where
 
   record IsMeetSemilattice {l'} (_≤_ : Rel l') (meet : Op2) : Set (c ⊔ l ⊔ l') where
     field
-      lowerBound : (forall a b -> meet a b ≤ a) × (forall a b -> meet a b ≤ b)
-      greatest : forall {a b m} -> m ≤ a -> m ≤ b -> m ≤ meet a b
+      lowerBound : (∀ a b → meet a b ≤ a) × (∀ a b → meet a b ≤ b)
+      greatest : ∀ {a b m} → m ≤ a → m ≤ b → m ≤ meet a b
       isPoset : IsPoset _≤_
     open IsPoset isPoset public
 
@@ -82,10 +82,10 @@ module Lib.Structure {c l} (S : Setoid c l) where
 
   record IsLattice {l'} (_≤_ : Rel l') (meet join : Op2) : Set (c ⊔ l ⊔ l') where
     field
-      lowerBound : (forall a b -> meet a b ≤ a) × (forall a b -> meet a b ≤ b)
-      upperBound : (forall a b -> a ≤ join a b) × (forall a b -> b ≤ join a b)
-      greatest : forall {a b m} -> m ≤ a -> m ≤ b -> m ≤ meet a b
-      least : forall {a b m} -> a ≤ m -> b ≤ m -> join a b ≤ m
+      lowerBound : (∀ a b → meet a b ≤ a) × (∀ a b → meet a b ≤ b)
+      upperBound : (∀ a b → a ≤ join a b) × (∀ a b → b ≤ join a b)
+      greatest : ∀ {a b m} → m ≤ a → m ≤ b → m ≤ meet a b
+      least : ∀ {a b m} → a ≤ m → b ≤ m → join a b ≤ m
       isPoset : IsPoset _≤_
     open IsPoset isPoset public
 

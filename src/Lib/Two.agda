@@ -5,6 +5,6 @@ module Lib.Two where
   data Two : Set where
     tt ff : Two
 
-  T : Two -> Set
+  T : Two → Set
   T tt = One
   T ff = Zero
