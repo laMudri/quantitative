@@ -15,35 +15,35 @@ module Quantitative.Types.Checker
   Is~>? BASE = no \ { (_ , _ , ()) }
   Is~>? (S0 ~> S1) = yes (S0 , S1 , refl)
 
-  synthUnique : forall {n} {D : Ctx n} {e : Term n syn} {S S' : QTy} ->
-                D |-t e ∈ S -> D |-t e ∈ S' -> S' == S
+  synthUnique : forall {n} {Γ : TCtx n} {e : Term n syn} {S S' : Ty} ->
+                Γ |-t e ∈ S -> Γ |-t e ∈ S' -> S' == S
   synthUnique var var = refl
   synthUnique (app et st) (app et' st') with synthUnique et et'
   ... | refl = refl
   synthUnique (the st) (the st') = refl
 
-  synthType : forall {n} (D : Ctx n) (e : Term n syn) ->
-              Dec (Sg _ \ S -> D |-t e ∈ S)
-  checkType : forall {n} (D : Ctx n) (S : QTy) (s : Term n chk) ->
-              Dec (D |-t S ∋ s)
+  synthType : forall {n} (Γ : TCtx n) (e : Term n syn) ->
+              Dec (Sg _ \ S -> Γ |-t e ∈ S)
+  checkType : forall {n} (Γ : TCtx n) (S : Ty) (s : Term n chk) ->
+              Dec (Γ |-t S ∋ s)
 
-  synthType D (var th) = yes (1≤th-index th D , var)
-  synthType D (app e s) with synthType D e
+  synthType Γ (var th) = yes (1≤th-index th Γ , var)
+  synthType Γ (app e s) with synthType Γ e
   ... | no np = no (np o \ { (_ , app et st) -> _ , et })
   ... | yes (ST , et) with Is~>? ST
   ...   | no np = no \ { (_ , app et' st') → np (_ , _ , synthUnique et et') }
   ...   | yes (S0 , S1 , refl) =
-    mapDec (\ st -> S1 , app et st) inv (checkType D S0 s)
+    mapDec (\ st -> S1 , app et st) inv (checkType Γ S0 s)
     where
-    inv : (Sg _ \ T' -> D |-t app e s ∈ T') -> D |-t S0 ∋ s
+    inv : (Sg _ \ T' -> Γ |-t app e s ∈ T') -> Γ |-t S0 ∋ s
     inv (T' , app et' st') with synthUnique et et'
     ... | refl = st'
-  synthType D (the T s) = mapDec (\ st -> T , the st) (\ { (_ , the st) -> st }) (checkType D T s)
+  synthType Γ (the T s) = mapDec (\ st -> T , the st) (\ { (_ , the st) -> st }) (checkType Γ T s)
 
-  checkType D S (lam s) with Is~>? S
+  checkType Γ S (lam s) with Is~>? S
   ... | no np = no (np o \ { (lam st) -> _ , _ , refl })
   ... | yes (S0 , S1 , refl) =
-    mapDec lam (\ { (lam st) -> st }) (checkType (S0 :: D) S1 s)
-  checkType D S [ e ] with synthType D e
+    mapDec lam (\ { (lam st) -> st }) (checkType (S0 :: Γ) S1 s)
+  checkType Γ S [ e ] with synthType Γ e
   ... | no np = no (np o \ { [ et ] -> S , et })
-  ... | yes (S' , et) = mapDec (\ { refl -> [ et ] }) (\ { [ et' ] → synthUnique et et' }) (S ==QTy? S')
+  ... | yes (S' , et) = mapDec (\ { refl -> [ et ] }) (\ { [ et' ] → synthUnique et et' }) (S ==Ty? S')

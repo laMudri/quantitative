@@ -8,6 +8,7 @@ module Quantitative.Resources.Checker
   open import Quantitative.Syntax C POS
   open import Quantitative.Syntax.Substitution C POS
   open import Quantitative.Resources C POS
+  open import Quantitative.Resources.Context C POS
   open import Quantitative.Resources.Substitution C POS as QRS hiding (module DecLE)
 
   open import Lib.Common
@@ -16,43 +17,43 @@ module Quantitative.Resources.Checker
     open QRS.DecLE _≤?_
 
     inferRes : forall {n d} (t : Term n d) ->
-               Maybe (Sg _ \ G -> G |-r t × forall {G'} -> G' |-r t -> G' ≤G G)
-    inferRes (var th) = just (_ , var (≤G-refl _) , \ { (var th') -> th' })
+               Maybe (Sg _ \ Δ -> Δ |-r t × forall {Δ'} -> Δ' |-r t -> Δ' ≤Δ Δ)
+    inferRes (var th) = just (_ , var (≤Δ-refl _) , \ { (var th') -> th' })
     inferRes (app e s) =
-      mapMaybe (\ { ((Ge , er , eb) , (Gs , sr , sb)) ->
-                  Ge +G Gs
-                  , app (≤G-refl _) er sr
-                  , \ { (app split' er' sr') -> ≤G-trans split' (eb er' +G-mono sb sr') } })
+      mapMaybe (\ { ((Δe , er , eb) , (Δs , sr , sb)) ->
+                  Δe +Δ Δs
+                  , app (≤Δ-refl _) er sr
+                  , \ { (app split' er' sr') -> ≤Δ-trans split' (eb er' +Δ-mono sb sr') } })
                (inferRes e ×M inferRes s)
     inferRes (the S s) = mapMaybe (mapSg id (mapSg the \ b -> \ { (the sr) -> b sr })) (inferRes s)
     inferRes (lam s) =
-      inferRes s                   >>= \ { (rhos :: G , sr , sb) ->
+      inferRes s                   >>= \ { (rhos :: Δ , sr , sb) ->
       Dec->Maybe (e1 ≤? rhos) >>= \ le ->
-      just (_ , lam (weakenRes (le :: ≤G-refl _) sr) , \ { (lam sr') -> tailVZip (sb sr') }) }
+      just (_ , lam (weakenRes (le :: ≤Δ-refl _) sr) , \ { (lam sr') -> tailVZip (sb sr') }) }
     inferRes [ e ] = mapMaybe (mapSg id (mapSg [_] \ b -> \ { ([ er ]) -> b er })) (inferRes e)
 
     -- interesting things happen where a variable is bound,
     -- i.e, where there is a possibility of failure
-    inferResComplete : forall {n G d} (t : Term n d) -> G |-r t ->
-                       Sg _ \ G' ->
-                       Sg (G' |-r t) \ r' ->
-                       Sg (forall {G''} -> G'' |-r t -> G'' ≤G G') \ b' ->
-                       inferRes t == just (G' , r' , b')
+    inferResComplete : forall {n Δ d} (t : Term n d) -> Δ |-r t ->
+                       Sg _ \ Δ' ->
+                       Sg (Δ' |-r t) \ r' ->
+                       Sg (forall {Δ''} -> Δ'' |-r t -> Δ'' ≤Δ Δ') \ b' ->
+                       inferRes t == just (Δ' , r' , b')
     inferResComplete (var th) (var sub) = _ , _ , _ , refl
     inferResComplete (app e s) (app split er sr)
       with inferResComplete e er | inferResComplete s sr
-    ... | Ge' , er' , eb' , eeq | Gs' , sr' , sb' , seq rewrite eeq | seq = _ , _ , _ , refl
+    ... | Δe' , er' , eb' , eeq | Δs' , sr' , sb' , seq rewrite eeq | seq = _ , _ , _ , refl
     inferResComplete (the S s) (the sr) with inferResComplete s sr
-    ... | G' , sr' , sb' , eq rewrite eq = _ , _ , _ , refl
+    ... | Δ' , sr' , sb' , eq rewrite eq = _ , _ , _ , refl
     inferResComplete (lam s) (lam sr) with inferResComplete s sr
-    ... | rhos' :: G' , sr' , sb' , eq rewrite eq with e1 ≤? rhos'
+    ... | rhos' :: Δ' , sr' , sb' , eq rewrite eq with e1 ≤? rhos'
     ... | yes p = _ , _ , _ , refl
     ... | no np = Zero-elim (np (headVZip (sb' sr)))
     inferResComplete [ e ] [ er ] with inferResComplete e er
-    ... | G' , er' , eb' , eq rewrite eq = _ , _ , _ , refl
+    ... | Δ' , er' , eb' , eq rewrite eq = _ , _ , _ , refl
 
     bestRes? : forall {n d} (t : Term n d) ->
-               Dec (Sg _ \ G -> G |-r t × forall {G'} -> G' |-r t -> G' ≤G G)
+               Dec (Sg _ \ Δ -> Δ |-r t × forall {Δ'} -> Δ' |-r t -> Δ' ≤Δ Δ)
     bestRes? t with inferRes t | inspect inferRes t
     ... | just p | _ = yes p
     ... | nothing | ingraph eq =

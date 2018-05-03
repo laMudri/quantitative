@@ -12,41 +12,41 @@ module Quantitative.Types
   infix 4 _∈_ _∋_ _:-:_
   infix 3 _|-t_
 
-  record Consequent {n d} (t : Term n d) (T : QTy) : Set c where
+  record Consequent {n d} (t : Term n d) (T : Ty) : Set c where
     constructor consequent
 
-  _∈_ : forall {n} (e : Term n syn) (T : QTy) -> Consequent e T
+  _∈_ : forall {n} (e : Term n syn) (T : Ty) -> Consequent e T
   e ∈ T = consequent
 
-  _∋_ : forall {n} (T : QTy) (s : Term n chk) -> Consequent s T
+  _∋_ : forall {n} (T : Ty) (s : Term n chk) -> Consequent s T
   T ∋ s = consequent
 
-  _:-:_ : forall {n d} (t : Term n d) (T : QTy) -> Consequent t T
+  _:-:_ : forall {n d} (t : Term n d) (T : Ty) -> Consequent t T
   t :-: T = consequent
 
-  Ctx : Nat -> Set c
-  Ctx = Vec QTy
+  TCtx : Nat -> Set c
+  TCtx = Vec Ty
 
   -- type correctness
-  data _|-t_ {n} (D : Ctx n)
+  data _|-t_ {n} (Γ : TCtx n)
              : forall {d} {t : Term n d} {T} -> Consequent t T -> Set c where
     var : forall {th}
           ->
-          D |-t var th ∈ (1≤th-index th D)
+          Γ |-t var th ∈ (1≤th-index th Γ)
     app : forall {e s S T}
-          (et : D |-t e ∈ S ~> T) (st : D |-t S ∋ s)
+          (et : Γ |-t e ∈ S ~> T) (st : Γ |-t S ∋ s)
           ->
-          D |-t app e s ∈ T
+          Γ |-t app e s ∈ T
     the : forall {S s}
-          (st : D |-t S ∋ s)
+          (st : Γ |-t S ∋ s)
           ->
-          D |-t the S s ∈ S
+          Γ |-t the S s ∈ S
 
     lam : forall {s S T}
-          (st : S :: D |-t T ∋ s)
+          (st : S :: Γ |-t T ∋ s)
           ->
-          D |-t S ~> T ∋ lam s
+          Γ |-t S ~> T ∋ lam s
     [_] : forall {e S}
-          (et : D |-t e ∈ S)
+          (et : Γ |-t e ∈ S)
           ->
-          D |-t S ∋ [ e ]
+          Γ |-t S ∋ [ e ]

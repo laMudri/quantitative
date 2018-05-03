@@ -12,35 +12,35 @@ module Quantitative.Types.Substitution
   open import Lib.Common
 
   punchInNManyVarsTy :
-    forall {m n l d T} {t : Term _ d} {Dm : Ctx m} (Dn : Ctx n) (Dl : Ctx l) ->
-    Dl +V Dm |-t t :-: T -> Dl +V Dn +V Dm |-t punchInNManyVars n l t :-: T
-  punchInNManyVarsTy {Dm = Dm} Dn Dl (var {th = th})
-    rewrite sym (1≤th-index-punchInNMany Dl Dn Dm th) = var
-  punchInNManyVarsTy Dn Dl (app et st) =
-    app (punchInNManyVarsTy Dn Dl et) (punchInNManyVarsTy Dn Dl st)
-  punchInNManyVarsTy Dn Dl (the st) =
-    the (punchInNManyVarsTy Dn Dl st)
-  punchInNManyVarsTy Dn Dl (lam {S = S} st) =
-    lam (punchInNManyVarsTy Dn (S :: Dl) st)
-  punchInNManyVarsTy Dn Dl [ et ] =
-    [ punchInNManyVarsTy Dn Dl et ]
+    forall {m n l d T} {t : Term _ d} {Γm : TCtx m} (Γn : TCtx n) (Γl : TCtx l) ->
+    Γl +V Γm |-t t :-: T -> Γl +V Γn +V Γm |-t punchInNManyVars n l t :-: T
+  punchInNManyVarsTy {Γm = Γm} Γn Γl (var {th = th})
+    rewrite sym (1≤th-index-punchInNMany Γl Γn Γm th) = var
+  punchInNManyVarsTy Γn Γl (app et st) =
+    app (punchInNManyVarsTy Γn Γl et) (punchInNManyVarsTy Γn Γl st)
+  punchInNManyVarsTy Γn Γl (the st) =
+    the (punchInNManyVarsTy Γn Γl st)
+  punchInNManyVarsTy Γn Γl (lam {S = S} st) =
+    lam (punchInNManyVarsTy Γn (S :: Γl) st)
+  punchInNManyVarsTy Γn Γl [ et ] =
+    [ punchInNManyVarsTy Γn Γl et ]
 
-  SubstTy : forall {m n} -> Subst m n -> Ctx m -> Ctx n -> Set c
-  SubstTy {m} {n} vf Dm Dn = (th : 1 ≤th m) -> Dn |-t vf th ∈ 1≤th-index th Dm
+  SubstTy : forall {m n} -> Subst m n -> TCtx m -> TCtx n -> Set c
+  SubstTy {m} {n} vf Γm Γn = (th : 1 ≤th m) -> Γn |-t vf th ∈ 1≤th-index th Γm
 
-  singleSubstTy : forall {m D e S} -> D |-t e ∈ S -> SubstTy (singleSubst {m} e) (S :: D) D
+  singleSubstTy : forall {m Γ e S} -> Γ |-t e ∈ S -> SubstTy (singleSubst {m} e) (S :: Γ) Γ
   singleSubstTy et (os th) = et
   singleSubstTy et (o' th) = var
 
-  liftSubstTy : forall {m n Dm Dn} T (vf : Subst m n) ->
-                SubstTy vf Dm Dn -> SubstTy (liftSubst vf) (T :: Dm) (T :: Dn)
+  liftSubstTy : forall {m n Γm Γn} T (vf : Subst m n) ->
+                SubstTy vf Γm Γn -> SubstTy (liftSubst vf) (T :: Γm) (T :: Γn)
   liftSubstTy T vf vft (os th) = var
   liftSubstTy T vf vft (o' th) = punchInNManyVarsTy (T :: nil) nil (vft th)
 
   substituteTy :
-    forall {m n d T} {t : Term m d} {Dm : Ctx m} {Dn : Ctx n} ->
-    Dm |-t t :-: T -> (vf : Subst m n) -> SubstTy vf Dm Dn ->
-    Dn |-t substitute t vf :-: T
+    forall {m n d T} {t : Term m d} {Γm : TCtx m} {Γn : TCtx n} ->
+    Γm |-t t :-: T -> (vf : Subst m n) -> SubstTy vf Γm Γn ->
+    Γn |-t substitute t vf :-: T
   substituteTy (var {th = th}) vf vft = vft th
   substituteTy (app et st) vf vft =
     app (substituteTy et vf vft) (substituteTy st vf vft)
@@ -49,8 +49,8 @@ module Quantitative.Types.Substitution
     lam (substituteTy st (liftSubst vf) (liftSubstTy _ vf vft))
   substituteTy [ et ] vf vft = [ substituteTy et vf vft ]
 
-  ~~>-preservesTy : forall {n D d T} {t u : Term n d} (tt : D |-t t :-: T) ->
-                    t ~~> u -> D |-t u :-: T
+  ~~>-preservesTy : forall {n Γ d T} {t u : Term n d} (tt : Γ |-t t :-: T) ->
+                    t ~~> u -> Γ |-t u :-: T
   ~~>-preservesTy (app (the (lam s0t)) s1t) (beta S T s0 s1) =
     the (substituteTy s0t (singleSubst (the S s1)) (singleSubstTy (the s1t)))
   ~~>-preservesTy [ the st ] (upsilon S s) = st

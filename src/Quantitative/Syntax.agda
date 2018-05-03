@@ -9,9 +9,9 @@ module Quantitative.Syntax
   open import Lib.Common
 
   infixr 30 _~>_
-  data QTy : Set c where
-    BASE : QTy
-    _~>_ : QTy -> QTy -> QTy
+  data Ty : Set c where
+    BASE : Ty
+    _~>_ : Ty -> Ty -> Ty
 
   data Dir : Set where
     syn chk : Dir
@@ -19,7 +19,7 @@ module Quantitative.Syntax
   data Term (n : Nat) : Dir -> Set c where
     var : (th : 1 ≤th n) -> Term n syn
     app : (e : Term n syn) (s : Term n chk) -> Term n syn
-    the : (S : QTy) (s : Term n chk) -> Term n syn
+    the : (S : Ty) (s : Term n chk) -> Term n syn
 
     lam : (s : Term (succ n) chk) -> Term n chk
     [_] : (e : Term n syn) -> Term n chk
@@ -27,11 +27,11 @@ module Quantitative.Syntax
   var# : forall {n} m {less : Auto (m <th? n)} -> Term n syn
   var# m {less} = var (#th_ m {less})
 
-  _==QTy?_ : (S S' : QTy) -> Dec (S == S')
-  BASE ==QTy? BASE = yes refl
-  BASE ==QTy? (S' ~> T') = no \ ()
-  (S ~> T) ==QTy? BASE = no \ ()
-  (S ~> T) ==QTy? (S' ~> T') =
+  _==Ty?_ : (S S' : Ty) -> Dec (S == S')
+  BASE ==Ty? BASE = yes refl
+  BASE ==Ty? (S' ~> T') = no \ ()
+  (S ~> T) ==Ty? BASE = no \ ()
+  (S ~> T) ==Ty? (S' ~> T') =
     mapDec (\ { (refl , refl) -> refl })
            (\ { refl -> (refl , refl) })
-           ((S ==QTy? S') ×? (T ==QTy? T'))
+           ((S ==Ty? S') ×? (T ==Ty? T'))
