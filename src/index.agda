@@ -9,6 +9,7 @@ module index where
   import Lib.Sum
   import Lib.Two
   import Lib.Dec
+  import Lib.Module
   import Lib.Nat
   import Lib.Thinning
   import Lib.Vec

@@ -5,7 +5,6 @@ module Quantitative.Resources.Context
   {c l'} (C : Set c) (POS : Posemiring (≡-Setoid C) l') where
 
   open import Quantitative.Syntax C POS
-  --open R hiding (_≤_; ≤-refl; ≤-reflexive)
 
   open import Lib.Equality
   open import Lib.Nat
@@ -77,13 +76,27 @@ module Quantitative.Resources.Context
 
   -- Operations for building contexts
 
+  setoid : Nat → Setoid _ _
+  setoid n = record
+    { C = RCtx n
+    ; setoidOver = record
+      { _≈_ = _≈_
+      ; isSetoid = record
+        { refl = ≈-refl _
+        ; sym = ≈-sym
+        ; trans = ≈-trans
+        }
+      }
+    }
+
   infixl 6 _+Δ_ _+Δ-mono_ _+Δ-cong_
   infixl 7 _*Δ_ _*Δ-mono_ _*Δ-cong_
 
-  0Δ : ∀ {n} → RCtx n
+  0Δ 1Δ : ∀ {n} → RCtx n
   0Δ = replicateVec _ R.e0
+  1Δ = replicateVec _ R.e1
 
-  varRCtx : ∀ {n} → Fin n → C → RCtx n
+  varRCtx : ∀ {n} → 1 Θ.≤ n → C → RCtx n
   varRCtx (os th) rho = rho :: 0Δ
   varRCtx (o' th) rho = R.e0 :: varRCtx th rho
 
@@ -147,12 +160,12 @@ module Quantitative.Resources.Context
 
   e0*Δ : ∀ {n} Δ → R.e0 *Δ Δ ≈ 0Δ {n}
   e0*Δ nil = nil
-  e0*Δ (p :: Δ) = fst R.annihil p :: e0*Δ Δ
+  e0*Δ (p :: Δ) = snd R.annihil p :: e0*Δ Δ
 
   *Δempty : ∀ {n} rho → rho *Δ 0Δ ≈ 0Δ {n}
   *Δempty rho =
     rho *Δ replicateVec _ R.e0     ≈[ vmap-replicateVec (rho R.*_) _ R.e0 ]Δ
-    replicateVec _ (rho R.* R.e0)  ≈[ replicateVZip _ (snd R.annihil rho) ]Δ
+    replicateVec _ (rho R.* R.e0)  ≈[ replicateVZip _ (fst R.annihil rho) ]Δ
     replicateVec _ R.e0            ≈-QED
 
   *Δ-distrib-+ : ∀ {n} (Δ : RCtx n) (rho rho' : C) →

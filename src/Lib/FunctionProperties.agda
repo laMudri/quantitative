@@ -35,10 +35,10 @@ module Lib.FunctionProperties {c l} (S : Setoid c l) where
   Comm _·_ = ∀ x y → (x · y) ≈ (y · x)
 
   AnnihilLeft : Op2 → C → Set _
-  AnnihilLeft _·_ z = ∀ x → (z · x) ≈ z
+  AnnihilLeft _·_ z = ∀ x → (x · z) ≈ z
 
   AnnihilRight : Op2 → C → Set _
-  AnnihilRight _·_ z = ∀ x → (x · z) ≈ z
+  AnnihilRight _·_ z = ∀ x → (z · x) ≈ z
 
   Annihil : Op2 → C → Set _
   Annihil _·_ z = AnnihilLeft _·_ z × AnnihilRight _·_ z

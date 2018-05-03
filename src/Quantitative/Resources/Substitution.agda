@@ -106,7 +106,7 @@ module Quantitative.Resources.Substitution
                Δ |-r*[ rhos ] 1≤-tabulate vf → e0 :: Δ |-r*[ rhos ] 1≤-tabulate (punchInNManyVars 1 0 o vf)
   lift|-r*[] (nil split) = nil (R.≤-refl :: split)
   lift|-r*[] (cons split tr tsr) =
-    cons (R.≤-reflexive (sym (trans (snd +-identity _) (snd annihil _))) :: split)
+    cons (R.≤-reflexive (sym (trans (snd +-identity _) (fst annihil _))) :: split)
          (punchInNManyVarsRes nil (Δ.≤-refl _) tr)
          (lift|-r*[] tsr)
 
