@@ -9,7 +9,11 @@ module Quantitative.Types.Checker
   open import Quantitative.Syntax C POS
   open import Quantitative.Types C POS
 
-  open import Lib.Common
+  open import Lib.Dec
+  open import Lib.Equality
+  open import Lib.Function
+  open import Lib.Product
+  open import Lib.Vec
 
   Is~>? : forall S -> Dec (Sg _ \ S0 -> Sg _ \ S1 -> S0 ~> S1 == S)
   Is~>? BASE = no \ { (_ , _ , ()) }

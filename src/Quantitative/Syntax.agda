@@ -6,7 +6,11 @@ module Quantitative.Syntax
 
   open Posemiring POS
 
-  open import Lib.Common
+  open import Lib.Dec
+  open import Lib.Equality
+  open import Lib.Nat
+  open import Lib.Product
+  open import Lib.Thinning
 
   infixr 30 _~>_
   data Ty : Set c where

@@ -7,7 +7,8 @@ module Quantitative.Types
   open Posemiring POS
   open import Quantitative.Syntax C POS
 
-  open import Lib.Common
+  open import Lib.Nat
+  open import Lib.Vec
 
   infix 4 _∈_ _∋_ _:-:_
   infix 3 _|-t_

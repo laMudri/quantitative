@@ -1,6 +1,19 @@
 module index where
-  import Lib.Base
-  import Lib.Common
+  import Lib.Level
+  import Lib.One
+  import Lib.Product
+  import Lib.Function
+  import Lib.Level
+  import Lib.Zero
+  import Lib.Equality
+  import Lib.Sum
+  import Lib.Two
+  import Lib.Dec
+  import Lib.Nat
+  import Lib.Thinning
+  import Lib.Vec
+  import Lib.VZip
+  import Lib.Maybe
   import Lib.FunctionProperties
   import Lib.Setoid
   import Lib.Structure

@@ -7,7 +7,12 @@ module Quantitative.Resources.Context
   open Posemiring POS
   open import Quantitative.Syntax C POS
 
-  open import Lib.Common
+  open import Lib.Equality
+  open import Lib.Nat
+  open import Lib.Product
+  open import Lib.Thinning
+  open import Lib.Vec
+  open import Lib.VZip
 
   -- Resource contexts
 

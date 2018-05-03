@@ -10,7 +10,17 @@ module Quantitative.Resources.Substitution
   open import Quantitative.Resources C POS
   open import Quantitative.Resources.Context C POS
 
-  open import Lib.Common
+  open import Lib.Dec
+  open import Lib.Equality
+  open import Lib.Function
+  open import Lib.Level
+  open import Lib.One
+  open import Lib.Nat
+  open import Lib.Product
+  open import Lib.Sum
+  open import Lib.Thinning
+  open import Lib.Vec
+  open import Lib.VZip
 
   varRCtx-part :
     forall l {m} (th : 1 ≤th l +N m) rho ->

@@ -7,7 +7,8 @@ module Quantitative.Syntax.Substitution
   open Posemiring POS
   open import Quantitative.Syntax C POS
 
-  open import Lib.Common
+  open import Lib.Nat
+  open import Lib.Thinning
 
   punchInNManyVars : forall {m d} n l -> Term (l +N m) d -> Term (l +N n +N m) d
   punchInNManyVars n l (var th) = var (punchInNMany l n th)

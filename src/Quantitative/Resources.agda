@@ -8,7 +8,8 @@ module Quantitative.Resources
   open import Quantitative.Syntax C POS
   open import Quantitative.Resources.Context C POS
 
-  open import Lib.Common
+  open import Lib.Level
+  open import Lib.Vec
 
   infix 3 _|-r_
 

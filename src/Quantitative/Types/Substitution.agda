@@ -9,7 +9,9 @@ module Quantitative.Types.Substitution
   open import Quantitative.Syntax.Substitution C POS
   open import Quantitative.Types C POS
 
-  open import Lib.Common
+  open import Lib.Equality
+  open import Lib.Thinning
+  open import Lib.Vec
 
   punchInNManyVarsTy :
     forall {m n l d T} {t : Term _ d} {Γm : TCtx m} (Γn : TCtx n) (Γl : TCtx l) ->

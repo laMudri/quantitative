@@ -11,7 +11,14 @@ module Quantitative.Resources.Checker
   open import Quantitative.Resources.Context C POS
   open import Quantitative.Resources.Substitution C POS as QRS hiding (module DecLE)
 
-  open import Lib.Common
+  open import Lib.Dec
+  open import Lib.Equality
+  open import Lib.Function
+  open import Lib.Maybe
+  open import Lib.Product
+  open import Lib.Vec
+  open import Lib.VZip
+  open import Lib.Zero
 
   module DecLE (_≤?_ : forall x y -> Dec (x ≤ y)) where
     open QRS.DecLE _≤?_
@@ -27,7 +34,7 @@ module Quantitative.Resources.Checker
                (inferRes e ×M inferRes s)
     inferRes (the S s) = mapMaybe (mapSg id (mapSg the \ b -> \ { (the sr) -> b sr })) (inferRes s)
     inferRes (lam s) =
-      inferRes s                   >>= \ { (rhos :: Δ , sr , sb) ->
+      inferRes s              >>= \ { (rhos :: Δ , sr , sb) ->
       Dec->Maybe (e1 ≤? rhos) >>= \ le ->
       just (_ , lam (weakenRes (le :: ≤Δ-refl _) sr) , \ { (lam sr') -> tailVZip (sb sr') }) }
     inferRes [ e ] = mapMaybe (mapSg id (mapSg [_] \ b -> \ { ([ er ]) -> b er })) (inferRes e)
