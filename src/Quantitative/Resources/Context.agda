@@ -7,6 +7,7 @@ module Quantitative.Resources.Context
   open import Quantitative.Syntax C POS
 
   open import Lib.Equality
+  open import Lib.Module
   open import Lib.Nat
   open import Lib.Product
   open import Lib.Thinning as Θ hiding (_≤_; ≤-refl)
@@ -179,3 +180,54 @@ module Quantitative.Resources.Context
   *Δ-distrib-+Δ rho nil nil = nil
   *Δ-distrib-+Δ rho (p :: Δ) (p' :: Δ') =
     fst R.distrib rho p p' :: *Δ-distrib-+Δ rho Δ Δ'
+
+  posemimodule : ∀ n → Posemimodule (≡-Setoid C) (setoid n) _ _
+  posemimodule n = record
+    { _≤s_ = R._≤_
+    ; _≤f_ = _≤_
+    ; 0s = R.e0
+    ; 1s = R.e1
+    ; _+s_ = R._+_
+    ; _*s_ = R._*_
+    ; 0f = 0Δ
+    ; 1f = 1Δ
+    ; _+f_ = _+Δ_
+    ; _*f_ = _*Δ_
+    ; isPosemimodule = record
+      { _+s-mono_ = R._+-mono_
+      ; _*s-mono_ = R._*-mono_
+      ; _+f-mono_ = _+Δ-mono_
+      ; _*f-mono_ = _*Δ-mono_
+      ; ≤s-isPoset = R.isPoset
+      ; ≤f-isPoset = record
+        { antisym = antisym
+        ; isPreorder = record
+          { ≤-reflexive = ≤-reflexive
+          ; ≤-trans = ≤-trans
+          }
+        }
+      ; isSemimodule = record
+        { +*s-isSemiring = R.isSemiring
+        ; +f-isCommutativeMonoid = record
+          { comm = +Δ-comm
+          ; isMonoid = record
+            { identity = fst +Δ-identity , snd +Δ-identity
+            ; assoc = +Δ-assoc
+            ; _·-cong_ = _+Δ-cong_
+            }
+          }
+        ; annihil = *Δempty , e0*Δ
+        ; distrib = *Δ-distrib-+Δ , (λ x y z → *Δ-distrib-+ z x y)
+        ; assoc = assoc
+        ; identity = fst *Δ-identity
+        }
+      }
+    }
+    where
+    assoc : ∀ {n} x y (zs : RCtx n) → (x R.* y) *Δ zs ≈ x *Δ (y *Δ zs)
+    assoc x y nil = nil
+    assoc x y (z :: zs) = R.*-assoc x y z :: assoc x y zs
+
+    antisym : ∀ {n} → Antisym (setoid n) _≤_
+    antisym nil nil = nil
+    antisym (≤R :: ≤Δ) (≥R :: ≥Δ) = R.antisym ≤R ≥R :: antisym ≤Δ ≥Δ
