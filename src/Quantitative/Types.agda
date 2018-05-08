@@ -2,7 +2,7 @@ open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Types
-  {c l'} (C : Set c) (POS : Posemiring (≡-Setoid C) l') where
+  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
 
   open import Quantitative.Syntax C POS
   open R hiding (_≤_; ≤-refl)
@@ -11,7 +11,7 @@ module Quantitative.Types
   open import Lib.Vec
 
   infix 4 _∈_ _∋_ _:-:_
-  infix 3 _|-t_
+  infix 3 _⊢t_
 
   record Consequent {n d} (t : Term n d) (T : Ty) : Set c where
     constructor consequent
@@ -29,25 +29,25 @@ module Quantitative.Types
   TCtx = Vec Ty
 
   -- type correctness
-  data _|-t_ {n} (Γ : TCtx n)
+  data _⊢t_ {n} (Γ : TCtx n)
              : ∀ {d} {t : Term n d} {T} → Consequent t T → Set c where
     var : ∀ {th}
           →
-          Γ |-t var th ∈ (1≤-index th Γ)
+          Γ ⊢t var th ∈ (1≤-index th Γ)
     app : ∀ {e s S T}
-          (et : Γ |-t e ∈ S ~> T) (st : Γ |-t S ∋ s)
+          (et : Γ ⊢t e ∈ S ⊸ T) (st : Γ ⊢t S ∋ s)
           →
-          Γ |-t app e s ∈ T
+          Γ ⊢t app e s ∈ T
     the : ∀ {S s}
-          (st : Γ |-t S ∋ s)
+          (st : Γ ⊢t S ∋ s)
           →
-          Γ |-t the S s ∈ S
+          Γ ⊢t the S s ∈ S
 
     lam : ∀ {s S T}
-          (st : S :: Γ |-t T ∋ s)
+          (st : S :: Γ ⊢t T ∋ s)
           →
-          Γ |-t S ~> T ∋ lam s
+          Γ ⊢t S ⊸ T ∋ lam s
     [_] : ∀ {e S}
-          (et : Γ |-t e ∈ S)
+          (et : Γ ⊢t e ∈ S)
           →
-          Γ |-t S ∋ [ e ]
+          Γ ⊢t S ∋ [ e ]

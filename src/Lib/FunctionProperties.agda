@@ -10,14 +10,14 @@ module Lib.FunctionProperties {c l} (S : Setoid c l) where
   Op2 : Set _
   Op2 = C → C → C
 
-  Rel : (l' : Level) → Set _
-  Rel l' = C → C → Set l'
+  Rel : (l′ : Level) → Set _
+  Rel l′ = C → C → Set l′
 
   --------------------------------------------------------------------------------
   -- Operation properties
 
   Cong2 : Op2 → Set _
-  Cong2 _·_ = ∀ {x x' y y'} → x ≈ x' → y ≈ y' → (x · y) ≈ (x' · y')
+  Cong2 _·_ = ∀ {x x′ y y′} → x ≈ x′ → y ≈ y′ → (x · y) ≈ (x′ · y′)
 
   IdentityLeft : Op2 → C → Set _
   IdentityLeft _·_ e = ∀ x → (e · x) ≈ x
@@ -52,5 +52,5 @@ module Lib.FunctionProperties {c l} (S : Setoid c l) where
   Distrib : Op2 → Op2 → Set _
   Distrib _*_ _+_ = DistribLeft _*_ _+_ × DistribRight _*_ _+_
 
-  Mono : ∀ {l'} → Rel l' → Op2 → Set _
-  Mono _≤_ _·_ = ∀ {x x' y y'} → x ≤ x' → y ≤ y' → (x · y) ≤ (x' · y')
+  Mono : ∀ {l′} → Rel l′ → Op2 → Set _
+  Mono _≤_ _·_ = ∀ {x x′ y y′} → x ≤ x′ → y ≤ y′ → (x · y) ≤ (x′ · y′)

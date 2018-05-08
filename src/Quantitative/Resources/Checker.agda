@@ -2,7 +2,7 @@ open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Resources.Checker
-  {c l'} (C : Set c) (POS : Posemiring (≡-Setoid C) l') where
+  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
 
   open import Quantitative.Syntax C POS
   open import Quantitative.Syntax.Substitution C POS
@@ -23,54 +23,54 @@ module Quantitative.Resources.Checker
     open QRS.DecLE _≤?_
 
     inferRes : ∀ {n d} (t : Term n d) →
-               Maybe (Sg _ \ Δ → Δ |-r t × ∀ {Δ'} → Δ' |-r t → Δ' Δ.≤ Δ)
-    inferRes (var th) = just (_ , var Δ.≤-refl , \ { (var th') → th' })
+               Maybe (∃ λ Δ → Δ ⊢r t × ∀ {Δ′} → Δ′ ⊢r t → Δ′ Δ.≤ Δ)
+    inferRes (var th) = just (_ , var Δ.≤-refl , λ { (var th′) → th′ })
     inferRes (app e s) =
-      mapMaybe (\ { ((Δe , er , eb) , (Δs , sr , sb)) →
+      mapMaybe (λ { ((Δe , er , eb) , (Δs , sr , sb)) →
                     Δe Δ.+ Δs
                   , app Δ.≤-refl er sr
-                  , \ { (app split' er' sr') →
-                        Δ.≤-trans split' (eb er' Δ.+-mono sb sr')
+                  , λ { (app split′ er′ sr′) →
+                        Δ.≤-trans split′ (eb er′ Δ.+-mono sb sr′)
                       }
                   })
                (inferRes e ×M inferRes s)
     inferRes (the S s) =
-      mapMaybe (mapSg id (mapSg the \ b → \ { (the sr) → b sr })) (inferRes s)
+      mapMaybe (mapΣ id (mapΣ the λ b → λ { (the sr) → b sr })) (inferRes s)
     inferRes (lam s) =
-      inferRes s               >>= \ { (rhos :: Δ , sr , sb) →
-      Dec→Maybe (R.e1 ≤? rhos) >>= \ le →
+      inferRes s               >>= λ { (ρs :: Δ , sr , sb) →
+      Dec→Maybe (R.e1 ≤? ρs) >>= λ le →
       just (_ , lam (weakenRes (le :: Δ.≤-refl) sr)
-              , \ { (lam sr') → tailVZip (sb sr') }) }
+              , λ { (lam sr′) → tailVZip (sb sr′) }) }
     inferRes [ e ] =
-      mapMaybe (mapSg id (mapSg [_] \ b → \ { ([ er ]) → b er })) (inferRes e)
+      mapMaybe (mapΣ id (mapΣ [_] λ b → λ { ([ er ]) → b er })) (inferRes e)
 
     -- interesting things happen where a variable is bound,
     -- i.e, where there is a possibility of failure
-    inferResComplete : ∀ {n Δ d} (t : Term n d) → Δ |-r t →
-                       Sg _ \ Δ' →
-                       Sg (Δ' |-r t) \ r' →
-                       Sg (∀ {Δ''} → Δ'' |-r t → Δ'' Δ.≤ Δ') \ b' →
-                       inferRes t ≡ just (Δ' , r' , b')
+    inferResComplete : ∀ {n Δ d} (t : Term n d) → Δ ⊢r t →
+                       ∃ λ Δ′ →
+                       Σ (Δ′ ⊢r t) λ r′ →
+                       Σ (∀ {Δ″} → Δ″ ⊢r t → Δ″ Δ.≤ Δ′) λ b′ →
+                       inferRes t ≡ just (Δ′ , r′ , b′)
     inferResComplete (var th) (var sub) = _ , _ , _ , refl
     inferResComplete (app e s) (app split er sr)
       with inferResComplete e er | inferResComplete s sr
-    ... | Δe' , er' , eb' , eeq | Δs' , sr' , sb' , seq
+    ... | Δe′ , er′ , eb′ , eeq | Δs′ , sr′ , sb′ , seq
       rewrite eeq | seq = _ , _ , _ , refl
     inferResComplete (the S s) (the sr) with inferResComplete s sr
-    ... | Δ' , sr' , sb' , eq rewrite eq = _ , _ , _ , refl
+    ... | Δ′ , sr′ , sb′ , eq rewrite eq = _ , _ , _ , refl
     inferResComplete (lam s) (lam sr) with inferResComplete s sr
-    ... | rhos' :: Δ' , sr' , sb' , eq rewrite eq with R.e1 ≤? rhos'
+    ... | ρs′ :: Δ′ , sr′ , sb′ , eq rewrite eq with R.e1 ≤? ρs′
     ... | yes p = _ , _ , _ , refl
-    ... | no np = Zero-elim (np (headVZip (sb' sr)))
+    ... | no np = Zero-elim (np (headVZip (sb′ sr)))
     inferResComplete [ e ] [ er ] with inferResComplete e er
-    ... | Δ' , er' , eb' , eq rewrite eq = _ , _ , _ , refl
+    ... | Δ′ , er′ , eb′ , eq rewrite eq = _ , _ , _ , refl
 
     bestRes? : ∀ {n d} (t : Term n d) →
-               Dec (Sg _ \ Δ → Δ |-r t × ∀ {Δ'} → Δ' |-r t → Δ' Δ.≤ Δ)
+               Dec (∃ λ Δ → Δ ⊢r t × ∀ {Δ′} → Δ′ ⊢r t → Δ′ Δ.≤ Δ)
     bestRes? t with inferRes t | inspect inferRes t
     ... | just p | _ = yes p
     ... | nothing | ingraph eq =
-      no \ { (_ , r , _) →
+      no λ { (_ , r , _) →
              let _ , _ , _ , eq′ = inferResComplete t r in
              nothing/=just (trans (sym eq) eq′)
            }

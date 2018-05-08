@@ -16,7 +16,7 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
     field
       +*s-isSemiring : IsSemiring S 0s 1s _+s_ _*s_
       +f-isCommutativeMonoid : IsCommutativeMonoid F 0f _+f_
-      _*f-cong_ : ∀ {x x' y y'} → x S.≈ x' → y F.≈ y' → x *f y F.≈ x' *f y'
+      _*f-cong_ : ∀ {x x′ y y′} → x S.≈ x′ → y F.≈ y′ → x *f y F.≈ x′ *f y′
       annihil : (∀ x → x *f 0f F.≈ 0f)
               × (∀ x → 0s *f x F.≈ 0f)
       distrib : (∀ x y z → x *f (y +f z) F.≈ (x *f y) +f (x *f z))
@@ -62,17 +62,17 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
       using ()
       renaming (monoid to +f-monoid)
 
-  record IsPosemimodule {l's l'f} (≤s : Rel S l's) (≤f : Rel F l'f)
+  record IsPosemimodule {l′s l′f} (≤s : Rel S l′s) (≤f : Rel F l′f)
                         (0s 1s : S.C) (+s *s : Op2 S)
                         (0f 1f : F.C) (+f : Op2 F) (*f : S.C → F.C → F.C)
-                        : Set (cs ⊔ cf ⊔ ls ⊔ lf ⊔ l's ⊔ l'f) where
+                        : Set (cs ⊔ cf ⊔ ls ⊔ lf ⊔ l′s ⊔ l′f) where
     infixr 6 _+s-mono_ _+f-mono_
     infixr 7 _*s-mono_ _*f-mono_
     field
       _+s-mono_ : Mono S ≤s +s
       _*s-mono_ : Mono S ≤s *s
       _+f-mono_ : Mono F ≤f +f
-      _*f-mono_ : ∀ {x x' y y'} → ≤s x x' → ≤f y y' → ≤f (*f x y) (*f x' y')
+      _*f-mono_ : ∀ {x x′ y y′} → ≤s x x′ → ≤f y y′ → ≤f (*f x y) (*f x′ y′)
       ≤s-isPoset : IsPoset S ≤s
       ≤f-isPoset : IsPoset F ≤f
       isSemimodule : IsSemimodule 0s 1s +s *s 0f 1f +f *f
@@ -86,13 +86,13 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
                 ≤-refl to ≤f-refl)
     open IsSemimodule isSemimodule public
 
-  record Posemimodule l's l'f : Set (cs ⊔ cf ⊔ ls ⊔ lf ⊔ lsuc (l's ⊔ l'f)) where
+  record Posemimodule l′s l′f : Set (cs ⊔ cf ⊔ ls ⊔ lf ⊔ lsuc (l′s ⊔ l′f)) where
     infixr 4 _≤s_ _≤f_
     infixr 6 _+s_ _+f_
     infixr 7 _*s_ _*f_
     field
-      _≤s_ : Rel S l's
-      _≤f_ : Rel F l'f
+      _≤s_ : Rel S l′s
+      _≤f_ : Rel F l′f
       0s 1s : S.C
       _+s_ _*s_ : Op2 S
       0f 1f : F.C
@@ -101,7 +101,7 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
       isPosemimodule : IsPosemimodule _≤s_ _≤f_ 0s 1s _+s_ _*s_ 0f 1f _+f_ _*f_
     open IsPosemimodule isPosemimodule public
 
-    ≤+*s-posemiring : Posemiring S l's
+    ≤+*s-posemiring : Posemiring S l′s
     ≤+*s-posemiring = record
       { isPosemiring = record
         { _+-mono_ = _+s-mono_

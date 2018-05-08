@@ -14,7 +14,7 @@ module Lib.Equality where
   cong f refl = refl
 
   cong2 : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c}
-          {a a' b b'} (f : A → B → C) → a ≡ a' → b ≡ b' → f a b ≡ f a' b'
+          {a a′ b b′} (f : A → B → C) → a ≡ a′ → b ≡ b′ → f a b ≡ f a′ b′
   cong2 f refl refl = refl
 
   sym : ∀ {a} {A : Set a} {x y : A} → x ≡ y → y ≡ x

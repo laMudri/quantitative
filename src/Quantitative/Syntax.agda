@@ -2,7 +2,7 @@ open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Syntax
-  {c l'} (C : Set c) (POS : Posemiring (≡-Setoid C) l') where
+  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
 
   module R = Posemiring POS ; open R hiding (_≤_; ≤-refl)
 
@@ -12,10 +12,10 @@ module Quantitative.Syntax
   open import Lib.Product
   open import Lib.Thinning
 
-  infixr 30 _~>_
+  infixr 30 _⊸_
   data Ty : Set c where
     BASE : Ty
-    _~>_ : Ty → Ty → Ty
+    _⊸_ : Ty → Ty → Ty
 
   data Dir : Set where
     syn chk : Dir
@@ -31,11 +31,11 @@ module Quantitative.Syntax
   var# : ∀ {n} m {less : Auto (m <? n)} → Term n syn
   var# m {less} = var (#th_ m {less})
 
-  _≟Ty_ : (S S' : Ty) → Dec (S ≡ S')
+  _≟Ty_ : (S S′ : Ty) → Dec (S ≡ S′)
   BASE ≟Ty BASE = yes refl
-  BASE ≟Ty (S' ~> T') = no \ ()
-  (S ~> T) ≟Ty BASE = no \ ()
-  (S ~> T) ≟Ty (S' ~> T') =
-    mapDec (\ { (refl , refl) → refl })
-           (\ { refl → (refl , refl) })
-           ((S ≟Ty S') ×? (T ≟Ty T'))
+  BASE ≟Ty (S′ ⊸ T′) = no λ ()
+  (S ⊸ T) ≟Ty BASE = no λ ()
+  (S ⊸ T) ≟Ty (S′ ⊸ T′) =
+    mapDec (λ { (refl , refl) → refl })
+           (λ { refl → (refl , refl) })
+           ((S ≟Ty S′) ×? (T ≟Ty T′))

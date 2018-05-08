@@ -13,7 +13,7 @@ module Lib.Dec where
   mapDec f g (no np) = no (λ z → np (g z))
 
   Not? : ∀ {x X} → Dec {x} X → Dec (Not X)
-  Not? (yes p) = no \ np → np p
+  Not? (yes p) = no λ np → np p
   Not? (no np) = yes np
 
   floor : ∀ {x X} → Dec {x} X → Two

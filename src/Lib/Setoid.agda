@@ -66,7 +66,7 @@ module Lib.Setoid where
 
   unindexed : ∀ {i c l} {I : Set i} → Setoid c l → SetoidI I c l
   unindexed S = record
-    { C = \ _ → C
+    { C = λ _ → C
     ; setoidIOver = record
       { _≈_ = _≈_
       ; isSetoidI = record
@@ -90,15 +90,15 @@ module Lib.Setoid where
 
   lamS : ∀ {i c l I} → (I → Setoid c l) → SetoidI {i} I c (l ⊔ i)
   lamS F = record
-    { C = \ i → Setoid.C (F i)
+    { C = λ i → Setoid.C (F i)
     ; setoidIOver = record
-      { _≈_ = \ {i} {j} fi fj → Sg (i ≡ j) \ { ≡-refl → let open Setoid (F j) in fi ≈ fj }
+      { _≈_ = λ {i} {j} fi fj → Σ (i ≡ j) λ { ≡-refl → let open Setoid (F j) in fi ≈ fj }
       ; isSetoidI = record
-        { refl = \ {i} → let open Setoid (F i) in ≡-refl , refl
-        ; sym = \ { {i} (≡-refl , xy) →
+        { refl = λ {i} → let open Setoid (F i) in ≡-refl , refl
+        ; sym = λ { {i} (≡-refl , xy) →
                     let open Setoid (F i) in ≡-refl , sym xy
                   }
-        ; trans = \ { {i} (≡-refl , xy) (≡-refl , yz) →
+        ; trans = λ { {i} (≡-refl , xy) (≡-refl , yz) →
                       let open Setoid (F i) in ≡-refl , trans xy yz
                     }
         }
@@ -122,11 +122,11 @@ module Lib.Setoid where
   PiS A B = record
     { C = PiE A B
     ; setoidOver = record
-      { _≈_ = \ f g → ∀ {x y} → x A.≈ y → f $E x B.≈ g $E y
+      { _≈_ = λ f g → ∀ {x y} → x A.≈ y → f $E x B.≈ g $E y
       ; isSetoid = record
-        { refl = \ {f} xy → f $E= xy
-        ; sym = \ {f} {g} fg xy → B.sym (fg (A.sym xy))
-        ; trans = \ {f} {g} {h} fg gh xy → B.trans (fg A.refl) (gh xy)
+        { refl = λ {f} xy → f $E= xy
+        ; sym = λ {f} {g} fg xy → B.sym (fg (A.sym xy))
+        ; trans = λ {f} {g} {h} fg gh xy → B.trans (fg A.refl) (gh xy)
         }
       }
     }
@@ -140,15 +140,15 @@ module Lib.Setoid where
   A →S B = PiS A (unindexed B)
 
   idE : ∀ {a l} (A : Setoid a l) → A →E A
-  idE A = record { _$E_ = \ x → x ; _$E=_ = \ xq → xq }
+  idE A = record { _$E_ = λ x → x ; _$E=_ = λ xq → xq }
 
   infixr 5 _oE_ _>>E_
   _oE_ : ∀ {a b c l m n}
          {A : Setoid a l} {B : Setoid b m} {C : Setoid c n} →
          B →E C → A →E B → A →E C
   g oE f = record
-    { _$E_ = \ x → g $E (f $E x)
-    ; _$E=_ = \ xy → g $E= (f $E= xy)
+    { _$E_ = λ x → g $E (f $E x)
+    ; _$E=_ = λ xy → g $E= (f $E= xy)
     }
 
   _>>E_ : ∀ {a b c l m n}
@@ -159,25 +159,25 @@ module Lib.Setoid where
   constE : ∀ {a b l m} {A : Setoid a l} {B : Setoid b m} →
            A →E (B →S A)
   constE {A = A} {B} = record
-    { _$E_ = \ a → record
-      { _$E_ = \ b → a
-      ; _$E=_ = \ bq → Setoid.refl A
+    { _$E_ = λ a → record
+      { _$E_ = λ b → a
+      ; _$E=_ = λ bq → Setoid.refl A
       }
-    ; _$E=_ = \ aq _ → aq
+    ; _$E=_ = λ aq _ → aq
     }
 
   -- Pairs
 
-  SgS : ∀ {a b l m} (A : Setoid a l) (B : SetoidI (Setoid.C A) b m) →
+  ΣS : ∀ {a b l m} (A : Setoid a l) (B : SetoidI (Setoid.C A) b m) →
                          Setoid _ _
-  SgS A B = record
-    { C = Sg A.C B.C
+  ΣS A B = record
+    { C = Σ A.C B.C
     ; setoidOver = record
-      { _≈_ = \ { (ax , bx) (ay , by) → Sg (ax A.≈ ay) (\ aeq → bx B.≈ by) }
+      { _≈_ = λ { (ax , bx) (ay , by) → Σ (ax A.≈ ay) (λ aeq → bx B.≈ by) }
       ; isSetoid = record
         { refl = A.refl , B.refl
-        ; sym = \ { (axy , bxy) → A.sym axy , B.sym bxy }
-        ; trans = \ { (axy , bxy) (ayz , byz)
+        ; sym = λ { (axy , bxy) → A.sym axy , B.sym bxy }
+        ; trans = λ { (axy , bxy) (ayz , byz)
                    → A.trans axy ayz , B.trans bxy byz
                     }
         }
@@ -186,50 +186,50 @@ module Lib.Setoid where
     where module A = Setoid A ; module B = SetoidI B
 
   _×S_ : ∀ {a b l m} (A : Setoid a l) (B : Setoid b m) → Setoid _ _
-  A ×S B = SgS A (unindexed B)
+  A ×S B = ΣS A (unindexed B)
 
   fstE : ∀ {a b l m} {A : Setoid a l} {B : SetoidI (Setoid.C A) b m} →
-         SgS A B →E A
-  fstE = record { _$E_ = \ { (a , b) → a } ; _$E=_ = \ { (aq , bq) → aq } }
+         ΣS A B →E A
+  fstE = record { _$E_ = λ { (a , b) → a } ; _$E=_ = λ { (aq , bq) → aq } }
 
   sndE : ∀ {a b l m} {A : Setoid a l} {B : Setoid b m} →
          A ×S B →E B
-  sndE = record { _$E_ = \ { (a , b) → b } ; _$E=_ = \ { (aq , bq) → bq } }
+  sndE = record { _$E_ = λ { (a , b) → b } ; _$E=_ = λ { (aq , bq) → bq } }
 
-  map×S : ∀ {a a' b b' l l' m m'}
-          {A : Setoid a l} {A' : Setoid a' l'}
-          {B : Setoid b m} {B' : Setoid b' m'} →
-          A →E A' → B →E B' → A ×S B →E A' ×S B'
+  map×S : ∀ {a a′ b b′ l l′ m m′}
+          {A : Setoid a l} {A′ : Setoid a′ l′}
+          {B : Setoid b m} {B′ : Setoid b′ m′} →
+          A →E A′ → B →E B′ → A ×S B →E A′ ×S B′
   map×S f g = record
-    { _$E_ = \ { (a , b) → f $E a , g $E b }
-    ; _$E=_ = \ { (aq , bq) → f $E= aq , g $E= bq }
+    { _$E_ = λ { (a , b) → f $E a , g $E b }
+    ; _$E=_ = λ { (aq , bq) → f $E= aq , g $E= bq }
     }
 
   pmS : ∀ {a b c l m n} {A : Setoid a l} {B : Setoid b m} {C : Setoid c n} →
         A →E (B →S C) → A ×S B →E C
   pmS f = record
-    { _$E_ = \ { (x , y) → f $E x $E y }
-    ; _$E=_ = \ { (xq , yq) → (f $E= xq) yq }
+    { _$E_ = λ { (x , y) → f $E x $E y }
+    ; _$E=_ = λ { (xq , yq) → (f $E= xq) yq }
     }
 
   --sndE : ∀ {a b l m} {A : Setoid a l} {B : SetoidI (Setoid.C A) b m} →
-  --       PiE (SgS A B) (lamS \ { (a , b) → B $S a })
+  --       PiE (ΣS A B) (lamS λ { (a , b) → B $S a })
   --sndE = record
-  --  { _$E_ = \ { (a , b) → b }
-  --  ; _$E=_ = \ { {ax , bx} {ay , by} (aq , bq) → {!aq!} }
+  --  { _$E_ = λ { (a , b) → b }
+  --  ; _$E=_ = λ { {ax , bx} {ay , by} (aq , bq) → {!aq!} }
   --  }
 
   Subsetoid : ∀ {a p l X} (A : SetoidOver {a} X l) (P : X → Set p) →
               Setoid _ _
   Subsetoid A P =
-    SgS (record { setoidOver = A })
+    ΣS (record { setoidOver = A })
         (record
           { C = P
           ; setoidIOver = record
-            { _≈_ = \ _ _ → One
+            { _≈_ = λ _ _ → One
             ; isSetoidI = record { refl = <>
-                                 ; sym = \ _ → <>
-                                 ; trans = \ _ _ → <>
+                                 ; sym = λ _ → <>
+                                 ; trans = λ _ _ → <>
                                  }
             }
           })
@@ -238,20 +238,20 @@ module Lib.Setoid where
   OneS = record
     { C = One
     ; setoidOver = record
-      { _≈_ = \ _ _ → One
-      ; isSetoid = record { refl = <> ; sym = \ _ → <> ; trans = \ _ _ → <> }
+      { _≈_ = λ _ _ → One
+      ; isSetoid = record { refl = <> ; sym = λ _ → <> ; trans = λ _ _ → <> }
       }
     }
 
-  LiftS : ∀ {a l a' l'} → Setoid a l → Setoid (a ⊔ a') (l ⊔ l')
-  LiftS {a' = a'} {l'} S = record
-    { C = Lift {l = a'} C
+  LiftS : ∀ {a l a′ l′} → Setoid a l → Setoid (a ⊔ a′) (l ⊔ l′)
+  LiftS {a′ = a′} {l′} S = record
+    { C = Lift {l = a′} C
     ; setoidOver = record
-      { _≈_ = \ { (lift x) (lift y) → Lift {l = l'} (x ≈ y) }
+      { _≈_ = λ { (lift x) (lift y) → Lift {l = l′} (x ≈ y) }
       ; isSetoid = record
         { refl = lift refl
-        ; sym = \ { (lift xy) → lift (sym xy) }
-        ; trans = \ { (lift xy) (lift yz) → lift (trans xy yz) }
+        ; sym = λ { (lift xy) → lift (sym xy) }
+        ; trans = λ { (lift xy) (lift yz) → lift (trans xy yz) }
         }
       }
     }
