@@ -1,15 +1,17 @@
+open import Lib.Dec
+open import Lib.Equality
 open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Types.Substitution
-  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
+  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′)
+  (_≟_ : (π ρ : C) → Dec (π ≡ ρ)) where
 
-  open import Quantitative.Syntax C POS
-  open import Quantitative.Syntax.Substitution C POS
-  open import Quantitative.Types C POS
+  open import Quantitative.Syntax C POS _≟_
+  open import Quantitative.Syntax.Substitution C POS _≟_
+  open import Quantitative.Types C POS _≟_
   open R hiding (_≤_; ≤-refl)
 
-  open import Lib.Equality
   open import Lib.Thinning
   open import Lib.Vec
 
@@ -51,11 +53,15 @@ module Quantitative.Types.Substitution
     lam (substituteTy st (liftSubst vf) (liftSubstTy _ vf vft))
   substituteTy [ et ] vf vft = [ substituteTy et vf vft ]
 
-  ~⊸-preservesTy : ∀ {n Γ d T} {t u : Term n d} (tt : Γ ⊢t t :-: T) →
-                    t ~⊸ u → Γ ⊢t u :-: T
-  ~⊸-preservesTy (app (the (lam s0t)) s1t) (beta S T s0 s1) =
-    the (substituteTy s0t (singleSubst (the S s1)) (singleSubstTy (the s1t)))
-  ~⊸-preservesTy [ the st ] (upsilon S s) = st
-  ~⊸-preservesTy (lam s0t) (lam-cong s0 s1 r) = lam (~⊸-preservesTy s0t r)
-  ~⊸-preservesTy (app et st) (app1-cong e2 e3 s r) = app (~⊸-preservesTy et r) st
-  ~⊸-preservesTy (app et st) (app2-cong e s0 s1 r) = app et (~⊸-preservesTy st r)
+  ~~>-preservesTy : ∀ {n Γ d T} {t u : Term n d} (tt : Γ ⊢t t :-: T) →
+                    t ~~> u → Γ ⊢t u :-: T
+  ~~>-preservesTy (app (the (lam tt)) st) (⊸-beta S T s t) =
+    the (substituteTy tt (singleSubst (the S s)) (singleSubstTy (the st)))
+  ~~>-preservesTy [ the st ] (upsilon S s) = st
+  ~~>-preservesTy (lam s0t) (lam-cong s0 s1 r) = lam (~~>-preservesTy s0t r)
+  ~~>-preservesTy (app et st) (app1-cong e2 e3 s r) = app (~~>-preservesTy et r) st
+  ~~>-preservesTy (app et st) (app2-cong e s0 s1 r) = app et (~~>-preservesTy st r)
+  ~~>-preservesTy st (!-beta S T ρ s t) = ?
+  ~~>-preservesTy st (bang-cong ρ s s′ r) = ?
+  ~~>-preservesTy st (bm1-cong S e e′ s r) = ?
+  ~~>-preservesTy st (bm2-cong S e s s′ r) = ?

@@ -1,10 +1,13 @@
+open import Lib.Dec
+open import Lib.Equality
 open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Types
-  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
+  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′)
+  (_≟_ : (π ρ : C) → Dec (π ≡ ρ)) where
 
-  open import Quantitative.Syntax C POS
+  open import Quantitative.Syntax C POS _≟_
   open R hiding (_≤_; ≤-refl)
 
   open import Lib.Nat

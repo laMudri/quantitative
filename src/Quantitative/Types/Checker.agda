@@ -1,23 +1,24 @@
-
+open import Lib.Dec
+open import Lib.Equality
 open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Types.Checker
-  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
+  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′)
+  (_≟_ : (π ρ : C) → Dec (π ≡ ρ)) where
 
-  open import Quantitative.Syntax C POS
-  open import Quantitative.Types C POS
+  open import Quantitative.Syntax C POS _≟_
+  open import Quantitative.Types C POS _≟_
   open R hiding (_≤_; ≤-refl)
 
-  open import Lib.Dec
-  open import Lib.Equality
   open import Lib.Function
   open import Lib.Product
   open import Lib.Vec
 
   Is⊸? : ∀ S → Dec (∃ λ S0 → ∃ λ S1 → S0 ⊸ S1 ≡ S)
   Is⊸? BASE = no λ { (_ , _ , ()) }
-  Is⊸? (S0 ⊸ S1) = yes (S0 , S1 , refl)
+  Is⊸? (S ⊸ T) = yes (S , T , refl)
+  Is⊸? (! ρ S) = no λ { (_ , _ , ()) }
 
   synthUnique : ∀ {n} {Γ : TCtx n} {e : Term n syn} {S S′ : Ty} →
                 Γ ⊢t e ∈ S → Γ ⊢t e ∈ S′ → S′ ≡ S
@@ -42,12 +43,16 @@ module Quantitative.Types.Checker
     inv : (∃ λ T′ → Γ ⊢t app e s ∈ T′) → Γ ⊢t S0 ∋ s
     inv (T′ , app et′ st′) with synthUnique et et′
     ... | refl = st′
-  synthType Γ (the T s) = mapDec (λ st → T , the st) (λ { (_ , the st) → st }) (checkType Γ T s)
+  synthType Γ (bm S e s) = {!!}
+  synthType Γ (the T s) =
+    mapDec (λ st → T , the st) (λ { (_ , the st) → st }) (checkType Γ T s)
 
   checkType Γ S (lam s) with Is⊸? S
   ... | no np = no (np o λ { (lam st) → _ , _ , refl })
   ... | yes (S0 , S1 , refl) =
     mapDec lam (λ { (lam st) → st }) (checkType (S0 :: Γ) S1 s)
+  checkType Γ S (bang ρ s) = {!!}
   checkType Γ S [ e ] with synthType Γ e
   ... | no np = no (np o λ { [ et ] → S , et })
-  ... | yes (S′ , et) = mapDec (λ { refl → [ et ] }) (λ { [ et′ ] → synthUnique et et′ }) (S ≟Ty S′)
+  ... | yes (S′ , et) =
+    mapDec (λ { refl → [ et ] }) (λ { [ et′ ] → synthUnique et et′ }) (S ≟Ty S′)

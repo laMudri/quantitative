@@ -1,12 +1,14 @@
+open import Lib.Dec
+open import Lib.Equality hiding (_QED)
 open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Resources.Context
-  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
+  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′)
+  (_≟_ : (π ρ : C) → Dec (π ≡ ρ)) where
 
-  open import Quantitative.Syntax C POS
+  open import Quantitative.Syntax C POS _≟_
 
-  open import Lib.Equality hiding (_QED)
   open import Lib.Module
   open import Lib.Nat
   open import Lib.Product

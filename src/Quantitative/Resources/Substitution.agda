@@ -1,16 +1,17 @@
+open import Lib.Dec
+open import Lib.Equality
 open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Resources.Substitution
-  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
+  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′)
+  (_≟_ : (π ρ : C) → Dec (π ≡ ρ)) where
 
-  open import Quantitative.Syntax C POS
-  open import Quantitative.Syntax.Substitution C POS
-  open import Quantitative.Resources C POS
-  open import Quantitative.Resources.Context C POS
+  open import Quantitative.Syntax C POS _≟_
+  open import Quantitative.Syntax.Substitution C POS _≟_
+  open import Quantitative.Resources C POS _≟_
+  open import Quantitative.Resources.Context C POS _≟_
 
-  open import Lib.Dec
-  open import Lib.Equality
   open import Lib.Function
   open import Lib.Level
   open import Lib.One
@@ -316,9 +317,9 @@ module Quantitative.Resources.Substitution
       lam (substituteRes sr (liftSubst vf) (liftSubstRes vf vfr))
     substituteRes [ er ] vf vfr = [ substituteRes er vf vfr ]
 
-    ~⊸-preservesRes : ∀ {n d Δ} {t u : Term n d} (tr : Δ ⊢r t) →
-                       t ~⊸ u → Δ ⊢r u
-    ~⊸-preservesRes {Δ = Δ} (app {Δe = Δe} {Δs} split (the (lam s0r)) s1r) (beta S T s0 s1) =
+    ~~>-preservesRes : ∀ {n d Δ} {t u : Term n d} (tr : Δ ⊢r t) →
+                       t ~~> u → Δ ⊢r u
+    ~~>-preservesRes {Δ = Δ} (app {Δe = Δe} {Δs} split (the (lam s0r)) s1r) (⊸-beta S T s0 s1) =
       the (substituteRes s0r _ (singleSubstRes (the {S = S} s1r) (split′ s1r)))
       where
       split-eqs : Δe Δ.+ Δs Δ.≈ R.e1 Δ.* Δs Δ.+ Δe
@@ -329,10 +330,14 @@ module Quantitative.Resources.Substitution
 
       split′ : ∀ {s1} → Δs ⊢r s1 → Δ Δ.≤ R.e1 Δ.* Δs Δ.+ Δe
       split′ s1r = Δ.≤-trans split (Δ.≤-reflexive split-eqs)
-    ~⊸-preservesRes [ the sr ] (upsilon S s) = sr
-    ~⊸-preservesRes (lam s0r) (lam-cong s0 s1 red) =
-      lam (~⊸-preservesRes s0r red)
-    ~⊸-preservesRes (app split e0r sr) (app1-cong e0 e1 s red) =
-      app split (~⊸-preservesRes e0r red) sr
-    ~⊸-preservesRes (app split er s0r) (app2-cong e s0 s1 red) =
-      app split er (~⊸-preservesRes s0r red)
+    ~~>-preservesRes [ the sr ] (upsilon S s) = sr
+    ~~>-preservesRes (lam s0r) (lam-cong s0 s1 red) =
+      lam (~~>-preservesRes s0r red)
+    ~~>-preservesRes (app split e0r sr) (app1-cong e0 e1 s red) =
+      app split (~~>-preservesRes e0r red) sr
+    ~~>-preservesRes (app split er s0r) (app2-cong e s0 s1 red) =
+      app split er (~~>-preservesRes s0r red)
+    ~~>-preservesRes r (!-beta S T ρ s t) = ?
+    ~~>-preservesRes r (bang-cong ρ s s′ red) = ?
+    ~~>-preservesRes r (bm1-cong S e e′ s red) = ?
+    ~~>-preservesRes r (bm2-cong S e s s′ red) = ?
