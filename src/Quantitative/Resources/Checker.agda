@@ -7,9 +7,8 @@ module Quantitative.Resources.Checker
   open import Quantitative.Syntax C POS
   open import Quantitative.Syntax.Substitution C POS
   open import Quantitative.Resources C POS
-  open import Quantitative.Resources.Context C POS as Δ
+  open import Quantitative.Resources.Context C POS
   open import Quantitative.Resources.Substitution C POS as QRS hiding (module DecLE)
-  open R hiding (_≤_; ≤-refl)
 
   open import Lib.Dec
   open import Lib.Equality
@@ -25,19 +24,25 @@ module Quantitative.Resources.Checker
 
     inferRes : ∀ {n d} (t : Term n d) →
                Maybe (Sg _ \ Δ → Δ |-r t × ∀ {Δ'} → Δ' |-r t → Δ' Δ.≤ Δ)
-    inferRes (var th) = just (_ , var (Δ.≤-refl _) , \ { (var th') → th' })
+    inferRes (var th) = just (_ , var Δ.≤-refl , \ { (var th') → th' })
     inferRes (app e s) =
       mapMaybe (\ { ((Δe , er , eb) , (Δs , sr , sb)) →
-                  Δe +Δ Δs
-                  , app (Δ.≤-refl _) er sr
-                  , \ { (app split' er' sr') → Δ.≤-trans split' (eb er' +Δ-mono sb sr') } })
+                    Δe Δ.+ Δs
+                  , app Δ.≤-refl er sr
+                  , \ { (app split' er' sr') →
+                        Δ.≤-trans split' (eb er' Δ.+-mono sb sr')
+                      }
+                  })
                (inferRes e ×M inferRes s)
-    inferRes (the S s) = mapMaybe (mapSg id (mapSg the \ b → \ { (the sr) → b sr })) (inferRes s)
+    inferRes (the S s) =
+      mapMaybe (mapSg id (mapSg the \ b → \ { (the sr) → b sr })) (inferRes s)
     inferRes (lam s) =
-      inferRes s              >>= \ { (rhos :: Δ , sr , sb) →
-      Dec→Maybe (e1 ≤? rhos) >>= \ le →
-      just (_ , lam (weakenRes (le :: Δ.≤-refl _) sr) , \ { (lam sr') → tailVZip (sb sr') }) }
-    inferRes [ e ] = mapMaybe (mapSg id (mapSg [_] \ b → \ { ([ er ]) → b er })) (inferRes e)
+      inferRes s               >>= \ { (rhos :: Δ , sr , sb) →
+      Dec→Maybe (R.e1 ≤? rhos) >>= \ le →
+      just (_ , lam (weakenRes (le :: Δ.≤-refl) sr)
+              , \ { (lam sr') → tailVZip (sb sr') }) }
+    inferRes [ e ] =
+      mapMaybe (mapSg id (mapSg [_] \ b → \ { ([ er ]) → b er })) (inferRes e)
 
     -- interesting things happen where a variable is bound,
     -- i.e, where there is a possibility of failure
@@ -49,11 +54,12 @@ module Quantitative.Resources.Checker
     inferResComplete (var th) (var sub) = _ , _ , _ , refl
     inferResComplete (app e s) (app split er sr)
       with inferResComplete e er | inferResComplete s sr
-    ... | Δe' , er' , eb' , eeq | Δs' , sr' , sb' , seq rewrite eeq | seq = _ , _ , _ , refl
+    ... | Δe' , er' , eb' , eeq | Δs' , sr' , sb' , seq
+      rewrite eeq | seq = _ , _ , _ , refl
     inferResComplete (the S s) (the sr) with inferResComplete s sr
     ... | Δ' , sr' , sb' , eq rewrite eq = _ , _ , _ , refl
     inferResComplete (lam s) (lam sr) with inferResComplete s sr
-    ... | rhos' :: Δ' , sr' , sb' , eq rewrite eq with e1 ≤? rhos'
+    ... | rhos' :: Δ' , sr' , sb' , eq rewrite eq with R.e1 ≤? rhos'
     ... | yes p = _ , _ , _ , refl
     ... | no np = Zero-elim (np (headVZip (sb' sr)))
     inferResComplete [ e ] [ er ] with inferResComplete e er
@@ -65,4 +71,6 @@ module Quantitative.Resources.Checker
     ... | just p | _ = yes p
     ... | nothing | ingraph eq =
       no \ { (_ , r , _) →
-           nothing/=just (trans (sym eq) (snd (snd (snd (inferResComplete t r))))) }
+             let _ , _ , _ , eq′ = inferResComplete t r in
+             nothing/=just (trans (sym eq) eq′)
+           }

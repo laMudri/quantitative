@@ -6,7 +6,7 @@ module Quantitative.Resources.Context
 
   open import Quantitative.Syntax C POS
 
-  open import Lib.Equality
+  open import Lib.Equality hiding (_QED)
   open import Lib.Module
   open import Lib.Nat
   open import Lib.Product
@@ -40,13 +40,13 @@ module Quantitative.Resources.Context
 
   -- Reasoning syntax for _≈_
   infixr 1 _≈[_]Δ_
-  infixr 2 _≈-QED
+  infixr 2 _≈Δ-QED
 
   _≈[_]Δ_ : ∀ {n} Δ {Δ' Δ'' : RCtx n} → Δ ≈ Δ' → Δ' ≈ Δ'' → Δ ≈ Δ''
   Δ ≈[ xy ]Δ yz = ≈-trans xy yz
 
-  _≈-QED : ∀ {n} (Δ : RCtx n) → Δ ≈ Δ
-  Δ ≈-QED = ≈-refl Δ
+  _≈Δ-QED : ∀ {n} (Δ : RCtx n) → Δ ≈ Δ
+  Δ ≈Δ-QED = ≈-refl Δ
 
   -- Pointwise order on contexts
 
@@ -67,28 +67,29 @@ module Quantitative.Resources.Context
 
   -- Reasoning syntax for _≤_
   infixr 1 _≤[_]Δ_
-  infixr 2 _≤-QED
+  infixr 2 _≤Δ-QED
 
   _≤[_]Δ_ : ∀ {n} Δ {Δ' Δ'' : RCtx n} → Δ ≤ Δ' → Δ' ≤ Δ'' → Δ ≤ Δ''
   Δ ≤[ xy ]Δ yz = ≤-trans xy yz
 
-  _≤-QED : ∀ {n} (Δ : RCtx n) → Δ ≤ Δ
-  Δ ≤-QED = ≤-refl Δ
+  _≤Δ-QED : ∀ {n} (Δ : RCtx n) → Δ ≤ Δ
+  Δ ≤Δ-QED = ≤-refl Δ
 
   -- Operations for building contexts
 
-  setoid : Nat → Setoid _ _
-  setoid n = record
-    { C = RCtx n
-    ; setoidOver = record
-      { _≈_ = _≈_
-      ; isSetoid = record
-        { refl = ≈-refl _
-        ; sym = ≈-sym
-        ; trans = ≈-trans
+  private
+    setoid' : Nat → Setoid _ _
+    setoid' n = record
+      { C = RCtx n
+      ; setoidOver = record
+        { _≈_ = _≈_
+        ; isSetoid = record
+          { refl = ≈-refl _
+          ; sym = ≈-sym
+          ; trans = ≈-trans
+          }
         }
       }
-    }
 
   infixl 6 _+Δ_ _+Δ-mono_ _+Δ-cong_
   infixl 7 _*Δ_ _*Δ-mono_ _*Δ-cong_
@@ -167,7 +168,7 @@ module Quantitative.Resources.Context
   *Δempty rho =
     rho *Δ replicateVec _ R.e0     ≈[ vmap-replicateVec (rho R.*_) _ R.e0 ]Δ
     replicateVec _ (rho R.* R.e0)  ≈[ replicateVZip _ (fst R.annihil rho) ]Δ
-    replicateVec _ R.e0            ≈-QED
+    replicateVec _ R.e0            ≈Δ-QED
 
   *Δ-distrib-+ : ∀ {n} (Δ : RCtx n) (rho rho' : C) →
                  (rho R.+ rho') *Δ Δ ≈ rho *Δ Δ +Δ rho' *Δ Δ
@@ -181,7 +182,36 @@ module Quantitative.Resources.Context
   *Δ-distrib-+Δ rho (p :: Δ) (p' :: Δ') =
     fst R.distrib rho p p' :: *Δ-distrib-+Δ rho Δ Δ'
 
-  posemimodule : ∀ n → Posemimodule (≡-Setoid C) (setoid n) _ _
+  commutativePomonoid : ∀ n → CommutativePomonoid (setoid' n) _
+  commutativePomonoid n = record
+    { _≤_ = _≤_
+    ; e = 0Δ
+    ; _·_ = _+Δ_
+    ; isCommutativePomonoid = record
+      { _·-mono_ = _+Δ-mono_
+      ; isPoset = record
+        { antisym = antisym
+        ; isPreorder = record
+          { ≤-reflexive = ≤-reflexive
+          ; ≤-trans = ≤-trans
+          }
+        }
+      ; isCommutativeMonoid = record
+        { comm = +Δ-comm
+        ; isMonoid = record
+          { identity = fst +Δ-identity , snd +Δ-identity
+          ; assoc = +Δ-assoc
+          ; _·-cong_ = _+Δ-cong_
+          }
+        }
+      }
+    }
+    where
+    antisym : ∀ {n} → Antisym (setoid' n) _≤_
+    antisym nil nil = nil
+    antisym (≤R :: ≤Δ) (≥R :: ≥Δ) = R.antisym ≤R ≥R :: antisym ≤Δ ≥Δ
+
+  posemimodule : ∀ n → Posemimodule (≡-Setoid C) (setoid' n) _ _
   posemimodule n = record
     { _≤s_ = R._≤_
     ; _≤f_ = _≤_
@@ -199,23 +229,11 @@ module Quantitative.Resources.Context
       ; _+f-mono_ = _+Δ-mono_
       ; _*f-mono_ = _*Δ-mono_
       ; ≤s-isPoset = R.isPoset
-      ; ≤f-isPoset = record
-        { antisym = antisym
-        ; isPreorder = record
-          { ≤-reflexive = ≤-reflexive
-          ; ≤-trans = ≤-trans
-          }
-        }
+      ; ≤f-isPoset = isPoset
       ; isSemimodule = record
         { +*s-isSemiring = R.isSemiring
-        ; +f-isCommutativeMonoid = record
-          { comm = +Δ-comm
-          ; isMonoid = record
-            { identity = fst +Δ-identity , snd +Δ-identity
-            ; assoc = +Δ-assoc
-            ; _·-cong_ = _+Δ-cong_
-            }
-          }
+        ; +f-isCommutativeMonoid = isCommutativeMonoid
+        ; _*f-cong_ = _*Δ-cong_
         ; annihil = *Δempty , e0*Δ
         ; distrib = *Δ-distrib-+Δ , (λ x y z → *Δ-distrib-+ z x y)
         ; assoc = assoc
@@ -224,10 +242,54 @@ module Quantitative.Resources.Context
       }
     }
     where
+    open CommutativePomonoid (commutativePomonoid n)
+      using (isPoset; isCommutativeMonoid)
+
     assoc : ∀ {n} x y (zs : RCtx n) → (x R.* y) *Δ zs ≈ x *Δ (y *Δ zs)
     assoc x y nil = nil
     assoc x y (z :: zs) = R.*-assoc x y z :: assoc x y zs
 
-    antisym : ∀ {n} → Antisym (setoid n) _≤_
+    antisym : ∀ {n} → Antisym (setoid' n) _≤_
     antisym nil nil = nil
     antisym (≤R :: ≤Δ) (≥R :: ≥Δ) = R.antisym ≤R ≥R :: antisym ≤Δ ≥Δ
+
+  -- Some stuff depends on n, and some doesn't. We really want n to be an
+  -- implicit argument to all of the things that depend on it, and not be there
+  -- in all of the things that don't.
+
+  module Δ {n : Nat} where
+    open Posemimodule (posemimodule n) public
+      using (annihil; distrib; assoc; identity)
+      renaming (1f to e1; _*f_ to _*_; _*f-cong_ to _*-cong_;
+                _*f-mono_ to _*-mono_)
+    open CommutativePomonoid (commutativePomonoid n) public
+      renaming (e to e0; _·_ to _+_;
+                _·-cong_ to _+-cong_; _·-mono_ to _+-mono_;
+                identity to +-identity; assoc to +-assoc)
+
+    setoid : Setoid _ _
+    setoid = setoid' n
+
+    open Setoid setoid public
+
+    infixr 1 _≈[_]_ _≤[_]_
+    infixr 2 _≈-QED _≤-QED
+
+    _≈[_]_ = _≈[_]Δ_ {n}
+    _≈-QED = _≈Δ-QED {n}
+
+    _≤[_]_ = _≤[_]Δ_ {n}
+    _≤-QED = _≤Δ-QED {n}
+
+  --module ≈Δ-Reasoning where
+
+  --module F {n} = Posemimodule (posemimodule n)
+  --  renaming (_≤f_ to _≤_)
+  --  hiding (_≤s_, 0s, 1s, _+s_, _*s_, _+s-mono_, _*s-mono_,
+  --          ≤s-reflexive, ≤s-trans, ≤s-refl, ≤s-antisym,
+  --          ≤s-preorder, ≤s-poset, ≤s-isPreorder, ≤s-isPoset,
+  --          +s-cong, +s-identity, +s-assoc, +s-comm,
+  --          +s-monoid, +s-commutativeMonoid,
+  --          +s-isMonoid, +s-isCommutativeMonoid,
+  --          *s-cong, *s-identity, *s-assoc, *s-monoid, *s-isMonoid,
+  --          +*s-semiring, +*s-isSemiring, ≤+*-posemiring, ≤+*-isPosemiring)

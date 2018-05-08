@@ -28,7 +28,7 @@ module Lib.Structure {c l} (S : Setoid c l) where
   Antisym _≤_ = ∀ {x y} → x ≤ y → y ≤ x → x ≈ y
 
   --------------------------------------------------------------------------------
-  -- Structures
+  -- Order
 
   record IsPreorder {l'} (≤ : Rel l') : Set (c ⊔ l ⊔ l') where
     field
@@ -105,7 +105,7 @@ module Lib.Structure {c l} (S : Setoid c l) where
     open MeetSemilattice meetSemilattice public
       using (isMeetSemilattice; poset; preorder)
 
-  --
+  -- Structure
 
   record IsMonoid (e : C) (· : Op2) : Set (c ⊔ l) where
     infixr 5 _·-cong_
@@ -168,6 +168,64 @@ module Lib.Structure {c l} (S : Setoid c l) where
 
     *-monoid : Monoid
     *-monoid = record { isMonoid = *-isMonoid }
+
+  -- Mixing order and structure
+
+  record IsPomonoid {l'} (≤ : Rel l') (e : C) (· : Op2) : Set (c ⊔ l ⊔ l') where
+    infixr 5 _·-mono_
+    field
+      _·-mono_ : Mono ≤ ·
+      isPoset : IsPoset ≤
+      isMonoid : IsMonoid e ·
+    open IsPoset isPoset public
+    open IsMonoid isMonoid public
+
+  record Pomonoid l' : Set (c ⊔ l ⊔ lsuc l') where
+    infixr 4 _≤_
+    infixr 5 _·_
+    field
+      _≤_ : Rel l'
+      e : C
+      _·_ : Op2
+      isPomonoid : IsPomonoid _≤_ e _·_
+    open IsPomonoid isPomonoid public
+
+    poset : Poset l'
+    poset = record { isPoset = isPoset }
+    open Poset poset public
+      using (preorder)
+
+    monoid : Monoid
+    monoid = record { isMonoid = isMonoid }
+
+  record IsCommutativePomonoid {l'} (≤ : Rel l') (e : C) (· : Op2) : Set (c ⊔ l ⊔ l') where
+    infixr 5 _·-mono_
+    field
+      _·-mono_ : Mono ≤ ·
+      isPoset : IsPoset ≤
+      isCommutativeMonoid : IsCommutativeMonoid e ·
+    open IsPoset isPoset public
+    open IsCommutativeMonoid isCommutativeMonoid public
+
+  record CommutativePomonoid l' : Set (c ⊔ l ⊔ lsuc l') where
+    infixr 4 _≤_
+    infixr 5 _·_
+    field
+      _≤_ : Rel l'
+      e : C
+      _·_ : Op2
+      isCommutativePomonoid : IsCommutativePomonoid _≤_ e _·_
+    open IsCommutativePomonoid isCommutativePomonoid public
+
+    poset : Poset l'
+    poset = record { isPoset = isPoset }
+    open Poset poset public
+      using (preorder)
+
+    commutativeMonoid : CommutativeMonoid
+    commutativeMonoid = record { isCommutativeMonoid = isCommutativeMonoid }
+    open CommutativeMonoid commutativeMonoid public
+      using (monoid)
 
   record IsPosemiring {l'} (≤ : Rel l') (e0 e1 : C) (+ * : Op2) : Set (c ⊔ l ⊔ l') where
     infixr 6 _+-mono_

@@ -5,8 +5,10 @@ module Quantitative.Resources
   {c l'} (C : Set c) (POS : Posemiring (≡-Setoid C) l') where
 
   open import Quantitative.Syntax C POS
-  open import Quantitative.Resources.Context C POS as Δ
-  open R hiding (_≤_; ≤-refl)
+  open import Quantitative.Resources.Context C POS --as Δ
+  --open R hiding (_≤_; ≤-refl)
+  open import Lib.Module
+  module PSM n = Posemimodule (posemimodule n)
 
   open import Lib.Level
   open import Lib.Vec
@@ -15,11 +17,11 @@ module Quantitative.Resources
 
   data _|-r_ {n} (Δ : RCtx n) : ∀ {d} → Term n d → Set (l' ⊔ c) where
     var : ∀ {th}
-          (sub : Δ Δ.≤ varRCtx th e1)
+          (sub : Δ Δ.≤ varRCtx th R.e1)
           →
           Δ |-r var th
     app : ∀ {Δe Δs e s}
-          (split : Δ Δ.≤ Δe +Δ Δs)
+          (split : Δ Δ.≤ Δe Δ.+ Δs)
           (er : Δe |-r e) (sr : Δs |-r s)
           →
           Δ |-r app e s
@@ -29,7 +31,7 @@ module Quantitative.Resources
           Δ |-r the S s
 
     lam : ∀ {s}
-          (sr : e1 :: Δ |-r s)
+          (sr : R.e1 :: Δ |-r s)
           →
           Δ |-r lam s
     [_] : ∀ {e}

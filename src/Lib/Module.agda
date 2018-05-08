@@ -12,9 +12,11 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
   record IsSemimodule (0s 1s : S.C) (_+s_ _*s_ : Op2 S)
                       (0f 1f : F.C) (_+f_ : Op2 F) (_*f_ : S.C → F.C → F.C)
                       : Set (cs ⊔ cf ⊔ ls ⊔ lf) where
+    infixr 7 _*f-cong_
     field
       +*s-isSemiring : IsSemiring S 0s 1s _+s_ _*s_
       +f-isCommutativeMonoid : IsCommutativeMonoid F 0f _+f_
+      _*f-cong_ : ∀ {x x' y y'} → x S.≈ x' → y F.≈ y' → x *f y F.≈ x' *f y'
       annihil : (∀ x → x *f 0f F.≈ 0f)
               × (∀ x → 0s *f x F.≈ 0f)
       distrib : (∀ x y z → x *f (y +f z) F.≈ (x *f y) +f (x *f z))
@@ -114,5 +116,3 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
                 semiring to +*s-semiring; +-monoid to +s-monoid;
                 +-commutativeMonoid to +s-commutativeMonoid;
                 *-monoid to *s-monoid)
-
-    -- Possible TODO: define Pomonoids &c.
