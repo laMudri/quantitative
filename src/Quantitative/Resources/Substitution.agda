@@ -8,7 +8,6 @@ module Quantitative.Resources.Substitution
   open import Quantitative.Syntax.Substitution C POS
   open import Quantitative.Resources C POS
   open import Quantitative.Resources.Context C POS
-  --open R hiding (_≤_; ≤-refl; ≤-reflexive)
 
   open import Lib.Dec
   open import Lib.Equality
@@ -237,7 +236,7 @@ module Quantitative.Resources.Substitution
     with substSplit splitm vfr
   ... | Δen , Δsn , split' =
     rhoe Δ.* Δt Δ.+ Δen , rhos Δ.* Δt Δ.+ Δsn ,
-      Δn ≤[ splitn ]Δ
+                                     Δn                Δ.≤[ splitn ]
                   rho       Δ.* Δt  Δ.+      Δts       Δ.≤[ le Δ.*-mono Δ.≤-refl {x = Δt} Δ.+-mono split' ]
             (rhoe R.+ rhos) Δ.* Δt  Δ.+ (Δen Δ.+ Δsn)  Δ.≤[ Δ.≤-reflexive equality ]
       (rhoe Δ.* Δt Δ.+ Δen) Δ.+ (rhos Δ.* Δt Δ.+ Δsn)  Δ.≤-QED
