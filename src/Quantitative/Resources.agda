@@ -31,7 +31,7 @@ module Quantitative.Resources
          (split : Δ Δ.≤ Δe Δ.+ Δs)
          (er : Δe ⊢r e) (sr : ρ :: Δs ⊢r s)
          →
-         Δ ⊢r bm S e s
+         Δ ⊢r bm S ρ e s
     the : ∀ {S s}
           (sr : Δ ⊢r s)
           →

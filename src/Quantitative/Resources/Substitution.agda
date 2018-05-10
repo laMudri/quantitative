@@ -404,11 +404,13 @@ module Quantitative.Resources.Substitution
       app split (~~>-preservesRes e0r red) sr
     ~~>-preservesRes (app split er s0r) (app2-cong e s0 s1 red) =
       app split er (~~>-preservesRes s0r red)
-    ~~>-preservesRes (bm {ρ = π} split (the (bang split′ sr)) tr) (!-beta S T ρ s t) =
-      the (substituteRes tr (singleSubst (the S s)) (singleSubstRes _ (the sr) (Δ.≤-trans split {!!})))
+    ~~>-preservesRes (bm split (the (bang split′ sr)) tr) (!-beta S T ρ s t) =
+      the (substituteRes tr _ (singleSubstRes _ (the {S = S} sr) split″))
+      where
+      split″ = Δ.≤-trans split (split′ Δ.+-mono Δ.≤-refl)
     ~~>-preservesRes (bang split sr) (bang-cong ρ s s′ red) =
       bang split (~~>-preservesRes sr red)
-    ~~>-preservesRes (bm split er sr) (bm1-cong S e e′ s red) =
+    ~~>-preservesRes (bm split er sr) (bm1-cong S ρ e e′ s red) =
       bm split (~~>-preservesRes er red) sr
-    ~~>-preservesRes (bm split er sr) (bm2-cong S e s s′ red) =
+    ~~>-preservesRes (bm split er sr) (bm2-cong S ρ e s s′ red) =
       bm split er (~~>-preservesRes sr red)
