@@ -1,2 +1,7 @@
 *.agdai
 .#*
+/paper/comment.cut
+*.aux
+*.log
+*.out
+/paper/quantitative.pdf
