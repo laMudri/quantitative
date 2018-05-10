@@ -28,7 +28,7 @@ module Quantitative.Resources
           →
           Δ ⊢r app e s
     bm : ∀ {Δe Δs S ρ e s}
-         (split : Δ Δ.≤ Δe Δ.+ ρ Δ.* Δs)
+         (split : Δ Δ.≤ Δe Δ.+ Δs)
          (er : Δe ⊢r e) (sr : ρ :: Δs ⊢r s)
          →
          Δ ⊢r bm S e s
