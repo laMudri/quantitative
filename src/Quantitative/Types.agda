@@ -41,6 +41,10 @@ module Quantitative.Types
           (et : Γ ⊢t e ∈ S ⊸ T) (st : Γ ⊢t S ∋ s)
           →
           Γ ⊢t app e s ∈ T
+    bm : ∀ {e s S T ρ}
+         (et : Γ ⊢t e ∈ ! ρ S) (st : S :: Γ ⊢t T ∋ s)
+         →
+         Γ ⊢t bm T e s ∈ T
     the : ∀ {S s}
           (st : Γ ⊢t S ∋ s)
           →
@@ -50,6 +54,10 @@ module Quantitative.Types
           (st : S :: Γ ⊢t T ∋ s)
           →
           Γ ⊢t S ⊸ T ∋ lam s
+    bang : ∀ {s S ρ}
+           (st : Γ ⊢t S ∋ s)
+           →
+           Γ ⊢t ! ρ S ∋ bang s
     [_] : ∀ {e S}
           (et : Γ ⊢t e ∈ S)
           →

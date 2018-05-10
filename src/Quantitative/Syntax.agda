@@ -25,11 +25,11 @@ module Quantitative.Syntax
   data Term (n : Nat) : Dir → Set c where
     var : (th : Fin n) → Term n syn
     app : (e : Term n syn) (s : Term n chk) → Term n syn
-    bm : (S : Ty) (ρ : C) (e : Term n syn) (s : Term (succ n) chk) → Term n syn
+    bm : (S : Ty) (e : Term n syn) (s : Term (succ n) chk) → Term n syn
     the : (S : Ty) (s : Term n chk) → Term n syn
 
     lam : (s : Term (succ n) chk) → Term n chk
-    bang : (ρ : C) (s : Term n chk) → Term n chk
+    bang : (s : Term n chk) → Term n chk
     [_] : (e : Term n syn) → Term n chk
 
   var# : ∀ {n} m {less : Auto (m <? n)} → Term n syn
