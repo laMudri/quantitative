@@ -27,6 +27,11 @@ module Quantitative.Resources
           (er : Δe ⊢r e) (sr : Δs ⊢r s)
           →
           Δ ⊢r app e s
+    bm : ∀ {Δe Δs S ρ e s}
+         (split : Δ Δ.≤ Δe Δ.+ ρ Δ.* Δs)
+         (er : Δe ⊢r e) (sr : ρ :: Δs ⊢r s)
+         →
+         Δ ⊢r bm S e s
     the : ∀ {S s}
           (sr : Δ ⊢r s)
           →
@@ -36,6 +41,11 @@ module Quantitative.Resources
           (sr : R.e1 :: Δ ⊢r s)
           →
           Δ ⊢r lam s
+    bang : ∀ {Δs ρ s}
+           (split : Δ Δ.≤ ρ Δ.* Δs)
+           (er : Δs ⊢r s)
+           →
+           Δ ⊢r bang ρ s
     [_] : ∀ {e}
           (er : Δ ⊢r e)
           →

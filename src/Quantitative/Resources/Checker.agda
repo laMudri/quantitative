@@ -1,17 +1,19 @@
+open import Lib.Dec
+open import Lib.Equality
 open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Resources.Checker
-  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
+  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′)
+  (_≟_ : (π ρ : C) → Dec (π ≡ ρ)) where
 
-  open import Quantitative.Syntax C POS
-  open import Quantitative.Syntax.Substitution C POS
-  open import Quantitative.Resources C POS
-  open import Quantitative.Resources.Context C POS
-  open import Quantitative.Resources.Substitution C POS as QRS hiding (module DecLE)
+  open import Quantitative.Syntax C POS _≟_
+  open import Quantitative.Syntax.Substitution C POS _≟_
+  open import Quantitative.Resources C POS _≟_
+  open import Quantitative.Resources.Context C POS _≟_
+  open import Quantitative.Resources.Substitution C POS _≟_ as QRS
+    hiding (module DecLE)
 
-  open import Lib.Dec
-  open import Lib.Equality
   open import Lib.Function
   open import Lib.Maybe
   open import Lib.Product
