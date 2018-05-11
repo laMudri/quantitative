@@ -29,8 +29,8 @@ module Quantitative.Types.Substitution
     the (punchInNManyVarsTy Γn Γl st)
   punchInNManyVarsTy Γn Γl (lam {S = S} st) =
     lam (punchInNManyVarsTy Γn (S :: Γl) st)
-  punchInNManyVarsTy Γn Γl (bang st) =
-    bang (punchInNManyVarsTy Γn Γl st)
+  punchInNManyVarsTy Γn Γl (bang ρ st) =
+    bang ρ (punchInNManyVarsTy Γn Γl st)
   punchInNManyVarsTy Γn Γl [ et ] =
     [ punchInNManyVarsTy Γn Γl et ]
 
@@ -59,8 +59,8 @@ module Quantitative.Types.Substitution
   substituteTy (the st) vf vft = the (substituteTy st vf vft)
   substituteTy (lam st) vf vft =
     lam (substituteTy st (liftSubst vf) (liftSubstTy _ vf vft))
-  substituteTy (bang st) vf vft =
-    bang (substituteTy st vf vft)
+  substituteTy (bang ρ st) vf vft =
+    bang ρ (substituteTy st vf vft)
   substituteTy [ et ] vf vft = [ substituteTy et vf vft ]
 
   ~~>-preservesTy : ∀ {n Γ d T} {t u : Term n d} (tt : Γ ⊢t t :-: T) →
@@ -74,10 +74,10 @@ module Quantitative.Types.Substitution
     app (~~>-preservesTy et red) st
   ~~>-preservesTy (app et st) (app2-cong e s0 s1 red) =
     app et (~~>-preservesTy st red)
-  ~~>-preservesTy (bm (the (bang st)) tt) (!-beta S T ρ s t) =
+  ~~>-preservesTy (bm (the (bang .ρ st)) tt) (!-beta S T ρ s t) =
     the (substituteTy tt (singleSubst (the S s)) (singleSubstTy (the st)))
-  ~~>-preservesTy (bang st) (bang-cong s s′ red) =
-    bang (~~>-preservesTy st red)
+  ~~>-preservesTy (bang ρ st) (bang-cong s s′ red) =
+    bang ρ (~~>-preservesTy st red)
   ~~>-preservesTy (bm et st) (bm1-cong S e e′ s red) =
     bm (~~>-preservesTy et red) st
   ~~>-preservesTy (bm et st) (bm2-cong S e s s′ red) =

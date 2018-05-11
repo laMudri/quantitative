@@ -8,6 +8,7 @@ module Quantitative.Resources
   (_≟_ : (π ρ : C) → Dec (π ≡ ρ)) where
 
   open import Quantitative.Syntax C POS _≟_
+  open import Quantitative.Types C POS _≟_
   open import Quantitative.Resources.Context C POS _≟_
   open import Lib.Module
   module PSM n = Posemimodule (posemimodule n)
@@ -17,36 +18,37 @@ module Quantitative.Resources
 
   infix 3 _⊢r_
 
-  data _⊢r_ {n} (Δ : RCtx n) : ∀ {d} → Term n d → Set (l′ ⊔ c) where
+  data _⊢r_ {n} {Γ : TCtx n} (Δ : RCtx n)
+            : ∀ {d S} {t : Term n d} (tt : Γ ⊢t t :-: S) → Set (l′ ⊔ c) where
     var : ∀ {th}
           (sub : Δ Δ.≤ varRCtx th R.e1)
           →
-          Δ ⊢r var th
-    app : ∀ {Δe Δs e s}
+          Δ ⊢r var {th = th}
+    app : ∀ {Δe Δs S T e s} {et : Γ ⊢t e ∈ S ⊸ T} {st : Γ ⊢t S ∋ s}
           (split : Δ Δ.≤ Δe Δ.+ Δs)
-          (er : Δe ⊢r e) (sr : Δs ⊢r s)
+          (er : Δe ⊢r et) (sr : Δs ⊢r st)
           →
-          Δ ⊢r app e s
-    bm : ∀ {Δe Δs S ρ e s}
+          Δ ⊢r app et st
+    bm : ∀ {Δe Δs S T ρ e s} {et : Γ ⊢t e ∈ ! ρ S} {st : S :: Γ ⊢t T ∋ s}
          (split : Δ Δ.≤ Δe Δ.+ Δs)
-         (er : Δe ⊢r e) (sr : ρ :: Δs ⊢r s)
+         (er : Δe ⊢r et) (sr : ρ :: Δs ⊢r st)
          →
-         Δ ⊢r bm S ρ e s
-    the : ∀ {S s}
-          (sr : Δ ⊢r s)
+         Δ ⊢r bm et st
+    the : ∀ {S s} {st : Γ ⊢t S ∋ s}
+          (sr : Δ ⊢r st)
           →
-          Δ ⊢r the S s
+          Δ ⊢r the st
 
-    lam : ∀ {s}
-          (sr : R.e1 :: Δ ⊢r s)
+    lam : ∀ {S T s} {st : S :: Γ ⊢t T ∋ s}
+          (sr : R.e1 :: Δ ⊢r st)
           →
-          Δ ⊢r lam s
-    bang : ∀ {Δs ρ s}
+          Δ ⊢r lam st
+    bang : ∀ {Δs S ρ s} {st : Γ ⊢t S ∋ s}
            (split : Δ Δ.≤ ρ Δ.* Δs)
-           (er : Δs ⊢r s)
+           (er : Δs ⊢r st)
            →
-           Δ ⊢r bang ρ s
-    [_] : ∀ {e}
-          (er : Δ ⊢r e)
+           Δ ⊢r bang ρ st
+    [_] : ∀ {S e} {et : Γ ⊢t e ∈ S}
+          (er : Δ ⊢r et)
           →
-          Δ ⊢r [ e ]
+          Δ ⊢r [ et ]
