@@ -1,9 +1,9 @@
 %% For double-blind review submission, w/o CCS and ACM Reference (max submission space)
-\documentclass[sigplan,review,anonymous]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+%\documentclass[sigplan,review,anonymous]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
 %% For double-blind review submission, w/ CCS and ACM Reference
 %\documentclass[sigplan,review,anonymous]{acmart}\settopmatter{printfolios=true}
 %% For single-blind review submission, w/o CCS and ACM Reference (max submission space)
-%\documentclass[sigplan,review]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
+\documentclass[sigplan,review]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
 %% For single-blind review submission, w/ CCS and ACM Reference
 %\documentclass[sigplan,review]{acmart}\settopmatter{printfolios=true}
 %% For final camera-ready submission, w/ required CCS and ACM Reference
@@ -59,7 +59,10 @@
 \usepackage{subcaption} %% For complex figures with subfigures/subcaptions
                         %% http://ctan.org/pkg/subcaption
 
+\usepackage{stmaryrd}
 \usepackage{mathpartir}
+\usepackage{amssymb}
+\usepackage{cmll}
 
 
 \newcommand{\ann}[2]{#1 : #2}
@@ -73,14 +76,15 @@
 \begin{document}
 
 %% Title information
-\title[Short Title]{Full Title}         %% [Short Title] is optional;
+\title%[Short Title]
+       {Refined Semantics for Coeffects} %% [Short Title] is optional;
                                         %% when present, will be used in
                                         %% header instead of Full Title.
-\titlenote{with title note}             %% \titlenote is optional;
+\titlenote{Working title}             %% \titlenote is optional;
                                         %% can be repeated if necessary;
                                         %% contents suppressed with 'anonymous'
-\subtitle{Subtitle}                     %% \subtitle is optional
-\subtitlenote{with subtitle note}       %% \subtitlenote is optional;
+%\subtitle{Subtitle}                     %% \subtitle is optional
+%\subtitlenote{with subtitle note}       %% \subtitlenote is optional;
                                         %% can be repeated if necessary;
                                         %% contents suppressed with 'anonymous'
 
@@ -96,56 +100,47 @@
 %% extraction tools.
 
 %% Author with single affiliation.
-\author{First1 Last1}
-\authornote{with author1 note}          %% \authornote is optional;
+\author{Robert Atkey}
+%\authornote{with author1 note}          %% \authornote is optional;
                                         %% can be repeated if necessary
-\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
+%\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
 \affiliation{
-  \position{Position1}
-  \department{Department1}              %% \department is recommended
-  \institution{Institution1}            %% \institution is required
-  \streetaddress{Street1 Address1}
-  \city{City1}
-  \state{State1}
-  \postcode{Post-Code1}
-  \country{Country1}                    %% \country is recommended
+  % \position{Position1}
+  \department{Computer and Information Sciences}              %% \department is recommended
+  \institution{University of Strathclyde}            %% \institution is required
+  % \streetaddress{Street1 Address1}
+  % \city{City1}
+  % \state{State1}
+  % \postcode{Post-Code1}
+%  \country{UK}                    %% \country is recommended
 }
-\email{first1.last1@inst1.edu}          %% \email is recommended
+\email{robert.atkey@strath.ac.uk}          %% \email is recommended
 
 %% Author with two affiliations and emails.
-\author{First2 Last2}
-\authornote{with author2 note}          %% \authornote is optional;
+\author{James Wood}
+% \authornote{with }          %% \authornote is optional;
                                         %% can be repeated if necessary
-\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
+%\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
 \affiliation{
-  \position{Position2a}
-  \department{Department2a}             %% \department is recommended
-  \institution{Institution2a}           %% \institution is required
-  \streetaddress{Street2a Address2a}
-  \city{City2a}
-  \state{State2a}
-  \postcode{Post-Code2a}
-  \country{Country2a}                   %% \country is recommended
+  % \position{Position2a}
+  \department{Computer and Information Sciences}              %% \department is recommended
+  \institution{University of Strathclyde}            %% \institution is required
+  % \streetaddress{Street2a Address2a}
+  % \city{City2a}
+  % \state{State2a}
+  % \postcode{Post-Code2a}
+%  \country{UK}                   %% \country is recommended
 }
-\email{first2.last2@inst2a.com}         %% \email is recommended
-\affiliation{
-  \position{Position2b}
-  \department{Department2b}             %% \department is recommended
-  \institution{Institution2b}           %% \institution is required
-  \streetaddress{Street3b Address2b}
-  \city{City2b}
-  \state{State2b}
-  \postcode{Post-Code2b}
-  \country{Country2b}                   %% \country is recommended
-}
-\email{first2.last2@inst2b.org}         %% \email is recommended
+\email{james.wood.100@strath.ac.uk}         %% \email is recommended
 
 
 %% Abstract
 %% Note: \begin{abstract}...\end{abstract} environment must come
 %% before \maketitle command
 \begin{abstract}
-Text of abstract \ldots.
+  Key message: refined typing permits refined
+  semantics. Domain-specific properties for domain-specific
+  programming languages.
 \end{abstract}
 
 
@@ -185,7 +180,129 @@ Text of abstract \ldots.
 
 \section{Introduction}
 
-Text of paper \ldots
+The Story:
+\begin{enumerate}
+\item We want to have a way of describing DSLs that are purely
+  functional programs at heart, but have some special intensional
+  properties stemming from restrictions on how they use the resources
+  they are handed. Examples:
+  \begin{enumerate}
+  \item Linear type systems that ensure preservation of data
+  \item Monotonicity
+  \item Information flow
+  \item Metric spaces and input sensitivity
+  \end{enumerate}
+\item We track how resources are used by using a ``quantitative
+  coeffect'' system.
+\item We build our system in stages, enabling reflective proof
+  procedures that lift us from well-scoped terms to well-typed terms
+  to well-resourced terms.
+\item Well typed terms are equipped with a standard semantics: types
+  are interpreted as (Agda) Sets, and terms are interpreted as Agda
+  functions.
+\item The resource typing permits more refined semantics, and this is
+  where the fun starts. We give a general semantics that can be
+  instantiated to any of our examples. These semantics capture (a) the
+  constrained resource behaviour of programs (via Kripke indexing);
+  and (b) the constrained observational behaviour of programs (via
+  relations); both of these are consequences of the types.
+\item Give some examples of the theorems that result from our
+  semantics.
+\item (everything has been formalised in Agda)
+\end{enumerate}
+
+\section{Background}
+
+\begin{enumerate}
+\item Petricek and Orchard
+\item Brunel et al
+\item Ghica and Smith
+\item Benton/Kennedy/Hofmann relational refinements
+\item Atkey/Johann/Kennedy algebraic indexed types
+\item Gaboardi et al
+\end{enumerate}
+
+\section{Well-scoped and Well-typed Programs}
+
+\subsection{Well-scoped Syntax}
+
+FIXME: is it possible to remove the Ty type from Quantitative.Syntax?
+Ideally, the Syntax should just be parameterised by the form of type
+annotations. The Syntax shouldn't depend on the resource semiring.
+
+\subsection{Well-typed}
+
+Types enable us to give a total functional semantics to terms. FIXME:
+Is it possible to make Quantitative.Types have its own notion of types
+that we can show is related to the resourced types? (the need for
+special constructs for introducing and eliminating bangs is a wrinkle
+here).
+
+\section{Resourced Terms}
+
+Present the refinement of typed terms via resources.
+
+\subsection{Partially-ordered Semirings}
+
+\subsection{Resourced Terms}
+
+\section{Relational Semantics}
+
+Plan: for terms that are well-typed and well-resourced, 
+
+\section{Example Instantiations}
+
+\subsection{Permutations}
+
+\subsection{Information Flow}
+
+Idea: we make a semiring from the bilattice of confidentiality and
+integrity.
+
+\subsection{Monotonicity}
+
+\subsection{Metric Spaces and Sensitivity}
+
+\section{Conclusions}
+
+TODO:
+\begin{enumerate}
+\item Mixing with effects
+\item Dependent types
+\item Non-termination (could use a step indexed/topos of trees model)
+\item Coeffect polymorphism (could we just do this? Needs a more
+  complex model of types)
+\item The layers of well-formed-ness be presented via a system of
+  ornamentation?
+\end{enumerate}
+
+Typing:
+
+\begin{mathpar}
+  \inferrule{\Gamma \vdash S \ni s}
+            {\Gamma \vdash (\ann{s}{S}) \in S}
+            
+  \inferrule{\Gamma \vdash e \in S}
+            {\Gamma \vdash S \ni \emb{e}}
+\end{mathpar}
+
+\begin{mathpar}
+  \inferrule{\Gamma, S \vdash T \ni s}
+            {\Gamma \vdash \fun{S}{T} \ni \lam{x}{s}}
+
+  \inferrule{\Gamma \vdash e \in \fun{S}{T} \\ \Gamma \vdash S \ni s}
+            {\Gamma \vdash \app{e}{s} \in T}
+\end{mathpar}
+
+Resources:
+
+\begin{mathpar}
+  \inferrule{\Delta \vdash s}
+            {\Delta \vdash (s : S)}
+            
+  \inferrule{\Delta \vdash e}
+            {\Delta \vdash [e]}
+\end{mathpar}
 
 Typing:
 
@@ -230,14 +347,15 @@ Resources:
   %% \grantnum[<url>]{<sponsorID>}{<number>} should be used to
   %% acknowledge financial support and will be used by metadata
   %% extraction tools.
-  This material is based upon work supported by the
-  \grantsponsor{GS100000001}{National Science
-    Foundation}{http://dx.doi.org/10.13039/100000001} under Grant
-  No.~\grantnum{GS100000001}{nnnnnnn} and Grant
-  No.~\grantnum{GS100000001}{mmmmmmm}.  Any opinions, findings, and
-  conclusions or recommendations expressed in this material are those
-  of the author and do not necessarily reflect the views of the
-  National Science Foundation.
+  % This material is based upon work supported by the
+  % \grantsponsor{GS100000001}{National Science
+  %   Foundation}{http://dx.doi.org/10.13039/100000001} under Grant
+  % No.~\grantnum{GS100000001}{nnnnnnn} and Grant
+  % No.~\grantnum{GS100000001}{mmmmmmm}.  Any opinions, findings, and
+  % conclusions or recommendations expressed in this material are those
+  % of the author and do not necessarily reflect the views of the
+  % National Science Foundation.
+  James Wood is supported by a EPSRC award (FIXME).
 \end{acks}
 
 
@@ -246,9 +364,9 @@ Resources:
 
 
 %% Appendix
-\appendix
-\section{Appendix}
+% \appendix
+% \section{Appendix}
 
-Text of appendix \ldots
+% Text of appendix \ldots
 
 \end{document}
