@@ -22,8 +22,10 @@ module Quantitative.Types.Checker
 
   synthUnique : ∀ {n} {Γ : TCtx n} {e : Term n syn} {S S′ : Ty} →
                 Γ ⊢t e ∈ S → Γ ⊢t e ∈ S′ → S′ ≡ S
-  synthUnique var var = refl
+  synthUnique (var refl) (var refl) = refl
   synthUnique (app et st) (app et′ st′) with synthUnique et et′
+  ... | refl = refl
+  synthUnique (bm et st) (bm et′ st′) with synthUnique et et′
   ... | refl = refl
   synthUnique (the st) (the st′) = refl
 
@@ -32,7 +34,7 @@ module Quantitative.Types.Checker
   checkType : ∀ {n} (Γ : TCtx n) (S : Ty) (s : Term n chk) →
               Dec (Γ ⊢t S ∋ s)
 
-  synthType Γ (var th) = yes (1≤-index th Γ , var)
+  synthType Γ (var th) = yes (1≤-index th Γ , var refl)
   synthType Γ (app e s) with synthType Γ e
   ... | no np = no (np o λ { (_ , app et st) → _ , et })
   ... | yes (ST , et) with Is⊸? ST
@@ -51,7 +53,7 @@ module Quantitative.Types.Checker
   ... | no np = no (np o λ { (lam st) → _ , _ , refl })
   ... | yes (S0 , S1 , refl) =
     mapDec lam (λ { (lam st) → st }) (checkType (S0 :: Γ) S1 s)
-  checkType Γ S (bang ρ s) = {!!}
+  checkType Γ S (bang s) = {!!}
   checkType Γ S [ e ] with synthType Γ e
   ... | no np = no (np o λ { [ et ] → S , et })
   ... | yes (S′ , et) =

@@ -129,3 +129,8 @@ module Lib.Thinning where
 
   punchInNMany : ∀ {m} l n → (i : Fin (l +N m)) → Fin (l +N n +N m)
   punchInNMany l n i = 1≤-join l (map⊎ id (1≤-rightPart n) (1≤-part l i))
+
+  weakenFin : ∀ {m} l → Fin (l +N m) → Fin (l +N succ m)
+  weakenFin zero i = o′ i
+  weakenFin (succ l) (os i) = zeroth
+  weakenFin (succ l) (o′ i) = o′ (weakenFin l i)

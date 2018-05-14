@@ -9,6 +9,8 @@ module Quantitative.Resources.Substitution
 
   open import Quantitative.Syntax C POS _≟_
   open import Quantitative.Syntax.Substitution C POS _≟_
+  open import Quantitative.Types C POS _≟_
+  open import Quantitative.Types.Substitution C POS _≟_
   open import Quantitative.Resources C POS _≟_
   open import Quantitative.Resources.Context C POS _≟_
 
@@ -47,170 +49,169 @@ module Quantitative.Resources.Substitution
   varRCtx-rightPart zero th ρ = Δ.refl
   varRCtx-rightPart (succ m) th ρ = refl :: varRCtx-rightPart m th ρ
 
-  punchInNManyVarsRes :
-    ∀ {l n m d} {t : Term (l +N m) d} {Δm : RCtx m} {Δn} (Δl : RCtx l) →
-    Δn Δ.≤ replicateVec n R.e0 → Δl +V Δm ⊢r t →
-    Δl +V Δn +V Δm ⊢r punchInNManyVars n l t
-  punchInNManyVarsRes {l = l} {n} {m} {Δm = Δm} {Δn} Δl subn (var {th = th} sub)
-    rewrite VZip≡ (varRCtx-part l th R.e1)
-    with 1≤-part l th
-  ... | inl thl = var a
+  weakenVarsRes :
+    ∀ {l m d S T t} {Γm : TCtx m} {Γl : TCtx l}
+    {tt : Γl +V Γm ⊢t t :-: T} {Δm : RCtx m} (Δl : RCtx l) ρ →
+    ρ R.≤ R.e0 → Δl +V Δm ⊢r tt →
+    Δl +V ρ :: Δm ⊢r weakenVarsTy {d = d} Γl S tt
+  weakenVarsRes {l} {m = m} {S = S} {Γm = Γm} {Γl} {Δm = Δm} Δl ρ le (var {th = th} sub) =
+    var (sub′ Δl th sub)
     where
-    a : Δl +V Δn +V Δm Δ.≤ varRCtx (1≤-leftPart (n +N m) thl) R.e1
-    a rewrite VZip≡ (varRCtx-leftPart {l} (n +N m) thl R.e1)
-            | VZip≡ (replicateVec-+V n m R.e0)
-      = takeVZip Δl (varRCtx thl R.e1) sub
-          +VZip subn
-          +VZip dropVZip Δl (varRCtx thl R.e1) sub
-  ... | inr thm = var a
-    where
-    a : Δl +V Δn +V Δm Δ.≤ varRCtx (1≤-rightPart l (1≤-rightPart n thm)) R.e1
-    a rewrite VZip≡ (varRCtx-rightPart l (1≤-rightPart n thm) R.e1)
-            | VZip≡ (varRCtx-rightPart n thm R.e1)
-      = takeVZip Δl (replicateVec l R.e0) sub
-          +VZip subn
-          +VZip dropVZip Δl (replicateVec l R.e0) sub
-  punchInNManyVarsRes {l = l} {n} {m} {Δm = Δm} {Δn} Δl sub (app {Δe = Δe} {Δs} split er sr)
+    sub′ : ∀ {l} (Δl : RCtx l) th → Δl +V Δm Δ.≤ varRCtx th R.e1 →
+           Δl +V ρ :: Δm Δ.≤ varRCtx (weakenFin l th) R.e1
+    sub′ nil th sub = le :: sub
+    sub′ {succ l} (π :: Δl) (os th) (π≤ :: sub)
+      rewrite VZip≡ (replicateVec-+V l m R.e0)
+            | VZip≡ (replicateVec-+V l (succ m) R.e0)
+      = π≤ :: (takeVZip Δl (Δ.e0 {l}) sub +VZip le :: dropVZip Δl (Δ.e0 {l}) sub)
+    sub′ (π :: Δl) (o′ th) (π≤ :: sub) = π≤ :: sub′ Δl th sub
+  weakenVarsRes {l} {Δm = Δm} Δl ρ le (app {Δe = Δe} {Δs} split er sr)
     rewrite sym (VZip≡ (takeDropVec≡ l Δe))
           | sym (VZip≡ (takeDropVec≡ l Δs))
     with takeVec l Δe | dropVec l Δe | takeVec l Δs | dropVec l Δs
   ... | Δel | Δem | Δsl | Δsm
     rewrite VZip≡ (vzip-+V R._+_ Δel Δsl Δem Δsm)
-    = app split′ (punchInNManyVarsRes Δel Δ.≤-refl er)
-                 (punchInNManyVarsRes Δsl Δ.≤-refl sr)
+    = app split′ (weakenVarsRes Δel R.e0 R.≤-refl er)
+                 (weakenVarsRes Δsl R.e0 R.≤-refl sr)
     where
-    split′ : Δl +V Δn +V Δm Δ.≤ (Δel +V Δ.e0 {n} +V Δem) Δ.+ (Δsl +V Δ.e0 {n} +V Δsm)
-    split′ rewrite VZip≡ (vzip-+V R._+_ Δel Δsl (Δ.e0 {n} +V Δem) (Δ.e0 {n} +V Δsm))
-                 | VZip≡ (vzip-+V R._+_ (Δ.e0 {n}) (Δ.e0 {n}) Δem Δsm)
-                 | VZip≡ (fst Δ.+-identity (Δ.e0 {n}))
+    split′ : Δl +V ρ :: Δm Δ.≤ (Δel +V R.e0 :: Δem) Δ.+ (Δsl +V R.e0 :: Δsm)
+    split′ rewrite VZip≡ (vzip-+V R._+_ Δel Δsl (R.e0 :: Δem) (R.e0 :: Δsm))
+                 | fst R.+-identity R.e0
       = takeVZip Δl (Δel Δ.+ Δsl) split
-          +VZip sub
-          +VZip dropVZip Δl (Δel Δ.+ Δsl) split
-  punchInNManyVarsRes {l = l} {n} {m} {Δm = Δm} {Δn} Δl sub (bm {Δe = Δe} {Δs} {ρ = ρ} split er sr)
+          +VZip le
+             :: dropVZip Δl (Δel Δ.+ Δsl) split
+  weakenVarsRes {l} {Δm = Δm} Δl ρ le (bm {Δe = Δe} {Δs} split er sr)
     rewrite sym (VZip≡ (takeDropVec≡ l Δe))
           | sym (VZip≡ (takeDropVec≡ l Δs))
     with takeVec l Δe | dropVec l Δe | takeVec l Δs | dropVec l Δs
   ... | Δel | Δem | Δsl | Δsm
     rewrite VZip≡ (vzip-+V R._+_ Δel Δsl Δem Δsm)
-    = bm split′ (punchInNManyVarsRes Δel Δ.≤-refl er)
-                (punchInNManyVarsRes (ρ :: Δsl) Δ.≤-refl sr)
+    = bm split′ (weakenVarsRes Δel R.e0 R.≤-refl er)
+                (weakenVarsRes (_ :: Δsl) R.e0 R.≤-refl sr)
     where
-    split′ : Δl +V Δn +V Δm Δ.≤ (Δel +V Δ.e0 {n} +V Δem) Δ.+ (Δsl +V Δ.e0 {n} +V Δsm)
-    split′ rewrite VZip≡ (vzip-+V R._+_ Δel Δsl (Δ.e0 {n} +V Δem) (Δ.e0 {n} +V Δsm))
-                 | VZip≡ (vzip-+V R._+_ (Δ.e0 {n}) (Δ.e0 {n}) Δem Δsm)
-                 | VZip≡ (fst Δ.+-identity (Δ.e0 {n}))
+    -- TODO: this is the same lemma as for app
+    split′ : Δl +V ρ :: Δm Δ.≤ (Δel +V R.e0 :: Δem) Δ.+ (Δsl +V R.e0 :: Δsm)
+    split′ rewrite VZip≡ (vzip-+V R._+_ Δel Δsl (R.e0 :: Δem) (R.e0 :: Δsm))
+                 | fst R.+-identity R.e0
       = takeVZip Δl (Δel Δ.+ Δsl) split
-          +VZip sub
-          +VZip dropVZip Δl (Δel Δ.+ Δsl) split
-  punchInNManyVarsRes Δl sub (the sr) = the (punchInNManyVarsRes Δl sub sr)
-  punchInNManyVarsRes Δl sub (lam sr) =
-    lam (punchInNManyVarsRes (R.e1 :: Δl) sub sr)
-  punchInNManyVarsRes {l = l} {n} {m} {Δm = Δm} {Δn} Δl sub (bang {Δs = Δs} {ρ = ρ} split sr)
+          +VZip le
+             :: dropVZip Δl (Δel Δ.+ Δsl) split
+  weakenVarsRes Δl ρ le (the sr) = the (weakenVarsRes Δl ρ le sr)
+  weakenVarsRes Δl ρ le (lam sr) = lam (weakenVarsRes (R.e1 :: Δl) ρ le sr)
+  weakenVarsRes {l} {Δm = Δm} Δl ρ le (bang {Δs = Δs} {ρ = π} split sr)
     rewrite sym (VZip≡ (takeDropVec≡ l Δs))
     with takeVec l Δs | dropVec l Δs
   ... | Δsl | Δsm
-    rewrite VZip≡ (vmap-+V (ρ R.*_) Δsl Δsm)
-    = bang split′ (punchInNManyVarsRes Δsl Δ.≤-refl sr)
+    rewrite VZip≡ (vmap-+V (π R.*_) Δsl Δsm)
+    = bang split′ (weakenVarsRes Δsl R.e0 R.≤-refl sr)
     where
-    split′ : Δl +V Δn +V Δm Δ.≤ ρ Δ.* (Δsl +V Δ.e0 {n} +V Δsm)
-    split′ rewrite VZip≡ (vmap-+V (ρ R.*_) Δsl (Δ.e0 {n} +V Δsm))
-                 | VZip≡ (vmap-+V (ρ R.*_) (Δ.e0 {n}) Δsm)
-                 | VZip≡ (fst (Δ.annihil {n}) ρ)
-      = takeVZip Δl (ρ Δ.* Δsl) split +VZip sub +VZip dropVZip Δl (ρ Δ.* Δsl) split
-  punchInNManyVarsRes Δl sub [ er ] = [ punchInNManyVarsRes Δl sub er ]
+    split′ : Δl +V ρ :: Δm Δ.≤ π Δ.* (Δsl +V R.e0 :: Δsm)
+    split′ rewrite VZip≡ (vmap-+V (π R.*_) Δsl (R.e0 :: Δsm))
+                 | fst R.annihil π
+      = takeVZip Δl (π Δ.* Δsl) split +VZip le :: dropVZip Δl (π Δ.* Δsl) split
+  weakenVarsRes Δl ρ le [ sr ] = [ weakenVarsRes Δl ρ le sr ]
 
   infix 3 _⊢r*[_]_
 
-  data _⊢r*[_]_ {n d} (Δ : RCtx n)
-              : ∀ {m} → Vec C m → Vec (Term n d) m → Set (c ⊔ l′)
+  data _⊢r*[_]_ {n d Γ} (Δ : RCtx n)
+                : ∀ {m} → Vec C m →
+                  Vec (∃ λ T → ∃ λ (t : Term n d) → Γ ⊢t t :-: T) m →
+                  Set (c ⊔ l′)
               where
     nil : (split : Δ Δ.≤ Δ.e0) → Δ ⊢r*[ nil ] nil
-    cons : ∀ {m Δt Δts ρ t ρs} {ts : Vec _ m}
+    cons : ∀ {m Δt Δts ρ T t ρs} {tt : Γ ⊢t t :-: T} {tts : Vec _ m}
            (split : Δ Δ.≤ ρ Δ.* Δt Δ.+ Δts)
-           (tr : Δt ⊢r t) (tsr : Δts ⊢r*[ ρs ] ts) →
-           Δ ⊢r*[ ρ :: ρs ] t :: ts
+           (tr : Δt ⊢r tt) (tsr : Δts ⊢r*[ ρs ] tts) →
+           Δ ⊢r*[ ρ :: ρs ] (_ , _ , tt) :: tts
 
-  lift⊢r*[] : ∀ {m n Δ ρs} {vf : Subst m n} →
-               Δ ⊢r*[ ρs ] 1≤-tabulate vf →
-               R.e0 :: Δ ⊢r*[ ρs ] 1≤-tabulate (punchInNManyVars 1 0 o vf)
+  lift⊢r*[] : ∀ {m n Γm Γn S Δ ρs} {vf : Subst m n} {vft : SubstTy vf Γm Γn} →
+               Δ ⊢r*[ ρs ] 1≤-tabulate (λ i → _ , _ , vft i) →
+               R.e0 :: Δ ⊢r*[ ρs ] 1≤-tabulate (λ i → _ , _ , weakenVarsTy nil S (vft i))
   lift⊢r*[] (nil split) = nil (R.≤-refl :: split)
-  lift⊢r*[] (cons split tr tsr) =
+  lift⊢r*[] {Γm = Sm :: Γm} (cons split tr tsr) =
     cons (R.≤-reflexive (sym (trans (snd R.+-identity _) (fst R.annihil _))) :: split)
-         (punchInNManyVarsRes nil Δ.≤-refl tr)
+         (weakenVarsRes nil R.e0 R.≤-refl tr)
          (lift⊢r*[] tsr)
 
-  ⊢r*[]-id : ∀ {n} (Δ : RCtx n) →
-              Δ ⊢r*[ Δ ] 1≤-tabulate var
-  ⊢r*[]-id nil = nil nil
-  ⊢r*[]-id (ρ :: Δ) =
-    cons (Δ.≤-reflexive (Δ.sym (Δ.trans
-           (snd R.+-identity _   :: fst Δ.annihil ρ Δ.+-cong Δ.refl)
-           (snd R.*-identity ρ :: fst Δ.+-identity Δ))))
+  ⊢r*[]-id : ∀ {n} (Γ : TCtx n) (Δ : RCtx n) →
+              Δ ⊢r*[ Δ ] 1≤-tabulate (λ i → _ , _ , var {Γ = Γ} {th = i} refl)
+  ⊢r*[]-id nil nil = nil nil
+  ⊢r*[]-id (S :: Γ) (ρ :: Δ) =
+    cons (Δ.≤-reflexive (Δ.sym (
+            ρ R.* R.e1 R.+ R.e0 :: ρ Δ.* Δ.e0 Δ.+ Δ
+              Δ.≈[ snd R.+-identity _ :: fst Δ.annihil ρ Δ.+-cong Δ.refl ]
+            ρ R.* R.e1          ::       Δ.e0 Δ.+ Δ
+              Δ.≈[ snd R.*-identity ρ :: fst Δ.+-identity Δ ]
+            ρ                   ::                Δ
+              Δ.≈-QED
+          )))
          (var Δ.≤-refl)
-         (lift⊢r*[] (⊢r*[]-id Δ))
+         (lift⊢r*[] (⊢r*[]-id Γ Δ))
 
-  SubstRes : ∀ {m n} → Subst m n → RCtx m → RCtx n → Set (c ⊔ l′)
-  SubstRes {m} {n} vf Δm Δn = Δn ⊢r*[ Δm ] 1≤-tabulate vf
+  SubstRes : ∀ {m n} {vf : Subst m n} {Γm Γn} → SubstTy vf Γm Γn → RCtx m → RCtx n → Set (c ⊔ l′)
+  SubstRes vft Δm Δn = Δn ⊢r*[ Δm ] 1≤-tabulate (λ i → _ , _ , vft i)
 
-  singleSubstRes : ∀ {m Δ Δ0 Δ1 t} ρ → Δ0 ⊢r t → Δ Δ.≤ ρ Δ.* Δ0 Δ.+ Δ1 →
-                   SubstRes {succ m} (singleSubst t) (ρ :: Δ1) Δ
-  singleSubstRes ρ tr split = cons split tr (⊢r*[]-id _)
+  singleSubstRes : ∀ {m Δ Δ0 Δ1 t Γ T} {tt : Γ ⊢t t :-: T} ρ →
+                   Δ0 ⊢r tt → Δ Δ.≤ ρ Δ.* Δ0 Δ.+ Δ1 →
+                   SubstRes {succ m} {Γm = T :: Γ}
+                            (singleSubstTy tt) (ρ :: Δ1) Δ
+  singleSubstRes ρ tr split = cons split tr (⊢r*[]-id _ _)
 
-  punchInNManyVarsRes* :
-    ∀ {l n m o d ρs} {ts : Vec (Term (l +N m) d) o}
-    {Δm : RCtx m} {Δn} (Δl : RCtx l) →
-    Δn Δ.≤ Δ.e0 {n} → Δl +V Δm ⊢r*[ ρs ] ts →
-    Δl +V Δn +V Δm ⊢r*[ ρs ] vmap (punchInNManyVars n l) ts
-  punchInNManyVarsRes* {l} {n} {m} {Δm = Δm} {Δn} Δl sub (nil split) =
+  weakenVarsRes* :
+    ∀ {l m n S d ρs} {Γm : TCtx m} {Γl : TCtx l}
+    {tts : Vec (∃ λ T → ∃ λ (t : Term _ d) → Γl +V Γm ⊢t t :-: T) n}
+    {Δm : RCtx m} (Δl : RCtx l) ρ →
+    ρ R.≤ R.e0 → Δl +V Δm ⊢r*[ ρs ] tts →
+    Δl +V ρ :: Δm ⊢r*[ ρs ] vmap (λ { (_ , _ , tt) → _ , _ , weakenVarsTy Γl S tt }) tts
+  weakenVarsRes* {l} {m} {Δm = Δm} Δl ρ le (nil split) =
     nil split′
     where
-    split′ : Δl +V Δn +V Δm Δ.≤ Δ.e0
+    split′ : Δl +V ρ :: Δm Δ.≤ Δ.e0
     split′ rewrite VZip≡ (replicateVec-+V l m R.e0)
-                 | VZip≡ (replicateVec-+V l (n +N m) R.e0)
-                 | VZip≡ (replicateVec-+V n m R.e0)
+                 | VZip≡ (replicateVec-+V l (succ m) R.e0)
       = takeVZip Δl Δ.e0 split
-          +VZip sub
-          +VZip dropVZip Δl Δ.e0 split
-  punchInNManyVarsRes* {l} {n} {ρs = ρ :: ρs} {t :: ts} {Δm}
-                       {Δn} Δl sub (cons {Δt = Δt} {Δts} split tr tsr) =
+          +VZip le
+             :: dropVZip Δl Δ.e0 split
+  weakenVarsRes* {l} {m} {succ n} {ρs = ρ :: ρs} {tts = _ :: tts} {Δm = Δm} Δl π le (cons {Δt = Δt} {Δts} {tt = tt} split tr tsr) =
     cons split′
-         (punchInNManyVarsRes (takeVec l Δt) Δ.≤-refl tr′)
-         (punchInNManyVarsRes* (takeVec l Δts) sub tsr′)
+         (weakenVarsRes (takeVec l Δt) R.e0 R.≤-refl tr′)
+         (weakenVarsRes* (takeVec l Δts) R.e0 R.≤-refl tsr′)
     where
-    split′ : Δl +V Δn +V Δm Δ.≤ ρ Δ.* (takeVec l Δt +V Δ.e0 {n} +V dropVec l Δt)
-                                 Δ.+ (takeVec l Δts +V Δn +V dropVec l Δts)
-    split′ rewrite VZip≡ (vmap-+V (ρ R.*_) (takeVec l Δt) (Δ.e0 {n} +V dropVec l Δt))
-                 | VZip≡ (vmap-+V (ρ R.*_) (Δ.e0 {n}) (dropVec l Δt))
-                 | VZip≡ (vzip-+V R._+_ (ρ Δ.* takeVec l Δt)
-                                        (takeVec l Δts)
-                                        (ρ Δ.* Δ.e0 {n} +V ρ Δ.* dropVec l Δt)
-                                        (Δn +V dropVec l Δts))
-                 | VZip≡ (vzip-+V R._+_ (ρ Δ.* Δ.e0) Δn
-                                        (ρ Δ.* dropVec l Δt) (dropVec l Δts))
-                 | sym (VZip≡ (takeDropVec≡ l Δt))
-                 | sym (VZip≡ (takeDropVec≡ l Δts))
-                 | VZip≡ (vmap-+V (ρ R.*_) (takeVec l Δt) (dropVec l Δt))
-                 | VZip≡ (vzip-+V R._+_ (ρ Δ.* takeVec l Δt) (takeVec l Δts)
-                                        (ρ Δ.* dropVec l Δt) (dropVec l Δts))
-                 | VZip≡ (takeDropVec≡ l Δt)
-                 | VZip≡ (takeDropVec≡ l Δts)
-      = takeVZip Δl (ρ Δ.* takeVec l Δt Δ.+ takeVec l Δts) split
-          +VZip Δ.≤-reflexive (Δ.sym (
-            ρ Δ.* Δ.e0 Δ.+ Δn  Δ.≈[ fst Δ.annihil ρ Δ.+-cong Δ.refl ]
-                  Δ.e0 Δ.+ Δn  Δ.≈[ fst Δ.+-identity Δn ]
-                           Δn  Δ.≈-QED
-          ))
-          +VZip dropVZip Δl (ρ Δ.* takeVec l Δt Δ.+ takeVec l Δts) split
+    split′ : Δl +V π :: Δm Δ.≤ ρ Δ.* (takeVec l Δt  +V R.e0 :: dropVec l Δt)
+                                 Δ.+ (takeVec l Δts +V R.e0 :: dropVec l Δts)
+    split′
+      rewrite VZip≡ (vmap-+V (ρ R.*_) (takeVec l Δt) (R.e0 :: dropVec l Δt))
+            | VZip≡ (vzip-+V R._+_ (ρ Δ.* takeVec l Δt)
+                                   (takeVec l Δts)
+                                   (ρ R.* R.e0 :: ρ Δ.* dropVec l Δt)
+                                   (R.e0 :: dropVec l Δts))
+            | sym (VZip≡ (takeDropVec≡ l Δt))
+            | sym (VZip≡ (takeDropVec≡ l Δts))
+      with takeVec l Δt | dropVec l Δt | takeVec l Δts | dropVec l Δts
+    ... | Δtl | Δtm | Δtsl | Δtsm
+      rewrite VZip≡ (takeVec-+V Δtl Δtm) | VZip≡ (dropVec-+V Δtl Δtm)
+            | VZip≡ (takeVec-+V Δtsl Δtsm) | VZip≡ (dropVec-+V Δtsl Δtsm)
+            | VZip≡ (vmap-+V (ρ R.*_) Δtl Δtm)
+            | VZip≡ (vzip-+V R._+_ (ρ Δ.* Δtl) Δtsl
+                                   (ρ Δ.* Δtm) Δtsm)
+      = takeVZip Δl (ρ Δ.* Δtl Δ.+ Δtsl) split
+          +VZip R.≤-trans le (R.≤-reflexive (sym (
+                  ρ R.* R.e0 R.+ R.e0  =[ fst R.annihil ρ R.+-cong refl ]=
+                        R.e0 R.+ R.e0  =[ fst R.+-identity R.e0 ]=
+                        R.e0           QED
+                )))
+             :: dropVZip Δl (ρ Δ.* Δtl Δ.+ Δtsl) split
 
-    tr′ : takeVec l Δt +V dropVec l Δt ⊢r t
+    tr′ : takeVec l Δt +V dropVec l Δt ⊢r tt
     tr′ rewrite VZip≡ (takeDropVec≡ l Δt) = tr
 
-    tsr′ : takeVec l Δts +V dropVec l Δts ⊢r*[ ρs ] ts
+    tsr′ : takeVec l Δts +V dropVec l Δts ⊢r*[ ρs ] tts
     tsr′ rewrite VZip≡ (takeDropVec≡ l Δts) = tsr
 
   fromΔe0 :
-    ∀ {m n d Δm Δn} {ts : Vec (Term n d) m} →
-    Δm Δ.≤ Δ.e0 → Δn ⊢r*[ Δm ] ts → Δn Δ.≤ Δ.e0
+    ∀ {m n Γ d Δm Δn}
+    {tts : Vec (∃ λ T → ∃ λ (t : Term n d) → Γ ⊢t t :-: T) m} →
+    Δm Δ.≤ Δ.e0 → Δn ⊢r*[ Δm ] tts → Δn Δ.≤ Δ.e0
   fromΔe0 nil (nil split) = split
   fromΔe0 {Δm = Δm} {Δn} (le :: sub) (cons {Δt = Δt} {Δts} {ρ = ρ} split tr tsr) =
                  Δn      Δ.≤[ split ]
@@ -220,6 +221,7 @@ module Quantitative.Resources.Substitution
                     Δts  Δ.≤[ fromΔe0 sub tsr ]
                    Δ.e0  Δ.≤-QED
 
+  {-
   liftSubstRes : ∀ {m n Δm Δn} ρ (vf : Subst m n) →
                  SubstRes vf Δm Δn →
                  SubstRes (liftSubst vf) (ρ :: Δm) (ρ :: Δn)
@@ -384,11 +386,11 @@ module Quantitative.Resources.Substitution
     ... | Δsn , split* | vfrs = bang split* (substituteRes sr vf vfrs)
     substituteRes [ er ] vf vfr = [ substituteRes er vf vfr ]
 
-    ~~>-preservesRes : ∀ {n d Δ} {t u : Term n d} (tr : Δ ⊢r t) →
+    ~~>-preservesRes : ∀ {n d Γ S Δ} {t u : Term n d} (tt : Γ ⊢t t :-: S) (tr : Δ ⊢r t) →
                        t ~~> u → Δ ⊢r u
-    ~~>-preservesRes [ the sr ] (upsilon S s) = sr
-    ~~>-preservesRes {Δ = Δ} (app {Δe = Δe} {Δs} split (the (lam s0r)) s1r) (⊸-beta S T s0 s1) =
-      the (substituteRes s0r _ (singleSubstRes R.e1 (the {S = S} s1r) (split′ s1r)))
+    ~~>-preservesRes [ the st ] [ the sr ] (upsilon S s) = sr
+    ~~>-preservesRes {Δ = Δ} (app (the (lam tt)) st) (app {Δe = Δe} {Δs} split (the (lam tr)) sr) (⊸-beta S T s t) =
+      the (substituteRes tr _ (singleSubstRes R.e1 (the {S = S} sr) (split′ sr)))
       where
       split-eqs : Δe Δ.+ Δs Δ.≈ R.e1 Δ.* Δs Δ.+ Δe
       split-eqs =
@@ -396,21 +398,22 @@ module Quantitative.Resources.Substitution
                  Δs Δ.+ Δe  Δ.≈[ Δ.sym (Δ.identity Δs) Δ.+-cong Δ.refl ]
         R.e1 Δ.* Δs Δ.+ Δe  Δ.≈-QED
 
-      split′ : ∀ {s1} → Δs ⊢r s1 → Δ Δ.≤ R.e1 Δ.* Δs Δ.+ Δe
-      split′ s1r = Δ.≤-trans split (Δ.≤-reflexive split-eqs)
-    ~~>-preservesRes (lam s0r) (lam-cong s0 s1 red) =
-      lam (~~>-preservesRes s0r red)
-    ~~>-preservesRes (app split e0r sr) (app1-cong e0 e1 s red) =
-      app split (~~>-preservesRes e0r red) sr
-    ~~>-preservesRes (app split er s0r) (app2-cong e s0 s1 red) =
-      app split er (~~>-preservesRes s0r red)
-    ~~>-preservesRes (bm split (the (bang split′ sr)) tr) (!-beta S T ρ s t) =
-      the (substituteRes tr _ (singleSubstRes _ (the {S = S} sr) split″))
+      split′ : ∀ {s} → Δs ⊢r s → Δ Δ.≤ R.e1 Δ.* Δs Δ.+ Δe
+      split′ sr = Δ.≤-trans split (Δ.≤-reflexive split-eqs)
+    ~~>-preservesRes (lam st) (lam sr) (lam-cong s s′ red) =
+      lam (~~>-preservesRes st sr red)
+    ~~>-preservesRes (app et st) (app split er sr) (app1-cong e e′ s red) =
+      app split (~~>-preservesRes et er red) sr
+    ~~>-preservesRes (app et st) (app split er sr) (app2-cong e s s′ red) =
+      app split er (~~>-preservesRes st sr red)
+    ~~>-preservesRes (bm {ρ = .ρ} (the (bang {ρ = .ρ} st)) tt) (bm {ρ = τ} split+ (the (bang {ρ = π} split* sr)) tr) (!-beta S T ρ s t) =
+      the (substituteRes tr _ (singleSubstRes _ (the {S = S} sr) {!split!}))
       where
-      split″ = Δ.≤-trans split (split′ Δ.+-mono Δ.≤-refl)
-    ~~>-preservesRes (bang split sr) (bang-cong ρ s s′ red) =
-      bang split (~~>-preservesRes sr red)
-    ~~>-preservesRes (bm split er sr) (bm1-cong S ρ e e′ s red) =
-      bm split (~~>-preservesRes er red) sr
-    ~~>-preservesRes (bm split er sr) (bm2-cong S ρ e s s′ red) =
-      bm split er (~~>-preservesRes sr red)
+      split = Δ.≤-trans split+ (split* Δ.+-mono Δ.≤-refl)
+    ~~>-preservesRes (bang st) (bang split sr) (bang-cong s s′ red) =
+      bang split (~~>-preservesRes st sr red)
+    ~~>-preservesRes (bm et st) (bm split er sr) (bm1-cong S e e′ s red) =
+      bm split (~~>-preservesRes et er red) sr
+    ~~>-preservesRes (bm et st) (bm split er sr) (bm2-cong S e s s′ red) =
+      bm split er (~~>-preservesRes st sr red)
+  -}

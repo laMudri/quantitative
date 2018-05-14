@@ -20,10 +20,10 @@ module Quantitative.Resources
 
   data _⊢r_ {n} {Γ : TCtx n} (Δ : RCtx n)
             : ∀ {d S} {t : Term n d} (tt : Γ ⊢t t :-: S) → Set (l′ ⊔ c) where
-    var : ∀ {th}
+    var : ∀ {th T} {eq : T ≡ 1≤-index th Γ}
           (sub : Δ Δ.≤ varRCtx th R.e1)
           →
-          Δ ⊢r var {th = th}
+          Δ ⊢r var {th = th} eq
     app : ∀ {Δe Δs S T e s} {et : Γ ⊢t e ∈ S ⊸ T} {st : Γ ⊢t S ∋ s}
           (split : Δ Δ.≤ Δe Δ.+ Δs)
           (er : Δe ⊢r et) (sr : Δs ⊢r st)

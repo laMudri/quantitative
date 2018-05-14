@@ -142,6 +142,13 @@ module Lib.Vec where
           (trans (1≤-index-rightPart j ns ms)
                  (1≤-index-part-r i ls ms eq))
 
+  1≤-index-weakenFin :
+    ∀ {a A m l} (ls : Vec A l) x (ms : Vec {a} A m) i →
+    1≤-index (weakenFin l i) (ls +V x :: ms) ≡ 1≤-index i (ls +V ms)
+  1≤-index-weakenFin nil x ms i = refl
+  1≤-index-weakenFin (lx :: ls) x ms (os i) = refl
+  1≤-index-weakenFin (lx :: ls) x ms (o′ i) = 1≤-index-weakenFin ls x ms i
+
   1≤-index-≡ :
     ∀ {a A m} i j (xs : Vec {a} A m) →
     1≤ToNat i ≡ 1≤ToNat j → 1≤-index i xs ≡ 1≤-index j xs

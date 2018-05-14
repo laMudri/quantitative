@@ -48,6 +48,16 @@ module Lib.VZip where
   takeDropVec≡ zero xs = ≡VZip refl
   takeDropVec≡ (succ m) (x :: xs) = refl :: takeDropVec≡ m xs
 
+  takeVec-+V : ∀ {a A m n} (xs : Vec {a} A m) (ys : Vec A n) →
+               VZip _≡_ (takeVec m (xs +V ys)) xs
+  takeVec-+V nil ys = nil
+  takeVec-+V (x :: xs) ys = refl :: takeVec-+V xs ys
+
+  dropVec-+V : ∀ {a A m n} (xs : Vec {a} A m) (ys : Vec A n) →
+               VZip _≡_ (dropVec m (xs +V ys)) ys
+  dropVec-+V nil ys = ≡VZip refl
+  dropVec-+V (x :: xs) ys = dropVec-+V xs ys
+
   1≤-tabulate-o : ∀ {a b A B m} (f : A → B) (g : Fin m → A) →
                     VZip _≡_ (1≤-tabulate {b} (f o g)) (vmap f (1≤-tabulate {a} g))
   1≤-tabulate-o {m = zero} f g = nil

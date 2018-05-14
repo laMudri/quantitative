@@ -34,9 +34,10 @@ module Quantitative.Types
   -- type correctness
   data _⊢t_ {n} (Γ : TCtx n)
              : ∀ {d} {t : Term n d} {T} → Consequent t T → Set c where
-    var : ∀ {th}
+    var : ∀ {th T} →
+          T ≡ 1≤-index th Γ
           →
-          Γ ⊢t var th ∈ (1≤-index th Γ)
+          Γ ⊢t var th ∈ T
     app : ∀ {e s S T}
           (et : Γ ⊢t e ∈ S ⊸ T) (st : Γ ⊢t S ∋ s)
           →

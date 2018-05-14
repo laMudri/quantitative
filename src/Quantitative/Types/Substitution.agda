@@ -15,42 +15,38 @@ module Quantitative.Types.Substitution
   open import Lib.Thinning
   open import Lib.Vec
 
-  punchInNManyVarsTy :
-    ∀ {m n l d T} {t : Term _ d} {Γm : TCtx m} (Γn : TCtx n) (Γl : TCtx l) →
-    Γl +V Γm ⊢t t :-: T → Γl +V Γn +V Γm ⊢t punchInNManyVars n l t :-: T
-  punchInNManyVarsTy {Γm = Γm} Γn Γl (var {th = th})
-    rewrite sym (1≤-index-punchInNMany Γl Γn Γm th) = var
-  punchInNManyVarsTy Γn Γl (app et st) =
-    app (punchInNManyVarsTy Γn Γl et) (punchInNManyVarsTy Γn Γl st)
-  punchInNManyVarsTy Γn Γl (bm {S = S} et st) =
-    bm (punchInNManyVarsTy Γn Γl et)
-       (punchInNManyVarsTy Γn (S :: Γl) st)
-  punchInNManyVarsTy Γn Γl (the st) =
-    the (punchInNManyVarsTy Γn Γl st)
-  punchInNManyVarsTy Γn Γl (lam {S = S} st) =
-    lam (punchInNManyVarsTy Γn (S :: Γl) st)
-  punchInNManyVarsTy Γn Γl (bang ρ st) =
-    bang ρ (punchInNManyVarsTy Γn Γl st)
-  punchInNManyVarsTy Γn Γl [ et ] =
-    [ punchInNManyVarsTy Γn Γl et ]
+  weakenVarsTy :
+    ∀ {m l d T} {t : Term _ d} {Γm : TCtx m} (Γl : TCtx l) S →
+    Γl +V Γm ⊢t t :-: T → Γl +V S :: Γm ⊢t weakenVars l t :-: T
+  weakenVarsTy {l = l} {Γm = Γm} Γl S (var {th = th} {T} eq) =
+    var (trans eq (sym (1≤-index-weakenFin Γl S Γm th)))
+  weakenVarsTy Γl S (app et st) =
+    app (weakenVarsTy Γl S et) (weakenVarsTy Γl S st)
+  weakenVarsTy Γl S (bm et st) =
+    bm (weakenVarsTy Γl S et) (weakenVarsTy (_ :: Γl) S st)
+  weakenVarsTy Γl S (the st) = the (weakenVarsTy Γl S st)
+  weakenVarsTy Γl S (lam st) = lam (weakenVarsTy (_ :: Γl) S st)
+  weakenVarsTy Γl S (bang ρ st) = bang ρ (weakenVarsTy Γl S st)
+  weakenVarsTy Γl S [ et ] = [ weakenVarsTy Γl S et ]
 
   SubstTy : ∀ {m n} → Subst m n → TCtx m → TCtx n → Set c
   SubstTy {m} {n} vf Γm Γn = (th : Fin m) → Γn ⊢t vf th ∈ 1≤-index th Γm
 
-  singleSubstTy : ∀ {m Γ e S} → Γ ⊢t e ∈ S → SubstTy (singleSubst {m} e) (S :: Γ) Γ
+  singleSubstTy : ∀ {m Γ e S} → Γ ⊢t e ∈ S →
+                  SubstTy (singleSubst {m} e) (S :: Γ) Γ
   singleSubstTy et (os th) = et
-  singleSubstTy et (o′ th) = var
+  singleSubstTy et (o′ th) = var refl
 
   liftSubstTy : ∀ {m n Γm Γn} T (vf : Subst m n) →
                 SubstTy vf Γm Γn → SubstTy (liftSubst vf) (T :: Γm) (T :: Γn)
-  liftSubstTy T vf vft (os th) = var
-  liftSubstTy T vf vft (o′ th) = punchInNManyVarsTy (T :: nil) nil (vft th)
+  liftSubstTy T vf vft (os th) = var refl
+  liftSubstTy T vf vft (o′ th) = weakenVarsTy nil T (vft th)
 
   substituteTy :
     ∀ {m n d T} {t : Term m d} {Γm : TCtx m} {Γn : TCtx n} →
     Γm ⊢t t :-: T → (vf : Subst m n) → SubstTy vf Γm Γn →
     Γn ⊢t substitute t vf :-: T
-  substituteTy (var {th = th}) vf vft = vft th
+  substituteTy (var {th = th} refl) vf vft = vft th
   substituteTy (app et st) vf vft =
     app (substituteTy et vf vft) (substituteTy st vf vft)
   substituteTy (bm et st) vf vft =

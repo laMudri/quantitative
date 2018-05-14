@@ -13,23 +13,21 @@ module Quantitative.Syntax.Substitution
   open import Lib.Nat
   open import Lib.Thinning
 
-  punchInNManyVars : ∀ {m d} n l → Term (l +N m) d → Term (l +N n +N m) d
-  punchInNManyVars n l (var th) = var (punchInNMany l n th)
-  punchInNManyVars n l (app e s) =
-    app (punchInNManyVars n l e) (punchInNManyVars n l s)
-  punchInNManyVars n l (bm S e s) =
-    bm S (punchInNManyVars n l e) (punchInNManyVars n (succ l) s)
-  punchInNManyVars n l (the S s) = the S (punchInNManyVars n l s)
-  punchInNManyVars n l (lam s) = lam (punchInNManyVars n (succ l) s)
-  punchInNManyVars n l (bang s) = bang (punchInNManyVars n l s)
-  punchInNManyVars n l [ e ] = [ punchInNManyVars n l e ]
+  weakenVars : ∀ {m d} l → Term (l +N m) d → Term (l +N succ m) d
+  weakenVars l (var th) = var (weakenFin l th)
+  weakenVars l (app e s) = app (weakenVars l e) (weakenVars l s)
+  weakenVars l (bm S e s) = bm S (weakenVars l e) (weakenVars (succ l) s)
+  weakenVars l (the S s) = the S (weakenVars l s)
+  weakenVars l (lam s) = lam (weakenVars (succ l) s)
+  weakenVars l (bang s) = bang (weakenVars l s)
+  weakenVars l [ e ] = [ weakenVars l e ]
 
   Subst : Nat → Nat → Set c
   Subst m n = Fin m → Term n syn
 
   liftSubst : ∀ {m n} → Subst m n → Subst (succ m) (succ n)
   liftSubst vf (os th) = var zeroth
-  liftSubst vf (o′ th) = punchInNManyVars 1 0 (vf th)
+  liftSubst vf (o′ th) = weakenVars 0 (vf th)
 
   substitute : ∀ {m n d} → Term m d → Subst m n → Term n d
   substitute (var th) vf = vf th
