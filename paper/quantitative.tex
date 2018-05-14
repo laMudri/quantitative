@@ -59,6 +59,16 @@
 \usepackage{subcaption} %% For complex figures with subfigures/subcaptions
                         %% http://ctan.org/pkg/subcaption
 
+\usepackage{mathpartir}
+
+
+\newcommand{\ann}[2]{#1 : #2}
+\newcommand{\emb}[1]{[#1]}
+
+\newcommand{\fun}[2]{#1 \multimap #2}
+\newcommand{\lam}[2]{\lambda #1. #2}
+\newcommand{\app}[2]{#1\ #2}
+
 
 \begin{document}
 
@@ -177,6 +187,41 @@ Text of abstract \ldots.
 
 Text of paper \ldots
 
+Typing:
+
+\begin{mathpar}
+  \inferrule{\Gamma \vdash S \ni s}
+            {\Gamma \vdash (\ann{s}{S}) \in S}
+            
+  \inferrule{\Gamma \vdash e \in S}
+            {\Gamma \vdash S \ni \emb{e}}
+\end{mathpar}
+
+\begin{mathpar}
+  \inferrule{\Gamma, S \vdash T \ni s}
+            {\Gamma \vdash \fun{S}{T} \ni \lam{x}{s}}
+
+  \inferrule{\Gamma \vdash e \in \fun{S}{T} \\ \Gamma \vdash S \ni s}
+            {\Gamma \vdash \app{e}{s} \in T}
+\end{mathpar}
+
+Resources:
+
+\begin{mathpar}
+  \inferrule{\Delta \vdash s}
+            {\Delta \vdash (s : S)}
+            
+  \inferrule{\Delta \vdash e}
+            {\Delta \vdash [e]}
+\end{mathpar}
+
+\begin{mathpar}
+  \inferrule{\Delta, 1 \vdash s}
+            {\Delta \vdash \lam{x}{s}}
+            
+  \inferrule{\Delta \vdash e \\ \Delta \vdash s}
+            {\Delta \vdash \app{e}{s}}
+\end{mathpar}
 
 %% Acknowledgments
 \begin{acks}                            %% acks environment is optional
