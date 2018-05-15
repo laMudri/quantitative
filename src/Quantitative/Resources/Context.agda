@@ -268,7 +268,7 @@ module Quantitative.Resources.Context
     open CommutativePomonoid (commutativePomonoid n) public
       renaming (e to e0; _·_ to _+_;
                 _·-cong_ to _+-cong_; _·-mono_ to _+-mono_;
-                identity to +-identity; assoc to +-assoc)
+                identity to +-identity; assoc to +-assoc; comm to +-comm)
 
     setoid : Setoid _ _
     setoid = setoid′ n

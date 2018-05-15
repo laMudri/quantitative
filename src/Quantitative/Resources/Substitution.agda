@@ -111,12 +111,13 @@ module Quantitative.Resources.Substitution
       = takeVZip Δl (π Δ.* Δsl) split +VZip le :: dropVZip Δl (π Δ.* Δsl) split
   weakenVarsRes Δl ρ le [ sr ] = [ weakenVarsRes Δl ρ le sr ]
 
+  TypedTerm : ∀ {n} → Dir → TCtx n → Set _
+  TypedTerm {n} d Γ = ∃ λ T → ∃ λ (t : Term n d) → Γ ⊢t t :-: T
+
   infix 3 _⊢r*[_]_
 
   data _⊢r*[_]_ {n d Γ} (Δ : RCtx n)
-                : ∀ {m} → Vec C m →
-                  Vec (∃ λ T → ∃ λ (t : Term n d) → Γ ⊢t t :-: T) m →
-                  Set (c ⊔ l′)
+                : ∀ {m} → Vec C m → Vec (TypedTerm d Γ) m → Set (c ⊔ l′)
               where
     nil : (split : Δ Δ.≤ Δ.e0) → Δ ⊢r*[ nil ] nil
     cons : ∀ {m Δt Δts ρ T t ρs} {tt : Γ ⊢t t :-: T} {tts : Vec _ m}
@@ -159,8 +160,7 @@ module Quantitative.Resources.Substitution
 
   weakenVarsRes* :
     ∀ {l m n S d ρs} {Γm : TCtx m} {Γl : TCtx l}
-    {tts : Vec (∃ λ T → ∃ λ (t : Term _ d) → Γl +V Γm ⊢t t :-: T) n}
-    {Δm : RCtx m} (Δl : RCtx l) ρ →
+    {tts : Vec (TypedTerm d (Γl +V Γm)) n} {Δm : RCtx m} (Δl : RCtx l) ρ →
     ρ R.≤ R.e0 → Δl +V Δm ⊢r*[ ρs ] tts →
     Δl +V ρ :: Δm ⊢r*[ ρs ] vmap (λ { (_ , _ , tt) → _ , _ , weakenVarsTy Γl S tt }) tts
   weakenVarsRes* {l} {m} {Δm = Δm} Δl ρ le (nil split) =
@@ -209,8 +209,7 @@ module Quantitative.Resources.Substitution
     tsr′ rewrite VZip≡ (takeDropVec≡ l Δts) = tsr
 
   fromΔe0 :
-    ∀ {m n Γ d Δm Δn}
-    {tts : Vec (∃ λ T → ∃ λ (t : Term n d) → Γ ⊢t t :-: T) m} →
+    ∀ {m n Γ d Δm Δn} {tts : Vec (TypedTerm {n} d Γ) m} →
     Δm Δ.≤ Δ.e0 → Δn ⊢r*[ Δm ] tts → Δn Δ.≤ Δ.e0
   fromΔe0 nil (nil split) = split
   fromΔe0 {Δm = Δm} {Δn} (le :: sub) (cons {Δt = Δt} {Δts} {ρ = ρ} split tr tsr) =
@@ -221,11 +220,10 @@ module Quantitative.Resources.Substitution
                     Δts  Δ.≤[ fromΔe0 sub tsr ]
                    Δ.e0  Δ.≤-QED
 
-  {-
-  liftSubstRes : ∀ {m n Δm Δn} ρ (vf : Subst m n) →
-                 SubstRes vf Δm Δn →
-                 SubstRes (liftSubst vf) (ρ :: Δm) (ρ :: Δn)
-  liftSubstRes {Δm = Δm} {Δn} ρ vf vfr =
+  liftSubstRes : ∀ {m n Γm Γn Δm Δn} S ρ {vf : Subst m n}
+                 (vft : SubstTy vf Γm Γn) → SubstRes vft Δm Δn →
+                 SubstRes (liftSubstTy S vf vft) (ρ :: Δm) (ρ :: Δn)
+  liftSubstRes {Γm = Γm} {Γn} {Δm = Δm} {Δn} S ρ {vf} vft vfr =
     cons split (var Δ.≤-refl) vfr′
     where
     split : ρ :: Δn Δ.≤ ρ Δ.* (R.e1 :: Δ.e0) Δ.+ (R.e0 :: Δn)
@@ -239,90 +237,113 @@ module Quantitative.Resources.Substitution
                      Δn  Δ.≈-QED
       )))
 
-    vfr′ : R.e0 :: Δn ⊢r*[ Δm ] 1≤-tabulate (punchInNManyVars 1 0 o vf)
-    vfr′ rewrite VZip≡ (1≤-tabulate-o (punchInNManyVars 1 0) vf) =
-      punchInNManyVarsRes* nil (R.≤-refl :: nil) vfr
+    f : ∀ {d} → (TypedTerm d Γn) → (TypedTerm d (S :: Γn))
+    f (T , t , tt) = T , weakenVars 0 t , weakenVarsTy nil S tt
 
-  weakenRes* : ∀ {m n d Δ Δ′} {ts : Vec (Term n d) m} {ρs} →
-               Δ′ Δ.≤ Δ → Δ ⊢r*[ ρs ] ts → Δ′ ⊢r*[ ρs ] ts
+    vfr′ : R.e0 :: Δn
+           ⊢r*[ Δm ] 1≤-tabulate ((λ i → _ , _ , weakenVarsTy nil S (vft i)))
+    vfr′ rewrite VZip≡ (1≤-tabulate-o f (λ i → _ , vf i , vft i)) =
+      weakenVarsRes* nil R.e0 R.≤-refl vfr
+
+  weakenRes* : ∀ {m n d Γ Δ Δ′} {tts : Vec (TypedTerm {n} d Γ) m} {ρs} →
+               Δ′ Δ.≤ Δ → Δ ⊢r*[ ρs ] tts → Δ′ ⊢r*[ ρs ] tts
   weakenRes* sub (nil split) = nil (Δ.≤-trans sub split)
   weakenRes* sub (cons split tr tsr) = cons (Δ.≤-trans sub split) tr tsr
 
   nothingLeft :
-    ∀ {m n d Δ ρs} {ts : Vec (Term m d) n} →
-    ρs Δ.≤ Δ.e0 → Δ ⊢r*[ ρs ] ts → Δ Δ.≤ Δ.e0
+    ∀ {m n d Γ Δ ρs} {tts : Vec (TypedTerm {m} d Γ) n} →
+    ρs Δ.≤ Δ.e0 → Δ ⊢r*[ ρs ] tts → Δ Δ.≤ Δ.e0
   nothingLeft sub (nil split) = split
-  nothingLeft {Δ = Δ} {ρs = ρ :: ρs} (le :: sub) (cons {Δt = Δt} {Δts} split tr tsr) =
+  nothingLeft {Δ = Δ} {ρs = ρ :: ρs}
+              (le :: sub) (cons {Δt = Δt} {Δts} split tr tsr) =
                  Δ        Δ.≤[ split ]
-       ρ Δ.* Δt Δ.+ Δts   Δ.≤[ le Δ.*-mono Δ.≤-refl {x = Δt} Δ.+-mono nothingLeft sub tsr ]
+       ρ Δ.* Δt Δ.+ Δts   Δ.≤[ le Δ.*-mono Δ.≤-refl
+                                  Δ.+-mono nothingLeft sub tsr ]
     R.e0 Δ.* Δt Δ.+ Δ.e0  Δ.≤[ Δ.≤-reflexive (snd Δ.+-identity _) ]
     R.e0 Δ.* Δt           Δ.≤[ Δ.≤-reflexive (snd Δ.annihil Δt) ]
          Δ.e0             Δ.≤-QED
 
-  substSplit+ : ∀ {m n vf} {Δm Δem Δsm : RCtx m} {Δn : RCtx n} →
-                Δm Δ.≤ Δem Δ.+ Δsm → SubstRes vf Δm Δn →
+  substSplit+ : ∀ {m n vf Γm Γn} {vft : SubstTy vf Γm Γn}
+                {Δm Δem Δsm : RCtx m} {Δn : RCtx n} →
+                Δm Δ.≤ Δem Δ.+ Δsm → SubstRes vft Δm Δn →
                 ∃ λ Δen → ∃ λ Δsn → Δn Δ.≤ Δen Δ.+ Δsn
-  substSplit+ {Δm = nil} {nil} {nil} {Δn} nil (nil split) =
-    Δ.e0 , Δ.e0 , Δ.≤-trans split (Δ.≤-reflexive (Δ.sym (fst Δ.+-identity Δ.e0)))
-  substSplit+ {Δm = ρ :: Δm} {ρe :: Δem} {ρs :: Δsm} {Δn}
+  substSplit+ {Δm = nil} {nil} {nil} {Δn} nil (nil splitn) =
+    Δ.e0 , Δ.e0
+    , Δ.≤-trans splitn (Δ.≤-reflexive (Δ.sym (fst Δ.+-identity Δ.e0)))
+  substSplit+ {Γm = S :: Γm} {Δm = ρ :: Δm} {ρe :: Δem} {ρs :: Δsm} {Δn}
               (le :: splitm) (cons {Δt = Δt} {Δts} splitn tr vfr)
     with substSplit+ splitm vfr
   ... | Δen , Δsn , split′ =
     ρe Δ.* Δt Δ.+ Δen , ρs Δ.* Δt Δ.+ Δsn ,
-                                 Δn                Δ.≤[ splitn ]
-                 ρ      Δ.* Δt  Δ.+      Δts       Δ.≤[ le Δ.*-mono Δ.≤-refl Δ.+-mono split′ ]
-            (ρe R.+ ρs) Δ.* Δt  Δ.+ (Δen Δ.+ Δsn)  Δ.≤[ Δ.≤-reflexive equality ]
-      (ρe Δ.* Δt Δ.+ Δen) Δ.+ (ρs Δ.* Δt Δ.+ Δsn)  Δ.≤-QED
+                        Δn                Δ.≤[ splitn ]
+         ρ      Δ.* Δt Δ.+      Δts       Δ.≤[ le Δ.*-mono Δ.≤-refl
+                                                  Δ.+-mono split′ ]
+    (ρe R.+ ρs) Δ.* Δt Δ.+ (Δen Δ.+ Δsn)  Δ.≤[ Δ.≤-reflexive eq ]
+    (ρe Δ.* Δt Δ.+ Δen) Δ.+ (ρs Δ.* Δt Δ.+ Δsn)  Δ.≤-QED
     where
-    equality =
-            (ρe R.+ ρs) Δ.* Δt  Δ.+ (Δen Δ.+ Δsn)  Δ.≈[ snd Δ.distrib ρe ρs Δt Δ.+-cong Δ.refl ]
-      (ρe Δ.* Δt Δ.+ ρs Δ.* Δt) Δ.+ (Δen Δ.+ Δsn)  Δ.≈[ Δ.+-assoc _ _ _ ]
-      ρe Δ.* Δt Δ.+ (ρs Δ.* Δt Δ.+ (Δen Δ.+ Δsn))  Δ.≈[ Δ.refl Δ.+-cong Δ.sym (Δ.+-assoc _ _ _) ]
-      ρe Δ.* Δt Δ.+ ((ρs Δ.* Δt Δ.+ Δen) Δ.+ Δsn)  Δ.≈[ Δ.refl Δ.+-cong (Δ.comm _ _ Δ.+-cong Δ.refl) ]
-      ρe Δ.* Δt Δ.+ ((Δen Δ.+ ρs Δ.* Δt) Δ.+ Δsn)  Δ.≈[ Δ.refl Δ.+-cong Δ.+-assoc _ _ _ ]
-      ρe Δ.* Δt Δ.+ (Δen Δ.+ (ρs Δ.* Δt Δ.+ Δsn))  Δ.≈[ Δ.sym (Δ.+-assoc _ _ _) ]
-      (ρe Δ.* Δt Δ.+ Δen) Δ.+ (ρs Δ.* Δt Δ.+ Δsn)  Δ.≈-QED
+    eq =
+             (ρe R.+ ρs) Δ.* Δt Δ.+ (Δen Δ.+ Δsn)
+        Δ.≈[ snd Δ.distrib ρe ρs Δt Δ.+-cong Δ.refl ]
+      (ρe Δ.* Δt Δ.+ ρs Δ.* Δt) Δ.+ (Δen Δ.+ Δsn)
+        Δ.≈[ Δ.sym (Δ.+-assoc _ _ _) ]
+      ((ρe Δ.* Δt Δ.+ ρs Δ.* Δt) Δ.+ Δen) Δ.+ Δsn
+        Δ.≈[ Δ.+-assoc _ _ _ Δ.+-cong Δ.refl ]
+      (ρe Δ.* Δt Δ.+ (ρs Δ.* Δt Δ.+ Δen)) Δ.+ Δsn
+        Δ.≈[ (Δ.refl Δ.+-cong Δ.+-comm _ _) Δ.+-cong Δ.refl ]
+      (ρe Δ.* Δt Δ.+ (Δen Δ.+ ρs Δ.* Δt)) Δ.+ Δsn
+        Δ.≈[ Δ.sym (Δ.+-assoc _ _ _) Δ.+-cong Δ.refl ]
+      ((ρe Δ.* Δt Δ.+ Δen) Δ.+ ρs Δ.* Δt) Δ.+ Δsn
+        Δ.≈[ Δ.+-assoc _ _ _ ]
+      (ρe Δ.* Δt Δ.+ Δen) Δ.+ (ρs Δ.* Δt Δ.+ Δsn)
+        Δ.≈-QED
 
-  split+Subst : ∀ {m n vf} {Δm Δem Δsm : RCtx m} {Δn : RCtx n}
-                (splitm : Δm Δ.≤ Δem Δ.+ Δsm) (vfr : SubstRes vf Δm Δn) →
+  split+Subst : ∀ {m n vf Γm Γn} {vft : SubstTy vf Γm Γn}
+                {Δm Δem Δsm : RCtx m} {Δn : RCtx n}
+                (splitm : Δm Δ.≤ Δem Δ.+ Δsm) (vfr : SubstRes vft Δm Δn) →
                 let Δen , Δsn , splitn = substSplit+ splitm vfr in
-                SubstRes vf Δem Δen × SubstRes vf Δsm Δsn
-  split+Subst {Δm = nil} {nil} {nil} nil (nil split) =
-    nil (Δ.≤-refl {x = Δ.e0}) , nil (Δ.≤-refl {x = Δ.e0})
-  split+Subst {Δm = ρ :: Δm} {ρe :: Δem} {ρs :: Δsm}
-              (le :: splitm) (cons split tr vfr)
+                SubstRes vft Δem Δen × SubstRes vft Δsm Δsn
+  split+Subst {Δm = nil} {nil} {nil} nil (nil splitn) =
+    nil Δ.≤-refl , nil Δ.≤-refl
+  split+Subst {Γm = S :: Γm} {Δm = ρ :: Δm} {ρe :: Δem} {ρs :: Δsm}
+              (le :: splitm) (cons splitn tr vfr)
     with split+Subst splitm vfr
   ... | vfre , vfrs = cons Δ.≤-refl tr vfre , cons Δ.≤-refl tr vfrs
 
-  substSplit* : ∀ {m n vf ρ} {Δm Δsm : RCtx m} {Δn : RCtx n} →
-                Δm Δ.≤ ρ Δ.* Δsm → SubstRes vf Δm Δn →
+  substSplit* : ∀ {m n vf Γm Γn} {vft : SubstTy vf Γm Γn}
+                {ρ} {Δm Δsm : RCtx m} {Δn : RCtx n} →
+                Δm Δ.≤ ρ Δ.* Δsm → SubstRes vft Δm Δn →
                 ∃ λ Δsn → Δn Δ.≤ ρ Δ.* Δsn
-  substSplit* {ρ = ρ} {nil} {nil} nil (nil split) =
-    Δ.e0 , Δ.≤-trans split (Δ.≤-reflexive (Δ.sym (fst Δ.annihil ρ)))
-  substSplit* {ρ = ρ} {ρπ :: Δm} {π :: Δsm} {Δn}
+  substSplit* {ρ = ρ} _ (nil splitn) =
+    Δ.e0 , Δ.≤-trans splitn (Δ.≤-reflexive (Δ.sym (fst Δ.annihil ρ)))
+  substSplit* {Γm = S :: Γm} {ρ = ρ} {ρπ :: Δm} {π :: Δsm} {Δn}
               (le :: splitm) (cons {Δt = Δt} {Δts} splitn tr vfr)
     with substSplit* splitm vfr
   ... | Δsn , split′ =
     π Δ.* Δt Δ.+ Δsn ,
                         Δn              Δ.≤[ splitn ]
-         ρπ     Δ.* Δt Δ.+    Δts       Δ.≤[ le Δ.*-mono Δ.≤-refl Δ.+-mono split′ ]
-      (ρ R.* π) Δ.* Δt Δ.+ (ρ Δ.* Δsn)  Δ.≤[ Δ.≤-reflexive equality ]
+         ρπ     Δ.* Δt Δ.+    Δts       Δ.≤[ le Δ.*-mono Δ.≤-refl
+                                                Δ.+-mono split′ ]
+      (ρ R.* π) Δ.* Δt Δ.+ (ρ Δ.* Δsn)  Δ.≤[ Δ.≤-reflexive eq ]
       ρ Δ.* (π Δ.* Δt Δ.+ Δsn)          Δ.≤-QED
     where
-    equality =
-      (ρ R.* π) Δ.* Δt Δ.+ (ρ Δ.* Δsn)  Δ.≈[ Δ.assoc ρ π Δt Δ.+-cong Δ.refl ]
-      ρ Δ.* (π Δ.* Δt) Δ.+ (ρ Δ.* Δsn)  Δ.≈[ Δ.sym (fst Δ.distrib ρ (π Δ.* Δt) Δsn) ]
+    eq =
+      (ρ R.* π) Δ.* Δt Δ.+ (ρ Δ.* Δsn)
+        Δ.≈[ Δ.assoc ρ π Δt Δ.+-cong Δ.refl ]
+      ρ Δ.* (π Δ.* Δt) Δ.+ (ρ Δ.* Δsn)
+        Δ.≈[ Δ.sym (fst Δ.distrib ρ (π Δ.* Δt) Δsn) ]
       ρ Δ.* (π Δ.* Δt Δ.+ Δsn)  Δ.≈-QED
 
-  split*Subst : ∀ {m n vf ρ} {Δm Δsm : RCtx m} {Δn : RCtx n}
-                (splitm : Δm Δ.≤ ρ Δ.* Δsm) (vfr : SubstRes vf Δm Δn) →
+  split*Subst : ∀ {m n vf Γm Γn} {vft : SubstTy vf Γm Γn}
+                {ρ} {Δm Δsm : RCtx m} {Δn : RCtx n}
+                (splitm : Δm Δ.≤ ρ Δ.* Δsm) (vfr : SubstRes vft Δm Δn) →
                 let Δsn , splitn = substSplit* splitm vfr in
-                SubstRes vf Δsm Δsn
+                SubstRes vft Δsm Δsn
   split*Subst {ρ = ρ} {nil} {nil} nil (nil split) = nil Δ.≤-refl
-  split*Subst {ρ = ρ} {ρπ :: Δm} {π :: Δsm}
+  split*Subst {Γm = S :: Γm} {ρ = ρ} {ρπ :: Δm} {π :: Δsm}
               (le :: splitm) (cons splitn tr vfr) =
     cons Δ.≤-refl tr (split*Subst splitm vfr)
 
+  {-
   module DecLE (_≤?_ : ∀ x y → Dec (x R.≤ y)) where
 
     weakenRes : ∀ {n d Δ Δ′} {t : Term n d} →
