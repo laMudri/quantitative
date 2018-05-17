@@ -32,7 +32,7 @@ module Quantitative.Types.Substitution
   weakenVarsTy Γl S (proj et) = proj (weakenVarsTy Γl S et)
   weakenVarsTy Γl S (the st) = the (weakenVarsTy Γl S st)
   weakenVarsTy Γl S (lam st) = lam (weakenVarsTy (_ :: Γl) S st)
-  weakenVarsTy Γl S (bang ρ st) = bang ρ (weakenVarsTy Γl S st)
+  weakenVarsTy Γl S (bang st) = bang (weakenVarsTy Γl S st)
   weakenVarsTy Γl S (ten s0 s1) =
     ten (weakenVarsTy Γl S s0) (weakenVarsTy Γl S s1)
   weakenVarsTy Γl S (wth s0 s1) =
@@ -83,8 +83,8 @@ module Quantitative.Types.Substitution
   substituteTy (the st) vf vft = the (substituteTy st vf vft)
   substituteTy (lam st) vf vft =
     lam (substituteTy st (liftSubst vf) (liftSubstTy _ vft))
-  substituteTy (bang ρ st) vf vft =
-    bang ρ (substituteTy st vf vft)
+  substituteTy (bang st) vf vft =
+    bang (substituteTy st vf vft)
   substituteTy (ten s0 s1) vf vft =
     ten (substituteTy s0 vf vft) (substituteTy s1 vf vft)
   substituteTy (wth s0 s1) vf vft =
@@ -102,10 +102,10 @@ module Quantitative.Types.Substitution
     app (~~>-preservesTy et red) st
   ~~>-preservesTy (app et st) (app1-cong e s0 s1 red) =
     app et (~~>-preservesTy st red)
-  ~~>-preservesTy (bm (the (bang .ρ st)) tt) (!-beta S T ρ s t) =
+  ~~>-preservesTy (bm (the (bang st)) tt) (!-beta S T ρ s t) =
     the (substituteTy tt (singleSubst (the S s)) (singleSubstTy (the st)))
-  ~~>-preservesTy (bang ρ st) (bang-cong s s′ red) =
-    bang ρ (~~>-preservesTy st red)
+  ~~>-preservesTy (bang st) (bang-cong s s′ red) =
+    bang (~~>-preservesTy st red)
   ~~>-preservesTy (bm et st) (bm0-cong S e e′ s red) =
     bm (~~>-preservesTy et red) st
   ~~>-preservesTy (bm et st) (bm1-cong S e s s′ red) =

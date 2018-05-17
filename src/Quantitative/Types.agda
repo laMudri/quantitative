@@ -66,7 +66,7 @@ module Quantitative.Types
           (st : S :: Γ ⊢t T ∋ s)
           →
           Γ ⊢t S ⊸ T ∋ lam s
-    bang : ∀ {s S} ρ
+    bang : ∀ {s S ρ}
            (st : Γ ⊢t S ∋ s)
            →
            Γ ⊢t ! ρ S ∋ bang s
