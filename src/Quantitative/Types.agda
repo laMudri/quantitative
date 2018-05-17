@@ -11,6 +11,7 @@ module Quantitative.Types
   open R hiding (_≤_; ≤-refl)
 
   open import Lib.Nat
+  open import Lib.Product
   open import Lib.Vec
 
   infix 4 _∈_ _∋_ _:-:_
@@ -46,6 +47,10 @@ module Quantitative.Types
          (et : Γ ⊢t e ∈ ! ρ S) (st : S :: Γ ⊢t T ∋ s)
          →
          Γ ⊢t bm T e s ∈ T
+    pm : ∀ {e s S0 S1 T}
+         (et : Γ ⊢t e ∈ S0 ⊗ S1) (st : S0 :: S1 :: Γ ⊢t T ∋ s)
+         →
+         Γ ⊢t pm T e s ∈ T
     the : ∀ {S s}
           (st : Γ ⊢t S ∋ s)
           →
@@ -59,7 +64,14 @@ module Quantitative.Types
            (st : Γ ⊢t S ∋ s)
            →
            Γ ⊢t ! ρ S ∋ bang s
+    ten : ∀ {s0 s1 S0 S1}
+          (s0t : Γ ⊢t S0 ∋ s0) (s1t : Γ ⊢t S1 ∋ s1)
+          →
+          Γ ⊢t S0 ⊗ S1 ∋ ten s0 s1
     [_] : ∀ {e S}
           (et : Γ ⊢t e ∈ S)
           →
           Γ ⊢t S ∋ [ e ]
+
+  TypedTerm : ∀ {n} → Dir → TCtx n → Set _
+  TypedTerm {n} d Γ = ∃ λ T → ∃ λ (t : Term n d) → Γ ⊢t t :-: T

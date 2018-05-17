@@ -83,6 +83,14 @@ module Lib.VZip where
   nil +VZip rsn = rsn
   (r :: rsm) +VZip rsn = r :: rsm +VZip rsn
 
+  mapVZip : ∀ {a b c d r s A B C D R S} →
+            (∀ {rx ry sx sy} → R rx ry → S sx sy) →
+            ∀ {n rxs rys sxs sys} →
+            VZip {a} {b} {r} {A} {B} R {n} rxs rys →
+            VZip {c} {d} {s} {C} {D} S {n} sxs sys
+  mapVZip f {sxs = nil} {sys = nil} nil = nil
+  mapVZip f {sxs = sx :: sxs} {sys = sy :: sys} (r :: rs) = f r :: mapVZip f rs
+
   zipVZip : ∀ {a b c d e f r s t A B C D E F R S T} →
             (∀ {rx ry sx sy tx ty} → R rx ry → S sx sy → T tx ty) →
             ∀ {n rxs rys sxs sys txs tys} →
@@ -92,6 +100,12 @@ module Lib.VZip where
   zipVZip f {txs = nil} {nil} nil nil = nil
   zipVZip f {txs = tx :: txs} {ty :: tys} (r :: rs) (s :: ss) =
     f r s :: zipVZip f rs ss
+
+  vec-Σ-Σ→VZip : ∀ {a b r A B R n} →
+                 (rs : Vec (∃ λ x → ∃ λ y → R x y) n) →
+                 VZip {a} {b} {r} {A} {B} R (vmap fst rs) (vmap (fst o snd) rs)
+  vec-Σ-Σ→VZip nil = nil
+  vec-Σ-Σ→VZip ((x , y , r) :: rs) = r :: vec-Σ-Σ→VZip rs
 
   replicateVZip :
     ∀ {a b r A B R} n {x y} → R x y →
