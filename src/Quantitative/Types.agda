@@ -10,8 +10,10 @@ module Quantitative.Types
   open import Quantitative.Syntax C POS _≟_
   open R hiding (_≤_; ≤-refl)
 
+  open import Lib.Function
   open import Lib.Nat
   open import Lib.Product
+  open import Lib.Two
   open import Lib.Vec
 
   infix 4 _∈_ _∋_ _:-:_
@@ -51,6 +53,10 @@ module Quantitative.Types
          (et : Γ ⊢t e ∈ S0 ⊗ S1) (st : S0 :: S1 :: Γ ⊢t T ∋ s)
          →
          Γ ⊢t pm T e s ∈ T
+    proj : ∀ {i e S0 S1}
+           (et : Γ ⊢t e ∈ S0 & S1)
+           →
+           Γ ⊢t proj i e ∈ case i of λ { ttt → S0 ; fff → S1 }
     the : ∀ {S s}
           (st : Γ ⊢t S ∋ s)
           →
@@ -68,6 +74,10 @@ module Quantitative.Types
           (s0t : Γ ⊢t S0 ∋ s0) (s1t : Γ ⊢t S1 ∋ s1)
           →
           Γ ⊢t S0 ⊗ S1 ∋ ten s0 s1
+    wth : ∀ {s0 s1 S0 S1}
+          (s0t : Γ ⊢t S0 ∋ s0) (s1t : Γ ⊢t S1 ∋ s1)
+          →
+          Γ ⊢t S0 & S1 ∋ wth s0 s1
     [_] : ∀ {e S}
           (et : Γ ⊢t e ∈ S)
           →

@@ -17,8 +17,8 @@ module Lib.Dec where
   Not? (no np) = yes np
 
   floor : ∀ {x X} → Dec {x} X → Two
-  floor (yes p) = tt
-  floor (no np) = ff
+  floor (yes p) = ttt
+  floor (no np) = fff
 
   Auto : ∀ {x X} → Dec {x} X → Set
   Auto = T o floor

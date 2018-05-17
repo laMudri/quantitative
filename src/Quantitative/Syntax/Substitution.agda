@@ -13,6 +13,7 @@ module Quantitative.Syntax.Substitution
   open import Lib.Function
   open import Lib.Nat
   open import Lib.Thinning
+  open import Lib.Two
   open import Lib.Vec
 
   weakenVars : ∀ {m d} l → Term (l +N m) d → Term (l +N succ m) d
@@ -20,10 +21,12 @@ module Quantitative.Syntax.Substitution
   weakenVars l (app e s) = app (weakenVars l e) (weakenVars l s)
   weakenVars l (bm S e s) = bm S (weakenVars l e) (weakenVars (succ l) s)
   weakenVars l (pm S e s) = pm S (weakenVars l e) (weakenVars (2 +N l) s)
+  weakenVars l (proj i e) = proj i (weakenVars l e)
   weakenVars l (the S s) = the S (weakenVars l s)
   weakenVars l (lam s) = lam (weakenVars (succ l) s)
   weakenVars l (bang s) = bang (weakenVars l s)
   weakenVars l (ten s0 s1) = ten (weakenVars l s0) (weakenVars l s1)
+  weakenVars l (wth s0 s1) = wth (weakenVars l s0) (weakenVars l s1)
   weakenVars l [ e ] = [ weakenVars l e ]
 
   Subst : Nat → Nat → Set c
@@ -44,10 +47,12 @@ module Quantitative.Syntax.Substitution
     bm S (substitute e vf) (substitute s (liftSubst vf))
   substitute (pm S e s) vf =
     pm S (substitute e vf) (substitute s (liftSubstN 2 vf))
+  substitute (proj i e) vf = proj i (substitute e vf)
   substitute (the S s) vf = the S (substitute s vf)
   substitute (lam s) vf = lam (substitute s (liftSubst vf))
   substitute (bang s) vf = bang (substitute s vf)
   substitute (ten s0 s1) vf = ten (substitute s0 vf) (substitute s1 vf)
+  substitute (wth s0 s1) vf = wth (substitute s0 vf) (substitute s1 vf)
   substitute [ e ] vf = [ substitute e vf ]
 
   singleSubst : ∀ {m} → Term m syn → Subst (succ m) m
@@ -59,6 +64,7 @@ module Quantitative.Syntax.Substitution
   multiSubst (e :: es) (os i) = e
   multiSubst (e :: es) (o′ i) = multiSubst es i
 
+  infix 4 _~~>_
   data _~~>_ {n} : ∀ {d} (t u : Term n d) → Set where
     upsilon : ∀ S s → [ the S s ] ~~> s
 
@@ -81,3 +87,10 @@ module Quantitative.Syntax.Substitution
     ten1-cong : ∀ s0 s1 s1′ → s1 ~~> s1′ → ten s0 s1 ~~> ten s0 s1′
     pm0-cong : ∀ S e e′ s → e ~~> e′ → pm S e s ~~> pm S e′ s
     pm1-cong : ∀ S e s s′ → s ~~> s′ → pm S e s ~~> pm S e s′
+
+    &-beta : ∀ i S0 S1 s0 s1 →
+             proj i (the (S0 & S1) (wth s0 s1))
+             ~~> case i of λ { ttt → the S0 s0 ; fff → the S1 s1 }
+    wth0-cong : ∀ s0 s0′ s1 → s0 ~~> s0′ → wth s0 s1 ~~> wth s0′ s1
+    wth1-cong : ∀ s0 s1 s1′ → s1 ~~> s1′ → wth s0 s1 ~~> wth s0 s1′
+    proj : ∀ i e e′ → e ~~> e′ → proj i e ~~> proj i e′

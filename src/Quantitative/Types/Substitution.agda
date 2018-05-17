@@ -14,6 +14,7 @@ module Quantitative.Types.Substitution
 
   open import Lib.Function
   open import Lib.Thinning
+  open import Lib.Two
   open import Lib.Vec
   open import Lib.VZip
 
@@ -28,11 +29,14 @@ module Quantitative.Types.Substitution
     bm (weakenVarsTy Γl S et) (weakenVarsTy (_ :: Γl) S st)
   weakenVarsTy Γl S (pm et st) =
     pm (weakenVarsTy Γl S et) (weakenVarsTy (_ :: _ :: Γl) S st)
+  weakenVarsTy Γl S (proj et) = proj (weakenVarsTy Γl S et)
   weakenVarsTy Γl S (the st) = the (weakenVarsTy Γl S st)
   weakenVarsTy Γl S (lam st) = lam (weakenVarsTy (_ :: Γl) S st)
   weakenVarsTy Γl S (bang ρ st) = bang ρ (weakenVarsTy Γl S st)
   weakenVarsTy Γl S (ten s0 s1) =
     ten (weakenVarsTy Γl S s0) (weakenVarsTy Γl S s1)
+  weakenVarsTy Γl S (wth s0 s1) =
+    wth (weakenVarsTy Γl S s0) (weakenVarsTy Γl S s1)
   weakenVarsTy Γl S [ et ] = [ weakenVarsTy Γl S et ]
 
   SubstTy : ∀ {m n} → Subst m n → TCtx m → TCtx n → Set c
@@ -75,6 +79,7 @@ module Quantitative.Types.Substitution
   substituteTy (pm et st) vf vft =
     pm (substituteTy et vf vft)
        (substituteTy st _ (liftSubstNTy (_ :: _ :: nil) vft))
+  substituteTy (proj et) vf vft = proj (substituteTy et vf vft)
   substituteTy (the st) vf vft = the (substituteTy st vf vft)
   substituteTy (lam st) vf vft =
     lam (substituteTy st (liftSubst vf) (liftSubstTy _ vft))
@@ -82,6 +87,8 @@ module Quantitative.Types.Substitution
     bang ρ (substituteTy st vf vft)
   substituteTy (ten s0 s1) vf vft =
     ten (substituteTy s0 vf vft) (substituteTy s1 vf vft)
+  substituteTy (wth s0 s1) vf vft =
+    wth (substituteTy s0 vf vft) (substituteTy s1 vf vft)
   substituteTy [ et ] vf vft = [ substituteTy et vf vft ]
 
   ~~>-preservesTy : ∀ {n Γ d T} {t u : Term n d} (tt : Γ ⊢t t :-: T) →
@@ -113,3 +120,10 @@ module Quantitative.Types.Substitution
     pm (~~>-preservesTy et red) st
   ~~>-preservesTy (pm et st) (pm1-cong S e s s′ red) =
     pm et (~~>-preservesTy st red)
+  ~~>-preservesTy (proj (the (wth s0t s1t))) (&-beta ttt S0 S1 s0 s1) = the s0t
+  ~~>-preservesTy (proj (the (wth s0t s1t))) (&-beta fff S0 S1 s0 s1) = the s1t
+  ~~>-preservesTy (wth s0t s1t) (wth0-cong s0 s0′ s1 red) =
+    wth (~~>-preservesTy s0t red) s1t
+  ~~>-preservesTy (wth s0t s1t) (wth1-cong s0 s1 s1′ red) =
+    wth s0t (~~>-preservesTy s1t red)
+  ~~>-preservesTy (proj et) (proj i e e′ red) = proj (~~>-preservesTy et red)

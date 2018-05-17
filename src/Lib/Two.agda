@@ -3,8 +3,8 @@ module Lib.Two where
   open import Lib.Zero
 
   data Two : Set where
-    tt ff : Two
+    ttt fff : Two
 
   T : Two → Set
-  T tt = One
-  T ff = Zero
+  T ttt = One
+  T fff = Zero
