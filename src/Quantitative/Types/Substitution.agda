@@ -3,13 +3,11 @@ open import Lib.Equality
 open import Lib.Setoid
 open import Lib.Structure
 
-module Quantitative.Types.Substitution
-  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
+module Quantitative.Types.Substitution {c} (C : Set c) where
 
-  open import Quantitative.Syntax C POS
-  open import Quantitative.Syntax.Substitution C POS
-  open import Quantitative.Types C POS
-  open R hiding (_≤_; ≤-refl)
+  open import Quantitative.Syntax C
+  open import Quantitative.Syntax.Substitution C
+  open import Quantitative.Types C
 
   open import Lib.Function
   open import Lib.Thinning

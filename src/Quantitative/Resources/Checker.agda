@@ -8,9 +8,9 @@ module Quantitative.Resources.Checker
   (_≤?_ : let open DecMeetSemilatticeSemiring DMSS in ∀ x y → Dec (x ≤ y)) where
   open DecMeetSemilatticeSemiring DMSS using (posemiring; meetSemilatticeSemiring)
 
-  open import Quantitative.Syntax C posemiring
-  open import Quantitative.Syntax.Substitution C posemiring
-  open import Quantitative.Types C posemiring
+  open import Quantitative.Syntax C
+  open import Quantitative.Syntax.Substitution C
+  open import Quantitative.Types C
   open import Quantitative.Resources C posemiring
   open import Quantitative.Resources.Context C posemiring
   open import Quantitative.Resources.Substitution C posemiring

@@ -6,7 +6,7 @@ open import Lib.Structure
 module Quantitative.Resources.Context
   {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
 
-  open import Quantitative.Syntax C POS
+  open import Quantitative.Syntax C
 
   open import Lib.Module
   open import Lib.Nat
@@ -14,6 +14,8 @@ module Quantitative.Resources.Context
   open import Lib.Thinning as Θ hiding (_≤_; ≤-refl)
   open import Lib.Vec
   open import Lib.VZip
+
+  module R = Posemiring POS
 
   -- Resource contexts
 

@@ -3,10 +3,7 @@ open import Lib.Equality
 open import Lib.Setoid
 open import Lib.Structure
 
-module Quantitative.Syntax
-  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
-
-  module R = Posemiring POS ; open R hiding (_≤_; ≤-refl)
+module Quantitative.Syntax {c} (C : Set c) where
 
   open import Lib.Nat
   open import Lib.Product

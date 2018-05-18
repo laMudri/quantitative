@@ -6,8 +6,8 @@ open import Lib.Structure
 module Quantitative.Resources
   {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
 
-  open import Quantitative.Syntax C POS
-  open import Quantitative.Types C POS
+  open import Quantitative.Syntax C
+  open import Quantitative.Types C
   open import Quantitative.Resources.Context C POS
   open import Lib.Module
   module PSM n = Posemimodule (posemimodule n)

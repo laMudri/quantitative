@@ -6,10 +6,10 @@ open import Lib.Structure
 module Quantitative.Resources.Substitution
   {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
 
-  open import Quantitative.Syntax C POS
-  open import Quantitative.Syntax.Substitution C POS
-  open import Quantitative.Types C POS
-  open import Quantitative.Types.Substitution C POS
+  open import Quantitative.Syntax C
+  open import Quantitative.Syntax.Substitution C
+  open import Quantitative.Types C
+  open import Quantitative.Types.Substitution C
   open import Quantitative.Resources C POS
   open import Quantitative.Resources.Context C POS
 

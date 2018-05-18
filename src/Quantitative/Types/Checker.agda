@@ -4,12 +4,10 @@ open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Types.Checker
-  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′)
-  (_≟_ : (π ρ : C) → Dec (π ≡ ρ)) where
+  {c} (C : Set c) (_≟_ : (π ρ : C) → Dec (π ≡ ρ)) where
 
-  open import Quantitative.Syntax C POS
-  open import Quantitative.Types C POS
-  open R hiding (_≤_; ≤-refl)
+  open import Quantitative.Syntax C
+  open import Quantitative.Types C
 
   open import Lib.Function
   open import Lib.Product
