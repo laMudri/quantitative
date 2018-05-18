@@ -116,3 +116,56 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
                 semiring to +*s-semiring; +-monoid to +s-monoid;
                 +-commutativeMonoid to +s-commutativeMonoid;
                 *-monoid to *s-monoid)
+
+  record IsMeetSemilatticeSemimodule
+         {l′s l′f} (≤s : Rel S l′s) (∧s : Op2 S)
+         (≤f : Rel F l′f) (∧f : Op2 F)
+         (0s 1s : S.C) (+s *s : Op2 S)
+         (0f 1f : F.C) (+f : Op2 F) (*f : S.C → F.C → F.C)
+         : Set (cs ⊔ cf ⊔ ls ⊔ lf ⊔ l′s ⊔ l′f) where
+    field
+      ∧s-isMeetSemilattice : IsMeetSemilattice S ≤s ∧s
+      ∧f-isMeetSemilattice : IsMeetSemilattice F ≤f ∧f
+      isPosemimodule : IsPosemimodule ≤s ≤f 0s 1s +s *s 0f 1f +f *f
+    open IsPosemimodule isPosemimodule public
+
+    open IsMeetSemilattice ∧s-isMeetSemilattice public
+      using ()
+      renaming (lowerBound to ∧s-lowerBound; greatest to ∧s-greatest)
+
+    open IsMeetSemilattice ∧f-isMeetSemilattice public
+      using ()
+      renaming (lowerBound to ∧f-lowerBound; greatest to ∧f-greatest)
+
+  record MeetSemilatticeSemimodule l′s l′f
+         : Set (cs ⊔ cf ⊔ ls ⊔ lf ⊔ lsuc (l′s ⊔ l′f)) where
+    infixr 4 _≤s_ _≤f_
+    infixr 6 _+s_ _+f_
+    infixr 7 _*s_ _*f_
+    infixr 5 _∧s_ _∧f_
+    field
+      _≤s_ : Rel S l′s
+      _∧s_ : Op2 S
+      _≤f_ : Rel F l′f
+      _∧f_ : Op2 F
+      0s 1s : S.C
+      _+s_ _*s_ : Op2 S
+      0f 1f : F.C
+      _+f_ : Op2 F
+      _*f_ : S.C → F.C → F.C
+      isMeetSemilatticeSemimodule :
+        IsMeetSemilatticeSemimodule _≤s_ _∧s_ _≤f_ _∧f_
+                                    0s 1s _+s_ _*s_ 0f 1f _+f_ _*f_
+    open IsMeetSemilatticeSemimodule isMeetSemilatticeSemimodule public
+
+    posemimodule : Posemimodule l′s l′f
+    posemimodule = record { isPosemimodule = isPosemimodule }
+    open Posemimodule posemimodule public
+      using (≤+*s-posemiring; ≤s-poset; ≤s-preorder; +*s-semiring;
+             +s-monoid; +s-commutativeMonoid; *s-monoid)
+
+    ∧s-meetSemilattice : MeetSemilattice S l′s
+    ∧s-meetSemilattice = record { isMeetSemilattice = ∧s-isMeetSemilattice }
+
+    ∧f-meetSemilattice : MeetSemilattice F l′f
+    ∧f-meetSemilattice = record { isMeetSemilattice = ∧f-isMeetSemilattice }

@@ -81,19 +81,6 @@ module Quantitative.Resources.Context
 
     -- Operations for building contexts
 
-    setoid′ : Nat → Setoid _ _
-    setoid′ n = record
-      { C = RCtx n
-      ; setoidOver = record
-        { _≈_ = _≈_
-        ; isSetoid = record
-          { refl = ≈-refl _
-          ; sym = ≈-sym
-          ; trans = ≈-trans
-          }
-        }
-      }
-
     infixl 6 _+Δ_ _+Δ-mono_ _+Δ-cong_
     infixl 7 _*Δ_ _*Δ-mono_ _*Δ-cong_
 
@@ -186,7 +173,20 @@ module Quantitative.Resources.Context
     *Δ-distrib-+Δ ρ (p :: Δ) (p′ :: Δ′) =
       fst R.distrib ρ p p′ :: *Δ-distrib-+Δ ρ Δ Δ′
 
-  commutativePomonoid : ∀ n → CommutativePomonoid (setoid′ n) _
+  RCtx-setoid : Nat → Setoid _ _
+  RCtx-setoid n = record
+    { C = RCtx n
+    ; setoidOver = record
+      { _≈_ = _≈_
+      ; isSetoid = record
+        { refl = ≈-refl _
+        ; sym = ≈-sym
+        ; trans = ≈-trans
+        }
+      }
+    }
+
+  commutativePomonoid : ∀ n → CommutativePomonoid (RCtx-setoid n) _
   commutativePomonoid n = record
     { _≤_ = _≤_
     ; e = 0Δ
@@ -211,11 +211,11 @@ module Quantitative.Resources.Context
       }
     }
     where
-    antisym : ∀ {n} → Antisym (setoid′ n) _≤_
+    antisym : ∀ {n} → Antisym (RCtx-setoid n) _≤_
     antisym nil nil = nil
     antisym (≤R :: ≤Δ) (≥R :: ≥Δ) = R.antisym ≤R ≥R :: antisym ≤Δ ≥Δ
 
-  posemimodule : ∀ n → Posemimodule (≡-Setoid C) (setoid′ n) _ _
+  posemimodule : ∀ n → Posemimodule (≡-Setoid C) (RCtx-setoid n) _ _
   posemimodule n = record
     { _≤s_ = R._≤_
     ; _≤f_ = _≤_
@@ -253,13 +253,15 @@ module Quantitative.Resources.Context
     assoc x y nil = nil
     assoc x y (z :: zs) = R.*-assoc x y z :: assoc x y zs
 
-    antisym : ∀ {n} → Antisym (setoid′ n) _≤_
+    antisym : ∀ {n} → Antisym (RCtx-setoid n) _≤_
     antisym nil nil = nil
     antisym (≤R :: ≤Δ) (≥R :: ≥Δ) = R.antisym ≤R ≥R :: antisym ≤Δ ≥Δ
 
   -- Some stuff depends on n, and some doesn′t. We really want n to be an
   -- implicit argument to all of the things that depend on it, and not be there
   -- in all of the things that don′t.
+
+  -- Δ complements R, defined at the top of the file.
 
   module Δ {n : Nat} where
     open Posemimodule (posemimodule n) public
@@ -272,7 +274,7 @@ module Quantitative.Resources.Context
                 identity to +-identity; assoc to +-assoc; comm to +-comm)
 
     setoid : Setoid _ _
-    setoid = setoid′ n
+    setoid = RCtx-setoid n
 
     open Setoid setoid public
 

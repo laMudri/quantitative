@@ -5,14 +5,16 @@ open import Lib.Structure
 
 module Quantitative.Resources.Checker
   {c l′} (C : Set c) (DMSS : DecMeetSemilatticeSemiring (≡-Setoid C) l′)
-  (_≤?_ : let open DecMeetSemilatticeSemiring DMSS in ∀ x y → Dec (x ≤ y)) where
-  open DecMeetSemilatticeSemiring DMSS using (posemiring; meetSemilatticeSemiring)
+  where
+  open DecMeetSemilatticeSemiring DMSS
+    using (posemiring; meetSemilatticeSemiring; _≤?_)
 
   open import Quantitative.Syntax C
   open import Quantitative.Syntax.Substitution C
   open import Quantitative.Types C
   open import Quantitative.Resources C posemiring
-  open import Quantitative.Resources.Context C posemiring
+  open import Quantitative.Resources.Context.Semilattice
+    C meetSemilatticeSemiring
   open import Quantitative.Resources.Substitution C posemiring
 
   open import Lib.Function

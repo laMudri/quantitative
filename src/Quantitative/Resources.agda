@@ -10,7 +10,6 @@ module Quantitative.Resources
   open import Quantitative.Types C
   open import Quantitative.Resources.Context C POS
   open import Lib.Module
-  module PSM n = Posemimodule (posemimodule n)
 
   open import Lib.Level
   open import Lib.Vec
