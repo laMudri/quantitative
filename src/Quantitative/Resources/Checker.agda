@@ -78,9 +78,10 @@ module Quantitative.Resources.Checker
              (inferRes s0t ×M inferRes s1t)
   inferRes (wth s0t s1t) =
     mapMaybe (λ { ((Δs0 , s0r , s0b) , (Δs1 , s1r , s1b)) →
-                  {!!}
-                , {!!}
-                , {!!}
+                  Δs0 Δ.∧ Δs1
+                , wth (weakenRes (fst Δ.lowerBound Δs0 Δs1) s0r)
+                      (weakenRes (snd Δ.lowerBound Δs0 Δs1) s1r)
+                , λ { (wth s0r′ s1r′) → Δ.greatest (s0b s0r′) (s1b s1r′) }
                 }) (inferRes s0t ×M inferRes s1t)
   inferRes [ et ] =
     mapMaybe (mapΣ id (mapΣ [_] λ b → λ { [ er ] → b er })) (inferRes et)
@@ -124,7 +125,10 @@ module Quantitative.Resources.Checker
     with inferResComplete s0t s0r | inferResComplete s1t s1r
   ... | Δ0′ , s0r′ , s0b′ , eq0 | Δ1′ , s1r′ , s1b′ , eq1
     rewrite eq0 | eq1 = _ , _ , _ , refl
-  inferResComplete (wth s0t s1t) (wth s0r s1r) = {!!}
+  inferResComplete (wth s0t s1t) (wth s0r s1r)
+    with inferResComplete s0t s0r | inferResComplete s1t s1r
+  ... | Δ0′ , s0r′ , s0b′ , eq0 | Δ1′ , s1r′ , s1b′ , eq1
+    rewrite eq0 | eq1 = _ , _ , _ , refl
   inferResComplete [ et ] [ er ] with inferResComplete et er
   ... | Δ′ , er′ , eb′ , eq rewrite eq = _ , _ , _ , refl
 
