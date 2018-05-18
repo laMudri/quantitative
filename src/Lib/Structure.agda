@@ -2,6 +2,7 @@ open import Lib.Setoid
 
 module Lib.Structure {c l} (S : Setoid c l) where
 
+  open import Lib.Dec
   open import Lib.Equality hiding (refl)
   open import Lib.FunctionProperties S
   open import Lib.Level
@@ -60,7 +61,8 @@ module Lib.Structure {c l} (S : Setoid c l) where
     preorder : Preorder l′
     preorder = record { isPreorder = isPreorder }
 
-  record IsMeetSemilattice {l′} (_≤_ : Rel l′) (meet : Op2) : Set (c ⊔ l ⊔ l′) where
+  record IsMeetSemilattice {l′} (_≤_ : Rel l′) (meet : Op2)
+                           : Set (c ⊔ l ⊔ l′) where
     field
       lowerBound : (∀ a b → meet a b ≤ a) × (∀ a b → meet a b ≤ b)
       greatest : ∀ {a b m} → m ≤ a → m ≤ b → m ≤ meet a b
@@ -80,7 +82,8 @@ module Lib.Structure {c l} (S : Setoid c l) where
     open Poset poset public
       using (preorder)
 
-  record IsLattice {l′} (_≤_ : Rel l′) (meet join : Op2) : Set (c ⊔ l ⊔ l′) where
+  record IsLattice {l′} (_≤_ : Rel l′) (meet join : Op2)
+                   : Set (c ⊔ l ⊔ l′) where
     field
       lowerBound : (∀ a b → meet a b ≤ a) × (∀ a b → meet a b ≤ b)
       upperBound : (∀ a b → a ≤ join a b) × (∀ a b → b ≤ join a b)
@@ -98,10 +101,11 @@ module Lib.Structure {c l} (S : Setoid c l) where
     open IsLattice isLattice public
 
     meetSemilattice : MeetSemilattice l′
-    meetSemilattice = record { isMeetSemilattice = record { lowerBound = lowerBound
-                                                          ; greatest = greatest
-                                                          ; isPoset = isPoset
-                                                          } }
+    meetSemilattice =
+      record { isMeetSemilattice = record { lowerBound = lowerBound
+                                          ; greatest = greatest
+                                          ; isPoset = isPoset
+                                          } }
     open MeetSemilattice meetSemilattice public
       using (isMeetSemilattice; poset; preorder)
 
@@ -198,7 +202,8 @@ module Lib.Structure {c l} (S : Setoid c l) where
     monoid : Monoid
     monoid = record { isMonoid = isMonoid }
 
-  record IsCommutativePomonoid {l′} (≤ : Rel l′) (e : C) (· : Op2) : Set (c ⊔ l ⊔ l′) where
+  record IsCommutativePomonoid {l′} (≤ : Rel l′) (e : C) (· : Op2)
+                               : Set (c ⊔ l ⊔ l′) where
     infixr 5 _·-mono_
     field
       _·-mono_ : Mono ≤ ·
@@ -227,7 +232,8 @@ module Lib.Structure {c l} (S : Setoid c l) where
     open CommutativeMonoid commutativeMonoid public
       using (monoid)
 
-  record IsPosemiring {l′} (≤ : Rel l′) (e0 e1 : C) (+ * : Op2) : Set (c ⊔ l ⊔ l′) where
+  record IsPosemiring {l′} (≤ : Rel l′) (e0 e1 : C) (+ * : Op2)
+                      : Set (c ⊔ l ⊔ l′) where
     infixr 6 _+-mono_
     infixr 7 _*-mono_
     field
@@ -259,8 +265,9 @@ module Lib.Structure {c l} (S : Setoid c l) where
     open Semiring semiring public
       using (+-monoid; +-commutativeMonoid; *-monoid)
 
-  record IsMeetSemilatticeSemiring {l′} (≤ : Rel l′) (e0 e1 : C) (+ * meet : Op2)
-                                   : Set (c ⊔ l ⊔ l′) where
+  record IsMeetSemilatticeSemiring
+           {l′} (≤ : Rel l′) (e0 e1 : C) (+ * meet : Op2)
+           : Set (c ⊔ l ⊔ l′) where
     infixr 6 _+-mono_
     infixr 7 _*-mono_
     field
@@ -279,7 +286,8 @@ module Lib.Structure {c l} (S : Setoid c l) where
       _≤_ : Rel l′
       e0 e1 : C
       _+_ _*_ meet : Op2
-      isMeetSemilatticeSemiring : IsMeetSemilatticeSemiring _≤_ e0 e1 _+_ _*_ meet
+      isMeetSemilatticeSemiring :
+        IsMeetSemilatticeSemiring _≤_ e0 e1 _+_ _*_ meet
     open IsMeetSemilatticeSemiring isMeetSemilatticeSemiring public
 
     meetSemilattice : MeetSemilattice l′
@@ -294,3 +302,30 @@ module Lib.Structure {c l} (S : Setoid c l) where
       } }
     open Posemiring posemiring public
       using (poset; preorder; semiring; +-commutativeMonoid; +-monoid; *-monoid)
+
+  record IsDecMeetSemilatticeSemiring
+           {l′} (≤ : Rel l′) (e0 e1 : C) (+ * meet : Op2)
+           : Set (c ⊔ l ⊔ l′) where
+    field
+      _≤?_ : ∀ x y → Dec (≤ x y)
+      isMeetSemilatticeSemiring : IsMeetSemilatticeSemiring ≤ e0 e1 + * meet
+    open IsMeetSemilatticeSemiring isMeetSemilatticeSemiring public
+
+  record DecMeetSemilatticeSemiring l′ : Set (c ⊔ l ⊔ lsuc l′) where
+    infixr 4 _≤_
+    infixr 6 _+_
+    infixr 7 _*_
+    field
+      _≤_ : Rel l′
+      e0 e1 : C
+      _+_ _*_ meet : Op2
+      isDecMeetSemilatticeSemiring :
+        IsDecMeetSemilatticeSemiring _≤_ e0 e1 _+_ _*_ meet
+    open IsDecMeetSemilatticeSemiring isDecMeetSemilatticeSemiring public
+
+    meetSemilatticeSemiring : MeetSemilatticeSemiring l′
+    meetSemilatticeSemiring =
+      record { isMeetSemilatticeSemiring = isMeetSemilatticeSemiring }
+    open MeetSemilatticeSemiring meetSemilatticeSemiring public
+      using (posemiring; poset; preorder;
+             semiring; +-commutativeMonoid; +-monoid; *-monoid)
