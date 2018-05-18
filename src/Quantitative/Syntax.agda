@@ -4,8 +4,7 @@ open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Syntax
-  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′)
-  (_≟_ : (π ρ : C) → Dec (π ≡ ρ)) where
+  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
 
   module R = Posemiring POS ; open R hiding (_≤_; ≤-refl)
 
@@ -39,42 +38,3 @@ module Quantitative.Syntax
 
   var# : ∀ {n} m {less : Auto (m <? n)} → Term n syn
   var# m {less} = var (#th_ m {less})
-
-  _≟Ty_ : (S S′ : Ty) → Dec (S ≡ S′)
-  BASE ≟Ty BASE = yes refl
-  BASE ≟Ty (S′ ⊸ T′) = no λ ()
-  BASE ≟Ty ! ρ′ S′ = no λ ()
-  BASE ≟Ty (S′ ⊗ T′) = no λ ()
-  BASE ≟Ty (S′ & T′) = no λ ()
-  (S ⊸ T) ≟Ty BASE = no λ ()
-  (S ⊸ T) ≟Ty (S′ ⊸ T′) =
-    mapDec (λ { (refl , refl) → refl })
-           (λ { refl → (refl , refl) })
-           ((S ≟Ty S′) ×? (T ≟Ty T′))
-  (S ⊸ T) ≟Ty ! ρ′ S′ = no λ ()
-  (S ⊸ T) ≟Ty (S′ ⊗ T′) = no λ ()
-  (S ⊸ T) ≟Ty (S′ & T′) = no λ ()
-  ! ρ S ≟Ty BASE = no λ ()
-  ! ρ S ≟Ty (S′ ⊸ T′) = no λ ()
-  ! ρ S ≟Ty ! ρ′ S′ =
-    mapDec (λ { (refl , refl) → refl })
-           (λ { refl → refl , refl })
-           ((ρ ≟ ρ′) ×? (S ≟Ty S′))
-  ! ρ S ≟Ty (S′ ⊗ T′) = no λ ()
-  ! ρ S ≟Ty (S′ & T′) = no λ ()
-  (S ⊗ T) ≟Ty BASE = no λ ()
-  (S ⊗ T) ≟Ty (S′ ⊸ T′) = no λ ()
-  (S ⊗ T) ≟Ty (S′ ⊗ T′) =
-    mapDec (λ { (refl , refl) → refl })
-           (λ { refl → (refl , refl) })
-           ((S ≟Ty S′) ×? (T ≟Ty T′))
-  (S ⊗ T) ≟Ty ! ρ S′ = no λ ()
-  (S ⊗ T) ≟Ty (S′ & T′) = no λ ()
-  (S & T) ≟Ty BASE = no λ ()
-  (S & T) ≟Ty (S′ ⊸ T′) = no λ ()
-  (S & T) ≟Ty (S′ ⊗ T′) = no λ ()
-  (S & T) ≟Ty (S′ & T′) =
-    mapDec (λ { (refl , refl) → refl })
-           (λ { refl → (refl , refl) })
-           ((S ≟Ty S′) ×? (T ≟Ty T′))
-  (S & T) ≟Ty ! ρ S′ = no λ ()

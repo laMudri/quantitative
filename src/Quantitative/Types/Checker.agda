@@ -7,14 +7,53 @@ module Quantitative.Types.Checker
   {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′)
   (_≟_ : (π ρ : C) → Dec (π ≡ ρ)) where
 
-  open import Quantitative.Syntax C POS _≟_
-  open import Quantitative.Types C POS _≟_
+  open import Quantitative.Syntax C POS
+  open import Quantitative.Types C POS
   open R hiding (_≤_; ≤-refl)
 
   open import Lib.Function
   open import Lib.Product
   open import Lib.Two
   open import Lib.Vec
+
+  _≟Ty_ : (S S′ : Ty) → Dec (S ≡ S′)
+  BASE ≟Ty BASE = yes refl
+  BASE ≟Ty (S′ ⊸ T′) = no λ ()
+  BASE ≟Ty ! ρ′ S′ = no λ ()
+  BASE ≟Ty (S′ ⊗ T′) = no λ ()
+  BASE ≟Ty (S′ & T′) = no λ ()
+  (S ⊸ T) ≟Ty BASE = no λ ()
+  (S ⊸ T) ≟Ty (S′ ⊸ T′) =
+    mapDec (λ { (refl , refl) → refl })
+           (λ { refl → (refl , refl) })
+           ((S ≟Ty S′) ×? (T ≟Ty T′))
+  (S ⊸ T) ≟Ty ! ρ′ S′ = no λ ()
+  (S ⊸ T) ≟Ty (S′ ⊗ T′) = no λ ()
+  (S ⊸ T) ≟Ty (S′ & T′) = no λ ()
+  ! ρ S ≟Ty BASE = no λ ()
+  ! ρ S ≟Ty (S′ ⊸ T′) = no λ ()
+  ! ρ S ≟Ty ! ρ′ S′ =
+    mapDec (λ { (refl , refl) → refl })
+           (λ { refl → refl , refl })
+           ((ρ ≟ ρ′) ×? (S ≟Ty S′))
+  ! ρ S ≟Ty (S′ ⊗ T′) = no λ ()
+  ! ρ S ≟Ty (S′ & T′) = no λ ()
+  (S ⊗ T) ≟Ty BASE = no λ ()
+  (S ⊗ T) ≟Ty (S′ ⊸ T′) = no λ ()
+  (S ⊗ T) ≟Ty (S′ ⊗ T′) =
+    mapDec (λ { (refl , refl) → refl })
+           (λ { refl → (refl , refl) })
+           ((S ≟Ty S′) ×? (T ≟Ty T′))
+  (S ⊗ T) ≟Ty ! ρ S′ = no λ ()
+  (S ⊗ T) ≟Ty (S′ & T′) = no λ ()
+  (S & T) ≟Ty BASE = no λ ()
+  (S & T) ≟Ty (S′ ⊸ T′) = no λ ()
+  (S & T) ≟Ty (S′ ⊗ T′) = no λ ()
+  (S & T) ≟Ty (S′ & T′) =
+    mapDec (λ { (refl , refl) → refl })
+           (λ { refl → (refl , refl) })
+           ((S ≟Ty S′) ×? (T ≟Ty T′))
+  (S & T) ≟Ty ! ρ S′ = no λ ()
 
   Is⊸? : ∀ S → Dec (∃ λ S0 → ∃ λ S1 → S0 ⊸ S1 ≡ S)
   Is⊸? BASE = no λ { (_ , _ , ()) }

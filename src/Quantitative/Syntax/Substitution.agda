@@ -4,10 +4,9 @@ open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Syntax.Substitution
-  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′)
-  (_≟_ : (π ρ : C) → Dec (π ≡ ρ)) where
+  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
 
-  open import Quantitative.Syntax C POS _≟_
+  open import Quantitative.Syntax C POS
   open R hiding (_≤_; ≤-refl)
 
   open import Lib.Function

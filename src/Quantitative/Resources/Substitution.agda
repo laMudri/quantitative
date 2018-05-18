@@ -4,15 +4,14 @@ open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Resources.Substitution
-  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′)
-  (_≟_ : (π ρ : C) → Dec (π ≡ ρ)) where
+  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
 
-  open import Quantitative.Syntax C POS _≟_
-  open import Quantitative.Syntax.Substitution C POS _≟_
-  open import Quantitative.Types C POS _≟_
-  open import Quantitative.Types.Substitution C POS _≟_
-  open import Quantitative.Resources C POS _≟_
-  open import Quantitative.Resources.Context C POS _≟_
+  open import Quantitative.Syntax C POS
+  open import Quantitative.Syntax.Substitution C POS
+  open import Quantitative.Types C POS
+  open import Quantitative.Types.Substitution C POS
+  open import Quantitative.Resources C POS
+  open import Quantitative.Resources.Context C POS
 
   open import Lib.Function
   open import Lib.Level

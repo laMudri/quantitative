@@ -4,12 +4,11 @@ open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Resources
-  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′)
-  (_≟_ : (π ρ : C) → Dec (π ≡ ρ)) where
+  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
 
-  open import Quantitative.Syntax C POS _≟_
-  open import Quantitative.Types C POS _≟_
-  open import Quantitative.Resources.Context C POS _≟_
+  open import Quantitative.Syntax C POS
+  open import Quantitative.Types C POS
+  open import Quantitative.Resources.Context C POS
   open import Lib.Module
   module PSM n = Posemimodule (posemimodule n)
 
