@@ -13,7 +13,7 @@ module Quantitative.Syntax {c} (C : Set c) where
   infixr 30 _⊸_
   data Ty : Set c where
     BASE : Ty
-    _⊸_ _⊗_ _&_ : (S T : Ty) → Ty
+    _⊸_ _⊗_ _&_ _⊕_ : (S T : Ty) → Ty
     ! : (ρ : C) (S : Ty) → Ty
 
   data Dir : Set where
@@ -25,12 +25,14 @@ module Quantitative.Syntax {c} (C : Set c) where
     bm : (S : Ty) (e : Term n syn) (s : Term (succ n) chk) → Term n syn
     pm : (S : Ty) (e : Term n syn) (s : Term (2 +N n) chk) → Term n syn
     proj : (i : Two) (e : Term n syn) → Term n syn
+    cse : (S : Ty) (e : Term n syn) (s0 s1 : Term (succ n) chk) → Term n syn
     the : (S : Ty) (s : Term n chk) → Term n syn
 
     lam : (s : Term (succ n) chk) → Term n chk
     bang : (s : Term n chk) → Term n chk
     ten : (s0 s1 : Term n chk) → Term n chk
     wth : (s0 s1 : Term n chk) → Term n chk
+    inj : (i : Two) (s : Term n chk) → Term n chk
     [_] : (e : Term n syn) → Term n chk
 
   var# : ∀ {n} m {less : Auto (m <? n)} → Term n syn

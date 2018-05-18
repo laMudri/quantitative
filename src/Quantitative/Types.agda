@@ -3,8 +3,7 @@ open import Lib.Equality
 open import Lib.Setoid
 open import Lib.Structure
 
-module Quantitative.Types
-  {c} (C : Set c) where
+module Quantitative.Types {c} (C : Set c) where
 
   open import Quantitative.Syntax C
 
@@ -54,7 +53,12 @@ module Quantitative.Types
     proj : ∀ {i e S0 S1}
            (et : Γ ⊢t e ∈ S0 & S1)
            →
-           Γ ⊢t proj i e ∈ case i of λ { ttt → S0 ; fff → S1 }
+           Γ ⊢t proj i e ∈ Two-rec S0 S1 i
+    cse : ∀ {e s0 s1 S0 S1 T}
+          (et : Γ ⊢t e ∈ S0 ⊕ S1)
+          (s0t : S0 :: Γ ⊢t T ∋ s0) (s1t : S1 :: Γ ⊢t T ∋ s1)
+          →
+          Γ ⊢t cse T e s0 s1 ∈ T
     the : ∀ {S s}
           (st : Γ ⊢t S ∋ s)
           →
@@ -76,6 +80,10 @@ module Quantitative.Types
           (s0t : Γ ⊢t S0 ∋ s0) (s1t : Γ ⊢t S1 ∋ s1)
           →
           Γ ⊢t S0 & S1 ∋ wth s0 s1
+    inj : ∀ {i s S0 S1}
+          (st : Γ ⊢t Two-rec S0 S1 i ∋ s)
+          →
+          Γ ⊢t S0 ⊕ S1 ∋ inj i s
     [_] : ∀ {e S}
           (et : Γ ⊢t e ∈ S)
           →

@@ -27,6 +27,9 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
   weakenVarsTy Γl S (pm et st) =
     pm (weakenVarsTy Γl S et) (weakenVarsTy (_ :: _ :: Γl) S st)
   weakenVarsTy Γl S (proj et) = proj (weakenVarsTy Γl S et)
+  weakenVarsTy Γl S (cse et s0t s1t) =
+    cse (weakenVarsTy Γl S et) (weakenVarsTy (_ :: Γl) S s0t)
+                               (weakenVarsTy (_ :: Γl) S s1t)
   weakenVarsTy Γl S (the st) = the (weakenVarsTy Γl S st)
   weakenVarsTy Γl S (lam st) = lam (weakenVarsTy (_ :: Γl) S st)
   weakenVarsTy Γl S (bang st) = bang (weakenVarsTy Γl S st)
@@ -34,6 +37,7 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
     ten (weakenVarsTy Γl S s0) (weakenVarsTy Γl S s1)
   weakenVarsTy Γl S (wth s0 s1) =
     wth (weakenVarsTy Γl S s0) (weakenVarsTy Γl S s1)
+  weakenVarsTy Γl S (inj st) = inj (weakenVarsTy Γl S st)
   weakenVarsTy Γl S [ et ] = [ weakenVarsTy Γl S et ]
 
   SubstTy : ∀ {m n} → Subst m n → TCtx m → TCtx n → Set c
@@ -77,6 +81,9 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
     pm (substituteTy et vf vft)
        (substituteTy st _ (liftSubstNTy (_ :: _ :: nil) vft))
   substituteTy (proj et) vf vft = proj (substituteTy et vf vft)
+  substituteTy (cse et s0t s1t) vf vft =
+    cse (substituteTy et vf vft) (substituteTy s0t _ (liftSubstTy _ vft))
+                                 (substituteTy s1t _ (liftSubstTy _ vft))
   substituteTy (the st) vf vft = the (substituteTy st vf vft)
   substituteTy (lam st) vf vft =
     lam (substituteTy st (liftSubst vf) (liftSubstTy _ vft))
@@ -86,6 +93,8 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
     ten (substituteTy s0 vf vft) (substituteTy s1 vf vft)
   substituteTy (wth s0 s1) vf vft =
     wth (substituteTy s0 vf vft) (substituteTy s1 vf vft)
+  substituteTy (inj st) vf vft =
+    inj (substituteTy st vf vft)
   substituteTy [ et ] vf vft = [ substituteTy et vf vft ]
 
   ~~>-preservesTy : ∀ {n Γ d T} {t u : Term n d} (tt : Γ ⊢t t :-: T) →
@@ -123,4 +132,16 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
     wth (~~>-preservesTy s0t red) s1t
   ~~>-preservesTy (wth s0t s1t) (wth1-cong s0 s1 s1′ red) =
     wth s0t (~~>-preservesTy s1t red)
-  ~~>-preservesTy (proj et) (proj i e e′ red) = proj (~~>-preservesTy et red)
+  ~~>-preservesTy (proj et) (proj-cong i e e′ red) =
+    proj (~~>-preservesTy et red)
+  ~~>-preservesTy (cse (the (inj s0t)) t0t t1t) (⊕-beta0 S0 S1 T s0 t0 t1) =
+    the (substituteTy t0t _ (singleSubstTy (the s0t)))
+  ~~>-preservesTy (cse (the (inj s1t)) t0t t1t) (⊕-beta1 S0 S1 T s1 t0 t1) =
+    the (substituteTy t1t _ (singleSubstTy (the s1t)))
+  ~~>-preservesTy (inj st) (inj-cong i s s′ red) = inj (~~>-preservesTy st red)
+  ~~>-preservesTy (cse et s0t s1t) (cse0-cong T e e′ s0 s1 red) =
+    cse (~~>-preservesTy et red) s0t s1t
+  ~~>-preservesTy (cse et s0t s1t) (cse1-cong T e s0 s0′ s1 red) =
+    cse et (~~>-preservesTy s0t red) s1t
+  ~~>-preservesTy (cse et s0t s1t) (cse2-cong T e s0 s1 s1′ red) =
+    cse et s0t (~~>-preservesTy s1t red)

@@ -12,6 +12,7 @@ module Quantitative.Resources
   open import Lib.Module
 
   open import Lib.Level
+  open import Lib.Two
   open import Lib.Vec
 
   infix 3 _⊢r_
@@ -42,6 +43,12 @@ module Quantitative.Resources
            (er : Δ ⊢r et)
            →
            Δ ⊢r proj {i = i} et
+    cse : ∀ {Δe Δs S0 S1 T e s0 s1} {et : Γ ⊢t e ∈ S0 ⊕ S1}
+          {s0t : S0 :: Γ ⊢t T ∋ s0} {s1t : S1 :: Γ ⊢t T ∋ s1}
+          (split : Δ Δ.≤ Δe Δ.+ Δs)
+          (er : Δe ⊢r et) (s0r : R.e1 :: Δs ⊢r s0t) (s1r : R.e1 :: Δs ⊢r s1t)
+          →
+          Δ ⊢r cse et s0t s1t
     the : ∀ {S s} {st : Γ ⊢t S ∋ s}
           (sr : Δ ⊢r st)
           →
@@ -65,6 +72,10 @@ module Quantitative.Resources
           (s0r : Δ ⊢r s0t) (s1r : Δ ⊢r s1t)
           →
           Δ ⊢r wth s0t s1t
+    inj : ∀ {i S0 S1 s} {st : Γ ⊢t Two-rec S0 S1 i ∋ s}
+          (sr : Δ ⊢r st)
+          →
+          Δ ⊢r inj {i = i} st
     [_] : ∀ {S e} {et : Γ ⊢t e ∈ S}
           (er : Δ ⊢r et)
           →

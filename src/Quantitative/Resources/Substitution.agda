@@ -88,6 +88,23 @@ module Quantitative.Resources.Substitution
           +VZip le
              :: dropVZip Δl (Δel Δ.+ Δsl) split
   weakenVarsRes Δl ρ le (proj er) = proj (weakenVarsRes Δl ρ le er)
+  weakenVarsRes {l} {Δm = Δm} Δl ρ le (cse {Δe = Δe} {Δs} split er s0r s1r)
+    rewrite sym (VZip≡ (takeDropVec≡ l Δe))
+          | sym (VZip≡ (takeDropVec≡ l Δs))
+    with takeVec l Δe | dropVec l Δe | takeVec l Δs | dropVec l Δs
+  ... | Δel | Δem | Δsl | Δsm
+    rewrite VZip≡ (vzip-+V R._+_ Δel Δsl Δem Δsm)
+    = cse split′ (weakenVarsRes Δel R.e0 R.≤-refl er)
+                 (weakenVarsRes (_ :: Δsl) R.e0 R.≤-refl s0r)
+                 (weakenVarsRes (_ :: Δsl) R.e0 R.≤-refl s1r)
+    where
+    -- TODO: this is the same lemma as for app
+    split′ : Δl +V ρ :: Δm Δ.≤ (Δel +V R.e0 :: Δem) Δ.+ (Δsl +V R.e0 :: Δsm)
+    split′ rewrite VZip≡ (vzip-+V R._+_ Δel Δsl (R.e0 :: Δem) (R.e0 :: Δsm))
+                 | fst R.+-identity R.e0
+      = takeVZip Δl (Δel Δ.+ Δsl) split
+          +VZip le
+             :: dropVZip Δl (Δel Δ.+ Δsl) split
   weakenVarsRes Δl ρ le (the sr) = the (weakenVarsRes Δl ρ le sr)
   weakenVarsRes Δl ρ le (lam sr) = lam (weakenVarsRes (R.e1 :: Δl) ρ le sr)
   weakenVarsRes {l} {Δm = Δm} Δl ρ le (bang {Δs = Δs} {ρ = π} split sr)
@@ -118,6 +135,7 @@ module Quantitative.Resources.Substitution
              :: dropVZip Δl (Δs0l Δ.+ Δs1l) split
   weakenVarsRes Δl ρ le (wth s0r s1r) =
     wth (weakenVarsRes Δl ρ le s0r) (weakenVarsRes Δl ρ le s1r)
+  weakenVarsRes Δl ρ le (inj sr) = inj (weakenVarsRes Δl ρ le sr)
   weakenVarsRes Δl ρ le [ sr ] = [ weakenVarsRes Δl ρ le sr ]
 
   infix 3 _⊢r*[_]_
@@ -391,11 +409,13 @@ module Quantitative.Resources.Substitution
   weakenRes sub (bm split er sr) = bm (Δ.≤-trans sub split) er sr
   weakenRes sub (pm split er sr) = pm (Δ.≤-trans sub split) er sr
   weakenRes sub (proj er) = proj (weakenRes sub er)
+  weakenRes sub (cse split er s0r s1r) = cse (Δ.≤-trans sub split) er s0r s1r
   weakenRes sub (the sr) = the (weakenRes sub sr)
   weakenRes sub (lam sr) = lam (weakenRes (R.≤-refl :: sub) sr)
   weakenRes sub (bang split sr) = bang (Δ.≤-trans sub split) sr
   weakenRes sub (ten split s0r s1r) = ten (Δ.≤-trans sub split) s0r s1r
   weakenRes sub (wth s0r s1r) = wth (weakenRes sub s0r) (weakenRes sub s1r)
+  weakenRes sub (inj sr) = inj (weakenRes sub sr)
   weakenRes sub [ er ] = [ weakenRes sub er ]
 
   substituteRes :
@@ -452,6 +472,12 @@ module Quantitative.Resources.Substitution
                                                  vfrs))
   substituteRes (proj er) vfr =
     proj (substituteRes er vfr)
+  substituteRes (cse split er s0r s1r) vfr
+    with substSplit+ split vfr | split+Subst split vfr
+  ... | Δen , Δsn , split+ | vfre , vfrs =
+    cse split+ (substituteRes er vfre)
+               (substituteRes s0r (liftSubstRes _ _ vfrs))
+               (substituteRes s1r (liftSubstRes _ _ vfrs))
   substituteRes (the sr) vfr =
     the (substituteRes sr vfr)
   substituteRes (lam sr) vfr =
@@ -466,6 +492,8 @@ module Quantitative.Resources.Substitution
     ten split+ (substituteRes s0r vfre) (substituteRes s1r vfrs)
   substituteRes (wth s0r s1r) vfr =
     wth (substituteRes s0r vfr) (substituteRes s1r vfr)
+  substituteRes (inj sr) vfr =
+    inj (substituteRes sr vfr)
   substituteRes [ er ] vfr = [ substituteRes er vfr ]
 
   ~~>-preservesRes : ∀ {n d Γ S Δ} {t u : Term n d}
@@ -507,8 +535,9 @@ module Quantitative.Resources.Substitution
     bm split (~~>-preservesRes er red) sr
   ~~>-preservesRes (bm split er sr) (bm1-cong S e s s′ red) =
     bm split er (~~>-preservesRes sr red)
-  ~~>-preservesRes {Δ = Δ} (pm {Δe = Δe} {Δs} split (the (ten {Δs0 = Δs0} {Δs1} split01 s0r s1r)) tr)
-                           (⊗-beta S0 S1 T s0 s1 t) =
+  ~~>-preservesRes {Δ = Δ}
+                   (pm {Δe = Δe} {Δs} split (the (ten {Δs0 = Δs0} {Δs1} split01 s0r s1r)) tr)
+                   (⊗-beta S0 S1 T s0 s1 t) =
     the (substituteRes tr (multiSubstRes vfr split))
     where
     split01′ =      Δe
@@ -541,5 +570,24 @@ module Quantitative.Resources.Substitution
     wth (~~>-preservesRes s0r red) s1r
   ~~>-preservesRes (wth s0r s1r) (wth1-cong s0 s1 s1′ red) =
     wth s0r (~~>-preservesRes s1r red)
-  ~~>-preservesRes (proj er) (proj i e e′ red) =
+  ~~>-preservesRes (proj er) (proj-cong i e e′ red) =
     proj (~~>-preservesRes er red)
+  ~~>-preservesRes (cse split (the (inj s0r)) t0r t1r)
+                   (⊕-beta0 S0 S1 T s0 t0 t1) =
+    the (substituteRes t0r
+          (singleSubstRes R.e1 (the s0r)
+            (Δ.≤-trans split (Δ.≤-reflexive (Δ.sym (Δ.identity _))
+                               Δ.+-mono Δ.≤-refl))))
+  ~~>-preservesRes (cse split (the (inj s1r)) t0r t1r) (⊕-beta1 S0 S1 T s1 t0 t1) =
+    the (substituteRes t1r
+          (singleSubstRes R.e1 (the s1r)
+            (Δ.≤-trans split (Δ.≤-reflexive (Δ.sym (Δ.identity _))
+                               Δ.+-mono Δ.≤-refl))))
+  ~~>-preservesRes (inj sr) (inj-cong i s s′ red) =
+    inj (~~>-preservesRes sr red)
+  ~~>-preservesRes (cse split er s0r s1r) (cse0-cong T e e′ s0 s1 red) =
+    cse split (~~>-preservesRes er red) s0r s1r
+  ~~>-preservesRes (cse split er s0r s1r) (cse1-cong T e s0 s0′ s1 red) =
+    cse split er (~~>-preservesRes s0r red) s1r
+  ~~>-preservesRes (cse split er s0r s1r) (cse2-cong T e s0 s1 s1′ red) =
+    cse split er s0r (~~>-preservesRes s1r red)
