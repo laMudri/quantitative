@@ -385,164 +385,162 @@ module Quantitative.Resources.Substitution
               (le :: splitm) (cons splitn tr vfr) =
     cons Δ.≤-refl tr (split*Subst splitm vfr)
 
-  module DecLE (_≤?_ : ∀ x y → Dec (x R.≤ y)) where
+  weakenRes : ∀ {n d Γ S Δ Δ′} {t : Term n d} {tt : Γ ⊢t t :-: S} →
+              Δ′ Δ.≤ Δ → Δ ⊢r tt → Δ′ ⊢r tt
+  weakenRes sub (var vsub) = var (Δ.≤-trans sub vsub)
+  weakenRes sub (app split er sr) = app (Δ.≤-trans sub split) er sr
+  weakenRes sub (bm split er sr) = bm (Δ.≤-trans sub split) er sr
+  weakenRes sub (pm split er sr) = pm (Δ.≤-trans sub split) er sr
+  weakenRes sub (proj er) = proj (weakenRes sub er)
+  weakenRes sub (the sr) = the (weakenRes sub sr)
+  weakenRes sub (lam sr) = lam (weakenRes (R.≤-refl :: sub) sr)
+  weakenRes sub (bang split sr) = bang (Δ.≤-trans sub split) sr
+  weakenRes sub (ten split s0r s1r) = ten (Δ.≤-trans sub split) s0r s1r
+  weakenRes sub (wth s0r s1r) = wth (weakenRes sub s0r) (weakenRes sub s1r)
+  weakenRes sub [ er ] = [ weakenRes sub er ]
 
-    weakenRes : ∀ {n d Γ S Δ Δ′} {t : Term n d} {tt : Γ ⊢t t :-: S} →
-                Δ′ Δ.≤ Δ → Δ ⊢r tt → Δ′ ⊢r tt
-    weakenRes sub (var vsub) = var (Δ.≤-trans sub vsub)
-    weakenRes sub (app split er sr) = app (Δ.≤-trans sub split) er sr
-    weakenRes sub (bm split er sr) = bm (Δ.≤-trans sub split) er sr
-    weakenRes sub (pm split er sr) = pm (Δ.≤-trans sub split) er sr
-    weakenRes sub (proj er) = proj (weakenRes sub er)
-    weakenRes sub (the sr) = the (weakenRes sub sr)
-    weakenRes sub (lam sr) = lam (weakenRes (R.≤-refl :: sub) sr)
-    weakenRes sub (bang split sr) = bang (Δ.≤-trans sub split) sr
-    weakenRes sub (ten split s0r s1r) = ten (Δ.≤-trans sub split) s0r s1r
-    weakenRes sub (wth s0r s1r) = wth (weakenRes sub s0r) (weakenRes sub s1r)
-    weakenRes sub [ er ] = [ weakenRes sub er ]
-
-    substituteRes :
-      ∀ {m n d Γm Γn S} {Δm : RCtx m} {Δn : RCtx n}
-      {t : Term m d} {tt : Γm ⊢t t :-: S} → Δm ⊢r tt →
-      {vf : Subst m n} {vft : SubstTy vf Γm Γn} → SubstRes vft Δm Δn →
-      Δn ⊢r substituteTy tt vf vft
-    substituteRes {n = n} {Γm = Γm} {Γn = Γn} {Δn = Δn} {tt = var refl}
-                  (var {th = th} sub) vfr =
-      go th sub vfr
+  substituteRes :
+    ∀ {m n d Γm Γn S} {Δm : RCtx m} {Δn : RCtx n}
+    {t : Term m d} {tt : Γm ⊢t t :-: S} → Δm ⊢r tt →
+    {vf : Subst m n} {vft : SubstTy vf Γm Γn} → SubstRes vft Δm Δn →
+    Δn ⊢r substituteTy tt vf vft
+  substituteRes {n = n} {Γm = Γm} {Γn = Γn} {Δn = Δn} {tt = var refl}
+                (var {th = th} sub) vfr =
+    go th sub vfr
+    where
+    go : ∀ {m Γm} {Δm : RCtx m} (th : Fin m) →
+         Δm Δ.≤ varRCtx th R.e1 → {vf : Subst m n} {vft : SubstTy vf Γm Γn}
+         (vfr : Δn ⊢r*[ Δm ] 1≤-tabulate (λ i → _ , _ , vft i)) →
+         Δn ⊢r vft th
+    go {succ m} {Δm = ρ :: Δm} (os {n = .m} th) (le :: sub)
+                               (cons {Δt = Δt} {Δts} split tr vfr)
+       rewrite z≤-unique (z≤ _) th with <>
+    go {succ m} {Δm = ρ :: Δm} (os {_} {.m} th) (le :: sub)
+                               (cons {Δt = Δt} {Δts} split tr vfr) | <> =
+      weakenRes split′ tr
       where
-      go : ∀ {m Γm} {Δm : RCtx m} (th : Fin m) →
-           Δm Δ.≤ varRCtx th R.e1 → {vf : Subst m n} {vft : SubstTy vf Γm Γn}
-           (vfr : Δn ⊢r*[ Δm ] 1≤-tabulate (λ i → _ , _ , vft i)) →
-           Δn ⊢r vft th
-      go {succ m} {Δm = ρ :: Δm} (os {n = .m} th) (le :: sub)
-                                 (cons {Δt = Δt} {Δts} split tr vfr)
-         rewrite z≤-unique (z≤ _) th with <>
-      go {succ m} {Δm = ρ :: Δm} (os {_} {.m} th) (le :: sub)
-                                 (cons {Δt = Δt} {Δts} split tr vfr) | <> =
-        weakenRes split′ tr
-        where
-        split′ =
-                       Δn       Δ.≤[ split ]
-             ρ Δ.* Δt Δ.+ Δts   Δ.≤[ Δ.≤-refl Δ.+-mono nothingLeft sub vfr ]
-             ρ Δ.* Δt Δ.+ Δ.e0  Δ.≤[ Δ.≤-reflexive (snd Δ.+-identity _) ]
-             ρ Δ.* Δt           Δ.≤[ le Δ.*-mono Δ.≤-refl ]
-          R.e1 Δ.* Δt           Δ.≤[ Δ.≤-reflexive (Δ.identity Δt) ]
-                   Δt           Δ.≤-QED
-      go {Γm = S :: Γm} {ρ :: Δm} (o′ th) (le :: sub) (cons {Δt = Δt} {Δts} split tr vfr) =
-        go th sub (weakenRes* split′ vfr)
-        where
-        split′ =
-                       Δn      Δ.≤[ split ]
-             ρ Δ.* Δt Δ.+ Δts  Δ.≤[ le Δ.*-mono Δ.≤-refl Δ.+-mono Δ.≤-refl ]
-          R.e0 Δ.* Δt Δ.+ Δts  Δ.≤[ Δ.≤-reflexive (snd Δ.annihil Δt) Δ.+-mono Δ.≤-refl ]
-              Δ.e0    Δ.+ Δts  Δ.≤[ Δ.≤-reflexive (fst Δ.+-identity Δts) ]
-                       Δts     Δ.≤-QED
-    substituteRes (app split er sr) vfr
-      with substSplit+ split vfr | split+Subst split vfr
-    ... | Δen , Δsn , split+ | vfre , vfrs =
-      app split+ (substituteRes er vfre) (substituteRes sr vfrs)
-    substituteRes (bm split er sr) vfr
-      with substSplit+ split vfr | split+Subst split vfr
-    ... | Δen , Δsn , split+ | vfre , vfrs =
-      bm split+ (substituteRes er vfre)
-                (substituteRes sr (liftSubstRes _ _ vfrs))
-    substituteRes (pm {S0 = S0} {S1} split er sr) {vf} {vft} vfr
-      with substSplit+ split vfr | split+Subst split vfr
-    ... | Δen , Δsn , split+ | vfre , vfrs
-      = pm split+ (substituteRes er vfre)
-                  (substituteRes sr (liftSubstNRes (_ :: _ :: nil)
-                                                   (R.e1 :: R.e1 :: nil)
-                                                   vfrs))
-    substituteRes (proj er) vfr =
-      proj (substituteRes er vfr)
-    substituteRes (the sr) vfr =
-      the (substituteRes sr vfr)
-    substituteRes (lam sr) vfr =
-      lam (substituteRes sr (liftSubstRes _ R.e1 vfr))
-    substituteRes (bang split sr) vfr
-      with substSplit* split vfr | split*Subst split vfr
-    ... | Δsn , split* | vfrs =
-      bang split* (substituteRes sr vfrs)
-    substituteRes (ten split s0r s1r) vfr
-      with substSplit+ split vfr | split+Subst split vfr
-    ... | Δen , Δsn , split+ | vfre , vfrs =
-      ten split+ (substituteRes s0r vfre) (substituteRes s1r vfrs)
-    substituteRes (wth s0r s1r) vfr =
-      wth (substituteRes s0r vfr) (substituteRes s1r vfr)
-    substituteRes [ er ] vfr = [ substituteRes er vfr ]
-
-    ~~>-preservesRes : ∀ {n d Γ S Δ} {t u : Term n d}
-                       {tt : Γ ⊢t t :-: S} (tr : Δ ⊢r tt) →
-                       (red : t ~~> u) → Δ ⊢r ~~>-preservesTy tt red
-    ~~>-preservesRes [ the sr ] (upsilon S s) = sr
-    ~~>-preservesRes {Δ = Δ}
-                             (app {Δe = Δe} {Δs} split (the (lam tr)) sr)
-                             (⊸-beta S T s t) =
-      the (substituteRes tr (singleSubstRes R.e1 (the {S = S} sr) (split′ sr)))
-      where
-      split-eqs : Δe Δ.+ Δs Δ.≈ R.e1 Δ.* Δs Δ.+ Δe
-      split-eqs =
-                 Δe Δ.+ Δs  Δ.≈[ Δ.+-comm Δe Δs ]
-                 Δs Δ.+ Δe  Δ.≈[ Δ.sym (Δ.identity Δs) Δ.+-cong Δ.refl ]
-        R.e1 Δ.* Δs Δ.+ Δe  Δ.≈-QED
-
-      split′ : ∀ {s} → Δs ⊢r s → Δ Δ.≤ R.e1 Δ.* Δs Δ.+ Δe
-      split′ sr = Δ.≤-trans split (Δ.≤-reflexive split-eqs)
-    ~~>-preservesRes (lam sr) (lam-cong s s′ red) =
-      lam (~~>-preservesRes sr red)
-    ~~>-preservesRes (app split er sr) (app0-cong e e′ s red) =
-      app split (~~>-preservesRes er red) sr
-    ~~>-preservesRes (app split er sr) (app1-cong e s s′ red) =
-      app split er (~~>-preservesRes sr red)
-    ~~>-preservesRes {Δ = Δ}
-                     (bm {Δe = ρΔ!} {Δs} split+ (the (bang {Δs = Δ!} split* sr)) tr)
-                     (!-beta S T ρ s t) =
-      the (substituteRes tr (singleSubstRes ρ (the {S = S} sr) split′))
-      where
-      split′ : Δ Δ.≤ ρ Δ.* Δ! Δ.+ Δs
       split′ =
-                  Δ      Δ.≤[ split+ ]
-          ρΔ!    Δ.+ Δs  Δ.≤[ split* Δ.+-mono Δ.≤-refl ]
-        ρ Δ.* Δ! Δ.+ Δs  Δ.≤-QED
-    ~~>-preservesRes (bang split sr) (bang-cong s s′ red) =
-      bang split (~~>-preservesRes sr red)
-    ~~>-preservesRes (bm split er sr) (bm0-cong S e e′ s red) =
-      bm split (~~>-preservesRes er red) sr
-    ~~>-preservesRes (bm split er sr) (bm1-cong S e s s′ red) =
-      bm split er (~~>-preservesRes sr red)
-    ~~>-preservesRes {Δ = Δ} (pm {Δe = Δe} {Δs} split (the (ten {Δs0 = Δs0} {Δs1} split01 s0r s1r)) tr)
-                             (⊗-beta S0 S1 T s0 s1 t) =
-      the (substituteRes tr (multiSubstRes vfr split))
+                     Δn       Δ.≤[ split ]
+           ρ Δ.* Δt Δ.+ Δts   Δ.≤[ Δ.≤-refl Δ.+-mono nothingLeft sub vfr ]
+           ρ Δ.* Δt Δ.+ Δ.e0  Δ.≤[ Δ.≤-reflexive (snd Δ.+-identity _) ]
+           ρ Δ.* Δt           Δ.≤[ le Δ.*-mono Δ.≤-refl ]
+        R.e1 Δ.* Δt           Δ.≤[ Δ.≤-reflexive (Δ.identity Δt) ]
+                 Δt           Δ.≤-QED
+    go {Γm = S :: Γm} {ρ :: Δm} (o′ th) (le :: sub) (cons {Δt = Δt} {Δts} split tr vfr) =
+      go th sub (weakenRes* split′ vfr)
       where
-      split01′ =      Δe
-          Δ.≤[ split01 ]
-                 Δs0 Δ.+ Δs1
-          Δ.≤[ Δ.≤-reflexive (Δ.sym (Δ.identity _ Δ.+-cong Δ.refl)) ]
-        R.e1 Δ.* Δs0 Δ.+ Δs1  Δ.≤-QED
+      split′ =
+                     Δn      Δ.≤[ split ]
+           ρ Δ.* Δt Δ.+ Δts  Δ.≤[ le Δ.*-mono Δ.≤-refl Δ.+-mono Δ.≤-refl ]
+        R.e0 Δ.* Δt Δ.+ Δts  Δ.≤[ Δ.≤-reflexive (snd Δ.annihil Δt) Δ.+-mono Δ.≤-refl ]
+            Δ.e0    Δ.+ Δts  Δ.≤[ Δ.≤-reflexive (fst Δ.+-identity Δts) ]
+                     Δts     Δ.≤-QED
+  substituteRes (app split er sr) vfr
+    with substSplit+ split vfr | split+Subst split vfr
+  ... | Δen , Δsn , split+ | vfre , vfrs =
+    app split+ (substituteRes er vfre) (substituteRes sr vfrs)
+  substituteRes (bm split er sr) vfr
+    with substSplit+ split vfr | split+Subst split vfr
+  ... | Δen , Δsn , split+ | vfre , vfrs =
+    bm split+ (substituteRes er vfre)
+              (substituteRes sr (liftSubstRes _ _ vfrs))
+  substituteRes (pm {S0 = S0} {S1} split er sr) {vf} {vft} vfr
+    with substSplit+ split vfr | split+Subst split vfr
+  ... | Δen , Δsn , split+ | vfre , vfrs
+    = pm split+ (substituteRes er vfre)
+                (substituteRes sr (liftSubstNRes (_ :: _ :: nil)
+                                                 (R.e1 :: R.e1 :: nil)
+                                                 vfrs))
+  substituteRes (proj er) vfr =
+    proj (substituteRes er vfr)
+  substituteRes (the sr) vfr =
+    the (substituteRes sr vfr)
+  substituteRes (lam sr) vfr =
+    lam (substituteRes sr (liftSubstRes _ R.e1 vfr))
+  substituteRes (bang split sr) vfr
+    with substSplit* split vfr | split*Subst split vfr
+  ... | Δsn , split* | vfrs =
+    bang split* (substituteRes sr vfrs)
+  substituteRes (ten split s0r s1r) vfr
+    with substSplit+ split vfr | split+Subst split vfr
+  ... | Δen , Δsn , split+ | vfre , vfrs =
+    ten split+ (substituteRes s0r vfre) (substituteRes s1r vfrs)
+  substituteRes (wth s0r s1r) vfr =
+    wth (substituteRes s0r vfr) (substituteRes s1r vfr)
+  substituteRes [ er ] vfr = [ substituteRes er vfr ]
 
-      splits1 = Δ.≤-reflexive (Δ.sym (
-        R.e1 Δ.* Δs1 Δ.+ Δ.e0  Δ.≈[ snd Δ.+-identity _ ]
-        R.e1 Δ.* Δs1           Δ.≈[ Δ.identity _ ]
-        Δs1                    Δ.≈-QED))
+  ~~>-preservesRes : ∀ {n d Γ S Δ} {t u : Term n d}
+                     {tt : Γ ⊢t t :-: S} (tr : Δ ⊢r tt) →
+                     (red : t ~~> u) → Δ ⊢r ~~>-preservesTy tt red
+  ~~>-preservesRes [ the sr ] (upsilon S s) = sr
+  ~~>-preservesRes {Δ = Δ}
+                           (app {Δe = Δe} {Δs} split (the (lam tr)) sr)
+                           (⊸-beta S T s t) =
+    the (substituteRes tr (singleSubstRes R.e1 (the {S = S} sr) (split′ sr)))
+    where
+    split-eqs : Δe Δ.+ Δs Δ.≈ R.e1 Δ.* Δs Δ.+ Δe
+    split-eqs =
+               Δe Δ.+ Δs  Δ.≈[ Δ.+-comm Δe Δs ]
+               Δs Δ.+ Δe  Δ.≈[ Δ.sym (Δ.identity Δs) Δ.+-cong Δ.refl ]
+      R.e1 Δ.* Δs Δ.+ Δe  Δ.≈-QED
 
-      vfr = cons split01′ (the s0r)
-           (cons splits1 (the s1r)
-           (nil Δ.≤-refl))
-    ~~>-preservesRes (ten split s0r s1r) (ten0-cong s0 s0′ s1 red) =
-      ten split (~~>-preservesRes s0r red) s1r
-    ~~>-preservesRes (ten split s0r s1r) (ten1-cong s0 s1 s1′ red) =
-      ten split s0r (~~>-preservesRes s1r red)
-    ~~>-preservesRes (pm split er sr) (pm0-cong S e e′ s red) =
-      pm split (~~>-preservesRes er red) sr
-    ~~>-preservesRes (pm split er sr) (pm1-cong S e s s′ red) =
-      pm split er (~~>-preservesRes sr red)
-    ~~>-preservesRes (proj (the (wth s0r s1r))) (&-beta ttt S0 S1 s0 s1) =
-      the s0r
-    ~~>-preservesRes (proj (the (wth s0r s1r))) (&-beta fff S0 S1 s0 s1) =
-      the s1r
-    ~~>-preservesRes (wth s0r s1r) (wth0-cong s0 s0′ s1 red) =
-      wth (~~>-preservesRes s0r red) s1r
-    ~~>-preservesRes (wth s0r s1r) (wth1-cong s0 s1 s1′ red) =
-      wth s0r (~~>-preservesRes s1r red)
-    ~~>-preservesRes (proj er) (proj i e e′ red) =
-      proj (~~>-preservesRes er red)
+    split′ : ∀ {s} → Δs ⊢r s → Δ Δ.≤ R.e1 Δ.* Δs Δ.+ Δe
+    split′ sr = Δ.≤-trans split (Δ.≤-reflexive split-eqs)
+  ~~>-preservesRes (lam sr) (lam-cong s s′ red) =
+    lam (~~>-preservesRes sr red)
+  ~~>-preservesRes (app split er sr) (app0-cong e e′ s red) =
+    app split (~~>-preservesRes er red) sr
+  ~~>-preservesRes (app split er sr) (app1-cong e s s′ red) =
+    app split er (~~>-preservesRes sr red)
+  ~~>-preservesRes {Δ = Δ}
+                   (bm {Δe = ρΔ!} {Δs} split+ (the (bang {Δs = Δ!} split* sr)) tr)
+                   (!-beta S T ρ s t) =
+    the (substituteRes tr (singleSubstRes ρ (the {S = S} sr) split′))
+    where
+    split′ : Δ Δ.≤ ρ Δ.* Δ! Δ.+ Δs
+    split′ =
+                Δ      Δ.≤[ split+ ]
+        ρΔ!    Δ.+ Δs  Δ.≤[ split* Δ.+-mono Δ.≤-refl ]
+      ρ Δ.* Δ! Δ.+ Δs  Δ.≤-QED
+  ~~>-preservesRes (bang split sr) (bang-cong s s′ red) =
+    bang split (~~>-preservesRes sr red)
+  ~~>-preservesRes (bm split er sr) (bm0-cong S e e′ s red) =
+    bm split (~~>-preservesRes er red) sr
+  ~~>-preservesRes (bm split er sr) (bm1-cong S e s s′ red) =
+    bm split er (~~>-preservesRes sr red)
+  ~~>-preservesRes {Δ = Δ} (pm {Δe = Δe} {Δs} split (the (ten {Δs0 = Δs0} {Δs1} split01 s0r s1r)) tr)
+                           (⊗-beta S0 S1 T s0 s1 t) =
+    the (substituteRes tr (multiSubstRes vfr split))
+    where
+    split01′ =      Δe
+        Δ.≤[ split01 ]
+               Δs0 Δ.+ Δs1
+        Δ.≤[ Δ.≤-reflexive (Δ.sym (Δ.identity _ Δ.+-cong Δ.refl)) ]
+      R.e1 Δ.* Δs0 Δ.+ Δs1  Δ.≤-QED
+
+    splits1 = Δ.≤-reflexive (Δ.sym (
+      R.e1 Δ.* Δs1 Δ.+ Δ.e0  Δ.≈[ snd Δ.+-identity _ ]
+      R.e1 Δ.* Δs1           Δ.≈[ Δ.identity _ ]
+      Δs1                    Δ.≈-QED))
+
+    vfr = cons split01′ (the s0r)
+         (cons splits1 (the s1r)
+         (nil Δ.≤-refl))
+  ~~>-preservesRes (ten split s0r s1r) (ten0-cong s0 s0′ s1 red) =
+    ten split (~~>-preservesRes s0r red) s1r
+  ~~>-preservesRes (ten split s0r s1r) (ten1-cong s0 s1 s1′ red) =
+    ten split s0r (~~>-preservesRes s1r red)
+  ~~>-preservesRes (pm split er sr) (pm0-cong S e e′ s red) =
+    pm split (~~>-preservesRes er red) sr
+  ~~>-preservesRes (pm split er sr) (pm1-cong S e s s′ red) =
+    pm split er (~~>-preservesRes sr red)
+  ~~>-preservesRes (proj (the (wth s0r s1r))) (&-beta ttt S0 S1 s0 s1) =
+    the s0r
+  ~~>-preservesRes (proj (the (wth s0r s1r))) (&-beta fff S0 S1 s0 s1) =
+    the s1r
+  ~~>-preservesRes (wth s0r s1r) (wth0-cong s0 s0′ s1 red) =
+    wth (~~>-preservesRes s0r red) s1r
+  ~~>-preservesRes (wth s0r s1r) (wth1-cong s0 s1 s1′ red) =
+    wth s0r (~~>-preservesRes s1r red)
+  ~~>-preservesRes (proj er) (proj i e e′ red) =
+    proj (~~>-preservesRes er red)
