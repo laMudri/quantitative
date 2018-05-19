@@ -5,8 +5,9 @@ open import Lib.Structure
 module Quantitative.Resources
   {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
 
-  open import Quantitative.Types C
+  open import Quantitative.Types.Formers C
   open import Quantitative.Syntax C Ty
+  open import Quantitative.Types C
   open import Quantitative.Resources.Context C POS
   open import Lib.Module
 

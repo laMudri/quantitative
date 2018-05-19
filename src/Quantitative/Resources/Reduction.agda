@@ -5,12 +5,13 @@ open import Lib.Structure
 module Quantitative.Resources.Reduction
   {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
 
-  open import Quantitative.Types C
-  open import Quantitative.Types.Substitution C
-  open import Quantitative.Types.Reduction C
+  open import Quantitative.Types.Formers C
   open import Quantitative.Syntax C Ty
   open import Quantitative.Syntax.Substitution C Ty
   open import Quantitative.Syntax.Reduction C
+  open import Quantitative.Types C
+  open import Quantitative.Types.Substitution C
+  open import Quantitative.Types.Reduction C
   open import Quantitative.Resources C POS
   open import Quantitative.Resources.Context C POS
   open import Quantitative.Resources.Substitution C POS

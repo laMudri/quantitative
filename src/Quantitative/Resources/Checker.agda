@@ -8,9 +8,10 @@ module Quantitative.Resources.Checker
   open DecMeetSemilatticeSemiring DMSS
     using (posemiring; meetSemilatticeSemiring; _≤?_)
 
-  open import Quantitative.Types C
+  open import Quantitative.Types.Formers C
   open import Quantitative.Syntax C Ty
   open import Quantitative.Syntax.Substitution C Ty
+  open import Quantitative.Types C
   open import Quantitative.Resources C posemiring
   open import Quantitative.Resources.Context.Semilattice
     C meetSemilatticeSemiring

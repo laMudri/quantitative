@@ -1,5 +1,5 @@
 module Quantitative.Syntax.Reduction {c} (C : Set c) where
-  open import Quantitative.Types C
+  open import Quantitative.Types.Formers C
   open import Quantitative.Syntax C Ty
   open import Quantitative.Syntax.Substitution C Ty
 
