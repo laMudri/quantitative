@@ -33,6 +33,11 @@ module Quantitative.Resources
          (er : Δe ⊢r et) (sr : ρ :: Δs ⊢r st)
          →
          Δ ⊢r bm et st
+    del : ∀ {Δe Δs T e s} {et : Γ ⊢t e ∈ ⊗1} {st : Γ ⊢t T ∋ s}
+          (split : Δ Δ.≤ Δe Δ.+ Δs)
+          (er : Δe ⊢r et) (sr : Δs ⊢r st)
+          →
+          Δ ⊢r del et st
     pm : ∀ {Δe Δs S0 S1 T e s}
          {et : Γ ⊢t e ∈ S0 ⊗ S1} {st : S0 :: S1 :: Γ ⊢t T ∋ s}
          (split : Δ Δ.≤ Δe Δ.+ Δs)
@@ -43,6 +48,11 @@ module Quantitative.Resources
            (er : Δ ⊢r et)
            →
            Δ ⊢r proj {i = i} et
+    exf : ∀ {Δe Δs T e} {et : Γ ⊢t e ∈ ⊕0}
+          (split : Δ Δ.≤ Δe Δ.+ Δs)
+          (er : Δe ⊢r et)
+          →
+          Δ ⊢r exf {T = T} et
     cse : ∀ {Δe Δs S0 S1 T e s0 s1} {et : Γ ⊢t e ∈ S0 ⊕ S1}
           {s0t : S0 :: Γ ⊢t T ∋ s0} {s1t : S1 :: Γ ⊢t T ∋ s1}
           (split : Δ Δ.≤ Δe Δ.+ Δs)
@@ -63,11 +73,15 @@ module Quantitative.Resources
            (er : Δs ⊢r st)
            →
            Δ ⊢r bang {ρ = ρ} st
+    unit : (split : Δ Δ.≤ Δ.e0)
+           →
+           Δ ⊢r unit
     ten : ∀ {Δs0 Δs1 S0 S1 s0 s1} {s0t : Γ ⊢t S0 ∋ s0} {s1t : Γ ⊢t S1 ∋ s1}
           (split : Δ Δ.≤ Δs0 Δ.+ Δs1)
           (s0r : Δs0 ⊢r s0t) (s1r : Δs1 ⊢r s1t)
           →
           Δ ⊢r ten s0t s1t
+    eat : Δ ⊢r eat
     wth : ∀ {S0 S1 s0 s1} {s0t : Γ ⊢t S0 ∋ s0} {s1t : Γ ⊢t S1 ∋ s1}
           (s0r : Δ ⊢r s0t) (s1r : Δ ⊢r s1t)
           →

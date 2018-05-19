@@ -24,17 +24,22 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
     app (weakenVarsTy Γl S et) (weakenVarsTy Γl S st)
   weakenVarsTy Γl S (bm et st) =
     bm (weakenVarsTy Γl S et) (weakenVarsTy (_ :: Γl) S st)
+  weakenVarsTy Γl S (del et st) =
+    del (weakenVarsTy Γl S et) (weakenVarsTy Γl S st)
   weakenVarsTy Γl S (pm et st) =
     pm (weakenVarsTy Γl S et) (weakenVarsTy (_ :: _ :: Γl) S st)
   weakenVarsTy Γl S (proj et) = proj (weakenVarsTy Γl S et)
+  weakenVarsTy Γl S (exf et) = exf (weakenVarsTy Γl S et)
   weakenVarsTy Γl S (cse et s0t s1t) =
     cse (weakenVarsTy Γl S et) (weakenVarsTy (_ :: Γl) S s0t)
                                (weakenVarsTy (_ :: Γl) S s1t)
   weakenVarsTy Γl S (the st) = the (weakenVarsTy Γl S st)
   weakenVarsTy Γl S (lam st) = lam (weakenVarsTy (_ :: Γl) S st)
   weakenVarsTy Γl S (bang st) = bang (weakenVarsTy Γl S st)
+  weakenVarsTy Γl S unit = unit
   weakenVarsTy Γl S (ten s0 s1) =
     ten (weakenVarsTy Γl S s0) (weakenVarsTy Γl S s1)
+  weakenVarsTy Γl S eat = eat
   weakenVarsTy Γl S (wth s0 s1) =
     wth (weakenVarsTy Γl S s0) (weakenVarsTy Γl S s1)
   weakenVarsTy Γl S (inj st) = inj (weakenVarsTy Γl S st)
@@ -77,10 +82,13 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
   substituteTy (bm et st) vf vft =
     bm (substituteTy et vf vft)
        (substituteTy st (liftSubst vf) (liftSubstTy _ vft))
+  substituteTy (del et st) vf vft =
+    del (substituteTy et vf vft) (substituteTy st vf vft)
   substituteTy (pm et st) vf vft =
     pm (substituteTy et vf vft)
        (substituteTy st _ (liftSubstNTy (_ :: _ :: nil) vft))
   substituteTy (proj et) vf vft = proj (substituteTy et vf vft)
+  substituteTy (exf st) vf vft = exf (substituteTy st vf vft)
   substituteTy (cse et s0t s1t) vf vft =
     cse (substituteTy et vf vft) (substituteTy s0t _ (liftSubstTy _ vft))
                                  (substituteTy s1t _ (liftSubstTy _ vft))
@@ -89,8 +97,10 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
     lam (substituteTy st (liftSubst vf) (liftSubstTy _ vft))
   substituteTy (bang st) vf vft =
     bang (substituteTy st vf vft)
+  substituteTy unit vf vft = unit
   substituteTy (ten s0 s1) vf vft =
     ten (substituteTy s0 vf vft) (substituteTy s1 vf vft)
+  substituteTy eat vf vft = eat
   substituteTy (wth s0 s1) vf vft =
     wth (substituteTy s0 vf vft) (substituteTy s1 vf vft)
   substituteTy (inj st) vf vft =
@@ -116,6 +126,11 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
     bm (~~>-preservesTy et red) st
   ~~>-preservesTy (bm et st) (bm1-cong S e s s′ red) =
     bm et (~~>-preservesTy st red)
+  ~~>-preservesTy (del (the unit) tt) (⊗1-beta T t) = the tt
+  ~~>-preservesTy (del et st) (del0-cong T e e′ s red) =
+    del (~~>-preservesTy et red) st
+  ~~>-preservesTy (del et st) (del1-cong T e s s′ red) =
+    del et (~~>-preservesTy st red)
   ~~>-preservesTy (pm (the (ten s0t s1t)) tt) (⊗-beta S0 S1 T s0 s1 t) =
     the (substituteTy tt _ (multiSubstTy (the s0t :: the s1t :: nil)))
   ~~>-preservesTy (ten s0t s1t) (ten0-cong s0 s0′ s1 red) =
@@ -134,6 +149,7 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
     wth s0t (~~>-preservesTy s1t red)
   ~~>-preservesTy (proj et) (proj-cong i e e′ red) =
     proj (~~>-preservesTy et red)
+  ~~>-preservesTy (exf et) (exf-cong T e e′ red) = exf (~~>-preservesTy et red)
   ~~>-preservesTy (cse (the (inj s0t)) t0t t1t) (⊕-beta0 S0 S1 T s0 t0 t1) =
     the (substituteTy t0t _ (singleSubstTy (the s0t)))
   ~~>-preservesTy (cse (the (inj s1t)) t0t t1t) (⊕-beta1 S0 S1 T s1 t0 t1) =

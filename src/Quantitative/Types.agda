@@ -46,6 +46,10 @@ module Quantitative.Types {c} (C : Set c) where
          (et : Γ ⊢t e ∈ ! ρ S) (st : S :: Γ ⊢t T ∋ s)
          →
          Γ ⊢t bm T e s ∈ T
+    del : ∀ {e s T}
+          (et : Γ ⊢t e ∈ ⊗1) (st : Γ ⊢t T ∋ s)
+          →
+          Γ ⊢t del T e s ∈ T
     pm : ∀ {e s S0 S1 T}
          (et : Γ ⊢t e ∈ S0 ⊗ S1) (st : S0 :: S1 :: Γ ⊢t T ∋ s)
          →
@@ -54,6 +58,10 @@ module Quantitative.Types {c} (C : Set c) where
            (et : Γ ⊢t e ∈ S0 & S1)
            →
            Γ ⊢t proj i e ∈ Two-rec S0 S1 i
+    exf : ∀ {e T}
+          (et : Γ ⊢t e ∈ ⊕0)
+          →
+          Γ ⊢t exf T e ∈ T
     cse : ∀ {e s0 s1 S0 S1 T}
           (et : Γ ⊢t e ∈ S0 ⊕ S1)
           (s0t : S0 :: Γ ⊢t T ∋ s0) (s1t : S1 :: Γ ⊢t T ∋ s1)
@@ -72,10 +80,12 @@ module Quantitative.Types {c} (C : Set c) where
            (st : Γ ⊢t S ∋ s)
            →
            Γ ⊢t ! ρ S ∋ bang s
+    unit : Γ ⊢t ⊗1 ∋ unit
     ten : ∀ {s0 s1 S0 S1}
           (s0t : Γ ⊢t S0 ∋ s0) (s1t : Γ ⊢t S1 ∋ s1)
           →
           Γ ⊢t S0 ⊗ S1 ∋ ten s0 s1
+    eat : Γ ⊢t &1 ∋ eat
     wth : ∀ {s0 s1 S0 S1}
           (s0t : Γ ⊢t S0 ∋ s0) (s1t : Γ ⊢t S1 ∋ s1)
           →
