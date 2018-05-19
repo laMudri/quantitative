@@ -35,6 +35,16 @@ module Lib.Vec where
   replicateVec zero x = nil
   replicateVec (succ n) x = x :: replicateVec n x
 
+  Vec-ind : ∀ {a b} {A : Set a} (B : ∀ {n} → Vec A n → Set b) →
+            B nil → (∀ {n xs} x → B {n} xs → B (x :: xs)) →
+            ∀ {n} xs → B {n} xs
+  Vec-ind B n c nil = n
+  Vec-ind B n c (x :: xs) = c x (Vec-ind B n c xs)
+
+  Vec-rec : ∀ {a b} {A : Set a} {B : Set b} → B → (A → B → B) →
+            ∀ {n} → Vec A n → B
+  Vec-rec n c = Vec-ind _ n c
+
   1≤-tabulate : ∀ {a A m} → (Fin m → A) → Vec {a} A m
   1≤-tabulate {m = zero} f = nil
   1≤-tabulate {m = succ m} f = f zeroth :: 1≤-tabulate {m = m} (f o o′)

@@ -14,6 +14,10 @@ module Lib.Function where
   case_of_ : ∀ {a b} {A : Set a} {B : Set b} (x : A) → (A → B) → B
   case x of f = f x
 
+  const : ∀ {a b} {A : Set a} {B : Set b} → A → B → A
+  const x y = x
+
+  infixl 2 _<s>_
   _<s>_ : ∀ {a b c} {A : Set a} {B : A → Set b} {C : (x : A) → B x → Set c} →
           (f : (x : A) (y : B x) → C x y) → (g : (x : A) → B x) → ((x : A) → C x (g x))
   (f <s> g) x = f x (g x)
