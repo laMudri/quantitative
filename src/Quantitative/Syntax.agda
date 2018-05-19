@@ -1,20 +1,10 @@
-open import Lib.Dec
-open import Lib.Equality
-open import Lib.Setoid
-open import Lib.Structure
+module Quantitative.Syntax {c} (C : Set c) (Ty : Set c) where
 
-module Quantitative.Syntax {c} (C : Set c) where
-
+  open import Lib.Dec
   open import Lib.Nat
   open import Lib.Product
   open import Lib.Thinning
   open import Lib.Two
-
-  infixr 30 _⊸_
-  data Ty : Set c where
-    ⊗1 &1 ⊕0 : Ty
-    _⊸_ _⊗_ _&_ _⊕_ : (S T : Ty) → Ty
-    ! : (ρ : C) (S : Ty) → Ty
 
   data Dir : Set where
     syn chk : Dir

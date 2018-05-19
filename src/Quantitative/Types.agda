@@ -1,12 +1,16 @@
-open import Lib.Dec
-open import Lib.Equality
-open import Lib.Setoid
-open import Lib.Structure
-
 module Quantitative.Types {c} (C : Set c) where
 
-  open import Quantitative.Syntax C
+  infixr 30 _⊸_
+  infixr 40 _⊕_
+  infixr 50 _⊗_ _&_
+  data Ty : Set c where
+    ⊗1 &1 ⊕0 : Ty
+    _⊸_ _⊗_ _&_ _⊕_ : (S T : Ty) → Ty
+    ! : (ρ : C) (S : Ty) → Ty
 
+  open import Quantitative.Syntax C Ty
+
+  open import Lib.Equality
   open import Lib.Function
   open import Lib.Nat
   open import Lib.Product
