@@ -54,6 +54,19 @@ module Quantitative.Resources.Checker
              }) } }
   inferRes (proj et) =
     mapMaybe (mapΣ id (mapΣ proj λ b → λ { (proj er) → b er })) (inferRes et)
+  inferRes (cse et s0t s1t) =
+    inferRes et            >>= λ { (Δe , er , eb) →
+    inferRes s0t           >>= λ { (ρ0 :: Δs0 , s0r , s0b) →
+    inferRes s1t           >>= λ { (ρ1 :: Δs1 , s1r , s1b) →
+    Dec→Maybe (R.e1 ≤? ρ0) >>= λ le0 →
+    Dec→Maybe (R.e1 ≤? ρ1) >>= λ le1 →
+    just (Δe Δ.+ (Δs0 Δ.∧ Δs1)
+         , cse Δ.≤-refl er (weakenRes (le0 :: fst Δ.lowerBound Δs0 Δs1) s0r)
+                           (weakenRes (le1 :: snd Δ.lowerBound Δs0 Δs1) s1r)
+         , λ { (cse split′ er′ s0r′ s1r′) →
+               Δ.≤-trans split′
+                         (eb er′ Δ.+-mono
+                           tailVZip (Δ.greatest (s0b s0r′) (s1b s1r′))) }) } } }
   inferRes (the st) =
     mapMaybe (mapΣ id (mapΣ the λ b → λ { (the sr) → b sr })) (inferRes st)
   inferRes (lam st) =
@@ -83,6 +96,8 @@ module Quantitative.Resources.Checker
                       (weakenRes (snd Δ.lowerBound Δs0 Δs1) s1r)
                 , λ { (wth s0r′ s1r′) → Δ.greatest (s0b s0r′) (s1b s1r′) }
                 }) (inferRes s0t ×M inferRes s1t)
+  inferRes (inj st) =
+    mapMaybe (mapΣ id (mapΣ inj λ b → λ { (inj sr) → b sr })) (inferRes st)
   inferRes [ et ] =
     mapMaybe (mapΣ id (mapΣ [_] λ b → λ { [ er ] → b er })) (inferRes et)
 
@@ -106,13 +121,21 @@ module Quantitative.Resources.Checker
   inferResComplete (pm et st) (pm split er sr)
     with inferResComplete et er | inferResComplete st sr
   ... | Δe′ , er′ , eb′ , eeq | ρ0 :: ρ1 :: Δs′ , sr′ , sb′ , seq
-    rewrite eeq | seq with R.e1 ≤? ρ0
-  ...   | no nle0 = Zero-elim (nle0 (headVZip (sb′ sr)))
-  ...   | yes le0 with R.e1 ≤? ρ1
-  ...     | no nle1 = Zero-elim (nle1 (headVZip (tailVZip (sb′ sr))))
-  ...     | yes le1 = _ , _ , _ , refl
+    rewrite eeq | seq with R.e1 ≤? ρ0 | R.e1 ≤? ρ1
+  ...   | no nle0 | _ = Zero-elim (nle0 (headVZip (sb′ sr)))
+  ...   | yes le0 | no nle1 = Zero-elim (nle1 (headVZip (tailVZip (sb′ sr))))
+  ...   | yes le0 | yes le1 = _ , _ , _ , refl
   inferResComplete (proj et) (proj er) with inferResComplete et er
   ... | Δ′ , er′ , eb′ , eq rewrite eq = _ , _ , _ , refl
+  inferResComplete (cse et s0t s1t) (cse split er s0r s1r)
+    with inferResComplete et er
+       | inferResComplete s0t s0r | inferResComplete s1t s1r
+  ... | Δe′ , er′ , eb′ , eeq
+      | ρ0 :: Δs0′ , s0r′ , s0b′ , s0eq | ρ1 :: Δs1′ , s1r′ , s1b′ , s1eq
+    rewrite eeq | s0eq | s1eq with R.e1 ≤? ρ0 | R.e1 ≤? ρ1
+  ...   | no nle0 | _ = Zero-elim (nle0 (headVZip (s0b′ s0r)))
+  ...   | yes le0 | no nle1 = Zero-elim (nle1 (headVZip (s1b′ s1r)))
+  ...   | yes le0 | yes le1 = _ , _ , _ , refl
   inferResComplete (the st) (the sr) with inferResComplete st sr
   ... | Δ′ , sr′ , sb′ , eq rewrite eq = _ , _ , _ , refl
   inferResComplete (lam st) (lam sr) with inferResComplete st sr
@@ -129,6 +152,8 @@ module Quantitative.Resources.Checker
     with inferResComplete s0t s0r | inferResComplete s1t s1r
   ... | Δ0′ , s0r′ , s0b′ , eq0 | Δ1′ , s1r′ , s1b′ , eq1
     rewrite eq0 | eq1 = _ , _ , _ , refl
+  inferResComplete (inj st) (inj sr) with inferResComplete st sr
+  ... | Δ′ , sr′ , sb′ , eq rewrite eq = _ , _ , _ , refl
   inferResComplete [ et ] [ er ] with inferResComplete et er
   ... | Δ′ , er′ , eb′ , eq rewrite eq = _ , _ , _ , refl
 

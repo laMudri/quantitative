@@ -20,6 +20,7 @@ module Quantitative.Types.Checker
   BASE ≟Ty ! ρ′ S′ = no λ ()
   BASE ≟Ty (S′ ⊗ T′) = no λ ()
   BASE ≟Ty (S′ & T′) = no λ ()
+  BASE ≟Ty (S′ ⊕ T′) = no λ ()
   (S ⊸ T) ≟Ty BASE = no λ ()
   (S ⊸ T) ≟Ty (S′ ⊸ T′) =
     mapDec (λ { (refl , refl) → refl })
@@ -28,6 +29,7 @@ module Quantitative.Types.Checker
   (S ⊸ T) ≟Ty ! ρ′ S′ = no λ ()
   (S ⊸ T) ≟Ty (S′ ⊗ T′) = no λ ()
   (S ⊸ T) ≟Ty (S′ & T′) = no λ ()
+  (S ⊸ T) ≟Ty (S′ ⊕ T′) = no λ ()
   ! ρ S ≟Ty BASE = no λ ()
   ! ρ S ≟Ty (S′ ⊸ T′) = no λ ()
   ! ρ S ≟Ty ! ρ′ S′ =
@@ -36,6 +38,7 @@ module Quantitative.Types.Checker
            ((ρ ≟ ρ′) ×? (S ≟Ty S′))
   ! ρ S ≟Ty (S′ ⊗ T′) = no λ ()
   ! ρ S ≟Ty (S′ & T′) = no λ ()
+  ! ρ S ≟Ty (S′ ⊕ T′) = no λ ()
   (S ⊗ T) ≟Ty BASE = no λ ()
   (S ⊗ T) ≟Ty (S′ ⊸ T′) = no λ ()
   (S ⊗ T) ≟Ty (S′ ⊗ T′) =
@@ -44,6 +47,7 @@ module Quantitative.Types.Checker
            ((S ≟Ty S′) ×? (T ≟Ty T′))
   (S ⊗ T) ≟Ty ! ρ S′ = no λ ()
   (S ⊗ T) ≟Ty (S′ & T′) = no λ ()
+  (S ⊗ T) ≟Ty (S′ ⊕ T′) = no λ ()
   (S & T) ≟Ty BASE = no λ ()
   (S & T) ≟Ty (S′ ⊸ T′) = no λ ()
   (S & T) ≟Ty (S′ ⊗ T′) = no λ ()
@@ -52,12 +56,23 @@ module Quantitative.Types.Checker
            (λ { refl → (refl , refl) })
            ((S ≟Ty S′) ×? (T ≟Ty T′))
   (S & T) ≟Ty ! ρ S′ = no λ ()
+  (S & T) ≟Ty (S′ ⊕ T′) = no λ ()
+  (S ⊕ T) ≟Ty BASE = no λ ()
+  (S ⊕ T) ≟Ty (S′ ⊸ T′) = no λ ()
+  (S ⊕ T) ≟Ty (S′ ⊗ T′) = no λ ()
+  (S ⊕ T) ≟Ty (S′ & T′) = no λ ()
+  (S ⊕ T) ≟Ty (S′ ⊕ T′) =
+    mapDec (λ { (refl , refl) → refl })
+           (λ { refl → (refl , refl) })
+           ((S ≟Ty S′) ×? (T ≟Ty T′))
+  (S ⊕ T) ≟Ty ! ρ S′ = no λ ()
 
   Is⊸? : ∀ S → Dec (∃ λ S0 → ∃ λ S1 → S0 ⊸ S1 ≡ S)
   Is⊸? BASE = no λ { (_ , _ , ()) }
   Is⊸? (S ⊸ T) = yes (S , T , refl)
   Is⊸? (S ⊗ T) = no λ { (_ , _ , ()) }
   Is⊸? (S & T) = no λ { (_ , _ , ()) }
+  Is⊸? (S ⊕ T) = no λ { (_ , _ , ()) }
   Is⊸? (! ρ S) = no λ { (_ , _ , ()) }
 
   Is⊗? : ∀ S → Dec (∃ λ S0 → ∃ λ S1 → S0 ⊗ S1 ≡ S)
@@ -65,6 +80,7 @@ module Quantitative.Types.Checker
   Is⊗? (S ⊸ T) = no λ { (_ , _ , ()) }
   Is⊗? (S ⊗ T) = yes (S , T , refl)
   Is⊗? (S & T) = no λ { (_ , _ , ()) }
+  Is⊗? (S ⊕ T) = no λ { (_ , _ , ()) }
   Is⊗? (! ρ S) = no λ { (_ , _ , ()) }
 
   Is&? : ∀ S → Dec (∃ λ S0 → ∃ λ S1 → S0 & S1 ≡ S)
@@ -72,6 +88,7 @@ module Quantitative.Types.Checker
   Is&? (S ⊸ T) = no λ { (_ , _ , ()) }
   Is&? (S ⊗ T) = no λ { (_ , _ , ()) }
   Is&? (S & T) = yes (S , T , refl)
+  Is&? (S ⊕ T) = no λ { (_ , _ , ()) }
   Is&? (! ρ S) = no λ { (_ , _ , ()) }
 
   Is!? : ∀ S → Dec (∃ λ ρ → ∃ λ S0 → ! ρ S0 ≡ S)
@@ -79,7 +96,16 @@ module Quantitative.Types.Checker
   Is!? (S ⊸ T) = no λ { (_ , _ , ()) }
   Is!? (S ⊗ T) = no λ { (_ , _ , ()) }
   Is!? (S & T) = no λ { (_ , _ , ()) }
+  Is!? (S ⊕ T) = no λ { (_ , _ , ()) }
   Is!? (! ρ S) = yes (ρ , S , refl)
+
+  Is⊕? : ∀ S → Dec (∃ λ S0 → ∃ λ S1 → S0 ⊕ S1 ≡ S)
+  Is⊕? BASE = no λ { (_ , _ , ()) }
+  Is⊕? (S ⊸ T) = no λ { (_ , _ , ()) }
+  Is⊕? (S ⊗ T) = no λ { (_ , _ , ()) }
+  Is⊕? (S & T) = no λ { (_ , _ , ()) }
+  Is⊕? (S ⊕ T) = yes (S , T , refl)
+  Is⊕? (! ρ S) = no λ { (_ , _ , ()) }
 
   synthUnique : ∀ {n} {Γ : TCtx n} {e : Term n syn} {S S′ : Ty} →
                 Γ ⊢t e ∈ S → Γ ⊢t e ∈ S′ → S′ ≡ S
@@ -93,6 +119,8 @@ module Quantitative.Types.Checker
   synthUnique (proj {ttt} et) (proj et′) with synthUnique et et′
   ... | refl = refl
   synthUnique (proj {fff} et) (proj et′) with synthUnique et et′
+  ... | refl = refl
+  synthUnique (cse et s0t s1t) (cse et′ s0t′ s1t′) with synthUnique et et′
   ... | refl = refl
   synthUnique (the st) (the st′) = refl
 
@@ -139,6 +167,19 @@ module Quantitative.Types.Checker
     where
     inv : (∃ λ S → Γ ⊢t proj i e ∈ S) → (∃ λ S → ∃ λ T → (S & T) ≡ S&T)
     inv (_ , proj et′) = _ , _ , synthUnique et et′
+  synthType Γ (cse T e s0 s1) with synthType Γ e
+  ... | no np = no λ { (_ , cse et s0t s1t) → np (_ , et) }
+  ... | yes (S0⊕S1 , et) with Is⊕? S0⊕S1
+  ...   | no np = no λ { (_ , cse et′ s0t′ s1t′) →
+                         np (_ , _ , synthUnique et et′) }
+  ...   | yes (S0 , S1 , refl) =
+    mapDec (λ { (s0t , s1t) → T , cse et s0t s1t }) inv
+           (checkType (S0 :: Γ) T s0 ×? checkType (S1 :: Γ) T s1)
+    where
+    inv : (∃ λ T′ → Γ ⊢t cse T e s0 s1 ∈ T′) →
+          (S0 :: Γ ⊢t T ∋ s0) × (S1 :: Γ ⊢t T ∋ s1)
+    inv (T′ , cse et′ s0t′ s1t′) with synthUnique et et′
+    ... | refl = s0t′ , s1t′
   synthType Γ (the T s) =
     mapDec (λ st → T , the st) (λ { (_ , the st) → st }) (checkType Γ T s)
 
@@ -160,6 +201,10 @@ module Quantitative.Types.Checker
   ... | yes (S , T , refl) =
     mapDec (uncurry wth) (λ { (wth s0t s1t) → s0t , s1t })
            (checkType Γ S s0 ×? checkType Γ T s1)
+  checkType Γ S⊕T (inj i s) with Is⊕? S⊕T
+  ... | no np = no λ { (inj st) → np (_ , _ , refl) }
+  ... | yes (S , T , refl) =
+    mapDec inj (λ { (inj st) → st }) (checkType Γ (Two-rec S T i) s)
   checkType Γ S [ e ] with synthType Γ e
   ... | no np = no λ { [ et ] → np (S , et) }
   ... | yes (S′ , et) =
