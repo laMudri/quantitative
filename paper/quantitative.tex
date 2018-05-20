@@ -72,6 +72,31 @@
 \newcommand{\lam}[2]{\lambda #1. #2}
 \newcommand{\app}[2]{#1\ #2}
 
+\newcommand{\excl}[2]{\oc_{#1} #2}
+\newcommand{\bang}[1]{\operatorname{bang}\ #1}
+\newcommand{\bm}[3]{\operatorname{bm}_{#1}(#2, #3)}
+
+\newcommand{\tensorOne}[0]{1}
+\newcommand{\unit}[0]{\operatorname{unit}}
+\newcommand{\del}[3]{\operatorname{del}_{#1}(#2, #3)}
+
+\newcommand{\tensor}[2]{#1 \otimes #2}
+\newcommand{\ten}[2]{(#1, #2)_{\otimes}}
+\newcommand{\prm}[3]{\operatorname{pm}_{#1}(#2, #3)}
+
+\newcommand{\withTOne}[0]{\top}
+\newcommand{\eat}[0]{\operatorname{eat}}
+
+\newcommand{\withT}[2]{#1 \with #2}
+\newcommand{\wth}[2]{(#1, #2)_{\with}}
+\newcommand{\proj}[2]{\operatorname{proj}_{#1}(#2)}
+
+\newcommand{\sumTZero}[0]{0}
+\newcommand{\exf}[2]{\operatorname{ex-falso}_{#1}(#2)}
+
+\newcommand{\sumT}[2]{#1 \oplus #2}
+\newcommand{\inj}[2]{\operatorname{inj}_{#1}(#2)}
+\newcommand{\cse}[4]{\operatorname{case}_{#1}(#2, #3, #4)}
 
 \begin{document}
 
@@ -238,6 +263,75 @@ that we can show is related to the resourced types? (the need for
 special constructs for introducing and eliminating bangs is a wrinkle
 here).
 
+\begin{mathpar}
+  % Variables
+  \inferrule{(x : S) \in \Gamma}
+            {\Gamma \vdash x \in S}
+
+  % Embedding
+  \inferrule{\Gamma \vdash S \ni s}
+            {\Gamma \vdash (\ann{s}{S}) \in S}
+            
+  \inferrule{\Gamma \vdash e \in S}
+            {\Gamma \vdash S \ni \emb{e}}
+
+  % Functions
+  \inferrule{\Gamma, x : S \vdash T \ni s[x]}
+            {\Gamma \vdash \fun{S}{T} \ni \lam{x}{s[x]}}
+
+  \inferrule{\Gamma \vdash e \in \fun{S}{T} \\ \Gamma \vdash S \ni s}
+            {\Gamma \vdash \app{e}{s} \in T}
+
+  % Bang
+  \inferrule{\Gamma \vdash S \ni s}
+            {\Gamma \vdash \excl{\rho}{S} \ni \bang{s}}
+
+  \inferrule{\Gamma \vdash e \in \excl{\rho}{S} \\ \Gamma, x^S \vdash T \ni s[x]}
+            {\Gamma \vdash \bm{T}{e}{x.s[x]} \in T}
+
+  % Tensor unit
+  \inferrule{}
+            {\Gamma \vdash \tensorOne \ni \unit}
+
+  \inferrule{\Gamma \vdash e \in \tensorOne \\ \Gamma \vdash T \ni s}
+            {\Gamma \vdash \del{T}{e}{s} \in T}
+
+  % Tensor
+  \inferrule{\Gamma \vdash S_0 \ni s_0 \\ \Gamma \vdash S_1 \ni s_1}
+            {\Gamma \vdash \tensor{S_0}{S_1} \ni \ten{s_0}{s_1}}
+
+  \inferrule{\Gamma \vdash e \in \tensor{S_0}{S_1} \\ \Gamma, x : S_0, y : S_1 \vdash T \ni s[x,y]}
+            {\Gamma \vdash \prm{T}{e}{x,y.s[x,y]} \in T}
+
+  % With unit
+  \inferrule{ }
+            {\Gamma \vdash \withTOne \ni \eat}
+
+  %(no \withTOne elim)
+
+  % With
+  \inferrule{\Gamma \vdash S_0 \ni s_0 \\ \Gamma \vdash S_1 \ni s_1}
+            {\Gamma \vdash \withT{S_0}{S_1} \ni \wth{s_0}{s_1}}
+
+  \inferrule{\Gamma \vdash e \in \withT{S_0}{S_1}}
+            {\Gamma \vdash \proj{i}{e} \in S_i}
+
+  % Sum unit
+  %(no \sumTZero intro)
+
+  \inferrule{\Gamma \vdash e \in \sumTZero}
+            {\Gamma \vdash \exf{T}{e} \in T}
+
+  % Sum
+  \inferrule{\Gamma \vdash S_i \ni s}
+            {\Gamma \vdash \sumT{S_0}{S_1} \ni \inj{i}{s}}
+
+  \inferrule{\Gamma \vdash e \in \sumT{S_0}{S_1}
+              \\ \Gamma, x : S_0 \vdash T \ni s_0[x]
+              \\ \Gamma, y : S_1 \vdash T \ni s_1[y]}
+            {\Gamma \vdash \cse{T}{e}{x.s_0[x]}{y.s_1[y]} \in T}
+\end{mathpar}
+
 \section{Resourced Terms}
 
 Present the refinement of typed terms via resources.
@@ -245,6 +339,83 @@ Present the refinement of typed terms via resources.
 \subsection{Partially-ordered Semirings}
 
 \subsection{Resourced Terms}
+
+FIXME: how to present these with respect to typing derivations, especially for
+bang. Maybe annotate bang and bm with $\rho$.
+
+\begin{mathpar}
+ % Variables
+  \inferrule{\Delta, \Delta' \leq 0 \\ \rho \leq 1}
+            {\Delta, x^\rho, \Delta' \vdash x}
+
+  % Embedding
+  \inferrule{\Delta \vdash s}
+            {\Delta \vdash (s : S)}
+            
+  \inferrule{\Delta \vdash e}
+            {\Delta \vdash [e]}
+
+  % Functions
+  \inferrule{\Delta, x^1 \vdash s[x]}
+            {\Delta \vdash \lam{x}{s[x]}}
+            
+  \inferrule{\Delta \vdash e \\ \Delta \vdash s}
+            {\Delta \vdash \app{e}{s}}
+
+  % Bang
+  \inferrule{\Delta_s \vdash s \\ \Delta \leq \rho \cdot \Delta_s}
+            {\Delta \vdash \bang{s}}
+
+  \inferrule{\Delta_e \vdash e \\ \Delta_s, x^\rho \vdash s[x]
+              \\ \Delta \leq \Delta_e + \Delta_s}
+            {\Delta \vdash \bm{T}{e}{x.s[x]}}
+
+  % Tensor unit
+  \inferrule{\Delta \leq 0}
+            {\Delta \vdash \unit}
+
+  \inferrule{\Delta_e \vdash e \\ \Delta_s \vdash s
+              \\ \Delta \leq \Delta_e + \Delta_s}
+            {\Delta \vdash \del{T}{e}{s}}
+
+  % Tensor
+  \inferrule{\Delta_0 \vdash s_0 \\ \Delta_1 \vdash s_1
+              \\ \Delta \leq \Delta_0 + \Delta_1}
+            {\Delta \vdash \ten{s_0}{s_1}}
+
+  \inferrule{\Delta_e \vdash e \\ \Delta_s, x^1, y^1 \vdash s[x,y]
+              \\ \Delta \leq \Delta_e + \Delta s}
+            {\Delta \vdash \prm{T}{e}{x,y.s[x,y]}}
+
+  % With unit
+  \inferrule{ }
+            {\Delta \vdash \eat}
+
+  %(no \withTOne elim)
+
+  % With
+  \inferrule{\Delta \vdash s_0 \\ \Delta \vdash s_1}
+            {\Delta \vdash \wth{s_0}{s_1}}
+
+  \inferrule{\Delta \vdash e}
+            {\Delta \vdash \proj{i}{e}}
+
+  % Sum unit
+  %(no \sumTZero intro)
+
+  \inferrule{\Delta_e \vdash e \\ \Delta \leq \Delta_e + \Delta_s}
+            {\Delta \vdash \exf{T}{e}}
+
+  % Sum
+  \inferrule{\Delta \vdash s}
+            {\Delta \vdash \inj{i}{s}}
+
+  \inferrule{\Delta_e \vdash e
+              \\ \Delta_s, x^1 \vdash s_0[x]
+              \\ \Delta_s, y^1 \vdash s_1[y]
+              \\ \Delta \leq \Delta_e + \Delta_s}
+            {\Delta \vdash \cse{T}{e}{x.s_0[x]}{y.s_1[y]}}
+\end{mathpar}
 
 \section{Relational Semantics}
 
@@ -275,70 +446,6 @@ TODO:
 \item The layers of well-formed-ness be presented via a system of
   ornamentation?
 \end{enumerate}
-
-Typing:
-
-\begin{mathpar}
-  \inferrule{\Gamma \vdash S \ni s}
-            {\Gamma \vdash (\ann{s}{S}) \in S}
-            
-  \inferrule{\Gamma \vdash e \in S}
-            {\Gamma \vdash S \ni \emb{e}}
-\end{mathpar}
-
-\begin{mathpar}
-  \inferrule{\Gamma, S \vdash T \ni s}
-            {\Gamma \vdash \fun{S}{T} \ni \lam{x}{s}}
-
-  \inferrule{\Gamma \vdash e \in \fun{S}{T} \\ \Gamma \vdash S \ni s}
-            {\Gamma \vdash \app{e}{s} \in T}
-\end{mathpar}
-
-Resources:
-
-\begin{mathpar}
-  \inferrule{\Delta \vdash s}
-            {\Delta \vdash (s : S)}
-            
-  \inferrule{\Delta \vdash e}
-            {\Delta \vdash [e]}
-\end{mathpar}
-
-Typing:
-
-\begin{mathpar}
-  \inferrule{\Gamma \vdash S \ni s}
-            {\Gamma \vdash (\ann{s}{S}) \in S}
-            
-  \inferrule{\Gamma \vdash e \in S}
-            {\Gamma \vdash S \ni \emb{e}}
-\end{mathpar}
-
-\begin{mathpar}
-  \inferrule{\Gamma, S \vdash T \ni s}
-            {\Gamma \vdash \fun{S}{T} \ni \lam{x}{s}}
-
-  \inferrule{\Gamma \vdash e \in \fun{S}{T} \\ \Gamma \vdash S \ni s}
-            {\Gamma \vdash \app{e}{s} \in T}
-\end{mathpar}
-
-Resources:
-
-\begin{mathpar}
-  \inferrule{\Delta \vdash s}
-            {\Delta \vdash (s : S)}
-            
-  \inferrule{\Delta \vdash e}
-            {\Delta \vdash [e]}
-\end{mathpar}
-
-\begin{mathpar}
-  \inferrule{\Delta, 1 \vdash s}
-            {\Delta \vdash \lam{x}{s}}
-            
-  \inferrule{\Delta \vdash e \\ \Delta \vdash s}
-            {\Delta \vdash \app{e}{s}}
-\end{mathpar}
 
 %% Acknowledgments
 \begin{acks}                            %% acks environment is optional
