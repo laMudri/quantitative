@@ -1,4 +1,8 @@
+open import Lib.Nat
+
 module Quantitative.Types.Formers {c} (C : Set c) where
+
+  open import Lib.Vec
 
   infixr 30 _⊸_
   infixr 40 _⊕_

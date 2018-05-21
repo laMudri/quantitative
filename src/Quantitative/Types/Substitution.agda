@@ -1,8 +1,9 @@
 module Quantitative.Types.Substitution {c} (C : Set c) where
 
+  open import Quantitative.Syntax.Direction
   open import Quantitative.Types.Formers C
-  open import Quantitative.Syntax C Ty
-  open import Quantitative.Syntax.Substitution C Ty
+  open import Quantitative.Syntax Ty
+  open import Quantitative.Syntax.Substitution Ty
   open import Quantitative.Types C
 
   open import Lib.Equality
@@ -71,35 +72,35 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
 
   substituteTy :
     ∀ {m n d T} {t : Term m d} {Γm : TCtx m} {Γn : TCtx n} →
-    Γm ⊢t t :-: T → (vf : Subst m n) → SubstTy vf Γm Γn →
+    Γm ⊢t t :-: T → {vf : Subst m n} → SubstTy vf Γm Γn →
     Γn ⊢t substitute t vf :-: T
-  substituteTy (var {th = th} refl) vf vft = vft th
-  substituteTy (app et st) vf vft =
-    app (substituteTy et vf vft) (substituteTy st vf vft)
-  substituteTy (bm et st) vf vft =
-    bm (substituteTy et vf vft)
-       (substituteTy st (liftSubst vf) (liftSubstTy _ vft))
-  substituteTy (del et st) vf vft =
-    del (substituteTy et vf vft) (substituteTy st vf vft)
-  substituteTy (pm et st) vf vft =
-    pm (substituteTy et vf vft)
-       (substituteTy st _ (liftSubstNTy (_ :: _ :: nil) vft))
-  substituteTy (proj et) vf vft = proj (substituteTy et vf vft)
-  substituteTy (exf st) vf vft = exf (substituteTy st vf vft)
-  substituteTy (cse et s0t s1t) vf vft =
-    cse (substituteTy et vf vft) (substituteTy s0t _ (liftSubstTy _ vft))
-                                 (substituteTy s1t _ (liftSubstTy _ vft))
-  substituteTy (the st) vf vft = the (substituteTy st vf vft)
-  substituteTy (lam st) vf vft =
-    lam (substituteTy st (liftSubst vf) (liftSubstTy _ vft))
-  substituteTy (bang st) vf vft =
-    bang (substituteTy st vf vft)
-  substituteTy unit vf vft = unit
-  substituteTy (ten s0 s1) vf vft =
-    ten (substituteTy s0 vf vft) (substituteTy s1 vf vft)
-  substituteTy eat vf vft = eat
-  substituteTy (wth s0 s1) vf vft =
-    wth (substituteTy s0 vf vft) (substituteTy s1 vf vft)
-  substituteTy (inj st) vf vft =
-    inj (substituteTy st vf vft)
-  substituteTy [ et ] vf vft = [ substituteTy et vf vft ]
+  substituteTy (var {th = th} refl) vft = vft th
+  substituteTy (app et st) vft =
+    app (substituteTy et vft) (substituteTy st vft)
+  substituteTy (bm et st) vft =
+    bm (substituteTy et vft)
+       (substituteTy st (liftSubstTy _ vft))
+  substituteTy (del et st) vft =
+    del (substituteTy et vft) (substituteTy st vft)
+  substituteTy (pm et st) vft =
+    pm (substituteTy et vft)
+       (substituteTy st (liftSubstNTy (_ :: _ :: nil) vft))
+  substituteTy (proj et) vft = proj (substituteTy et vft)
+  substituteTy (exf st) vft = exf (substituteTy st vft)
+  substituteTy (cse et s0t s1t) vft =
+    cse (substituteTy et vft) (substituteTy s0t (liftSubstTy _ vft))
+                                 (substituteTy s1t (liftSubstTy _ vft))
+  substituteTy (the st) vft = the (substituteTy st vft)
+  substituteTy (lam st) vft =
+    lam (substituteTy st (liftSubstTy _ vft))
+  substituteTy (bang st) vft =
+    bang (substituteTy st vft)
+  substituteTy unit vft = unit
+  substituteTy (ten s0 s1) vft =
+    ten (substituteTy s0 vft) (substituteTy s1 vft)
+  substituteTy eat vft = eat
+  substituteTy (wth s0 s1) vft =
+    wth (substituteTy s0 vft) (substituteTy s1 vft)
+  substituteTy (inj st) vft =
+    inj (substituteTy st vft)
+  substituteTy [ et ] vft = [ substituteTy et vft ]

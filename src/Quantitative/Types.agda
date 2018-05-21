@@ -1,8 +1,8 @@
 module Quantitative.Types {c} (C : Set c) where
 
+  open import Quantitative.Syntax.Direction
   open import Quantitative.Types.Formers C
-
-  open import Quantitative.Syntax C Ty
+  open import Quantitative.Syntax Ty
 
   open import Lib.Equality
   open import Lib.Function
@@ -31,7 +31,7 @@ module Quantitative.Types {c} (C : Set c) where
 
   -- type correctness
   data _⊢t_ {n} (Γ : TCtx n)
-             : ∀ {d} {t : Term n d} {T} → Consequent t T → Set c where
+            : ∀ {d} {t : Term n d} {T} → Consequent t T → Set c where
     var : ∀ {th T} →
           T ≡ 1≤-index th Γ
           →

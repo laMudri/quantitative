@@ -5,9 +5,10 @@ open import Lib.Structure
 module Quantitative.Resources.Substitution
   {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
 
+  open import Quantitative.Syntax.Direction
   open import Quantitative.Types.Formers C
-  open import Quantitative.Syntax C Ty
-  open import Quantitative.Syntax.Substitution C Ty
+  open import Quantitative.Syntax Ty
+  open import Quantitative.Syntax.Substitution Ty
   open import Quantitative.Types C
   open import Quantitative.Types.Substitution C
   open import Quantitative.Resources C POS
@@ -483,7 +484,7 @@ module Quantitative.Resources.Substitution
     ∀ {m n d Γm Γn S} {Δm : RCtx m} {Δn : RCtx n}
     {t : Term m d} {tt : Γm ⊢t t :-: S} → Δm ⊢r tt →
     {vf : Subst m n} {vft : SubstTy vf Γm Γn} → SubstRes vft Δm Δn →
-    Δn ⊢r substituteTy tt vf vft
+    Δn ⊢r substituteTy tt vft
   substituteRes {n = n} {Γm = Γm} {Γn = Γn} {Δn = Δn} {tt = var refl}
                 (var {th = th} sub) vfr =
     go th sub vfr

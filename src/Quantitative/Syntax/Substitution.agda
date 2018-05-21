@@ -1,6 +1,7 @@
-module Quantitative.Syntax.Substitution {c} (C : Set c) (Ty : Set c) where
+module Quantitative.Syntax.Substitution {c} (Ty : Set c) where
 
-  open import Quantitative.Syntax C Ty
+  open import Quantitative.Syntax.Direction
+  open import Quantitative.Syntax Ty
 
   open import Lib.Function
   open import Lib.Nat

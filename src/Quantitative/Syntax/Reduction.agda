@@ -1,7 +1,11 @@
 module Quantitative.Syntax.Reduction {c} (C : Set c) where
+
+  open import Lib.Zero
+
+  open import Quantitative.Syntax.Direction
   open import Quantitative.Types.Formers C
-  open import Quantitative.Syntax C Ty
-  open import Quantitative.Syntax.Substitution C Ty
+  open import Quantitative.Syntax Ty
+  open import Quantitative.Syntax.Substitution Ty
 
   open import Lib.Two
   open import Lib.Vec
