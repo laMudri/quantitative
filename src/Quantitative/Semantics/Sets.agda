@@ -1,7 +1,7 @@
-module Quantitative.Semantics.Sets {c} (C : Set c) where
+module Quantitative.Semantics.Sets {c} (C : Set c) (Base : Set) where
 
   open import Quantitative.Types.Formers C
-  open import Quantitative.Syntax C Ty
+  open import Quantitative.Syntax Ty
   open import Quantitative.Types C
 
   open import Lib.Equality
@@ -15,6 +15,7 @@ module Quantitative.Semantics.Sets {c} (C : Set c) where
   open import Lib.Zero
 
   ⟦_⟧T : Ty → Set
+  ⟦ BASE ⟧T = Base
   ⟦ ⊗1 ⟧T = One
   ⟦ &1 ⟧T = One
   ⟦ ⊕0 ⟧T = Zero

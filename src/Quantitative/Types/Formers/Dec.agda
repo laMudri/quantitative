@@ -9,6 +9,16 @@ module Quantitative.Types.Formers.Dec
   open import Lib.Product
 
   _≟Ty_ : (S S′ : Ty) → Dec (S ≡ S′)
+  BASE ≟Ty BASE = yes refl
+  BASE ≟Ty ⊗1 = no λ ()
+  BASE ≟Ty &1 = no λ ()
+  BASE ≟Ty ⊕0 = no λ ()
+  BASE ≟Ty (S′ ⊸ T′) = no λ ()
+  BASE ≟Ty ! ρ′ S′ = no λ ()
+  BASE ≟Ty (S′ ⊗ T′) = no λ ()
+  BASE ≟Ty (S′ & T′) = no λ ()
+  BASE ≟Ty (S′ ⊕ T′) = no λ ()
+  ⊗1 ≟Ty BASE = no λ ()
   ⊗1 ≟Ty ⊗1 = yes refl
   ⊗1 ≟Ty &1 = no λ ()
   ⊗1 ≟Ty ⊕0 = no λ ()
@@ -17,6 +27,7 @@ module Quantitative.Types.Formers.Dec
   ⊗1 ≟Ty (S′ ⊗ T′) = no λ ()
   ⊗1 ≟Ty (S′ & T′) = no λ ()
   ⊗1 ≟Ty (S′ ⊕ T′) = no λ ()
+  &1 ≟Ty BASE = no λ ()
   &1 ≟Ty ⊗1 = no λ ()
   &1 ≟Ty &1 = yes refl
   &1 ≟Ty ⊕0 = no λ ()
@@ -25,6 +36,7 @@ module Quantitative.Types.Formers.Dec
   &1 ≟Ty (S′ ⊗ T′) = no λ ()
   &1 ≟Ty (S′ & T′) = no λ ()
   &1 ≟Ty (S′ ⊕ T′) = no λ ()
+  ⊕0 ≟Ty BASE = no λ ()
   ⊕0 ≟Ty ⊗1 = no λ ()
   ⊕0 ≟Ty &1 = no λ ()
   ⊕0 ≟Ty ⊕0 = yes refl
@@ -33,6 +45,7 @@ module Quantitative.Types.Formers.Dec
   ⊕0 ≟Ty (S′ ⊗ T′) = no λ ()
   ⊕0 ≟Ty (S′ & T′) = no λ ()
   ⊕0 ≟Ty (S′ ⊕ T′) = no λ ()
+  (S ⊸ T) ≟Ty BASE = no λ ()
   (S ⊸ T) ≟Ty ⊗1 = no λ ()
   (S ⊸ T) ≟Ty &1 = no λ ()
   (S ⊸ T) ≟Ty ⊕0 = no λ ()
@@ -44,6 +57,7 @@ module Quantitative.Types.Formers.Dec
   (S ⊸ T) ≟Ty (S′ ⊗ T′) = no λ ()
   (S ⊸ T) ≟Ty (S′ & T′) = no λ ()
   (S ⊸ T) ≟Ty (S′ ⊕ T′) = no λ ()
+  ! ρ S ≟Ty BASE = no λ ()
   ! ρ S ≟Ty ⊗1 = no λ ()
   ! ρ S ≟Ty &1 = no λ ()
   ! ρ S ≟Ty ⊕0 = no λ ()
@@ -55,6 +69,7 @@ module Quantitative.Types.Formers.Dec
   ! ρ S ≟Ty (S′ ⊗ T′) = no λ ()
   ! ρ S ≟Ty (S′ & T′) = no λ ()
   ! ρ S ≟Ty (S′ ⊕ T′) = no λ ()
+  (S ⊗ T) ≟Ty BASE = no λ ()
   (S ⊗ T) ≟Ty ⊗1 = no λ ()
   (S ⊗ T) ≟Ty &1 = no λ ()
   (S ⊗ T) ≟Ty ⊕0 = no λ ()
@@ -66,6 +81,7 @@ module Quantitative.Types.Formers.Dec
   (S ⊗ T) ≟Ty ! ρ S′ = no λ ()
   (S ⊗ T) ≟Ty (S′ & T′) = no λ ()
   (S ⊗ T) ≟Ty (S′ ⊕ T′) = no λ ()
+  (S & T) ≟Ty BASE = no λ ()
   (S & T) ≟Ty ⊗1 = no λ ()
   (S & T) ≟Ty &1 = no λ ()
   (S & T) ≟Ty ⊕0 = no λ ()
@@ -77,6 +93,7 @@ module Quantitative.Types.Formers.Dec
            ((S ≟Ty S′) ×? (T ≟Ty T′))
   (S & T) ≟Ty ! ρ S′ = no λ ()
   (S & T) ≟Ty (S′ ⊕ T′) = no λ ()
+  (S ⊕ T) ≟Ty BASE = no λ ()
   (S ⊕ T) ≟Ty ⊗1 = no λ ()
   (S ⊕ T) ≟Ty &1 = no λ ()
   (S ⊕ T) ≟Ty ⊕0 = no λ ()
@@ -94,6 +111,7 @@ module Quantitative.Types.Formers.Dec
   Is⊕0? = ⊕0 ≟Ty_
 
   Is⊸? : ∀ S → Dec (∃ λ S0 → ∃ λ S1 → S0 ⊸ S1 ≡ S)
+  Is⊸? BASE = no λ { (_ , _ , ()) }
   Is⊸? ⊗1 = no λ { (_ , _ , ()) }
   Is⊸? &1 = no λ { (_ , _ , ()) }
   Is⊸? ⊕0 = no λ { (_ , _ , ()) }
@@ -104,6 +122,7 @@ module Quantitative.Types.Formers.Dec
   Is⊸? (! ρ S) = no λ { (_ , _ , ()) }
 
   Is⊗? : ∀ S → Dec (∃ λ S0 → ∃ λ S1 → S0 ⊗ S1 ≡ S)
+  Is⊗? BASE = no λ { (_ , _ , ()) }
   Is⊗? ⊗1 = no λ { (_ , _ , ()) }
   Is⊗? &1 = no λ { (_ , _ , ()) }
   Is⊗? ⊕0 = no λ { (_ , _ , ()) }
@@ -114,6 +133,7 @@ module Quantitative.Types.Formers.Dec
   Is⊗? (! ρ S) = no λ { (_ , _ , ()) }
 
   Is&? : ∀ S → Dec (∃ λ S0 → ∃ λ S1 → S0 & S1 ≡ S)
+  Is&? BASE = no λ { (_ , _ , ()) }
   Is&? ⊗1 = no λ { (_ , _ , ()) }
   Is&? &1 = no λ { (_ , _ , ()) }
   Is&? ⊕0 = no λ { (_ , _ , ()) }
@@ -124,6 +144,7 @@ module Quantitative.Types.Formers.Dec
   Is&? (! ρ S) = no λ { (_ , _ , ()) }
 
   Is!? : ∀ S → Dec (∃ λ ρ → ∃ λ S0 → ! ρ S0 ≡ S)
+  Is!? BASE = no λ { (_ , _ , ()) }
   Is!? ⊗1 = no λ { (_ , _ , ()) }
   Is!? &1 = no λ { (_ , _ , ()) }
   Is!? ⊕0 = no λ { (_ , _ , ()) }
@@ -134,6 +155,7 @@ module Quantitative.Types.Formers.Dec
   Is!? (! ρ S) = yes (ρ , S , refl)
 
   Is⊕? : ∀ S → Dec (∃ λ S0 → ∃ λ S1 → S0 ⊕ S1 ≡ S)
+  Is⊕? BASE = no λ { (_ , _ , ()) }
   Is⊕? ⊗1 = no λ { (_ , _ , ()) }
   Is⊕? &1 = no λ { (_ , _ , ()) }
   Is⊕? ⊕0 = no λ { (_ , _ , ()) }
