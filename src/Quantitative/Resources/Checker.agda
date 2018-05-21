@@ -3,18 +3,18 @@ open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Resources.Checker
-  {c l′} (C : Set c) (DMSS : DecMeetSemilatticeSemiring (≡-Setoid C) l′)
+  {c l′} (C : Set c) (DTMSS : DecToppedMeetSemilatticeSemiring (≡-Setoid C) l′)
   where
-  open DecMeetSemilatticeSemiring DMSS
-    using (posemiring; meetSemilatticeSemiring; _≤?_)
+  open DecToppedMeetSemilatticeSemiring DTMSS
+    using (posemiring; toppedMeetSemilatticeSemiring; _≤?_)
 
   open import Quantitative.Types.Formers C
   open import Quantitative.Syntax Ty
   open import Quantitative.Syntax.Substitution Ty
   open import Quantitative.Types C
   open import Quantitative.Resources C posemiring
-  open import Quantitative.Resources.Context.Semilattice
-    C meetSemilatticeSemiring
+  open import Quantitative.Resources.Context.ToppedSemilattice
+    C toppedMeetSemilatticeSemiring
   open import Quantitative.Resources.Substitution C posemiring
 
   open import Lib.Dec
@@ -63,7 +63,10 @@ module Quantitative.Resources.Checker
     mapMaybe (mapΣ id (mapΣ proj λ b → λ { (proj er) → b er })) (inferRes et)
   inferRes (exf et) =
     inferRes et >>= λ { (Δe , er , eb) →
-    just {!!} }
+    just (Δe Δ.+ Δ.⊤ , exf Δ.≤-refl er
+         , λ { (exf split′ er′) →
+               Δ.≤-trans split′ (eb er′ Δ.+-mono Δ.top _)
+             }) }
   inferRes (cse et s0t s1t) =
     inferRes et            >>= λ { (Δe , er , eb) →
     inferRes s0t           >>= λ { (ρ0 :: Δs0 , s0r , s0b) →
@@ -100,7 +103,7 @@ module Quantitative.Resources.Checker
                     }
                 })
              (inferRes s0t ×M inferRes s1t)
-  inferRes eat = just ({!!} , eat , {!!})
+  inferRes eat = just (Δ.⊤ , eat , λ { eat → Δ.top _ })
   inferRes (wth s0t s1t) =
     mapMaybe (λ { ((Δs0 , s0r , s0b) , (Δs1 , s1r , s1b)) →
                   Δs0 Δ.∧ Δs1
@@ -130,7 +133,10 @@ module Quantitative.Resources.Checker
     rewrite eeq | seq with ρ ≤? π
   ...   | no nle = Zero-elim (nle (headVZip (sb′ sr)))
   ...   | yes le = _ , _ , _ , refl
-  inferResComplete (del et st) (del split er sr) = {!!}
+  inferResComplete (del et st) (del split er sr)
+    with inferResComplete et er | inferResComplete st sr
+  ... | Δe′ , er′ , eb′ , eeq | Δs′ , sr′ , sb′ , seq
+    rewrite eeq | seq = _ , _ , _ , refl
   inferResComplete (pm et st) (pm split er sr)
     with inferResComplete et er | inferResComplete st sr
   ... | Δe′ , er′ , eb′ , eeq | ρ0 :: ρ1 :: Δs′ , sr′ , sb′ , seq
@@ -140,7 +146,9 @@ module Quantitative.Resources.Checker
   ...   | yes le0 | yes le1 = _ , _ , _ , refl
   inferResComplete (proj et) (proj er) with inferResComplete et er
   ... | Δ′ , er′ , eb′ , eq rewrite eq = _ , _ , _ , refl
-  inferResComplete (exf et) (exf split er) = {!!}
+  inferResComplete (exf et) (exf split er)
+    with inferResComplete et er
+  ... | Δ′ , er′ , eb′ , eq rewrite eq = _ , _ , _ , refl
   inferResComplete (cse et s0t s1t) (cse split er s0r s1r)
     with inferResComplete et er
        | inferResComplete s0t s0r | inferResComplete s1t s1r
@@ -158,12 +166,12 @@ module Quantitative.Resources.Checker
   ...   | yes le = _ , _ , _ , refl
   inferResComplete (bang st) (bang split sr) with inferResComplete st sr
   ... | Δ′ , sr′ , sb′ , eq rewrite eq = _ , _ , _ , refl
-  inferResComplete unit (unit split) = {!!}
+  inferResComplete unit (unit split) = _ , _ , _ , refl
   inferResComplete (ten s0t s1t) (ten split s0r s1r)
     with inferResComplete s0t s0r | inferResComplete s1t s1r
   ... | Δ0′ , s0r′ , s0b′ , eq0 | Δ1′ , s1r′ , s1b′ , eq1
     rewrite eq0 | eq1 = _ , _ , _ , refl
-  inferResComplete eat eat = {!!}
+  inferResComplete eat eat = _ , _ , _ , refl
   inferResComplete (wth s0t s1t) (wth s0r s1r)
     with inferResComplete s0t s0r | inferResComplete s1t s1r
   ... | Δ0′ , s0r′ , s0b′ , eq0 | Δ1′ , s1r′ , s1b′ , eq1

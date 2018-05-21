@@ -169,3 +169,73 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
 
     ∧f-meetSemilattice : MeetSemilattice F l′f
     ∧f-meetSemilattice = record { isMeetSemilattice = ∧f-isMeetSemilattice }
+
+  record IsToppedMeetSemilatticeSemimodule
+         {l′s l′f} (≤s : Rel S l′s) (∧s : Op2 S)
+         (≤f : Rel F l′f) (∧f : Op2 F)
+         (0s 1s ⊤s : S.C) (+s *s : Op2 S)
+         (0f 1f ⊤f : F.C) (+f : Op2 F) (*f : S.C → F.C → F.C)
+         : Set (cs ⊔ cf ⊔ ls ⊔ lf ⊔ l′s ⊔ l′f) where
+    field
+      ∧s-isToppedMeetSemilattice : IsToppedMeetSemilattice S ≤s ⊤s ∧s
+      ∧f-isToppedMeetSemilattice : IsToppedMeetSemilattice F ≤f ⊤f ∧f
+      isPosemimodule : IsPosemimodule ≤s ≤f 0s 1s +s *s 0f 1f +f *f
+    open IsPosemimodule isPosemimodule public
+
+    open IsToppedMeetSemilattice ∧s-isToppedMeetSemilattice public
+      using ()
+      renaming (top to ∧s-top; lowerBound to ∧s-lowerBound;
+                greatest to ∧s-greatest; isPoset to ≤s-isPoset;
+                isMeetSemilattice to ∧s-isMeetSemilattice)
+
+    open IsToppedMeetSemilattice ∧f-isToppedMeetSemilattice public
+      using ()
+      renaming (top to ∧f-top; lowerBound to ∧f-lowerBound;
+                greatest to ∧f-greatest; isPoset to ≤f-isPoset;
+                isMeetSemilattice to ∧f-isMeetSemilattice)
+
+    isMeetSemilatticeSemimodule :
+      IsMeetSemilatticeSemimodule ≤s ∧s ≤f ∧f 0s 1s +s *s 0f 1f +f *f
+    isMeetSemilatticeSemimodule = record
+      { ∧s-isMeetSemilattice = ∧s-isMeetSemilattice
+      ; ∧f-isMeetSemilattice = ∧f-isMeetSemilattice
+      ; isPosemimodule = isPosemimodule
+      }
+    open IsMeetSemilatticeSemimodule isMeetSemilatticeSemimodule public
+      using (∧s-isMeetSemilattice; ∧f-isMeetSemilattice)
+
+  record ToppedMeetSemilatticeSemimodule l′s l′f
+         : Set (cs ⊔ cf ⊔ ls ⊔ lf ⊔ lsuc (l′s ⊔ l′f)) where
+    infixr 4 _≤s_ _≤f_
+    infixr 6 _+s_ _+f_
+    infixr 7 _*s_ _*f_
+    infixr 5 _∧s_ _∧f_
+    field
+      _≤s_ : Rel S l′s
+      _∧s_ : Op2 S
+      _≤f_ : Rel F l′f
+      _∧f_ : Op2 F
+      0s 1s ⊤s : S.C
+      _+s_ _*s_ : Op2 S
+      0f 1f ⊤f : F.C
+      _+f_ : Op2 F
+      _*f_ : S.C → F.C → F.C
+      isToppedMeetSemilatticeSemimodule :
+        IsToppedMeetSemilatticeSemimodule _≤s_ _∧s_ _≤f_ _∧f_
+                                          0s 1s ⊤s _+s_ _*s_
+                                          0f 1f ⊤f _+f_ _*f_
+    open IsToppedMeetSemilatticeSemimodule isToppedMeetSemilatticeSemimodule public
+
+    meetSemilatticeSemimodule : MeetSemilatticeSemimodule l′s l′f
+    meetSemilatticeSemimodule =
+      record { isMeetSemilatticeSemimodule = isMeetSemilatticeSemimodule }
+    open MeetSemilatticeSemimodule meetSemilatticeSemimodule public
+      using (posemimodule; ∧s-meetSemilattice; ∧f-meetSemilattice;
+             ≤+*s-posemiring; ≤s-poset; ≤s-preorder; +*s-semiring;
+             +s-monoid; +s-commutativeMonoid; *s-monoid)
+
+    ∧s-toppedMeetSemilattice : ToppedMeetSemilattice S l′s
+    ∧s-toppedMeetSemilattice = record { isToppedMeetSemilattice = ∧s-isToppedMeetSemilattice }
+
+    ∧f-toppedMeetSemilattice : ToppedMeetSemilattice F l′f
+    ∧f-toppedMeetSemilattice = record { isToppedMeetSemilattice = ∧f-isToppedMeetSemilattice }

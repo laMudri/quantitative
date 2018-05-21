@@ -82,6 +82,27 @@ module Lib.Structure {c l} (S : Setoid c l) where
     open Poset poset public
       using (preorder)
 
+  record IsToppedMeetSemilattice {l′} (_≤_ : Rel l′) (⊤ : C) (_∧_ : Op2)
+                           : Set (c ⊔ l ⊔ l′) where
+    field
+      top : ∀ x → x ≤ ⊤
+      isMeetSemilattice : IsMeetSemilattice _≤_ _∧_
+    open IsMeetSemilattice isMeetSemilattice public
+
+  record ToppedMeetSemilattice l′ : Set (c ⊔ l ⊔ lsuc l′) where
+    infixr 4 _≤_
+    field
+      _≤_ : Rel l′
+      ⊤ : C
+      _∧_ : Op2
+      isToppedMeetSemilattice : IsToppedMeetSemilattice _≤_ ⊤ _∧_
+    open IsToppedMeetSemilattice isToppedMeetSemilattice public
+
+    meetSemilattice : MeetSemilattice l′
+    meetSemilattice = record { isMeetSemilattice = isMeetSemilattice }
+    open MeetSemilattice meetSemilattice public
+      using (poset; preorder)
+
   {-
   record IsLattice {l′} (_≤_ : Rel l′) (_∧_ join : Op2)
                    : Set (c ⊔ l ⊔ l′) where
@@ -305,6 +326,45 @@ module Lib.Structure {c l} (S : Setoid c l) where
     open Posemiring posemiring public
       using (poset; preorder; semiring; +-commutativeMonoid; +-monoid; *-monoid)
 
+  record IsToppedMeetSemilatticeSemiring
+           {l′} (≤ : Rel l′) (e0 e1 ⊤ : C) (+ * _∧_ : Op2)
+           : Set (c ⊔ l ⊔ l′) where
+    infixr 6 _+-mono_
+    infixr 7 _*-mono_
+    field
+      _+-mono_ : Mono ≤ +
+      _*-mono_ : Mono ≤ *
+      isToppedMeetSemilattice : IsToppedMeetSemilattice ≤ ⊤ _∧_
+      isSemiring : IsSemiring e0 e1 + *
+    open IsToppedMeetSemilattice isToppedMeetSemilattice public
+    open IsSemiring isSemiring public
+
+  record ToppedMeetSemilatticeSemiring l′ : Set (c ⊔ l ⊔ lsuc l′) where
+    infixr 4 _≤_
+    infixr 6 _+_
+    infixr 7 _*_
+    field
+      _≤_ : Rel l′
+      e0 e1 ⊤ : C
+      _+_ _*_ _∧_ : Op2
+      isToppedMeetSemilatticeSemiring :
+        IsToppedMeetSemilatticeSemiring _≤_ e0 e1 ⊤ _+_ _*_ _∧_
+    open IsToppedMeetSemilatticeSemiring isToppedMeetSemilatticeSemiring public
+
+    toppedMeetSemilattice : ToppedMeetSemilattice l′
+    toppedMeetSemilattice = record { isToppedMeetSemilattice = isToppedMeetSemilattice }
+
+    meetSemilatticeSemiring : MeetSemilatticeSemiring l′
+    meetSemilatticeSemiring = record { isMeetSemilatticeSemiring = record
+      { _+-mono_ = _+-mono_
+      ; _*-mono_ = _*-mono_
+      ; isMeetSemilattice = isMeetSemilattice
+      ; isSemiring = isSemiring
+      } }
+    open MeetSemilatticeSemiring meetSemilatticeSemiring public
+      using (posemiring; meetSemilattice; poset; preorder; semiring;
+             +-commutativeMonoid; +-monoid; *-monoid)
+
   record IsDecMeetSemilatticeSemiring
            {l′} (≤ : Rel l′) (e0 e1 : C) (+ * _∧_ : Op2)
            : Set (c ⊔ l ⊔ l′) where
@@ -329,5 +389,33 @@ module Lib.Structure {c l} (S : Setoid c l) where
     meetSemilatticeSemiring =
       record { isMeetSemilatticeSemiring = isMeetSemilatticeSemiring }
     open MeetSemilatticeSemiring meetSemilatticeSemiring public
-      using (posemiring; poset; preorder;
+      using (posemiring; meetSemilattice; poset; preorder;
+             semiring; +-commutativeMonoid; +-monoid; *-monoid)
+
+  record IsDecToppedMeetSemilatticeSemiring
+           {l′} (≤ : Rel l′) (e0 e1 ⊤ : C) (+ * _∧_ : Op2)
+           : Set (c ⊔ l ⊔ l′) where
+    field
+      _≤?_ : ∀ x y → Dec (≤ x y)
+      isToppedMeetSemilatticeSemiring : IsToppedMeetSemilatticeSemiring ≤ e0 e1 ⊤ + * _∧_
+    open IsToppedMeetSemilatticeSemiring isToppedMeetSemilatticeSemiring public
+
+  record DecToppedMeetSemilatticeSemiring l′ : Set (c ⊔ l ⊔ lsuc l′) where
+    infixr 4 _≤_
+    infixr 6 _+_
+    infixr 7 _*_
+    field
+      _≤_ : Rel l′
+      e0 e1 ⊤ : C
+      _+_ _*_ _∧_ : Op2
+      isDecToppedMeetSemilatticeSemiring :
+        IsDecToppedMeetSemilatticeSemiring _≤_ e0 e1 ⊤ _+_ _*_ _∧_
+    open IsDecToppedMeetSemilatticeSemiring isDecToppedMeetSemilatticeSemiring public
+
+    toppedMeetSemilatticeSemiring : ToppedMeetSemilatticeSemiring l′
+    toppedMeetSemilatticeSemiring =
+      record { isToppedMeetSemilatticeSemiring = isToppedMeetSemilatticeSemiring }
+    open ToppedMeetSemilatticeSemiring toppedMeetSemilatticeSemiring public
+      using (meetSemilatticeSemiring; posemiring;
+             toppedMeetSemilattice; meetSemilattice; poset; preorder;
              semiring; +-commutativeMonoid; +-monoid; *-monoid)
