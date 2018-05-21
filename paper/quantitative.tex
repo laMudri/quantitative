@@ -66,7 +66,7 @@
 
 
 \newcommand{\ann}[2]{#1 : #2}
-\newcommand{\emb}[1]{[#1]}
+\newcommand{\emb}[1]{\underline{#1}}
 
 \newcommand{\fun}[2]{#1 \multimap #2}
 \newcommand{\lam}[2]{\lambda #1. #2}
@@ -77,7 +77,7 @@
 \newcommand{\bm}[3]{\operatorname{bm}_{#1}(#2, #3)}
 
 \newcommand{\tensorOne}[0]{1}
-\newcommand{\unit}[0]{\operatorname{unit}}
+\newcommand{\unit}[0]{{*}_\otimes}
 \newcommand{\del}[3]{\operatorname{del}_{#1}(#2, #3)}
 
 \newcommand{\tensor}[2]{#1 \otimes #2}
@@ -85,7 +85,7 @@
 \newcommand{\prm}[3]{\operatorname{pm}_{#1}(#2, #3)}
 
 \newcommand{\withTOne}[0]{\top}
-\newcommand{\eat}[0]{\operatorname{eat}}
+\newcommand{\eat}[0]{{*}_{\with}}
 
 \newcommand{\withT}[2]{#1 \with #2}
 \newcommand{\wth}[2]{(#1, #2)_{\with}}
@@ -97,6 +97,9 @@
 \newcommand{\sumT}[2]{#1 \oplus #2}
 \newcommand{\inj}[2]{\operatorname{inj}_{#1}(#2)}
 \newcommand{\cse}[4]{\operatorname{case}_{#1}(#2, #3, #4)}
+
+
+\newcommand{\bind}[2]{(#1)#2}
 
 \begin{document}
 
@@ -255,6 +258,37 @@ FIXME: is it possible to remove the Ty type from Quantitative.Syntax?
 Ideally, the Syntax should just be parameterised by the form of type
 annotations. The Syntax shouldn't depend on the resource semiring.
 
+\begin{displaymath}
+  \begin{array}{rrll}
+    \pi,\rho & \in & R & \textrm{resource annotations} \\
+    i & \in & \{0,1\} & \textrm{sides}
+    \\\\
+    S,T &  ::= & \fun{S}{T}                    & \textrm{function} \\
+        & \mid & \excl{\rho}{S}                & \textrm{bang} \\
+        & \mid & \tensorOne \mid \tensor{S}{T} & \textrm{tensor product} \\
+        & \mid & \withTOne \mid \withT{S}{T}   & \textrm{with} \\
+        & \mid & \sumTZero \mid \sumT{S}{T}    & \textrm{sum}
+    \\\\
+    s &  ::= & \lam{x}{s} & \textrm{lambda abstraction} \\
+      & \mid & \bang{s} & \textrm{bang introduction} \\
+      & \mid & \unit \mid \ten{s_0}{s_1} & \textrm{tensor product} \\
+      &      &                           & \textrm{introduction} \\
+      & \mid & \eat \mid \wth{s_0}{s_1} & \textrm{with introduction} \\
+      & \mid & \inj{i}{s} & \textrm{sum introduction}
+    \\
+    e &  ::= & x & \textrm{variable} \\
+      & \mid & \bm{T}{e}{\bind{x}{s}}  & \textrm{pattern matching} \\
+      &      &                         & \textrm{for bang} \\
+      & \mid & \del{T}{e}{s} & \textrm{deletion of tensor unit} \\
+      & \mid & \prm{T}{e}{\bind{x,y}{s}} & \textrm{pattern matching} \\
+      &      &                           & \textrm{for tensor products} \\
+      & \mid & \proj{i}{e} & \textrm{projection for with} \\
+      & \mid & \exf{T}{e} & \textrm{absurd elimination} \\
+      & \mid & \cse{T}{e}{\bind{x}{s_0}}{\bind{y}{s_1}}
+                       & \textrm{case analysis for sums}
+  \end{array}
+\end{displaymath}
+
 \subsection{Well-typed}
 
 Types enable us to give a total functional semantics to terms. FIXME:
@@ -287,7 +321,7 @@ here).
             {\Gamma \vdash \excl{\rho}{S} \ni \bang{s}}
 
   \inferrule{\Gamma \vdash e \in \excl{\rho}{S} \\ \Gamma, x^S \vdash T \ni s[x]}
-            {\Gamma \vdash \bm{T}{e}{x.s[x]} \in T}
+            {\Gamma \vdash \bm{T}{e}{\bind{x}{s[x]}} \in T}
 
   % Tensor unit
   \inferrule{}
@@ -301,7 +335,7 @@ here).
             {\Gamma \vdash \tensor{S_0}{S_1} \ni \ten{s_0}{s_1}}
 
   \inferrule{\Gamma \vdash e \in \tensor{S_0}{S_1} \\ \Gamma, x : S_0, y : S_1 \vdash T \ni s[x,y]}
-            {\Gamma \vdash \prm{T}{e}{x,y.s[x,y]} \in T}
+            {\Gamma \vdash \prm{T}{e}{\bind{x,y}{s[x,y]}} \in T}
 
   % With unit
   \inferrule{ }
@@ -329,7 +363,7 @@ here).
   \inferrule{\Gamma \vdash e \in \sumT{S_0}{S_1}
               \\ \Gamma, x : S_0 \vdash T \ni s_0[x]
               \\ \Gamma, y : S_1 \vdash T \ni s_1[y]}
-            {\Gamma \vdash \cse{T}{e}{x.s_0[x]}{y.s_1[y]} \in T}
+            {\Gamma \vdash \cse{T}{e}{\bind{x}{s_0[x]}}{\bind{y}{s_1[y]}} \in T}
 \end{mathpar}
 
 \section{Resourced Terms}
@@ -353,7 +387,7 @@ bang. Maybe annotate bang and bm with $\rho$.
             {\Delta \vdash (s : S)}
             
   \inferrule{\Delta \vdash e}
-            {\Delta \vdash [e]}
+            {\Delta \vdash \emb{e}}
 
   % Functions
   \inferrule{\Delta, x^1 \vdash s[x]}
@@ -368,7 +402,7 @@ bang. Maybe annotate bang and bm with $\rho$.
 
   \inferrule{\Delta_e \vdash e \\ \Delta_s, x^\rho \vdash s[x]
               \\ \Delta \leq \Delta_e + \Delta_s}
-            {\Delta \vdash \bm{T}{e}{x.s[x]}}
+            {\Delta \vdash \bm{T}{e}{\bind{x}{s[x]}}}
 
   % Tensor unit
   \inferrule{\Delta \leq 0}
@@ -385,7 +419,7 @@ bang. Maybe annotate bang and bm with $\rho$.
 
   \inferrule{\Delta_e \vdash e \\ \Delta_s, x^1, y^1 \vdash s[x,y]
               \\ \Delta \leq \Delta_e + \Delta s}
-            {\Delta \vdash \prm{T}{e}{x,y.s[x,y]}}
+            {\Delta \vdash \prm{T}{e}{\bind{x,y}{s[x,y]}}}
 
   % With unit
   \inferrule{ }
@@ -414,7 +448,7 @@ bang. Maybe annotate bang and bm with $\rho$.
               \\ \Delta_s, x^1 \vdash s_0[x]
               \\ \Delta_s, y^1 \vdash s_1[y]
               \\ \Delta \leq \Delta_e + \Delta_s}
-            {\Delta \vdash \cse{T}{e}{x.s_0[x]}{y.s_1[y]}}
+            {\Delta \vdash \cse{T}{e}{\bind{x}{s_0[x]}}{\bind{y}{s_1[y]}}}
 \end{mathpar}
 
 \section{Relational Semantics}
