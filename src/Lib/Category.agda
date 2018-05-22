@@ -60,23 +60,22 @@ module Lib.Category where
               (f >>E g) >>E h ≈ f >>E (g >>E h)
       >>->> f g h aq = h $E= (g $E= (f $E= aq))
 
-  module _ {o a e} (C D : Category o a e) where
+  module _ {oc od ac ad ec ed}
+           (C : Category oc ac ec) (D : Category od ad ed) where
     private
       module C = Category C ; module D = Category D
     open D using (_≈_)
 
     record IsFunctor (fobj : C.Obj → D.Obj)
                      (farr : ∀ {A B} → C.Arr A B →E D.Arr (fobj A) (fobj B))
-                     : Set (o ⊔ a ⊔ e) where
+                     : Set (oc ⊔ od ⊔ ac ⊔ ad ⊔ ec ⊔ ed) where
       field
         farr-id : ∀ A → farr $E (C.id A) ≈ D.id (fobj A)
         farr->> : ∀ {A B C} {f : A C.=> B} {g : B C.=> C} →
                   farr $E (f C.>> g) ≈ farr $E f D.>> farr $E g
 
-  record Functor {o a e} (C D : Category o a e) : Set (o ⊔ a ⊔ e) where
-    private
-      module C = Category C ; module D = Category D
-    field
-      fobj : C.Obj → D.Obj
-      farr : ∀ {A B} → C.Arr A B →E D.Arr (fobj A) (fobj B)
-      isFunctor : IsFunctor C D fobj farr
+    record Functor : Set (oc ⊔ od ⊔ ac ⊔ ad ⊔ ec ⊔ ed) where
+      field
+        fobj : C.Obj → D.Obj
+        farr : ∀ {A B} → C.Arr A B →E D.Arr (fobj A) (fobj B)
+        isFunctor : IsFunctor fobj farr
