@@ -96,6 +96,19 @@ module Lib.Category where
         }
       }
 
+  module _ {oc od ac ad ec ed}
+           {C : Category oc ac ec} {D : Category od ad ed} where
+    private
+      module C = Category C ; module D = Category D
+    open D
+
+    record NatTrans (F G : Functor C D) : Set (oc ⊔ od ⊔ ac ⊔ ad ⊔ ec ⊔ ed) where
+      private
+        module F = Functor F ; module G = Functor G
+      field
+        η : ∀ X → F.fobj X => G.fobj X
+        square : ∀ {X Y} f → F.farr $E f >> η Y ≈ η X >> G.farr $E f
+
   OP : ∀ {o a e} (C : Category o a e) → Category o a e
   OP C = record
     { Obj = Obj
