@@ -1,5 +1,6 @@
 module Lib.Category where
 
+  open import Lib.Function using (flip)
   open import Lib.Level
   open import Lib.Setoid
 
@@ -79,3 +80,18 @@ module Lib.Category where
         fobj : C.Obj → D.Obj
         farr : ∀ {A B} → C.Arr A B →E D.Arr (fobj A) (fobj B)
         isFunctor : IsFunctor fobj farr
+
+  OP : ∀ {o a e} (C : Category o a e) → Category o a e
+  OP C = record
+    { Obj = Obj
+    ; Arr = flip Arr
+    ; isCategory = record
+      { id = id
+      ; _>>_ = flip _>>_
+      ; id->> = >>-id
+      ; >>-id = id->>
+      ; >>->> = λ h g f → sym (>>->> f g h)
+      }
+    }
+    where
+    open Category C

@@ -21,3 +21,7 @@ module Lib.Function where
   _<s>_ : ∀ {a b c} {A : Set a} {B : A → Set b} {C : (x : A) → B x → Set c} →
           (f : (x : A) (y : B x) → C x y) → (g : (x : A) → B x) → ((x : A) → C x (g x))
   (f <s> g) x = f x (g x)
+
+  flip : ∀ {a b c} {A : Set a} {B : Set b} {C : A → B → Set c} →
+         (∀ x y → C x y) → (∀ y x → C x y)
+  flip f y x = f x y
