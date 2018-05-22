@@ -58,10 +58,10 @@ module Lib.VZip where
   dropVec-+V nil ys = ≡VZip refl
   dropVec-+V (x :: xs) ys = dropVec-+V xs ys
 
-  1≤-tabulate-o : ∀ {a b A B m} (f : A → B) (g : Fin m → A) →
-                    VZip _≡_ (1≤-tabulate {b} (f o g)) (vmap f (1≤-tabulate {a} g))
-  1≤-tabulate-o {m = zero} f g = nil
-  1≤-tabulate-o {m = succ m} f g = refl :: 1≤-tabulate-o f (g o o′)
+  tabulate-o : ∀ {a b A B m} (f : A → B) (g : Fin m → A) →
+                    VZip _≡_ (tabulate {b} (f o g)) (vmap f (tabulate {a} g))
+  tabulate-o {m = zero} f g = nil
+  tabulate-o {m = succ m} f g = refl :: tabulate-o f (g o o′)
 
   vmap-+V : ∀ {a b A B m n} (f : A → B)
             (xsm : Vec {a} A m) (xsn : Vec A n) →
@@ -134,43 +134,43 @@ module Lib.VZip where
   vmap-id nil = nil
   vmap-id (x :: xs) = refl :: vmap-id xs
 
-  1≤-indexVZip : ∀ {a b r A B R n xs ys} →
+  lookupVZip : ∀ {a b r A B R n xs ys} →
                    (i : Fin n) →
                    VZip {a} {b} {r} {A} {B} R {n} xs ys →
-                   R (1≤-index i xs) (1≤-index i ys)
-  1≤-indexVZip (os i) (r :: rs) = r
-  1≤-indexVZip (o′ i) (r :: rs) = 1≤-indexVZip i rs
+                   R (lookup i xs) (lookup i ys)
+  lookupVZip (os i) (r :: rs) = r
+  lookupVZip (o′ i) (r :: rs) = lookupVZip i rs
 
-  1≤-insertVZip : ∀ {a b r A B R n x y xs ys} →
+  insertVZip : ∀ {a b r A B R n x y xs ys} →
                     (i : Fin (succ n)) →
                     R x y → VZip {a} {b} {r} {A} {B} R {n} xs ys →
-                    VZip R (1≤-insertVec i x xs) (1≤-insertVec i y ys)
-  1≤-insertVZip (os i) r rs = r :: rs
-  1≤-insertVZip (o′ i) r nil = r :: nil
-  1≤-insertVZip (o′ i) r (r′ :: rs) = r′ :: 1≤-insertVZip i r rs
+                    VZip R (insertVec i x xs) (insertVec i y ys)
+  insertVZip (os i) r rs = r :: rs
+  insertVZip (o′ i) r nil = r :: nil
+  insertVZip (o′ i) r (r′ :: rs) = r′ :: insertVZip i r rs
 
-  1≤-removeVZip : ∀ {a b r A B R n xs ys} →
+  removeVZip : ∀ {a b r A B R n xs ys} →
                     (i : Fin (succ n)) →
                     VZip {a} {b} {r} {A} {B} R {succ n} xs ys →
-                    VZip R (1≤-removeVec i xs) (1≤-removeVec i ys)
-  1≤-removeVZip (os i) (r :: rs) = rs
-  1≤-removeVZip {n = zero} (o′ ()) (r :: rs)
-  1≤-removeVZip {n = succ n} (o′ i) (r :: rs) = r :: 1≤-removeVZip i rs
+                    VZip R (removeVec i xs) (removeVec i ys)
+  removeVZip (os i) (r :: rs) = rs
+  removeVZip {n = zero} (o′ ()) (r :: rs)
+  removeVZip {n = succ n} (o′ i) (r :: rs) = r :: removeVZip i rs
 
-  1≤-removeVec-insertVec :
+  removeVec-insertVec :
     ∀ {a A m} i x (xs : Vec {a} A m) →
-    VZip _≡_ (1≤-removeVec i (1≤-insertVec i x xs)) xs
-  1≤-removeVec-insertVec (os i) x xs = ≡VZip refl
-  1≤-removeVec-insertVec (o′ ()) x nil
-  1≤-removeVec-insertVec (o′ i) x (x′ :: xs) = refl :: 1≤-removeVec-insertVec i x xs
+    VZip _≡_ (removeVec i (insertVec i x xs)) xs
+  removeVec-insertVec (os i) x xs = ≡VZip refl
+  removeVec-insertVec (o′ ()) x nil
+  removeVec-insertVec (o′ i) x (x′ :: xs) = refl :: removeVec-insertVec i x xs
 
-  1≤-insertVec-replicateVec :
+  insertVec-replicateVec :
     ∀ {a A n} (i : Fin (succ n)) x →
-    VZip _≡_ (1≤-insertVec i x (replicateVec {a} {A} n x)) (replicateVec (succ n) x)
-  1≤-insertVec-replicateVec (os i) x = ≡VZip refl
-  1≤-insertVec-replicateVec {n = zero} (o′ i) x = ≡VZip refl
-  1≤-insertVec-replicateVec {n = succ n} (o′ i) x =
-    refl :: 1≤-insertVec-replicateVec i x
+    VZip _≡_ (insertVec i x (replicateVec {a} {A} n x)) (replicateVec (succ n) x)
+  insertVec-replicateVec (os i) x = ≡VZip refl
+  insertVec-replicateVec {n = zero} (o′ i) x = ≡VZip refl
+  insertVec-replicateVec {n = succ n} (o′ i) x =
+    refl :: insertVec-replicateVec i x
 
   replicateVec-+V :
     ∀ {a A} l m x →
@@ -178,10 +178,10 @@ module Lib.VZip where
   replicateVec-+V zero m x = ≡VZip refl
   replicateVec-+V (succ l) m x = refl :: replicateVec-+V l m x
 
-  is-1≤-insertVec :
+  is-insertVec :
     ∀ {a A n} i xs →
-    Σ (Vec {a} A n) λ xs′ → VZip _≡_ xs (1≤-insertVec i (1≤-index i xs) xs′)
-  is-1≤-insertVec (os i) (x :: xs) = xs , ≡VZip refl
-  is-1≤-insertVec {n = zero} (o′ ()) (x :: xs)
-  is-1≤-insertVec {n = succ n} (o′ i) (x :: xs) =
-    mapΣ (x ::_) (refl ::_) (is-1≤-insertVec i xs)
+    Σ (Vec {a} A n) λ xs′ → VZip _≡_ xs (insertVec i (lookup i xs) xs′)
+  is-insertVec (os i) (x :: xs) = xs , ≡VZip refl
+  is-insertVec {n = zero} (o′ ()) (x :: xs)
+  is-insertVec {n = succ n} (o′ i) (x :: xs) =
+    mapΣ (x ::_) (refl ::_) (is-insertVec i xs)

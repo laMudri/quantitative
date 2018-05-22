@@ -190,7 +190,7 @@ module Quantitative.Resources.Substitution
            Δ ⊢r*[ ρ :: ρs ] (_ , _ , tt) :: tts
 
   SubstRes : ∀ {m n} {vf : Subst m n} {Γm Γn} → SubstTy vf Γm Γn → RCtx m → RCtx n → Set (c ⊔ l′)
-  SubstRes vft Δm Δn = Δn ⊢r*[ Δm ] 1≤-tabulate (λ i → _ , _ , vft i)
+  SubstRes vft Δm Δn = Δn ⊢r*[ Δm ] tabulate (λ i → _ , _ , vft i)
 
   lift⊢r*[] : ∀ {m n Γm Γn S Δ ρs} {vf : Subst m n} {vft : SubstTy vf Γm Γn} →
                SubstRes vft ρs Δ →
@@ -332,8 +332,8 @@ module Quantitative.Resources.Substitution
     f (T , t , tt) = T , weakenVars 0 t , weakenVarsTy nil S tt
 
     vfr′ : R.e0 :: Δn
-           ⊢r*[ Δm ] 1≤-tabulate ((λ i → _ , _ , weakenVarsTy nil S (vft i)))
-    vfr′ rewrite VZip≡ (1≤-tabulate-o f (λ i → _ , vf i , vft i)) =
+           ⊢r*[ Δm ] tabulate ((λ i → _ , _ , weakenVarsTy nil S (vft i)))
+    vfr′ rewrite VZip≡ (tabulate-o f (λ i → _ , vf i , vft i)) =
       weakenVarsRes* nil R.e0 R.≤-refl vfr
 
   liftSubstNRes : ∀ {m n l Γm Γn Δm Δn} (Γl : TCtx l) (Δl : RCtx l)
@@ -491,7 +491,7 @@ module Quantitative.Resources.Substitution
     where
     go : ∀ {m Γm} {Δm : RCtx m} (th : Fin m) →
          Δm Δ.≤ varRCtx th R.e1 → {vf : Subst m n} {vft : SubstTy vf Γm Γn}
-         (vfr : Δn ⊢r*[ Δm ] 1≤-tabulate (λ i → _ , _ , vft i)) →
+         (vfr : Δn ⊢r*[ Δm ] tabulate (λ i → _ , _ , vft i)) →
          Δn ⊢r vft th
     go {succ m} {Δm = ρ :: Δm} (os {n = .m} th) (le :: sub)
                                (cons {Δt = Δt} {Δts} split tr vfr)

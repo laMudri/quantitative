@@ -62,14 +62,14 @@ module Lib.Thinning where
   zeroth : ∀ {n} → Fin (succ n)
   zeroth = os (z≤ _)
 
-  1≤-from-< : ∀ {m n} → m < n → Fin n
-  1≤-from-< {m} {zero} ()
-  1≤-from-< {zero} {succ n} th = zeroth
-  1≤-from-< {succ m} {succ n} th = o′ (1≤-from-< {m} {n} (op th))
+  from-< : ∀ {m n} → m < n → Fin n
+  from-< {m} {zero} ()
+  from-< {zero} {succ n} th = zeroth
+  from-< {succ m} {succ n} th = o′ (from-< {m} {n} (op th))
 
   infix 6 #th_
   #th_ : ∀ {n} m {less : Auto (m <? n)} → Fin n
-  #th_ {n} m {less} = 1≤-from-< (toWitness {X? = m <? n} less)
+  #th_ {n} m {less} = from-< (toWitness {X? = m <? n} less)
 
   1≤ToNat : ∀ {m} → Fin m → Nat
   1≤ToNat (os i) = zero
@@ -87,39 +87,34 @@ module Lib.Thinning where
   punchIn (o′ i) (os j) = zeroth
   punchIn (o′ i) (o′ j) = o′ (punchIn i j)
 
-  1≤-split : ∀ {m} → Fin (succ m) → ∃ λ n → ∃ λ o → n +N o ≡ m
-  1≤-split {m} (os i) = zero , m , refl
-  1≤-split {zero} (o′ i) = zero , zero , refl
-  1≤-split {succ m} (o′ i) = mapΣ succ (mapΣ id (cong succ)) (1≤-split i)
+  part : ∀ m {n} → Fin (m +N n) → Fin m ⊎ Fin n
+  part zero i = inr i
+  part (succ m) (os i) = inl zeroth
+  part (succ m) (o′ i) = map⊎ o′ id (part m i)
 
-  1≤-part : ∀ m {n} → Fin (m +N n) → Fin m ⊎ Fin n
-  1≤-part zero i = inr i
-  1≤-part (succ m) (os i) = inl zeroth
-  1≤-part (succ m) (o′ i) = map⊎ o′ id (1≤-part m i)
+  leftPart : ∀ {m} n → Fin m → Fin (m +N n)
+  leftPart n (os i) = zeroth
+  leftPart n (o′ i) = o′ (leftPart n i)
 
-  1≤-leftPart : ∀ {m} n → Fin m → Fin (m +N n)
-  1≤-leftPart n (os i) = zeroth
-  1≤-leftPart n (o′ i) = o′ (1≤-leftPart n i)
+  rightPart : ∀ m {n} → Fin n → Fin (m +N n)
+  rightPart zero i = i
+  rightPart (succ m) i = o′ (rightPart m i)
 
-  1≤-rightPart : ∀ m {n} → Fin n → Fin (m +N n)
-  1≤-rightPart zero i = i
-  1≤-rightPart (succ m) i = o′ (1≤-rightPart m i)
+  join : ∀ m {n} → Fin m ⊎ Fin n → Fin (m +N n)
+  join m (inl i) = leftPart _ i
+  join m (inr i) = rightPart m i
 
-  1≤-join : ∀ m {n} → Fin m ⊎ Fin n → Fin (m +N n)
-  1≤-join m (inl i) = 1≤-leftPart _ i
-  1≤-join m (inr i) = 1≤-rightPart m i
-
-  1≤-part-toNat :
+  part-toNat :
     ∀ m {n} (i : Fin (m +N n)) →
-    case 1≤-part m i of λ
+    case part m i of λ
     { (inl jm) → 1≤ToNat i ≡ 1≤ToNat jm
     ; (inr jn) → 1≤ToNat i ≡ m +N 1≤ToNat jn
     }
-  1≤-part-toNat zero i = refl
-  1≤-part-toNat (succ m) (os i) = refl
-  1≤-part-toNat (succ m) (o′ i) with 1≤-part m i | 1≤-part-toNat m i
-  1≤-part-toNat (succ m) (o′ i) | inl _ | r = cong succ r
-  1≤-part-toNat (succ m) (o′ i) | inr _ | r = cong succ r
+  part-toNat zero i = refl
+  part-toNat (succ m) (os i) = refl
+  part-toNat (succ m) (o′ i) with part m i | part-toNat m i
+  part-toNat (succ m) (o′ i) | inl _ | r = cong succ r
+  part-toNat (succ m) (o′ i) | inr _ | r = cong succ r
 
   punchOutN : ∀ m {n} (i : Fin (m +N succ n)) → 1≤ToNat i /= m → Fin (m +N n)
   punchOutN zero (os i) neq = Zero-elim (neq refl)
@@ -128,7 +123,7 @@ module Lib.Thinning where
   punchOutN (succ m) (o′ i) neq = o′ (punchOutN m i (neq o cong succ))
 
   punchInNMany : ∀ {m} l n → (i : Fin (l +N m)) → Fin (l +N n +N m)
-  punchInNMany l n i = 1≤-join l (map⊎ id (1≤-rightPart n) (1≤-part l i))
+  punchInNMany l n i = join l (map⊎ id (rightPart n) (part l i))
 
   weakenFin : ∀ {m} l → Fin (l +N m) → Fin (l +N succ m)
   weakenFin zero i = o′ i

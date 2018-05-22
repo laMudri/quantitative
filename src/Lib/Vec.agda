@@ -45,152 +45,143 @@ module Lib.Vec where
             ∀ {n} → Vec A n → B
   Vec-rec n c = Vec-ind _ n c
 
-  1≤-tabulate : ∀ {a A m} → (Fin m → A) → Vec {a} A m
-  1≤-tabulate {m = zero} f = nil
-  1≤-tabulate {m = succ m} f = f zeroth :: 1≤-tabulate {m = m} (f o o′)
+  tabulate : ∀ {a A m} → (Fin m → A) → Vec {a} A m
+  tabulate {m = zero} f = nil
+  tabulate {m = succ m} f = f zeroth :: tabulate {m = m} (f o o′)
 
-  1≤-index : ∀ {a A m} → Fin m → Vec {a} A m → A
-  1≤-index (os th) (x :: xs) = x
-  1≤-index (o′ th) (x :: xs) = 1≤-index th xs
+  lookup : ∀ {a A m} → Fin m → Vec {a} A m → A
+  lookup (os th) (x :: xs) = x
+  lookup (o′ th) (x :: xs) = lookup th xs
 
-  1≤-splitVec : ∀ {a A m} i (xs : Vec {a} A m) →
-                  let n , o , eq = 1≤-split i in
-                  ∃ λ ys → ∃ λ zs → subst (Vec A) eq (_+V_ {m = n} ys zs) ≡ xs
-  1≤-splitVec (os i) xs = nil , xs , refl
-  1≤-splitVec (o′ i) nil = nil , nil , refl
-  1≤-splitVec (o′ i) (x :: xs) with 1≤-split i | 1≤-splitVec i xs
-  1≤-splitVec (o′ i) (x :: .(ys +V zs))
-    | n , o , refl | ys , zs , refl = x :: ys , zs , refl
+  insertVec : ∀ {a A m} (i : Fin (succ m)) (x : A) (xs : Vec {a} A m) → Vec A (succ m)
+  insertVec (os i) x xs = x :: xs
+  insertVec (o′ i) x nil = x :: nil
+  insertVec (o′ i) x (x′ :: xs) = x′ :: insertVec i x xs
 
-  1≤-insertVec : ∀ {a A m} (i : Fin (succ m)) (x : A) (xs : Vec {a} A m) → Vec A (succ m)
-  1≤-insertVec (os i) x xs = x :: xs
-  1≤-insertVec (o′ i) x nil = x :: nil
-  1≤-insertVec (o′ i) x (x′ :: xs) = x′ :: 1≤-insertVec i x xs
+  removeVec : ∀ {a A m} → Fin (succ m) → Vec {a} A (succ m) → Vec A m
+  removeVec (os i) (x :: xs) = xs
+  removeVec {m = zero} (o′ ()) (x :: xs)
+  removeVec {m = succ m} (o′ i) (x :: xs) = x :: removeVec i xs
 
-  1≤-removeVec : ∀ {a A m} → Fin (succ m) → Vec {a} A (succ m) → Vec A m
-  1≤-removeVec (os i) (x :: xs) = xs
-  1≤-removeVec {m = zero} (o′ ()) (x :: xs)
-  1≤-removeVec {m = succ m} (o′ i) (x :: xs) = x :: 1≤-removeVec i xs
-
-  1≤-index-punchIn-insertVec :
+  lookup-punchIn-insertVec :
     ∀ {a A m} (i : Fin (succ m)) (j : Fin m) (x : A) (xs : Vec {a} A m) →
-    1≤-index (punchIn i j) (1≤-insertVec i x xs) ≡ 1≤-index j xs
-  1≤-index-punchIn-insertVec (os i) j x xs = refl
-  1≤-index-punchIn-insertVec (o′ i) (os j) x (x′ :: xs) = refl
-  1≤-index-punchIn-insertVec (o′ i) (o′ j) x (x′ :: xs) =
-    1≤-index-punchIn-insertVec i j x xs
+    lookup (punchIn i j) (insertVec i x xs) ≡ lookup j xs
+  lookup-punchIn-insertVec (os i) j x xs = refl
+  lookup-punchIn-insertVec (o′ i) (os j) x (x′ :: xs) = refl
+  lookup-punchIn-insertVec (o′ i) (o′ j) x (x′ :: xs) =
+    lookup-punchIn-insertVec i j x xs
 
-  1≤-index-insertVec : ∀ {a A m} (i : Fin (succ m)) (x : A) (xs : Vec {a} A m) →
-                         1≤-index i (1≤-insertVec i x xs) ≡ x
-  1≤-index-insertVec (os i) x xs = refl
-  1≤-index-insertVec (o′ ()) x nil
-  1≤-index-insertVec (o′ i) x (x′ :: xs) = 1≤-index-insertVec i x xs
+  lookup-insertVec : ∀ {a A m} (i : Fin (succ m)) (x : A) (xs : Vec {a} A m) →
+                         lookup i (insertVec i x xs) ≡ x
+  lookup-insertVec (os i) x xs = refl
+  lookup-insertVec (o′ ()) x nil
+  lookup-insertVec (o′ i) x (x′ :: xs) = lookup-insertVec i x xs
 
-  1≤-index-/=-insertVec :
+  lookup-/=-insertVec :
     ∀ {a A m} {i j : Fin (succ m)}
     (neq : i /= j) (x : A) (xs : Vec {a} A m) →
-    1≤-index j (1≤-insertVec i x xs) ≡ 1≤-index (punchOut neq) xs
-  1≤-index-/=-insertVec {i = os i} {os j} neq x xs =
+    lookup j (insertVec i x xs) ≡ lookup (punchOut neq) xs
+  lookup-/=-insertVec {i = os i} {os j} neq x xs =
     Zero-elim (neq (cong os (z≤-unique i j)))
-  1≤-index-/=-insertVec {i = os i} {o′ j} neq x xs = refl
-  1≤-index-/=-insertVec {i = o′ ()} {j} neq x nil
-  1≤-index-/=-insertVec {i = o′ i} {os j} neq x (x′ :: xs) = refl
-  1≤-index-/=-insertVec {i = o′ i} {o′ j} neq x (x′ :: xs) =
-    1≤-index-/=-insertVec {i = i} {j} _ x xs
+  lookup-/=-insertVec {i = os i} {o′ j} neq x xs = refl
+  lookup-/=-insertVec {i = o′ ()} {j} neq x nil
+  lookup-/=-insertVec {i = o′ i} {os j} neq x (x′ :: xs) = refl
+  lookup-/=-insertVec {i = o′ i} {o′ j} neq x (x′ :: xs) =
+    lookup-/=-insertVec {i = i} {j} _ x xs
 
-  1≤-index-+ :
+  lookup-+ :
     ∀ {a A m n} i (xs : Vec {a} A m) y (zs : Vec A n) →
-    1≤ToNat i ≡ m → 1≤-index i (xs +V y :: zs) ≡ y
-  1≤-index-+ (os i) nil y zs eq = refl
-  1≤-index-+ (o′ i) nil y zs ()
-  1≤-index-+ (os i) (x :: xs) y zs ()
-  1≤-index-+ (o′ i) (x :: xs) y zs eq = 1≤-index-+ i xs y zs (succInj eq)
+    1≤ToNat i ≡ m → lookup i (xs +V y :: zs) ≡ y
+  lookup-+ (os i) nil y zs eq = refl
+  lookup-+ (o′ i) nil y zs ()
+  lookup-+ (os i) (x :: xs) y zs ()
+  lookup-+ (o′ i) (x :: xs) y zs eq = lookup-+ i xs y zs (succInj eq)
 
-  1≤-index-part-l :
+  lookup-part-l :
     ∀ {a A m n j} (i : Fin (m +N n)) (xs : Vec {a} A m) (ys : Vec A n) →
-    1≤-part m i ≡ inl j → 1≤-index j xs ≡ 1≤-index i (xs +V ys)
-  1≤-index-part-l i nil ys ()
-  1≤-index-part-l (os i) (x :: xs) ys refl = refl
-  1≤-index-part-l {m = succ m} (o′ i) (x :: xs) ys eq
-    with 1≤-part m i | inspect (1≤-part m) i
-  1≤-index-part-l {m = succ m} (o′ i) (x :: xs) ys refl | inl j | ingraph eq =
-    1≤-index-part-l i xs ys eq
-  1≤-index-part-l {m = succ m} (o′ i) (x :: xs) ys () | inr _ | _
+    part m i ≡ inl j → lookup j xs ≡ lookup i (xs +V ys)
+  lookup-part-l i nil ys ()
+  lookup-part-l (os i) (x :: xs) ys refl = refl
+  lookup-part-l {m = succ m} (o′ i) (x :: xs) ys eq
+    with part m i | inspect (part m) i
+  lookup-part-l {m = succ m} (o′ i) (x :: xs) ys refl | inl j | ingraph eq =
+    lookup-part-l i xs ys eq
+  lookup-part-l {m = succ m} (o′ i) (x :: xs) ys () | inr _ | _
 
-  1≤-index-part-r :
+  lookup-part-r :
     ∀ {a A m n j} (i : Fin (m +N n)) (xs : Vec {a} A m) (ys : Vec A n) →
-    1≤-part m i ≡ inr j → 1≤-index j ys ≡ 1≤-index i (xs +V ys)
-  1≤-index-part-r i nil ys refl = refl
-  1≤-index-part-r (os i) (x :: xs) ys ()
-  1≤-index-part-r {m = succ m} (o′ i) (x :: xs) ys eq
-    with 1≤-part m i | inspect (1≤-part m) i
-  1≤-index-part-r {m = succ m} (o′ i) (x :: xs) ys () | inl _ | _
-  1≤-index-part-r {m = succ m} (o′ i) (x :: xs) ys refl | inr j | ingraph eq =
-    1≤-index-part-r i xs ys eq
+    part m i ≡ inr j → lookup j ys ≡ lookup i (xs +V ys)
+  lookup-part-r i nil ys refl = refl
+  lookup-part-r (os i) (x :: xs) ys ()
+  lookup-part-r {m = succ m} (o′ i) (x :: xs) ys eq
+    with part m i | inspect (part m) i
+  lookup-part-r {m = succ m} (o′ i) (x :: xs) ys () | inl _ | _
+  lookup-part-r {m = succ m} (o′ i) (x :: xs) ys refl | inr j | ingraph eq =
+    lookup-part-r i xs ys eq
 
-  1≤-index-leftPart :
+  lookup-leftPart :
     ∀ {a A m n} (i : Fin m) (xs : Vec {a} A m) (ys : Vec A n) →
-    1≤-index (1≤-leftPart n i) (xs +V ys) ≡ 1≤-index i xs
-  1≤-index-leftPart (os i) (x :: xs) ys = refl
-  1≤-index-leftPart (o′ i) (x :: xs) ys = 1≤-index-leftPart i xs ys
+    lookup (leftPart n i) (xs +V ys) ≡ lookup i xs
+  lookup-leftPart (os i) (x :: xs) ys = refl
+  lookup-leftPart (o′ i) (x :: xs) ys = lookup-leftPart i xs ys
 
-  1≤-index-rightPart :
+  lookup-rightPart :
     ∀ {a A m n} (i : Fin n) (xs : Vec {a} A m) (ys : Vec A n) →
-    1≤-index (1≤-rightPart m i) (xs +V ys) ≡ 1≤-index i ys
-  1≤-index-rightPart i nil ys = refl
-  1≤-index-rightPart i (x :: xs) ys = 1≤-index-rightPart i xs ys
+    lookup (rightPart m i) (xs +V ys) ≡ lookup i ys
+  lookup-rightPart i nil ys = refl
+  lookup-rightPart i (x :: xs) ys = lookup-rightPart i xs ys
 
-  1≤-index-punchInNMany :
+  lookup-punchInNMany :
     ∀ {a A m l n} (ls : Vec A l) (ns : Vec A n) (ms : Vec {a} A m) i →
-    1≤-index (punchInNMany l n i) (ls +V ns +V ms) ≡ 1≤-index i (ls +V ms)
-  1≤-index-punchInNMany {l = l} {n} ls ns ms i
-    with 1≤-part l i | inspect (1≤-part l) i
-  ... | inl j | ingraph eq = trans (1≤-index-leftPart j ls (ns +V ms))
-                                   (1≤-index-part-l i ls ms eq)
+    lookup (punchInNMany l n i) (ls +V ns +V ms) ≡ lookup i (ls +V ms)
+  lookup-punchInNMany {l = l} {n} ls ns ms i
+    with part l i | inspect (part l) i
+  ... | inl j | ingraph eq = trans (lookup-leftPart j ls (ns +V ms))
+                                   (lookup-part-l i ls ms eq)
   ... | inr j | ingraph eq =
-    trans (1≤-index-rightPart (1≤-rightPart n j) ls (ns +V ms))
-          (trans (1≤-index-rightPart j ns ms)
-                 (1≤-index-part-r i ls ms eq))
+    trans (lookup-rightPart (rightPart n j) ls (ns +V ms))
+          (trans (lookup-rightPart j ns ms)
+                 (lookup-part-r i ls ms eq))
 
-  1≤-index-weakenFin :
+  lookup-weakenFin :
     ∀ {a A m l} (ls : Vec A l) x (ms : Vec {a} A m) i →
-    1≤-index (weakenFin l i) (ls +V x :: ms) ≡ 1≤-index i (ls +V ms)
-  1≤-index-weakenFin nil x ms i = refl
-  1≤-index-weakenFin (lx :: ls) x ms (os i) = refl
-  1≤-index-weakenFin (lx :: ls) x ms (o′ i) = 1≤-index-weakenFin ls x ms i
+    lookup (weakenFin l i) (ls +V x :: ms) ≡ lookup i (ls +V ms)
+  lookup-weakenFin nil x ms i = refl
+  lookup-weakenFin (lx :: ls) x ms (os i) = refl
+  lookup-weakenFin (lx :: ls) x ms (o′ i) = lookup-weakenFin ls x ms i
 
-  1≤-index-≡ :
+  lookup-≡ :
     ∀ {a A m} i j (xs : Vec {a} A m) →
-    1≤ToNat i ≡ 1≤ToNat j → 1≤-index i xs ≡ 1≤-index j xs
-  1≤-index-≡ (os i) (os j) (x :: xs) eq = refl
-  1≤-index-≡ (os i) (o′ j) xs ()
-  1≤-index-≡ (o′ i) (os j) xs ()
-  1≤-index-≡ (o′ i) (o′ j) (x :: xs) eq = 1≤-index-≡ i j xs (succInj eq)
+    1≤ToNat i ≡ 1≤ToNat j → lookup i xs ≡ lookup j xs
+  lookup-≡ (os i) (os j) (x :: xs) eq = refl
+  lookup-≡ (os i) (o′ j) xs ()
+  lookup-≡ (o′ i) (os j) xs ()
+  lookup-≡ (o′ i) (o′ j) (x :: xs) eq = lookup-≡ i j xs (succInj eq)
 
-  1≤-index-≡l :
+  lookup-≡l :
     ∀ {a A m n} i j (xs : Vec {a} A m) (ys : Vec A n) →
-    1≤ToNat i ≡ 1≤ToNat j → 1≤-index i xs ≡ 1≤-index j (xs +V ys)
-  1≤-index-≡l (os i) (os j) (x :: xs) ys eq = refl
-  1≤-index-≡l (os i) (o′ j) (x :: xs) ys ()
-  1≤-index-≡l (o′ i) (os j) (x :: xs) ys ()
-  1≤-index-≡l (o′ i) (o′ j) (x :: xs) ys eq = 1≤-index-≡l i j xs ys (succInj eq)
+    1≤ToNat i ≡ 1≤ToNat j → lookup i xs ≡ lookup j (xs +V ys)
+  lookup-≡l (os i) (os j) (x :: xs) ys eq = refl
+  lookup-≡l (os i) (o′ j) (x :: xs) ys ()
+  lookup-≡l (o′ i) (os j) (x :: xs) ys ()
+  lookup-≡l (o′ i) (o′ j) (x :: xs) ys eq = lookup-≡l i j xs ys (succInj eq)
 
-  1≤-index-≡r :
+  lookup-≡r :
     ∀ {a A m n} i j (xs : Vec {a} A m) (ys : Vec A n) →
-    m +N 1≤ToNat i ≡ 1≤ToNat j → 1≤-index i ys ≡ 1≤-index j (xs +V ys)
-  1≤-index-≡r i j nil ys eq = 1≤-index-≡ i j ys eq
-  1≤-index-≡r i (os j) (x :: xs) ys ()
-  1≤-index-≡r i (o′ j) (x :: xs) ys eq = 1≤-index-≡r i j xs ys (succInj eq)
+    m +N 1≤ToNat i ≡ 1≤ToNat j → lookup i ys ≡ lookup j (xs +V ys)
+  lookup-≡r i j nil ys eq = lookup-≡ i j ys eq
+  lookup-≡r i (os j) (x :: xs) ys ()
+  lookup-≡r i (o′ j) (x :: xs) ys eq = lookup-≡r i j xs ys (succInj eq)
 
-  1≤-index-punchOutN :
+  lookup-punchOutN :
     ∀ {a A m n} i (neq : 1≤ToNat i /= m)
     (xs : Vec {a} A m) y (zs : Vec A n) →
-    1≤-index (punchOutN m i neq) (xs +V zs) ≡ 1≤-index i (xs +V y :: zs)
-  1≤-index-punchOutN (os i) neq nil y zs = Zero-elim (neq refl)
-  1≤-index-punchOutN (o′ i) neq nil y zs = refl
-  1≤-index-punchOutN (os i) neq (x :: xs) y zs = refl
-  1≤-index-punchOutN (o′ i) neq (x :: xs) y zs =
-    1≤-index-punchOutN i (neq o cong succ) xs y zs
+    lookup (punchOutN m i neq) (xs +V zs) ≡ lookup i (xs +V y :: zs)
+  lookup-punchOutN (os i) neq nil y zs = Zero-elim (neq refl)
+  lookup-punchOutN (o′ i) neq nil y zs = refl
+  lookup-punchOutN (os i) neq (x :: xs) y zs = refl
+  lookup-punchOutN (o′ i) neq (x :: xs) y zs =
+    lookup-punchOutN i (neq o cong succ) xs y zs
 
   1≤→-:: : ∀ {a} {A : Set a} {m} →
               A → (Fin m → A) → Fin (succ m) → A
@@ -211,29 +202,29 @@ module Lib.Vec where
   vzip f nil ys = nil
   vzip f (x :: xs) (y :: ys) = f x y :: vzip f xs ys
 
-  1≤-index-vmap : ∀ {a b A B n} (i : Fin n)
+  lookup-vmap : ∀ {a b A B n} (i : Fin n)
                     (f : A → B) (xs : Vec {a} A n) →
-                    1≤-index {b} i (vmap f xs) ≡ f (1≤-index i xs)
-  1≤-index-vmap (os i) f (x :: xs) = refl
-  1≤-index-vmap (o′ i) f (x :: xs) = 1≤-index-vmap i f xs
+                    lookup {b} i (vmap f xs) ≡ f (lookup i xs)
+  lookup-vmap (os i) f (x :: xs) = refl
+  lookup-vmap (o′ i) f (x :: xs) = lookup-vmap i f xs
 
-  1≤-index-vzip : ∀ {a b c A B C n} (i : Fin n)
+  lookup-vzip : ∀ {a b c A B C n} (i : Fin n)
                     (f : A → B → C) (xs : Vec {a} A n) (ys : Vec {b} B n) →
-                    1≤-index {c} i (vzip f xs ys)
-                      ≡ f (1≤-index i xs) (1≤-index i ys)
-  1≤-index-vzip (os i) f (x :: xs) (y :: ys) = refl
-  1≤-index-vzip (o′ i) f (x :: xs) (y :: ys) = 1≤-index-vzip i f xs ys
+                    lookup {c} i (vzip f xs ys)
+                      ≡ f (lookup i xs) (lookup i ys)
+  lookup-vzip (os i) f (x :: xs) (y :: ys) = refl
+  lookup-vzip (o′ i) f (x :: xs) (y :: ys) = lookup-vzip i f xs ys
 
-  1≤-insertVec-vzip :
+  insertVec-vzip :
     ∀ {a b c A B C n} (i : Fin (succ n)) f x y xs ys →
-    1≤-insertVec {c} {C} i (f x y) (vzip f xs ys) ≡
-      vzip f (1≤-insertVec {a} {A} i x xs) (1≤-insertVec {b} {B} i y ys)
-  1≤-insertVec-vzip (os i) f x y xs ys = refl
-  1≤-insertVec-vzip (o′ i) f x y nil nil = refl
-  1≤-insertVec-vzip (o′ i) f x y (x′ :: xs) (y′ :: ys) =
-    cong (f x′ y′ ::_) (1≤-insertVec-vzip i f x y xs ys)
+    insertVec {c} {C} i (f x y) (vzip f xs ys) ≡
+      vzip f (insertVec {a} {A} i x xs) (insertVec {b} {B} i y ys)
+  insertVec-vzip (os i) f x y xs ys = refl
+  insertVec-vzip (o′ i) f x y nil nil = refl
+  insertVec-vzip (o′ i) f x y (x′ :: xs) (y′ :: ys) =
+    cong (f x′ y′ ::_) (insertVec-vzip i f x y xs ys)
 
-  1≤-index-replicateVec :
-    ∀ {a A n} (i : Fin n) x → 1≤-index i (replicateVec {a} {A} n x) ≡ x
-  1≤-index-replicateVec (os i) x = refl
-  1≤-index-replicateVec (o′ i) x = 1≤-index-replicateVec i x
+  lookup-replicateVec :
+    ∀ {a A n} (i : Fin n) x → lookup i (replicateVec {a} {A} n x) ≡ x
+  lookup-replicateVec (os i) x = refl
+  lookup-replicateVec (o′ i) x = lookup-replicateVec i x

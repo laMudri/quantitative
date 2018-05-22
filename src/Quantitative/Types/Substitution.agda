@@ -17,7 +17,7 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
     ∀ {m l d T} {t : Term _ d} {Γm : TCtx m} (Γl : TCtx l) S →
     Γl +V Γm ⊢t t :-: T → Γl +V S :: Γm ⊢t weakenVars l t :-: T
   weakenVarsTy {l = l} {Γm = Γm} Γl S (var {th = th} {T} eq) =
-    var (trans eq (sym (1≤-index-weakenFin Γl S Γm th)))
+    var (trans eq (sym (lookup-weakenFin Γl S Γm th)))
   weakenVarsTy Γl S (app et st) =
     app (weakenVarsTy Γl S et) (weakenVarsTy Γl S st)
   weakenVarsTy Γl S (bm et st) =
@@ -44,7 +44,7 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
   weakenVarsTy Γl S [ et ] = [ weakenVarsTy Γl S et ]
 
   SubstTy : ∀ {m n} → Subst m n → TCtx m → TCtx n → Set c
-  SubstTy {m} {n} vf Γm Γn = (th : Fin m) → Γn ⊢t vf th ∈ 1≤-index th Γm
+  SubstTy {m} {n} vf Γm Γn = (th : Fin m) → Γn ⊢t vf th ∈ lookup th Γm
 
   singleSubstTy : ∀ {m Γ e S} → Γ ⊢t e ∈ S →
                   SubstTy (singleSubst {m} e) (S :: Γ) Γ

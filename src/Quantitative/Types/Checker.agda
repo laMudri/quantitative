@@ -41,7 +41,7 @@ module Quantitative.Types.Checker
   checkType : ∀ {n} (Γ : TCtx n) (S : Ty) (s : Term n chk) →
               Dec (Γ ⊢t S ∋ s)
 
-  synthType Γ (var th) = yes (1≤-index th Γ , var refl)
+  synthType Γ (var th) = yes (lookup th Γ , var refl)
   synthType Γ (app e s) with synthType Γ e
   ... | no np = no λ { (_ , app et st) → np (_ , et) }
   ... | yes (S⊸T , et) with Is⊸? S⊸T

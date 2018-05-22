@@ -33,7 +33,7 @@ module Quantitative.Types {c} (C : Set c) where
   data _⊢t_ {n} (Γ : TCtx n)
             : ∀ {d} {t : Term n d} {T} → Consequent t T → Set c where
     var : ∀ {th T} →
-          T ≡ 1≤-index th Γ
+          T ≡ lookup th Γ
           →
           Γ ⊢t var th ∈ T
     app : ∀ {e s S T}

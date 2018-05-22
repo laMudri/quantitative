@@ -28,7 +28,7 @@ module Quantitative.Semantics.Sets {c} (C : Set c) (Base : Set) where
   ⟦_⟧Γ : ∀ {n} → TCtx n → Set
   ⟦ Γ ⟧Γ = Vec-rec One _×_ (vmap ⟦_⟧T Γ)
 
-  ⟦lookup⟧ : ∀ {n} i {Γ : TCtx n} → ⟦ Γ ⟧Γ → ⟦ 1≤-index i Γ ⟧T
+  ⟦lookup⟧ : ∀ {n} i {Γ : TCtx n} → ⟦ Γ ⟧Γ → ⟦ lookup i Γ ⟧T
   ⟦lookup⟧ (os i) {T :: Γ} (t , η) = t
   ⟦lookup⟧ (o′ i) {T :: Γ} (t , η) = ⟦lookup⟧ i η
 
