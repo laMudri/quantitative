@@ -2,6 +2,7 @@ module Lib.Category where
 
   open import Lib.Function using (flip)
   open import Lib.Level
+  open import Lib.Product
   open import Lib.Setoid
 
   record IsCategory {o a e} {Obj : Set o} (Arr : (A B : Obj) → Setoid a e)
@@ -80,6 +81,20 @@ module Lib.Category where
         fobj : C.Obj → D.Obj
         farr : ∀ {A B} → C.Arr A B →E D.Arr (fobj A) (fobj B)
         isFunctor : IsFunctor fobj farr
+
+    _×C_ : Category (oc ⊔ od) (ac ⊔ ad) (ec ⊔ ed)
+    _×C_ = record
+      { Obj = C.Obj × D.Obj
+      ; Arr = λ { (ac , ad) (bc , bd) → C.Arr ac bc ×S D.Arr ad bd }
+      ; isCategory = record
+        { id = λ { (c , d) → C.id c , D.id d }
+        ; _>>_ = λ { (fc , fd) (gc , gd) → (fc C.>> gc) , (fd D.>> gd) }
+        ; id->> = λ { (gc , gd) → C.id->> gc , D.id->> gd }
+        ; >>-id = λ { (fc , fd) → C.>>-id fc , D.>>-id fd }
+        ; >>->> = λ { (fc , fd) (gc , gd) (hc , hd) →
+                      (C.>>->> fc gc hc) , (D.>>->> fd gd hd) }
+        }
+      }
 
   OP : ∀ {o a e} (C : Category o a e) → Category o a e
   OP C = record
