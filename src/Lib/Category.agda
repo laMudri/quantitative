@@ -33,6 +33,18 @@ module Lib.Category where
 
     open IsCategory isCategory public
 
+    -- Definitions which make sense within a category:
+    record IsIso {X Y} (to : X => Y) : Set (o ⊔ a ⊔ e) where
+      field
+        from : Y => X
+        to>>from : to >> from ≈ id X
+        from>>to : from >> to ≈ id Y
+
+    record Iso (X Y : Obj) : Set (o ⊔ a ⊔ e) where
+      field
+        to : X => Y
+        isIso : IsIso to
+
   SETOID : ∀ c l → Category _ _ _
   SETOID c l = record
     { Obj = Setoid c l
@@ -96,6 +108,14 @@ module Lib.Category where
         }
       }
 
+  idF : ∀ {o a e} (C : Category o a e) → Functor C C
+  idF C = record
+    { fobj = λ x → x
+    ; farr = idE _
+    ; isFunctor = record { farr-id = λ X → refl ; farr->> = refl }
+    }
+    where open Category C
+
   module _ {oc od ac ad ec ed}
            {C : Category oc ac ec} {D : Category od ad ed} where
     private
@@ -108,6 +128,11 @@ module Lib.Category where
       field
         η : ∀ X → F.fobj X => G.fobj X
         square : ∀ {X Y} f → F.farr $E f >> η Y ≈ η X >> G.farr $E f
+
+    record NatIso (F G : Functor C D) : Set (oc ⊔ od ⊔ ac ⊔ ad ⊔ ec ⊔ ed) where
+      field
+        natTrans : NatTrans F G
+        isos : let open NatTrans natTrans in ∀ X → IsIso (η X)
 
   OP : ∀ {o a e} (C : Category o a e) → Category o a e
   OP C = record
