@@ -142,19 +142,27 @@ module Lib.Setoid where
   idE : ∀ {a l} (A : Setoid a l) → A →E A
   idE A = record { _$E_ = λ x → x ; _$E=_ = λ xq → xq }
 
-  infixr 5 _oE_ _>>E_
-  _oE_ : ∀ {a b c l m n}
-         {A : Setoid a l} {B : Setoid b m} {C : Setoid c n} →
-         B →E C → A →E B → A →E C
-  g oE f = record
-    { _$E_ = λ x → g $E (f $E x)
-    ; _$E=_ = λ xy → g $E= (f $E= xy)
-    }
+  module _ {a b c l m n}
+           {A : Setoid a l} {B : Setoid b m} {C : Setoid c n} where
 
-  _>>E_ : ∀ {a b c l m n}
-         {A : Setoid a l} {B : Setoid b m} {C : Setoid c n} →
-         A →E B → B →E C → A →E C
-  f >>E g = g oE f
+    infixr 5 _oE_ _>>E_
+    _oE_ : B →E C → A →E B → A →E C
+    g oE f = record
+      { _$E_ = λ x → g $E (f $E x)
+      ; _$E=_ = λ xy → g $E= (f $E= xy)
+      }
+
+    _>>E_ : A →E B → B →E C → A →E C
+    f >>E g = g oE f
+
+    private
+      module S {x y lx ly} (X : Setoid x lx) (Y : Setoid y ly) = Setoid (X →S Y)
+    open S hiding (C) renaming (_≈_ to [_,_]_≈_)
+
+    _>>E-cong_ : {f f′ : A →E B} {g g′ : B →E C} →
+                 [ A , B ] f ≈ f′ → [ B , C ] g ≈ g′ →
+                 [ A , C ] (f >>E g) ≈ (f′ >>E g′)
+    ff >>E-cong gg = λ xx → gg (ff xx)
 
   constE : ∀ {a b l m} {A : Setoid a l} {B : Setoid b m} →
            A →E (B →S A)
@@ -196,6 +204,17 @@ module Lib.Setoid where
          A ×S B →E B
   sndE = record { _$E_ = λ { (a , b) → b } ; _$E=_ = λ { (aq , bq) → bq } }
 
+  pairE : ∀ {a b l m} {A : Setoid a l} {B : Setoid b m} →
+          A →E (B →S A ×S B)
+  pairE {A = A} {B} = record
+    { _$E_ = λ x → record
+      { _$E_ = λ y → x , y
+      ; _$E=_ = λ yy → A.refl , yy
+      }
+    ; _$E=_ = λ xx yy → xx , yy
+    }
+    where module A = Setoid A ; module B = Setoid B
+
   map×S : ∀ {a a′ b b′ l l′ m m′}
           {A : Setoid a l} {A′ : Setoid a′ l′}
           {B : Setoid b m} {B′ : Setoid b′ m′} →
@@ -205,12 +224,31 @@ module Lib.Setoid where
     ; _$E=_ = λ { (aq , bq) → f $E= aq , g $E= bq }
     }
 
-  pmS : ∀ {a b c l m n} {A : Setoid a l} {B : Setoid b m} {C : Setoid c n} →
-        A →E (B →S C) → A ×S B →E C
-  pmS f = record
+  uncurryS : ∀ {a b c l m n} {A : Setoid a l} {B : Setoid b m} {C : Setoid c n} →
+             A →E (B →S C) → A ×S B →E C
+  uncurryS f = record
     { _$E_ = λ { (x , y) → f $E x $E y }
     ; _$E=_ = λ { (xq , yq) → (f $E= xq) yq }
     }
+
+  curryS : ∀ {a b c l m n} {A : Setoid a l} {B : Setoid b m} {C : Setoid c n} →
+           A ×S B →E C → A →E (B →S C)
+  curryS {A = A} {B} {C} f = record
+    { _$E_ = λ x → record
+      { _$E_ = λ y → f $E (x , y)
+      ; _$E=_ = λ yy → f $E= (A.refl , yy)
+      }
+    ; _$E=_ = λ xx yy → f $E= (xx , yy)
+    }
+    where module A = Setoid A ; module B = Setoid B ; module C = Setoid C
+
+  swapE : ∀ {a b l m} {A : Setoid a l} {B : Setoid b m} →
+          A ×S B →E B ×S A
+  swapE = record { _$E_ = swap ; _$E=_ = swap }
+
+  assocE : ∀ {a b c l m n} {A : Setoid a l} {B : Setoid b m} {C : Setoid c n} →
+           A ×S (B ×S C) →E (A ×S B) ×S C
+  assocE = record { _$E_ = assoc ; _$E=_ = assoc }
 
   --sndE : ∀ {a b l m} {A : Setoid a l} {B : SetoidI (Setoid.C A) b m} →
   --       PiE (ΣS A B) (lamS λ { (a , b) → B $S a })

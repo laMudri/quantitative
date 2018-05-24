@@ -26,6 +26,10 @@ module Lib.Equality where
   subst : ∀ {a p} {A : Set a} (P : A → Set p) {x y : A} → x ≡ y → P x → P y
   subst P refl px = px
 
+  subst2 : ∀ {a b p} {A : Set a} {B : Set b} (P : A → B → Set p)
+           {x x′ : A} {y y′ : B} → x ≡ x′ → y ≡ y′ → P x y → P x′ y′
+  subst2 P refl refl pxy = pxy
+
   IsProp : ∀ {a} → Set a → Set a
   IsProp A = (x y : A) → x ≡ y
 

@@ -2,7 +2,7 @@ module Lib.Function where
   id : ∀ {l} {A : Set l} → A → A
   id x = x
 
-  infixr 5 _o_
+  infixr 5 _o_ _>>_
   _o_ : ∀ {a b c} {A : Set a} {B : A → Set b} {C : ∀ {a} → B a → Set c}
         (f : ∀ {a} (b : B a) → C b) (g : ∀ a → B a) a → C (g a)
   (f o g) x = f (g x)
@@ -25,3 +25,7 @@ module Lib.Function where
   flip : ∀ {a b c} {A : Set a} {B : Set b} {C : A → B → Set c} →
          (∀ x y → C x y) → (∀ y x → C x y)
   flip f y x = f x y
+
+  _>>_ : ∀ {a b c} {A : Set a} {B : A → Set b} {C : ∀ {a} → B a → Set c}
+         (g : ∀ a → B a) (f : ∀ {a} (b : B a) → C b) a → C (g a)
+  _>>_ = flip _o_
