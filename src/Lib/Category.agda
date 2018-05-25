@@ -3,6 +3,7 @@ module Lib.Category where
   open import Lib.Equality as Eq using (_≡_; subst; subst2)
   open import Lib.Function as Fun using (flip)
   open import Lib.Level
+  open import Lib.One
   open import Lib.Product
   open import Lib.Setoid
 
@@ -49,6 +50,20 @@ module Lib.Category where
       field
         to : X => Y
         isIso : IsIso to
+
+  ONE : Category _ _ _
+  ONE = record
+    { Obj = One
+    ; Arr = λ _ _ → OneS
+    ; isCategory = record
+      { id = λ _ → <>
+      ; _>>_ = λ _ _ → <>
+      ; id->> = λ _ → <>
+      ; >>-id = λ _ → <>
+      ; >>->> = λ _ _ _ → <>
+      ; _>>-cong_ = λ _ _ → <>
+      }
+    }
 
   SETOID : ∀ c l → Category _ _ _
   SETOID c l = record
@@ -512,28 +527,6 @@ module Lib.Category where
     where
     open Category C
 
-  module _ {o a e} (C : Category o a e) where
-    open Category C
-
-    record IsMonoidal (I : Obj) (⊗ : Functor (C ×C C) C) : Set (o ⊔ a ⊔ e) where
-      private
-        module ⊗ = Functor ⊗
-      field
-        I⊗ : NatIso (Functor.obj pairF I >>F ⊗) (idF C)
-        ⊗I : NatIso (Functor.obj pairF I >>F swapF >>F ⊗) (idF C)
-        ⊗⊗ : NatIso {C = C ×C C ×C C} {C}
-                    (assocC >>F map×C ⊗ (idF C) >>F ⊗)
-                    (map×C (idF C) ⊗ >>F ⊗)
-
-        triangle : ∀ x y →
-          NatIso.η ⊗⊗ (x , I , y) >> ⊗.arr $E (id x , NatIso.η I⊗ y)
-            ≈ ⊗.arr $E (NatIso.η ⊗I x , id y)
-        pentagon : ∀ w x y z →
-          let open NatIso ⊗⊗ in
-          ⊗.arr $E (η (w , x , y) , id z) >> η (w , ⊗.obj (x , y) , z)
-              >> ⊗.arr $E (id w , η (x , y , z))
-            ≈ η (⊗.obj (w , x) , y , z) >> η (w , x , ⊗.obj (y , z))
-
   -- Profunctors
   module _ {oc od ac ad ec ed}
            (C : Category oc ac ec) (D : Category od ad ed) where
@@ -605,3 +598,58 @@ module Lib.Category where
         }
       }
       where open Functor F
+
+  module _ {o a e} (C : Category o a e) where
+    open Category C
+
+    record IsMonoidal (I : Obj) (⊗ : Functor (C ×C C) C) : Set (o ⊔ a ⊔ e) where
+      private
+        module ⊗ = Functor ⊗
+      field
+        I⊗ : NatIso (Functor.obj pairF I >>F ⊗) (idF C)
+        ⊗I : NatIso (Functor.obj pairF I >>F swapF >>F ⊗) (idF C)
+        ⊗⊗ : NatIso {C = C ×C C ×C C} {C}
+                    (assocC >>F map×C ⊗ (idF C) >>F ⊗)
+                    (map×C (idF C) ⊗ >>F ⊗)
+
+        triangle : ∀ x y →
+          NatIso.η ⊗⊗ (x , I , y) >> ⊗.arr $E (id x , NatIso.η I⊗ y)
+            ≈ ⊗.arr $E (NatIso.η ⊗I x , id y)
+        pentagon : ∀ w x y z →
+          let open NatIso ⊗⊗ in
+          ⊗.arr $E (η (w , x , y) , id z) >> η (w , ⊗.obj (x , y) , z)
+              >> ⊗.arr $E (id w , η (x , y , z))
+            ≈ η (⊗.obj (w , x) , y , z) >> η (w , x , ⊗.obj (y , z))
+
+    idPF : Profunctor C C
+    idPF = record
+      { obj = uncurry Arr
+      ; arr = λ { {xa , ya} {xb , yb} → record
+        { _$E_ = λ { (fa , fb) → record
+          { _$E_ = λ g → fa >> g >> fb
+          ; _$E=_ = λ gg → refl >>-cong gg >>-cong refl
+          } }
+        ; _$E=_ = λ { (ffa , ffb) gg → ffa >>-cong gg >>-cong ffb }
+        } }
+      ; isFunctor = record
+        { arr-id = λ { (x , y) {g} {g′} gg →
+          let open SetoidReasoning (Arr _ _) in
+          id x >> g >> id y  ≈[ id->> (g >> id y) ]≈
+                  g >> id y  ≈[ >>-id g ]≈
+                  g          ≈[ gg ]≈
+                  g′         QED }
+        ; arr->> = λ { {f = fa , fb} {ga , gb} {h} {h′} hh →
+          let open SetoidReasoning (Arr _ _) in
+          (ga >> fa) >> h >> (fb >> gb)   ≈[ refl >>-cong hh >>-cong refl ]≈
+          (ga >> fa) >> h′ >> (fb >> gb)  ≈[ refl >>-cong sym (>>->> _ _ _) ]≈
+          (ga >> fa) >> (h′ >> fb) >> gb  ≈[ >>->> _ _ _ ]≈
+          ga >> (fa >> (h′ >> fb) >> gb)  ≈[ refl >>-cong sym (>>->> _ _ _) ]≈
+          ga >> (fa >> h′ >> fb) >> gb    QED }
+        }
+      }
+
+    --record IsPromonoidal (J : Profunctor ONE C) (P : Profunctor (C ×C C) C) : Set (o ⊔ a ⊔ e) where
+    --  private
+    --    module J = Functor J ; module P = Functor P
+    --  field
+    --    JP : ∀ a b → {!!}

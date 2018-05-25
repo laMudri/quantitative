@@ -7,6 +7,7 @@ module Lib.Setoid where
   open import Lib.Level
   open import Lib.Product
   open import Lib.One
+  open import Lib.Sum
 
   record IsSetoid {c l} {C : Set c} (_≈_ : C → C → Set l) : Set (c ⊔ l) where
     field
@@ -280,6 +281,24 @@ module Lib.Setoid where
       ; isSetoid = record { refl = <> ; sym = λ _ → <> ; trans = λ _ _ → <> }
       }
     }
+
+  -- Sums
+
+  _⊎S_ : ∀ {a b l m} (A : Setoid a l) (B : Setoid b m) → Setoid _ _
+  A ⊎S B = record
+    { C = A.C ⊎ B.C
+    ; setoidOver = record
+      { _≈_ = A._≈_ ⊎R B._≈_
+      ; isSetoid = record
+        { refl = λ { {inl a} → inl A.refl ; {inr b} → inr B.refl }
+        ; sym = λ { (inl aa) → inl (A.sym aa) ; (inr bb) → inr (B.sym bb) }
+        ; trans = λ { (inl xy) (inl yz) → inl (A.trans xy yz)
+                    ; (inr xy) (inr yz) → inr (B.trans xy yz)
+                    }
+        }
+      }
+    }
+    where module A = Setoid A ; module B = Setoid B
 
   LiftS : ∀ {a l} a′ l′ → Setoid a l → Setoid (a ⊔ a′) (l ⊔ l′)
   LiftS a′ l′ S = record

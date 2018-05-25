@@ -33,3 +33,6 @@ module Lib.Relation where
 
     [_,_]_×R_ : ∀ {x y} → Rel A x → Rel B y → Rel (A ×S B) _
     [_,_]_×R_ R S (xa , xb) (ya , yb) = R xa ya × S xb yb
+
+    [_,_]_⊎R_ : ∀ {x y} → Rel A x → Rel B y → Rel (A ⊎S B) _
+    [_,_]_⊎R_ = _⊎R_

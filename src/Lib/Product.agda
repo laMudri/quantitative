@@ -17,6 +17,9 @@ module Lib.Product where
   ∃ : ∀ {a b} {A : Set a} (B : A → Set b) → Set (a ⊔ b)
   ∃ = Σ _
 
+  ∃2 : ∀ {a b c} {A : Set a} {B : Set b} (C : A → B → Set c) → Set (a ⊔ b ⊔ c)
+  ∃2 C = Σ _ (λ a → Σ _ (λ b → C a b))
+
   mapΣ : ∀ {a a′ b b′} {A : Set a} {A′ : Set a′} {B : A → Set b} {B′ : A′ → Set b′}
           (fa : A → A′) → (∀ {a} → B a → B′ (fa a)) → Σ A B → Σ A′ B′
   mapΣ fa fb (a , b) = fa a , fb b
