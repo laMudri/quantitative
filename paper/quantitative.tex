@@ -258,28 +258,39 @@ The Story:
 
 \subsection{Well-scoped Syntax}
 
-FIXME: is it possible to remove the Ty type from Quantitative.Syntax?
-Ideally, the Syntax should just be parameterised by the form of type
-annotations. The Syntax shouldn't depend on the resource semiring.
+We present our theory as a system of three layers. First, we have well scoped
+syntax. On top of this we impose typing discipline, and on top of that,
+resourcing discipline.
+
+The well scoped syntax is formalised using de Bruijn indices, but written here
+with names for clarity. Justified by the de Bruijn formalisation, we assume that
+all variable names are distinct.
+
+The theory contains linear functions, bangs, tensor and with products, sums, and
+units for the latter three. Intuitively, $\excl{\rho}{S}$ can be interpreted as
+$\rho$-many copies of $S$, $\tensor{S}{T}$ as a pair containing both an $S$ and a
+$T$, $\withT{S}{T}$ as either an $S$ or a $T$ (consumer's choice), and
+$\sumT{S}{T}$ as either an $S$ or a $T$ (producer's choice). $\tensor{S}{T}$ is
+a pair eliminated by pattern matching, whereas $\withT{S}{T}$ is a pair
+eliminated by projections.
 
 \begin{displaymath}
   \begin{array}{rrll}
     \pi,\rho & \in & R & \textrm{resource annotations} \\
-    i & \in & \{0,1\} & \textrm{sides}
-    \\\\
+    i & \in & \{0,1\} & \textrm{sides} \\
+    \\
     S,T &  ::= & \fun{S}{T}                    & \textrm{function} \\
         & \mid & \excl{\rho}{S}                & \textrm{bang} \\
         & \mid & \tensorOne \mid \tensor{S}{T} & \textrm{tensor product} \\
         & \mid & \withTOne \mid \withT{S}{T}   & \textrm{with} \\
-        & \mid & \sumTZero \mid \sumT{S}{T}    & \textrm{sum}
-    \\\\
+        & \mid & \sumTZero \mid \sumT{S}{T}    & \textrm{sum} \\
+    \\
     s &  ::= & \lam{x}{s} & \textrm{lambda abstraction} \\
       & \mid & \bang{s} & \textrm{bang introduction} \\
       & \mid & \unit \mid \ten{s_0}{s_1} & \textrm{tensor product} \\
       &      &                           & \textrm{introduction} \\
       & \mid & \eat \mid \wth{s_0}{s_1} & \textrm{with introduction} \\
-      & \mid & \inj{i}{s} & \textrm{sum introduction}
-    \\
+      & \mid & \inj{i}{s} & \textrm{sum introduction} \\
     e &  ::= & x & \textrm{variable} \\
       & \mid & \bm{T}{e}{\bind{x}{s}}  & \textrm{pattern matching} \\
       &      &                         & \textrm{for bang} \\
@@ -295,7 +306,15 @@ annotations. The Syntax shouldn't depend on the resource semiring.
 
 \subsection{Well-typed}
 
-Types enable us to give a total functional semantics to terms. FIXME:
+Typing and resourcing rules are presented in \autoref{fig:typing-rules}. Typing
+rules are given by ignoring all of the red annotations (superscripts and
+hypotheses about $\Delta$).
+
+Types enable us to give a total functional semantics to terms. This semantics
+(presented in \autoref{fig:set-semantics}) does not distinguish between the two
+notions of product, and treats $\excl{\rho}{S}$ the same as just $S$.
+
+FIXME:
 Is it possible to make Quantitative.Types have its own notion of types
 that we can show is related to the resourced types? (the need for
 special constructs for introducing and eliminating bangs is a wrinkle
@@ -387,6 +406,14 @@ here).
   \end{mathpar}                                                                                  
   \caption{Typing and resourcing rules}
   \label{fig:typing-rules}
+\end{figure}
+
+\begin{figure}
+  \begin{displaymath}
+    \llbracket S \rrbracket = \ldots
+  \end{displaymath}
+  \caption{Semantics of typed terms in Set}
+  \label{fig:set-semantics}
 \end{figure}
 
 \section{Resourced Terms}
