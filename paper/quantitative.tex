@@ -63,6 +63,7 @@
 \usepackage{mathpartir}
 \usepackage{amssymb}
 \usepackage{cmll}
+\usepackage{xcolor}
 
 
 \newcommand{\ann}[2]{#1 : #2}
@@ -100,9 +101,9 @@
 
 
 \newcommand{\bind}[2]{(#1)#2}
-\newcommand{\ctx}[2]{#1^{#2}}
-\newcommand{\ctxvar}[3]{#1 \stackrel{#3}: #2}
-\newcommand{\rescomment}[1]{#1}
+\newcommand{\ctx}[2]{#1^{\color{red}#2}}
+\newcommand{\ctxvar}[3]{#1 \stackrel{{\color{red}#3}}: #2}
+\newcommand{\rescomment}[1]{{\color{red}#1}}
 
 \begin{document}
 
@@ -300,89 +301,93 @@ that we can show is related to the resourced types? (the need for
 special constructs for introducing and eliminating bangs is a wrinkle
 here).
 
-\begin{mathpar}
-  % Variables
-  \inferrule{(x : S) \in \Gamma
+\begin{figure}
+  \begin{mathpar}
+    % Variables
+    \inferrule{(x : S) \in \Gamma
                \\ \rescomment{\Delta \leq 0, x^1, 0}}
-            {\ctx{\Gamma}{\Delta} \vdash x \in S}
+              {\ctx{\Gamma}{\Delta} \vdash x \in S}
 
-  % Embedding
-  \inferrule{\ctx{\Gamma}{\Delta} \vdash S \ni s}
-            {\ctx{\Gamma}{\Delta} \vdash (\ann{s}{S}) \in S}
-            
-  \inferrule{\ctx{\Gamma}{\Delta} \vdash e \in S}
-            {\ctx{\Gamma}{\Delta} \vdash S \ni \emb{e}}
+    % Embedding
+    \inferrule{\ctx{\Gamma}{\Delta} \vdash S \ni s}
+              {\ctx{\Gamma}{\Delta} \vdash (\ann{s}{S}) \in S}
+              
+    \inferrule{\ctx{\Gamma}{\Delta} \vdash e \in S}
+              {\ctx{\Gamma}{\Delta} \vdash S \ni \emb{e}}
 
-  % Functions
-  \inferrule{\ctx{\Gamma}{\Delta}, \ctxvar{x}{S}{1} \vdash T \ni s[x]}
-            {\ctx{\Gamma}{\Delta} \vdash \fun{S}{T} \ni \lam{x}{s[x]}}
+    % Functions
+    \inferrule{\ctx{\Gamma}{\Delta}, \ctxvar{x}{S}{1} \vdash T \ni s[x]}
+              {\ctx{\Gamma}{\Delta} \vdash \fun{S}{T} \ni \lam{x}{s[x]}}
 
-  \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \fun{S}{T}
-             \\ \ctx{\Gamma}{\Delta_s} \vdash S \ni s
-             \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
-            {\ctx{\Gamma}{\Delta} \vdash \app{e}{s} \in T}
+    \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \fun{S}{T}
+               \\ \ctx{\Gamma}{\Delta_s} \vdash S \ni s
+               \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
+              {\ctx{\Gamma}{\Delta} \vdash \app{e}{s} \in T}
 
-  % Bang
-  \inferrule{\ctx{\Gamma}{\Delta_s} \vdash S \ni s
-             \\ \rescomment{\Delta \leq \rho \cdot \Delta_s}}
-            {\ctx{\Gamma}{\Delta} \vdash \excl{\rho}{S} \ni \bang{s}}
+    % Bang
+    \inferrule{\ctx{\Gamma}{\Delta_s} \vdash S \ni s
+               \\ \rescomment{\Delta \leq \rho \cdot \Delta_s}}
+              {\ctx{\Gamma}{\Delta} \vdash \excl{\rho}{S} \ni \bang{s}}
 
-  \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \excl{\rho}{S}
-             \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S}{\rho} \vdash T \ni s[x]
-             \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
-            {\ctx{\Gamma}{\Delta} \vdash \bm{T}{e}{\bind{x}{s[x]}} \in T}
+    \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \excl{\rho}{S}
+               \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S}{\rho} \vdash T \ni s[x]
+               \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
+              {\ctx{\Gamma}{\Delta} \vdash \bm{T}{e}{\bind{x}{s[x]}} \in T}
 
-  % Tensor unit
-  \inferrule{\rescomment{\Delta \leq 0}}
-            {\ctx{\Gamma}{\Delta} \vdash \tensorOne \ni \unit}
+    % Tensor unit
+    \inferrule{\rescomment{\Delta \leq 0}}
+              {\ctx{\Gamma}{\Delta} \vdash \tensorOne \ni \unit}
 
-  \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \tensorOne 
-             \\ \ctx{\Gamma}{\Delta_s} \vdash T \ni s
-             \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
-            {\ctx{\Gamma}{\Delta} \vdash \del{T}{e}{s} \in T}
+    \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \tensorOne 
+               \\ \ctx{\Gamma}{\Delta_s} \vdash T \ni s
+               \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
+              {\ctx{\Gamma}{\Delta} \vdash \del{T}{e}{s} \in T}
 
-  % Tensor
-  \inferrule{\ctx{\Gamma}{\Delta_0} \vdash S_0 \ni s_0
-             \\ \ctx{\Gamma}{\Delta_1} \vdash S_1 \ni s_1
-             \\ \rescomment{\Delta \leq \Delta_0 + \Delta_1}}
-            {\ctx{\Gamma}{\Delta} \vdash \tensor{S_0}{S_1} \ni \ten{s_0}{s_1}}
+    % Tensor
+    \inferrule{\ctx{\Gamma}{\Delta_0} \vdash S_0 \ni s_0
+               \\ \ctx{\Gamma}{\Delta_1} \vdash S_1 \ni s_1
+               \\ \rescomment{\Delta \leq \Delta_0 + \Delta_1}}
+              {\ctx{\Gamma}{\Delta} \vdash \tensor{S_0}{S_1} \ni \ten{s_0}{s_1}}
 
-  \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \tensor{S_0}{S_1}
-             \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S_0}{1}, \ctxvar{y}{S_1}{1} \vdash T \ni s[x,y]
-             \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
-            {\ctx{\Gamma}{\Delta} \vdash \prm{T}{e}{\bind{x,y}{s[x,y]}} \in T}
+    \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \tensor{S_0}{S_1}
+               \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S_0}{1}, \ctxvar{y}{S_1}{1} \vdash T \ni s[x,y]
+               \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
+              {\ctx{\Gamma}{\Delta} \vdash \prm{T}{e}{\bind{x,y}{s[x,y]}} \in T}
 
-  % With unit
-  \inferrule{ }
-            {\ctx{\Gamma}{\Delta} \vdash \withTOne \ni \eat}
+    % With unit
+    \inferrule{ }
+              {\ctx{\Gamma}{\Delta} \vdash \withTOne \ni \eat}
 
-  %(no \withTOne elim)
+    %(no \withTOne elim)
 
-  % With
-  \inferrule{\ctx{\Gamma}{\Delta} \vdash S_0 \ni s_0
-             \\ \ctx{\Gamma}{\Delta} \vdash S_1 \ni s_1}
-            {\ctx{\Gamma}{\Delta} \vdash \withT{S_0}{S_1} \ni \wth{s_0}{s_1}}
+    % With
+    \inferrule{\ctx{\Gamma}{\Delta} \vdash S_0 \ni s_0
+               \\ \ctx{\Gamma}{\Delta} \vdash S_1 \ni s_1}
+              {\ctx{\Gamma}{\Delta} \vdash \withT{S_0}{S_1} \ni \wth{s_0}{s_1}}
 
-  \inferrule{\ctx{\Gamma}{\Delta} \vdash e \in \withT{S_0}{S_1}}
-            {\ctx{\Gamma}{\Delta} \vdash \proj{i}{e} \in S_i}
+    \inferrule{\ctx{\Gamma}{\Delta} \vdash e \in \withT{S_0}{S_1}}
+              {\ctx{\Gamma}{\Delta} \vdash \proj{i}{e} \in S_i}
 
-  % Sum unit
-  %(no \sumTZero intro)
+    % Sum unit
+    %(no \sumTZero intro)
 
-  \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \sumTZero
-             \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
-            {\ctx{\Gamma}{\Delta} \vdash \exf{T}{e} \in T}
+    \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \sumTZero
+               \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
+              {\ctx{\Gamma}{\Delta} \vdash \exf{T}{e} \in T}
 
-  % Sum
-  \inferrule{\ctx{\Gamma}{\Delta} \vdash S_i \ni s}
-            {\ctx{\Gamma}{\Delta} \vdash \sumT{S_0}{S_1} \ni \inj{i}{s}}
+    % Sum
+    \inferrule{\ctx{\Gamma}{\Delta} \vdash S_i \ni s}
+              {\ctx{\Gamma}{\Delta} \vdash \sumT{S_0}{S_1} \ni \inj{i}{s}}
 
-  \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \sumT{S_0}{S_1}
-             \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S_0}{1} \vdash T \ni s_0[x]
-             \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{y}{S_1}{1} \vdash T \ni s_1[y]
-             \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
-            {\ctx{\Gamma}{\Delta} \vdash \cse{T}{e}{\bind{x}{s_0[x]}}{\bind{y}{s_1[y]}} \in T}
-\end{mathpar}
+    \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \sumT{S_0}{S_1}
+               \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S_0}{1} \vdash T \ni s_0[x]
+               \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{y}{S_1}{1} \vdash T \ni s_1[y]
+               \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
+              {\ctx{\Gamma}{\Delta} \vdash \cse{T}{e}{\bind{x}{s_0[x]}}{\bind{y}{s_1[y]}} \in T}
+  \end{mathpar}                                                                                  
+  \caption{Typing and resourcing rules}
+  \label{fig:typing-rules}
+\end{figure}
 
 \section{Resourced Terms}
 
