@@ -10,3 +10,12 @@ module Lib.Sum where
          (A → A′) → (B → B′) → A ⊎ B → A′ ⊎ B′
   map⊎ f g (inl a) = inl (f a)
   map⊎ f g (inr b) = inr (g b)
+
+  [_,_] : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+          (A → C) → (B → C) → (A ⊎ B → C)
+  [ f , g ] (inl a) = f a
+  [ f , g ] (inr b) = g b
+
+  swap⊎ : ∀ {a b} {A : Set a} {B : Set b} → A ⊎ B → B ⊎ A
+  swap⊎ (inl a) = inr a
+  swap⊎ (inr b) = inl b
