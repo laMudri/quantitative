@@ -281,11 +281,11 @@ module Lib.Setoid where
       }
     }
 
-  LiftS : ∀ {a l a′ l′} → Setoid a l → Setoid (a ⊔ a′) (l ⊔ l′)
-  LiftS {a′ = a′} {l′} S = record
-    { C = Lift {l = a′} C
+  LiftS : ∀ {a l} a′ l′ → Setoid a l → Setoid (a ⊔ a′) (l ⊔ l′)
+  LiftS a′ l′ S = record
+    { C = Lift a′ C
     ; setoidOver = record
-      { _≈_ = λ { (lift x) (lift y) → Lift {l = l′} (x ≈ y) }
+      { _≈_ = λ { (lift x) (lift y) → Lift l′ (x ≈ y) }
       ; isSetoid = record
         { refl = lift refl
         ; sym = λ { (lift xy) → lift (sym xy) }

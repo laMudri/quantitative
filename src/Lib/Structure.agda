@@ -6,7 +6,7 @@ module Lib.Structure {c l} (S : Setoid c l) where
   --open import Lib.Equality hiding (refl)
   open import Lib.FunctionProperties S
   open import Lib.Level
-  open import Lib.Product
+  open import Lib.Product hiding (assoc)
 
   open Setoid S
 

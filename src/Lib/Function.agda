@@ -29,3 +29,7 @@ module Lib.Function where
   _>>_ : ∀ {a b c} {A : Set a} {B : A → Set b} {C : ∀ {a} → B a → Set c}
          (g : ∀ a → B a) (f : ∀ {a} (b : B a) → C b) a → C (g a)
   _>>_ = flip _o_
+
+  _⟨_⟩_ : ∀ {a b c} {A : Set a} {B : A → Set b} {C : ∀ x → B x → Set c}
+          (x : A) → ((x : A) (y : B x) → C x y) → (y : B x) → C x y
+  x ⟨ f ⟩ y = f x y

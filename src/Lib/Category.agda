@@ -10,7 +10,7 @@ module Lib.Category where
                     : Set (o ⊔ a ⊔ e) where
     open module Arr (A B : Obj) =
       Setoid (Arr A B) renaming (C to _=>_; _≈_ to [_,_]_≈_)
-    infixr 5 _>>_
+    infixr 5 _>>_ _>>-cong_
     field
       id : (A : Obj) → A => A
       _>>_ : {A B C : Obj} → A => B → B => C → A => C
@@ -533,3 +533,75 @@ module Lib.Category where
           ⊗.arr $E (η (w , x , y) , id z) >> η (w , ⊗.obj (x , y) , z)
               >> ⊗.arr $E (id w , η (x , y , z))
             ≈ η (⊗.obj (w , x) , y , z) >> η (w , x , ⊗.obj (y , z))
+
+  -- Profunctors
+  module _ {oc od ac ad ec ed}
+           (C : Category oc ac ec) (D : Category od ad ed) where
+
+    Profunctor : Set _
+    Profunctor = Functor (OP D ×C C) (SETOID (ac ⊔ ad) (ec ⊔ ed))
+
+  module _ {oc od ac ad ec ed}
+           (C : Category oc ac ec) (D : Category od ad ed) where
+    private
+      module C = Category C ; module D = Category D
+    open D
+
+    D[_,_][1,_] : Functor C D → Profunctor C D
+    D[_,_][1,_] F = record
+      { obj = λ { (d , c) → LiftS ac ec (Arr d (obj c)) }
+      ; arr = λ { {da , ca} {db , cb} → record
+        { _$E_ = λ { (f , g) → record
+          { _$E_ = mapLift λ h → f >> h >> arr $E g
+          ; _$E=_ = mapLift λ hh → refl >>-cong hh >>-cong refl
+          } }
+        ; _$E=_ = λ { (ff , gg) → mapLift λ hh → ff >>-cong hh >>-cong arr $E= gg }
+        } }
+      ; isFunctor = record
+        { arr-id = λ { (d , c) {lift h} {lift h′} → mapLift λ hh →
+          let open SetoidReasoning (Arr _ _) in
+          id d >> (h >> arr $E C.id c)  ≈[ id->> _ ]≈
+                   h >> arr $E C.id c   ≈[ refl >>-cong arr-id c ]≈
+                   h >>   id (obj c)    ≈[ >>-id h ]≈
+                   h                    ≈[ hh ]≈
+                   h′                   QED }
+        ; arr->> = λ { {f = fd , fc} {gd , gc} {lift h} {lift h′} → mapLift λ hh →
+          let open SetoidReasoning (Arr _ _) in
+          (gd >> fd) >> (h >> arr $E (fc C.>> gc))  ≈[ refl >>-cong refl >>-cong arr->> ]≈
+          (gd >> fd) >> (h >> arr $E fc >> arr $E gc)  ≈[ refl >>-cong hh >>-cong refl ]≈
+          (gd >> fd) >> (h′ >> arr $E fc >> arr $E gc)  ≈[ refl >>-cong sym (>>->> _ _ _) ]≈
+          (gd >> fd) >> ((h′ >> arr $E fc) >> arr $E gc)  ≈[ >>->> _ _ _ ]≈
+          gd >> (fd >> ((h′ >> arr $E fc) >> arr $E gc))  ≈[ refl >>-cong sym (>>->> _ _ _) ]≈
+          gd >> (fd >> (h′ >> arr $E fc)) >> arr $E gc  QED }
+        }
+      }
+      where open Functor F
+
+    D[_,_][_,1] : Functor C D → Profunctor D C
+    D[_,_][_,1] F = record
+      { obj = λ { (c , d) → LiftS ac ec (Arr (obj c) d) }
+      ; arr = λ { {ca , da} {cb , db} → record
+        { _$E_ = λ { (f , g) → record
+          { _$E_ = mapLift λ h → arr $E f >> h >> g
+          ; _$E=_ = mapLift λ hh → refl >>-cong hh >>-cong refl
+          } }
+        ; _$E=_ = λ { (ff , gg) → mapLift λ hh → arr $E= ff >>-cong hh >>-cong gg }
+        } }
+      ; isFunctor = record
+        { arr-id = λ { (c , d) {lift h} {lift h′} → mapLift λ hh →
+          let open SetoidReasoning (Arr _ _) in
+          arr $E C.id c >> h >> id d  ≈[ arr-id _ >>-cong refl ]≈
+            id (obj c)  >> h >> id d  ≈[ id->> (h >> id d) ]≈
+                           h >> id d  ≈[ >>-id h ]≈
+                           h          ≈[ hh ]≈
+                           h′         QED }
+        ; arr->> = λ { {f = fc , fd} {gc , gd} {lift h} {lift h′} → mapLift λ hh →
+          let open SetoidReasoning (Arr _ _) in
+          arr $E (gc C.>> fc) >> h >> fd >> gd  ≈[ arr->> >>-cong hh >>-cong refl ]≈
+          (arr $E gc >> arr $E fc) >> h′ >> fd >> gd  ≈[ >>->> _ _ _ ]≈
+          arr $E gc >> arr $E fc >> h′ >> fd >> gd  ≈[ refl >>-cong refl >>-cong sym (>>->> _ _ _) ]≈
+          arr $E gc >> (arr $E fc >> ((h′ >> fd) >> gd))  ≈[ refl >>-cong sym (>>->> _ _ _) ]≈
+          arr $E gc >> (arr $E fc >> h′ >> fd) >> gd  QED }
+        }
+      }
+      where open Functor F
