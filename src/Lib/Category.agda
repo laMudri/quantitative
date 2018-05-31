@@ -527,6 +527,75 @@ module Lib.Category where
     where
     open Category C
 
+  module _ {p o a e : Level} (C : Category o a e) where
+    open Category C
+
+    record ∃! {X Y} (P : X => Y → Set p) : Set (p ⊔ a ⊔ e) where
+      field
+        f : X => Y
+        Pf : P f
+        unique : ∀ g → P g → g ≈ f
+
+  module _ {oc od ac ad ec ed}
+           {C : Category oc ac ec} {D : Category od ad ed}
+           (F : Functor (OP D) C) where
+    private
+      module C = Category C ; module Dᵒᵖ = Category (OP D)
+      module F = Functor F
+    open F
+    open C
+
+    record IsCone (cobj : C.Obj) : Set (od ⊔ ac ⊔ ad ⊔ ec) where
+      field
+        carr : ∀ d → cobj => obj d
+        commute : ∀ {d d′} (f : d Dᵒᵖ.=> d′) → carr d >> arr $E f ≈ carr d′
+
+    record Limit : Set (oc ⊔ od ⊔ ac ⊔ ad ⊔ ec) where
+      field
+        lobj : C.Obj
+        isCone : IsCone lobj
+        universal : ∀ lobj′ (isCone′ : IsCone lobj′) →
+                    ∃! C λ (f : lobj′ => lobj) →
+                    ∀ d → IsCone.carr isCone′ d ≈ f >> IsCone.carr isCone d
+
+  module _ {oc ox ac ax ec ex} {C : Category oc ac ec} {X : Category ox ax ex}
+           (F : Functor (OP C ×C C) X) where
+    private
+      module C = Category C ; module X = Category X
+    open Functor F
+    open X
+
+    record IsWedge (wobj : Obj) : Set (oc ⊔ ac ⊔ ax ⊔ ex) where
+      field
+        warr : ∀ c → wobj => obj (c , c)
+        commutes : ∀ {c c′} (f : c C.=> c′) →
+                   warr c >> arr $E (C.id c , f)
+                     ≈ warr c′ >> arr $E (f , C.id c′)
+
+    record End : Set (oc ⊔ ox ⊔ ac ⊔ ax ⊔ ex) where
+      field
+        eobj : Obj
+        isWedge : IsWedge eobj
+        universal : ∀ eobj′ (isWedge′ : IsWedge eobj′) →
+                    ∃! X λ (f : eobj′ => eobj) →
+                    ∀ c → IsWedge.warr isWedge′ c ≈ f >> IsWedge.warr isWedge c
+
+    record IsCowedge (wobj : Obj) : Set (oc ⊔ ac ⊔ ax ⊔ ex) where
+      field
+        warr : ∀ c → obj (c , c) => wobj
+        commutes : ∀ {c c′} (f : c′ C.=> c) →
+                   arr $E (C.id c , f) >> warr c
+                     ≈ arr $E (f , C.id c′) >> warr c′
+
+    record Coend : Set (oc ⊔ ox ⊔ ac ⊔ ax ⊔ ex) where
+      field
+        eobj : Obj
+        isCowedge : IsCowedge eobj
+        universal : ∀ eobj′ (isCowedge′ : IsCowedge eobj′) →
+                    ∃! X λ (f : eobj => eobj′) →
+                    ∀ c → IsCowedge.warr isCowedge′ c
+                            ≈ IsCowedge.warr isCowedge c >> f
+
   -- Profunctors
   module _ {oc od ac ad ec ed}
            (C : Category oc ac ec) (D : Category od ad ed) where
