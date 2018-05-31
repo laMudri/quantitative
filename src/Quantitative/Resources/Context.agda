@@ -10,7 +10,7 @@ module Quantitative.Resources.Context
 
   open import Lib.Module
   open import Lib.Nat
-  open import Lib.Product
+  open import Lib.Product hiding (assoc)
   open import Lib.Thinning as Θ hiding (_≤_; ≤-refl)
   open import Lib.Vec
   open import Lib.VZip

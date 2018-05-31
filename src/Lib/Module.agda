@@ -3,7 +3,7 @@ open import Lib.Setoid
 module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
   open import Lib.FunctionProperties as FP
   open import Lib.Level
-  open import Lib.Product
+  open import Lib.Product hiding (assoc)
   open import Lib.Structure as Str
   private
     module S = Setoid S
