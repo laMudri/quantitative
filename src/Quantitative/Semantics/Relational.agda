@@ -39,7 +39,7 @@ module Quantitative.Semantics.Relational
   R⟦ &1 ⟧T w = λ _ _ → One
   R⟦ ⊕0 ⟧T w ()
   R⟦ S ⊸ T ⟧T w f f′ =
-    ∀ x y → Setoid.C (P.obj (x , y , w)) →
+    ∀ x y → Setoid.C (P.obj (x , w , y)) →
     ∀ s s′ → R⟦ S ⟧T x s s′ → R⟦ T ⟧T y (f s) (f′ s′)
   R⟦ S ⊗ T ⟧T w (s , t) (s′ , t′) =
     ∃2 λ x y → Setoid.C (P.obj (x , y , w)) ×
@@ -51,7 +51,7 @@ module Quantitative.Semantics.Relational
   R⟦_,_⟧Δ : ∀ {n} (Γ : TCtx n) (Δ : RCtx n) → W.Obj → Rel ⟦ Γ ⟧Γ lzero
   R⟦ nil , nil ⟧Δ w = λ _ _ → Setoid.C (J.obj (w , <>))
   R⟦ T :: Γ , ρ :: Δ ⟧Δ w (t , γ) (t′ , γ′) =
-    ∃2 λ x y → Setoid.C (P.obj (x , y , w)) →
+    ∃2 λ x y → Setoid.C (P.obj (x , y , w)) ×
     act ρ (R⟦ T ⟧T x) t t′ × R⟦ Γ , Δ ⟧Δ y γ γ′
 
   -- TODO: report internal error at C-c C-a
@@ -69,7 +69,8 @@ module Quantitative.Semantics.Relational
   fundamental (exf split er) γ γ′ w δδ = {!Zero-elim!}
   fundamental (cse split er s0r s1r) γ γ′ w δδ = {!!}
   fundamental (the sr) γ γ′ w δδ = fundamental sr γ γ′ w δδ
-  fundamental (lam sr) γ γ′ w δδ x y xyw s s′ ss = {!!}
+  fundamental (lam sr) γ γ′ w δδ x y xwy s s′ ss =
+    fundamental sr (s , γ) (s′ , γ′) y (x , w , xwy , ss , δδ)
   fundamental (bang split sr) γ γ′ w δδ = {!!}
   fundamental (unit split) γ γ′ w δδ = {!!}
   fundamental (ten split s0r s1r) γ γ′ w δδ = {!!}
