@@ -6,7 +6,8 @@ open import Lib.Setoid
 module Quantitative.Semantics.Relational
          (W : Category lzero lzero lzero)
          (Base : Set) (BaseR : Category.Obj W → Rel Base lzero)
-         (J : Profunctor ONE W) (P : Profunctor (W ×C W) W) where
+         (J : Profunctor ONE W) (P : Profunctor (W ×C W) W)
+         (isPromonoidal : IsPromonoidal _ J P) where
 
   module W = Category W
   module Wᵒᵖ = Category (OP W)
@@ -26,14 +27,18 @@ module Quantitative.Semantics.Relational
   open import Quantitative.Resources.Context RelAct posemiring
 
   open import Lib.Equality
+  open import Lib.Nat
   open import Lib.One
   open import Lib.Product
   open import Lib.Sum
   open import Lib.Two
   open import Lib.Vec
+  open import Lib.VZip
   open import Lib.Zero
 
   R⟦_⟧T : (T : Ty) → W.Obj → Rel ⟦ T ⟧T lzero
+  R⟦_,_⟧ρ : ∀ T ρ → W.Obj → Rel ⟦ T ⟧T lzero
+
   R⟦ BASE ⟧T w = BaseR w
   R⟦ ⊗1 ⟧T w = λ _ _ → Setoid.C (J.obj (w , <>))
   R⟦ &1 ⟧T w = λ _ _ → One
@@ -46,21 +51,68 @@ module Quantitative.Semantics.Relational
     R⟦ S ⟧T x s s′ × R⟦ T ⟧T y t t′
   R⟦ S & T ⟧T w = R⟦ S ⟧T w ×R R⟦ T ⟧T w
   R⟦ S ⊕ T ⟧T w = R⟦ S ⟧T w ⊎R R⟦ T ⟧T w
-  R⟦ ! ρ S ⟧T w = act ρ (R⟦ S ⟧T w)
+  R⟦ ! ρ S ⟧T w = R⟦ S , ρ ⟧ρ w
+
+  R⟦ T , ρ ⟧ρ w = act ρ (R⟦ T ⟧T w)
 
   R⟦_,_⟧Δ : ∀ {n} (Γ : TCtx n) (Δ : RCtx n) → W.Obj → Rel ⟦ Γ ⟧Γ lzero
   R⟦ nil , nil ⟧Δ w = λ _ _ → Setoid.C (J.obj (w , <>))
   R⟦ T :: Γ , ρ :: Δ ⟧Δ w (t , γ) (t′ , γ′) =
     ∃2 λ x y → Setoid.C (P.obj (x , y , w)) ×
-    act ρ (R⟦ T ⟧T x) t t′ × R⟦ Γ , Δ ⟧Δ y γ γ′
+    R⟦ T , ρ ⟧ρ x t t′ × R⟦ Γ , Δ ⟧Δ y γ γ′
+
+
+  Rρ-weaken : ∀ T {π ρ} w {s s′} → π R.≤ ρ →
+              R⟦ T , ρ ⟧ρ w s s′ → R⟦ T , π ⟧ρ w s s′
+  Rρ-weaken BASE w le rr = {!!}
+  Rρ-weaken ⊗1 w le rr = {!!}
+  Rρ-weaken &1 w le rr = {!!}
+  Rρ-weaken ⊕0 w le rr = {!!}
+  Rρ-weaken (S ⊸ T) w le rr = {!!}
+  Rρ-weaken (S ⊗ T) w le rr = {!!}
+  Rρ-weaken (S & T) w le rr = {!!}
+  Rρ-weaken (S ⊕ T) w le rr = {!!}
+  Rρ-weaken (! ρ S) w le rr = {!!}
+
+  Rρ-split-0 : ∀ T ρ w s s′ → ρ R.≤ R.e0 →
+               R⟦ T , ρ ⟧ρ w s s′ → Setoid.C (J.obj (w , <>))
+  Rρ-split-0 T ρ w s s′ le rr = {!!}
+
+  RΔ-split-0 : ∀ {n} {Γ : TCtx n} {Δ w γ γ′} → Δ Δ.≤ Δ.e0 →
+               R⟦ Γ , Δ ⟧Δ w γ γ′ → Setoid.C (J.obj (w , <>))
+  RΔ-split-0 {0} {nil} {nil} nil δδ = δδ
+  RΔ-split-0 {succ n} {T :: Γ} {ρ :: Δ} {w} {s , γ} {s′ , γ′} (le :: split) (x , y , xyw , rr , δδ) =
+    {!RΔ-split-0 {n} {Γ} {Δ} split δδ!}
+
+  Rρ-split-+ : ∀ T ρ ρx ρy w s s′ → ρ R.≤ ρx R.+ ρy → R⟦ T , ρ ⟧ρ w s s′ →
+               ∃2 λ x y → Setoid.C (P.obj (x , y , w)) ×
+               R⟦ T , ρx ⟧ρ x s s′ × R⟦ T , ρy ⟧ρ y s s′
+  Rρ-split-+ BASE ρ ρx ρy w s s′ le rr = {!!}
+  Rρ-split-+ ⊗1 ρ ρx ρy w s s′ le rr = {!!}
+  Rρ-split-+ &1 ρ ρx ρy w s s′ le rr = {!!}
+  Rρ-split-+ ⊕0 ρ ρx ρy w s s′ le rr = {!!}
+  Rρ-split-+ (S ⊸ T) ρ ρx ρy w s s′ le rr = {!!}
+  Rρ-split-+ (S ⊗ T) ρ ρx ρy w s s′ le rr = {!!}
+  Rρ-split-+ (S & T) ρ ρx ρy w s s′ le rr = {!!}
+  Rρ-split-+ (S ⊕ T) ρ ρx ρy w s s′ le rr = {!!}
+  Rρ-split-+ (! π S) ρ ρx ρy w s s′ le rr = {!!}
+
+  RΔ-split-+ : ∀ {n} (Γ : TCtx n) {Δ Δx Δy γ γ′} w → Δ Δ.≤ Δx Δ.+ Δy →
+               R⟦ Γ , Δ ⟧Δ w γ γ′ →
+               ∃2 λ x y → Setoid.C (P.obj (x , y , w)) ×
+               R⟦ Γ , Δx ⟧Δ x γ γ′ × R⟦ Γ , Δy ⟧Δ y γ γ′
+  RΔ-split-+ {zero} nil {nil} {nil} {nil} {<>} {<>} w nil δδ = w , w , {!!} , δδ , δδ
+  RΔ-split-+ {succ n} (T :: Γ) {ρ :: Δ} {ρx :: Δx} {ρy :: Δy} {s , γ} {s′ , γ′} w (le :: split) (x , y , xyw , rr , δδ) with Rρ-split-+ T ρ ρx ρy x s s′ le rr | RΔ-split-+ Γ y split δδ
+  ... | xx , xy , xp , rrx , rry | yx , yy , yp , δδx , δδy =
+    x , y , xyw , (xx , xy , xp , rrx , {!δδx!}) , (yx , yy , yp , {!!} , δδy)
 
   -- TODO: report internal error at C-c C-a
   -- (if it persists to the new Agda version)
   fundamental :
     ∀ {n d T Γ Δ} {t : Term n d} {tt : Γ ⊢t t :-: T} (tr : Δ ⊢r tt)
     (γ γ′ : ⟦ Γ ⟧Γ) w → R⟦ Γ , Δ ⟧Δ w γ γ′ → R⟦ T ⟧T w (⟦ tt ⟧t γ) (⟦ tt ⟧t γ′)
-  fundamental {t = var i} {tt = var refl} (var sub) γ γ′ w δδ = {!i!}
-  fundamental (app split er sr) γ γ′ w δδ = {!!}
+  fundamental {t = var i} {tt = var refl} (var sub) γ γ′ w δδ = {!sub!}
+  fundamental (app split er sr) γ γ′ w δδ = {!fundamental er γ γ′!}
   fundamental (bm split er sr) γ γ′ w δδ = {!!}
   fundamental (del split er sr) γ γ′ w δδ = fundamental sr γ γ′ w {!fundamental er γ γ′ w!}
   fundamental (pm split er sr) γ γ′ w δδ = {!!}

@@ -3,6 +3,7 @@ module Lib.Relation.Propositional where
   import Lib.Relation as R
 
   open import Lib.Equality
+  open import Lib.Function
   open import Lib.Level
   open import Lib.Product
   open import Lib.Setoid
@@ -16,6 +17,9 @@ module Lib.Relation.Propositional where
 
   SymClosure : ∀ {a l} {A : Set a} → Rel A l → Rel A l
   SymClosure {A = A} = R.SymClosure (≡-Setoid A)
+
+  AntisymClosure : ∀ {a l} {A : Set a} → Rel A l → Rel A l
+  AntisymClosure {A = A} = R.AntisymClosure (≡-Setoid A)
 
   _⟨_⟩R_ = liftR
 

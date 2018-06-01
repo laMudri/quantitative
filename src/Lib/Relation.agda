@@ -22,6 +22,9 @@ module Lib.Relation where
     SymClosure : ∀ {m} → Rel A m → Rel A m
     SymClosure R = liftR _⊎_ R (flip R)
 
+    AntisymClosure : ∀ {m} → Rel A m → Rel A m
+    AntisymClosure R = liftR _×_ R (flip R)
+
     [_]_⇒_ : ∀ {x y} → Rel A x → Rel A y → Set _
     [_]_⇒_ R S = ∀ x y → liftR (λ X Y → X → Y) R S x y
 
