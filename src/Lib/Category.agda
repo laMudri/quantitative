@@ -717,8 +717,19 @@ module Lib.Category where
         }
       }
 
-    --record IsPromonoidal (J : Profunctor ONE C) (P : Profunctor (C ×C C) C) : Set (o ⊔ a ⊔ e) where
-    --  private
-    --    module J = Functor J ; module P = Functor P
-    --  field
-    --    JP : ∀ a b → {!!}
+    record IsPromonoidal (J : Profunctor ONE C) (P : Profunctor (C ×C C) C) : Set (o ⊔ lsuc (a ⊔ e)) where
+      private
+        module J = Functor J ; module P = Functor P
+      field
+        JP : ∀ a b → Coend (map×C (Functor.obj pairF <> >>F swapF >>F J)
+                                  (Functor.obj pairF a >>F swapF >>F Functor.obj pairF b >>F P)) →
+                     b => a
+        PJ : ∀ a b → Coend (map×C (Functor.obj pairF <> >>F swapF >>F J)
+                                  (Functor.obj pairF a >>F Functor.obj pairF b >>F P)) →
+                     b => a
+        PP : ∀ a b c d → Coend (map×C (Functor.obj pairF (a , b) >>F swapF >>F P)
+                                      (Functor.obj pairF c >>F swapF >>F Functor.obj pairF d >>F P)) →
+                         Coend (map×C (Functor.obj pairF (b , c) >>F swapF >>F P)
+                                      (Functor.obj pairF a >>F Functor.obj pairF d >>F P))
+
+        -- TODO: triangle and pentagon
