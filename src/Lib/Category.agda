@@ -218,13 +218,15 @@ module Lib.Category where
         }
       }
 
-  idF : ∀ {o a e} (C : Category o a e) → Functor C C
-  idF C = record
-    { obj = λ x → x
-    ; arr = idE _
-    ; isFunctor = record { arr-id = λ X → refl ; arr->> = refl }
-    }
-    where open Category C
+  module _ {o a e} (C : Category o a e) where
+    open Category C
+
+    idF : Functor C C
+    idF = record
+      { obj = λ x → x
+      ; arr = idE _
+      ; isFunctor = record { arr-id = λ X → refl ; arr->> = refl }
+      }
 
   module _ {oc od oe ac ad ae ec ed ee} {C : Category oc ac ec}
            {D : Category od ad ed} {E : Category oe ae ee}
@@ -511,21 +513,49 @@ module Lib.Category where
   --    }
   --    where open Functor F
 
-  OP : ∀ {o a e} (C : Category o a e) → Category o a e
-  OP C = record
-    { Obj = Obj
-    ; Arr = flip Arr
-    ; isCategory = record
-      { id = id
-      ; _>>_ = flip _>>_
-      ; id->> = >>-id
-      ; >>-id = id->>
-      ; >>->> = λ h g f → sym (>>->> f g h)
-      ; _>>-cong_ = flip _>>-cong_
-      }
-    }
-    where
+  module _ {o a e} (C : Category o a e) where
     open Category C
+
+    OP : Category o a e
+    OP = record
+      { Obj = Obj
+      ; Arr = flip Arr
+      ; isCategory = record
+        { id = id
+        ; _>>_ = flip _>>_
+        ; id->> = >>-id
+        ; >>-id = id->>
+        ; >>->> = λ h g f → sym (>>->> f g h)
+        ; _>>-cong_ = flip _>>-cong_
+        }
+      }
+
+    homF : Functor (OP ×C C) (SETOID _ _)
+    homF = record
+      { obj = uncurry Arr
+      ; arr = λ { {c , d} {c′ , d′} → record
+        { _$E_ = λ { (f , g) → record
+          { _$E_ = λ h → f >> h >> g
+          ; _$E=_ = λ hh → refl >>-cong hh >>-cong refl
+          } }
+        ; _$E=_ = λ { (ff , gg) hh → ff >>-cong hh >>-cong gg }
+        } }
+      ; isFunctor = record
+        { arr-id = λ { (x , y) {h} {h′} hh →
+          let open SetoidReasoning (Arr _ _) in
+          id x >> h >> id y  ≈[ id->> _ ]≈
+                  h >> id y  ≈[ >>-id _ ]≈
+                  h          ≈[ hh ]≈
+                  h′         QED }
+        ; arr->> = λ { {f = f0 , f1} {g0 , g1} {h} {h′} hh →
+          let open SetoidReasoning (Arr _ _) in
+          (g0 >> f0) >> (h >> (f1 >> g1))  ≈[ >>->> _ _ _ ]≈
+          g0 >> (f0 >> (h >> (f1 >> g1)))  ≈[ refl >>-cong refl >>-cong sym (>>->> _ _ _) ]≈
+          g0 >> (f0 >> ((h >> f1) >> g1))  ≈[ refl >>-cong sym (>>->> _ _ _) ]≈
+          g0 >> ((f0 >> (h >> f1)) >> g1)  ≈[ refl >>-cong (refl >>-cong hh >>-cong refl) >>-cong refl ]≈
+          g0 >> ((f0 >> (h′ >> f1)) >> g1)  QED }
+        }
+      }
 
   module _ {p o a e : Level} (C : Category o a e) where
     open Category C
@@ -579,6 +609,7 @@ module Lib.Category where
         universal : ∀ eobj′ (isWedge′ : IsWedge eobj′) →
                     ∃! X λ (f : eobj′ => eobj) →
                     ∀ c → IsWedge.warr isWedge′ c ≈ f >> IsWedge.warr isWedge c
+      open IsWedge isWedge public
 
     record IsCowedge (wobj : Obj) : Set (oc ⊔ ac ⊔ ax ⊔ ex) where
       field
@@ -595,13 +626,77 @@ module Lib.Category where
                     ∃! X λ (f : eobj => eobj′) →
                     ∀ c → IsCowedge.warr isCowedge′ c
                             ≈ IsCowedge.warr isCowedge c >> f
+      open IsCowedge isCowedge public
+
+  {-
+  module _ {oc ox ac ax ec ex} {C : Category oc ac ec} {X : Category ox ax ex}
+           where
+    private
+      module C = Category C ; module X = Category X
+    open X
+
+    CoendF : Functor (OP (FUNCTOR (OP C ×C C) X)) (SETOID _ _)
+    CoendF = record
+      { obj = λ F → record
+        { C = Coend F
+        ; setoidOver = record
+          { _≈_ = λ _ _ → One
+          ; isSetoid = record
+            { refl = <>
+            ; sym = λ _ → <>
+            ; trans = λ _ _ → <>
+            }
+          }
+        }
+      ; arr = λ {F} {G} →
+        let module F = Functor F ; module G = Functor G in record
+        { _$E_ = λ α → let open NatTrans α in record
+          { _$E_ = λ e → let open Coend e in record
+            { eobj = eobj
+            ; isCowedge = record
+              { warr = λ c → η (c , c) >> warr c
+              ; commutes = λ {c} {c′} f →
+                let open SetoidReasoning (Arr _ _) in
+                G.arr $E (C.id c , f) >> (η (c , c) >> warr c)
+                  ≈[ sym (>>->> _ _ _) ]≈
+                (G.arr $E (C.id c , f) >> η (c , c)) >> warr c
+                  ≈[ square (C.id c , f) >>-cong refl ]≈
+                (η (c , c′) >> F.arr $E (C.id c , f)) >> warr c
+                  ≈[ >>->> _ _ _ ]≈
+                η (c , c′) >> (F.arr $E (C.id c , f) >> warr c)
+                  ≈[ refl >>-cong commutes f ]≈
+                η (c , c′) >> (F.arr $E (f , C.id c′) >> warr c′)
+                  ≈[ sym (>>->> _ _ _) ]≈
+                (η (c , c′) >> F.arr $E (f , C.id c′)) >> warr c′
+                  ≈[ sym (square (f , C.id c′)) >>-cong refl ]≈
+                (G.arr $E (f , C.id c′) >> η (c′ , c′)) >> warr c′
+                  ≈[ >>->> _ _ _ ]≈
+                G.arr $E (f , C.id c′) >> (η (c′ , c′) >> warr c′)
+                  QED
+              }
+            ; universal = λ eobj′ isCowedge′ → record
+              { f = ∃!.f (universal eobj′ (record { warr = λ c → warr c >> {!!} ; commutes = λ f → {!!} }))
+              ; Pf = λ c → {!!}
+              ; unique = λ g Pg → {!Pg!}
+              }
+            }
+          ; _$E=_ = λ _ → <>
+          }
+        ; _$E=_ = {!!}
+        }
+      ; isFunctor = record
+        { arr-id = λ _ _ → <>
+        ; arr->> = λ _ → <>
+        }
+      }
+  -}
 
   -- Profunctors
   module _ {oc od ac ad ec ed}
            (C : Category oc ac ec) (D : Category od ad ed) where
 
     Profunctor : Set _
-    Profunctor = Functor (OP D ×C C) (SETOID (ac ⊔ ad) (ec ⊔ ed))
+    Profunctor = Functor (C ×C OP D) (SETOID (ac ⊔ ad) (ec ⊔ ed))
 
   module _ {oc od ac ad ec ed}
            (C : Category oc ac ec) (D : Category od ad ed) where
@@ -609,6 +704,7 @@ module Lib.Category where
       module C = Category C ; module D = Category D
     open D
 
+    {-
     D[_,_][1,_] : Functor C D → Profunctor C D
     D[_,_][1,_] F = record
       { obj = λ { (d , c) → LiftS ac ec (Arr d (obj c)) }
@@ -667,6 +763,7 @@ module Lib.Category where
         }
       }
       where open Functor F
+    -}
 
   module _ {o a e} (C : Category o a e) where
     open Category C
@@ -691,45 +788,14 @@ module Lib.Category where
             ≈ η (⊗.obj (w , x) , y , z) >> η (w , x , ⊗.obj (y , z))
 
     idPF : Profunctor C C
-    idPF = record
-      { obj = uncurry Arr
-      ; arr = λ { {xa , ya} {xb , yb} → record
-        { _$E_ = λ { (fa , fb) → record
-          { _$E_ = λ g → fa >> g >> fb
-          ; _$E=_ = λ gg → refl >>-cong gg >>-cong refl
-          } }
-        ; _$E=_ = λ { (ffa , ffb) gg → ffa >>-cong gg >>-cong ffb }
-        } }
-      ; isFunctor = record
-        { arr-id = λ { (x , y) {g} {g′} gg →
-          let open SetoidReasoning (Arr _ _) in
-          id x >> g >> id y  ≈[ id->> (g >> id y) ]≈
-                  g >> id y  ≈[ >>-id g ]≈
-                  g          ≈[ gg ]≈
-                  g′         QED }
-        ; arr->> = λ { {f = fa , fb} {ga , gb} {h} {h′} hh →
-          let open SetoidReasoning (Arr _ _) in
-          (ga >> fa) >> h >> (fb >> gb)   ≈[ refl >>-cong hh >>-cong refl ]≈
-          (ga >> fa) >> h′ >> (fb >> gb)  ≈[ refl >>-cong sym (>>->> _ _ _) ]≈
-          (ga >> fa) >> (h′ >> fb) >> gb  ≈[ >>->> _ _ _ ]≈
-          ga >> (fa >> (h′ >> fb) >> gb)  ≈[ refl >>-cong sym (>>->> _ _ _) ]≈
-          ga >> (fa >> h′ >> fb) >> gb    QED }
-        }
-      }
+    idPF = swapF >>F homF C
 
-    record IsPromonoidal (J : Profunctor ONE C) (P : Profunctor (C ×C C) C) : Set (o ⊔ lsuc (a ⊔ e)) where
+    -- Incomplete: no triangle/pentagon laws, no coends
+    record IsPromonoidal (J : Profunctor ONE C) (P : Profunctor (C ×C C) C) : Set (lsuc (o ⊔ a ⊔ e)) where
       private
         module J = Functor J ; module P = Functor P
       field
-        JP : ∀ a b → Coend (map×C (Functor.obj pairF <> >>F swapF >>F J)
-                                  (Functor.obj pairF a >>F swapF >>F Functor.obj pairF b >>F P)) →
-                     b => a
-        PJ : ∀ a b → Coend (map×C (Functor.obj pairF <> >>F swapF >>F J)
-                                  (Functor.obj pairF a >>F Functor.obj pairF b >>F P)) →
-                     b => a
-        PP : ∀ a b c d → Coend (map×C (Functor.obj pairF (a , b) >>F swapF >>F P)
-                                      (Functor.obj pairF c >>F swapF >>F Functor.obj pairF d >>F P)) →
-                         Coend (map×C (Functor.obj pairF (b , c) >>F swapF >>F P)
-                                      (Functor.obj pairF a >>F Functor.obj pairF d >>F P))
-
-        -- TODO: triangle and pentagon
+        JP : ∀ {a b} → ΣS (≡-Setoid Obj) (lamS λ x → J.obj (<> , x) ×S P.obj ((x , a) , b)) →E Arr b a
+        PJ : ∀ {a b} → ΣS (≡-Setoid Obj) (lamS λ x → J.obj (<> , x) ×S P.obj ((a , x) , b)) →E Arr b a
+        PP : ∀ {a b c d} → ΣS (≡-Setoid Obj) (lamS λ x → P.obj ((a , b) , x) ×S P.obj ((x , c) , d))
+                         →E ΣS (≡-Setoid Obj) (lamS λ x → P.obj ((b , c) , x) ×S P.obj ((a , x) , d))

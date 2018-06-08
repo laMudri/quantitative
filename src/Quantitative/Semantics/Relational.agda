@@ -12,6 +12,7 @@ module Quantitative.Semantics.Relational
   module W = Category W
   module Wᵒᵖ = Category (OP W)
   module J = Functor J ; module P = Functor P
+  open IsPromonoidal isPromonoidal
 
   open import Lib.Structure
 
@@ -40,14 +41,14 @@ module Quantitative.Semantics.Relational
   R⟦_,_⟧ρ : ∀ T ρ → W.Obj → Rel ⟦ T ⟧T lzero
 
   R⟦ BASE ⟧T w = BaseR w
-  R⟦ ⊗1 ⟧T w = λ _ _ → Setoid.C (J.obj (w , <>))
+  R⟦ ⊗1 ⟧T w = λ _ _ → Setoid.C (J.obj (<> , w))
   R⟦ &1 ⟧T w = λ _ _ → One
   R⟦ ⊕0 ⟧T w ()
   R⟦ S ⊸ T ⟧T w f f′ =
-    ∀ x y → Setoid.C (P.obj (x , w , y)) →
-    ∀ s s′ → R⟦ S ⟧T x s s′ → R⟦ T ⟧T y (f s) (f′ s′)
+    ∀ x y → Setoid.C (P.obj ((y , w) , x)) →
+    ∀ s s′ → R⟦ S ⟧T y s s′ → R⟦ T ⟧T x (f s) (f′ s′)
   R⟦ S ⊗ T ⟧T w (s , t) (s′ , t′) =
-    ∃2 λ x y → Setoid.C (P.obj (x , y , w)) ×
+    ∃2 λ x y → Setoid.C (P.obj ((x , y) , w)) ×
     R⟦ S ⟧T x s s′ × R⟦ T ⟧T y t t′
   R⟦ S & T ⟧T w = R⟦ S ⟧T w ×R R⟦ T ⟧T w
   R⟦ S ⊕ T ⟧T w = R⟦ S ⟧T w ⊎R R⟦ T ⟧T w
@@ -56,41 +57,44 @@ module Quantitative.Semantics.Relational
   R⟦ T , ρ ⟧ρ w = act ρ (R⟦ T ⟧T w)
 
   R⟦_,_⟧Δ : ∀ {n} (Γ : TCtx n) (Δ : RCtx n) → W.Obj → Rel ⟦ Γ ⟧Γ lzero
-  R⟦ nil , nil ⟧Δ w = λ _ _ → Setoid.C (J.obj (w , <>))
+  R⟦ nil , nil ⟧Δ w = λ _ _ → Setoid.C (J.obj (<> , w))
   R⟦ T :: Γ , ρ :: Δ ⟧Δ w (t , γ) (t′ , γ′) =
-    ∃2 λ x y → Setoid.C (P.obj (x , y , w)) ×
+    ∃2 λ x y → Setoid.C (P.obj ((x , y) , w)) ×
     R⟦ T , ρ ⟧ρ x t t′ × R⟦ Γ , Δ ⟧Δ y γ γ′
 
 
-  Rρ-weaken : ∀ T {π ρ} w {s s′} → π R.≤ ρ →
+  Rρ-weaken : ∀ T {π ρ} w {s s′} → ρ R.≤ π →
               R⟦ T , ρ ⟧ρ w s s′ → R⟦ T , π ⟧ρ w s s′
-  Rρ-weaken BASE w le rr = {!!}
-  Rρ-weaken ⊗1 w le rr = {!!}
-  Rρ-weaken &1 w le rr = {!!}
-  Rρ-weaken ⊕0 w le rr = {!!}
-  Rρ-weaken (S ⊸ T) w le rr = {!!}
-  Rρ-weaken (S ⊗ T) w le rr = {!!}
-  Rρ-weaken (S & T) w le rr = {!!}
-  Rρ-weaken (S ⊕ T) w le rr = {!!}
-  Rρ-weaken (! ρ S) w le rr = {!!}
+  Rρ-weaken T w le rr = act-≤ le (R⟦ T ⟧T w) _ _ rr
+
+  Rρ-split-0′ : ∀ T w {s s′} → R⟦ T , R.e0 ⟧ρ w s s′ → Setoid.C (J.obj (<> , w))
+  Rρ-split-0′ BASE w {s} {s′} rr = {!!}
+  Rρ-split-0′ ⊗1 w {s} {s′} rr = {!!}
+  Rρ-split-0′ &1 w {s} {s′} rr = {!!}
+  Rρ-split-0′ ⊕0 w {s} {s′} rr = {!!}
+  Rρ-split-0′ (S ⊸ T) w {s} {s′} rr = {!!}
+  Rρ-split-0′ (S ⊗ T) w {s , t} {s′ , t′} rr = {!!}
+  Rρ-split-0′ (S & T) w {s} {s′} rr = {!!}
+  Rρ-split-0′ (S ⊕ T) w {s} {s′} rr = {!!}
+  Rρ-split-0′ (! ρ S) w {s} {s′} rr = {!!}
 
   Rρ-split-0 : ∀ T ρ w s s′ → ρ R.≤ R.e0 →
-               R⟦ T , ρ ⟧ρ w s s′ → Setoid.C (J.obj (w , <>))
-  Rρ-split-0 T ρ w s s′ le rr = {!!}
+               R⟦ T , ρ ⟧ρ w s s′ → Setoid.C (J.obj (<> , w))
+  Rρ-split-0 T ρ w s s′ le rr = Rρ-split-0′ T w {s} {s′} (Rρ-weaken T w le rr)
 
   RΔ-split-0 : ∀ {n} {Γ : TCtx n} {Δ w γ γ′} → Δ Δ.≤ Δ.e0 →
-               R⟦ Γ , Δ ⟧Δ w γ γ′ → Setoid.C (J.obj (w , <>))
+               R⟦ Γ , Δ ⟧Δ w γ γ′ → Setoid.C (J.obj (<> , w))
   RΔ-split-0 {0} {nil} {nil} nil δδ = δδ
   RΔ-split-0 {succ n} {T :: Γ} {ρ :: Δ} {w} {s , γ} {s′ , γ′} (le :: split) (x , y , xyw , rr , δδ) =
     {!RΔ-split-0 {n} {Γ} {Δ} split δδ!}
 
   Rρ-split-+ : ∀ T ρ ρx ρy w s s′ → ρ R.≤ ρx R.+ ρy → R⟦ T , ρ ⟧ρ w s s′ →
-               ∃2 λ x y → Setoid.C (P.obj (x , y , w)) ×
+               ∃2 λ x y → Setoid.C (P.obj ((x , y) , w)) ×
                R⟦ T , ρx ⟧ρ x s s′ × R⟦ T , ρy ⟧ρ y s s′
   Rρ-split-+ BASE ρ ρx ρy w s s′ le rr = {!!}
   Rρ-split-+ ⊗1 ρ ρx ρy w s s′ le rr = {!!}
   Rρ-split-+ &1 ρ ρx ρy w s s′ le rr = {!!}
-  Rρ-split-+ ⊕0 ρ ρx ρy w s s′ le rr = {!!}
+  Rρ-split-+ ⊕0 ρ ρx ρy w () s′ le rr
   Rρ-split-+ (S ⊸ T) ρ ρx ρy w s s′ le rr = {!!}
   Rρ-split-+ (S ⊗ T) ρ ρx ρy w s s′ le rr = {!!}
   Rρ-split-+ (S & T) ρ ρx ρy w s s′ le rr = {!!}
@@ -99,9 +103,9 @@ module Quantitative.Semantics.Relational
 
   RΔ-split-+ : ∀ {n} (Γ : TCtx n) {Δ Δx Δy γ γ′} w → Δ Δ.≤ Δx Δ.+ Δy →
                R⟦ Γ , Δ ⟧Δ w γ γ′ →
-               ∃2 λ x y → Setoid.C (P.obj (x , y , w)) ×
+               ∃2 λ x y → Setoid.C (P.obj ((x , y) , w)) ×
                R⟦ Γ , Δx ⟧Δ x γ γ′ × R⟦ Γ , Δy ⟧Δ y γ γ′
-  RΔ-split-+ {zero} nil {nil} {nil} {nil} {<>} {<>} w nil δδ = w , w , {!!} , δδ , δδ
+  RΔ-split-+ {zero} nil {nil} {nil} {nil} {<>} {<>} w nil δδ = w , w , {!PJ!} , δδ , δδ
   RΔ-split-+ {succ n} (T :: Γ) {ρ :: Δ} {ρx :: Δx} {ρy :: Δy} {s , γ} {s′ , γ′} w (le :: split) (x , y , xyw , rr , δδ) with Rρ-split-+ T ρ ρx ρy x s s′ le rr | RΔ-split-+ Γ y split δδ
   ... | xx , xy , xp , rrx , rry | yx , yy , yp , δδx , δδy =
     x , y , xyw , (xx , xy , xp , rrx , {!δδx!}) , (yx , yy , yp , {!!} , δδy)
@@ -121,8 +125,8 @@ module Quantitative.Semantics.Relational
   fundamental (exf split er) γ γ′ w δδ = {!Zero-elim!}
   fundamental (cse split er s0r s1r) γ γ′ w δδ = {!!}
   fundamental (the sr) γ γ′ w δδ = fundamental sr γ γ′ w δδ
-  fundamental (lam sr) γ γ′ w δδ x y xwy s s′ ss =
-    fundamental sr (s , γ) (s′ , γ′) y (x , w , xwy , ss , δδ)
+  fundamental (lam sr) γ γ′ w δδ x y ywx s s′ ss =
+    fundamental sr (s , γ) (s′ , γ′) x (y , w , ywx , ss , δδ)
   fundamental (bang split sr) γ γ′ w δδ = {!!}
   fundamental (unit split) γ γ′ w δδ = {!!}
   fundamental (ten split s0r s1r) γ γ′ w δδ = {!!}
