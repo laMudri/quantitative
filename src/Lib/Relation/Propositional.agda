@@ -21,7 +21,9 @@ module Lib.Relation.Propositional where
   AntisymClosure : ∀ {a l} {A : Set a} → Rel A l → Rel A l
   AntisymClosure {A = A} = R.AntisymClosure (≡-Setoid A)
 
-  _⟨_⟩R_ = liftR
+  _⟨_⟩R_ : ∀ {a x y z} {A : Set a} →
+           Rel A x → (Set x → Set y → Set z) → Rel A y → Rel A z
+  X ⟨ R ⟩R Y = liftR R X Y
 
   _⇒_ : ∀ {a x y} {A : Set a} → Rel A x → Rel A y → Set _
   _⇒_ {A = A} = R.[ ≡-Setoid A ]_⇒_

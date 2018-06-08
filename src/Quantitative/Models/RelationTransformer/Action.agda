@@ -39,3 +39,16 @@ module Quantitative.Models.RelationTransformer.Action where
   act-≤ (≤zer x) R a b r = lift <>
   act-≤ cov-refl R a b r = r
   act-≤ con-refl R a b r = r
+
+  act-+ : ∀ {a} {A : Set a} x y (R : Rel A a) →
+          act (x + y) R ⇔ (act x R ⟨ _×_ ⟩R act y R)
+  act-+ zer y R a b = < const (lift <>) , id > , snd
+  act-+ cov zer R a b = < id , const (lift <>) > , fst
+  act-+ cov cov R a b = < id , id > , fst
+  act-+ cov con R a b = id , id
+  act-+ cov inv R a b = < fst , id > , map× id snd
+  act-+ con zer R a b = < id , const (lift <>) > , fst
+  act-+ con cov R a b = swap , swap
+  act-+ con con R a b = < id , id > , fst
+  act-+ con inv R a b = < snd , id > , < fst o snd , fst >
+  act-+ inv y R a b = < id , act-≤ (inv≤ y) R a b > , fst
