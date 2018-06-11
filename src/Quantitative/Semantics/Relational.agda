@@ -166,9 +166,10 @@ module Quantitative.Semantics.Relational {r l}
       let x , y , xyw , δδx , δδy = RΔ-split-+ Γ w split δδ in
       let xx , xy , xx+xy=x , ρρxx , ρρxy = fundamental er γ γ′ x δδx in
       let s0 , s1 = ⟦ et ⟧t γ ; s0′ , s1′ = ⟦ et ⟧t γ′ in
+      let xy+y , xy+y= , xx+[xy+y]=w = _↔E_.to PP $E (x , xx+xy=x , xyw) in
       fundamental sr (s0 , s1 , γ) (s0′ , s1′ , γ′) w
-                  (x , y , xyw , snd (act-1 R⟦ S0 ⟧T x s0 s0′) {!ρρxx!}
-                  , {!add to y!} , {!!} , {!!} , snd (act-1 R⟦ S1 ⟧T {!!} s1 s1′) {!!} , {!!})
+                  (xx , xy+y , xx+[xy+y]=w , snd (act-1 R⟦ S0 ⟧T xx s0 s0′) ρρxx
+                  , xy , y , {!xy+y=!} , snd (act-1 R⟦ S1 ⟧T xy s1 s1′) ρρxy , δδy)
     fundamental (proj {i = ttt} er) γ γ′ w δδ = fst (fundamental er γ γ′ w δδ)
     fundamental (proj {i = fff} er) γ γ′ w δδ = snd (fundamental er γ γ′ w δδ)
     fundamental (exf {et = et} split er) γ γ′ w δδ = Zero-elim (⟦ et ⟧t γ)
