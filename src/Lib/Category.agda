@@ -795,7 +795,16 @@ module Lib.Category where
       private
         module J = Functor J ; module P = Functor P
       field
-        JP : ∀ {a b} → ΣS (≡-Setoid Obj) (lamS λ x → J.obj (<> , x) ×S P.obj ((x , a) , b)) →E Arr b a
-        PJ : ∀ {a b} → ΣS (≡-Setoid Obj) (lamS λ x → J.obj (<> , x) ×S P.obj ((a , x) , b)) →E Arr b a
+        JP : ∀ {a b} → ΣS (≡-Setoid Obj) (lamS λ x → J.obj (<> , x) ×S P.obj ((x , a) , b)) ↔E Arr b a
+        PJ : ∀ {a b} → ΣS (≡-Setoid Obj) (lamS λ x → J.obj (<> , x) ×S P.obj ((a , x) , b)) ↔E Arr b a
         PP : ∀ {a b c d} → ΣS (≡-Setoid Obj) (lamS λ x → P.obj ((a , b) , x) ×S P.obj ((x , c) , d))
-                         →E ΣS (≡-Setoid Obj) (lamS λ x → P.obj ((b , c) , x) ×S P.obj ((a , x) , d))
+                         ↔E ΣS (≡-Setoid Obj) (lamS λ x → P.obj ((b , c) , x) ×S P.obj ((a , x) , d))
+
+    record IsSymmetricPromonoidal (J : Profunctor ONE C) (P : Profunctor (C ×C C) C) : Set (lsuc (o ⊔ a ⊔ e)) where
+      private
+        module J = Functor J ; module P = Functor P
+      field
+        isPromonoidal : IsPromonoidal J P
+        sym : ∀ {a b c d} → ΣS (≡-Setoid Obj) (lamS λ x → P.obj ((a , b) , c) ×S P.obj ((b , a) , d))
+                          ↔E Arr c d
+      open IsPromonoidal isPromonoidal public

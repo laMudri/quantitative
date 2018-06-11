@@ -8,14 +8,14 @@ module Quantitative.Semantics.Relational {r l}
          (W : Category lzero lzero lzero) (let module W = Category W)
          (Base : Set) (BaseR : W.Obj → Rel Base lzero)
          (J : Profunctor ONE W) (P : Profunctor (W ×C W) W)
-         (isPromonoidal : IsPromonoidal _ J P)
+         (isSymmetricPromonoidal : IsSymmetricPromonoidal _ J P)
          (R : Set r) (posemiring : Posemiring (≡-Setoid R) l)
          (act : {A : Set} → R → (W.Obj → Rel A lzero) → (W.Obj → Rel A lzero))
          where
 
   module Wᵒᵖ = Category (OP W)
   module J = Functor J ; module P = Functor P
-  open IsPromonoidal isPromonoidal
+  open IsSymmetricPromonoidal isSymmetricPromonoidal
 
   --open import Quantitative.Models.RelationTransformer
   --open DecToppedMeetSemilatticeSemiring decToppedMeetSemilatticeSemiring
@@ -126,6 +126,17 @@ module Quantitative.Semantics.Relational {r l}
     Rρ-weaken T w le rr = act-≤ le R⟦ T ⟧T _ _ _ rr
 
 
+    Rρ-split-0 : ∀ T ρ w s s′ → ρ R.≤ R.e0 → R⟦ T , ρ ⟧ρ w s s′ →
+                 Setoid.C (J.obj (<> , w))
+    Rρ-split-0 T ρ w s s′ le rr = act-0 (R⟦ T ⟧T) w s s′ (Rρ-weaken T w le rr)
+
+    RΔ-split-0 : ∀ {n} (Γ : TCtx n) {Δ γ γ′} w → Δ Δ.≤ Δ.e0 →
+                 R⟦ Γ , Δ ⟧Δ w γ γ′ → Setoid.C (J.obj (<> , w))
+    RΔ-split-0 nil {nil} w nil δδ = δδ
+    RΔ-split-0 (S :: Γ) {ρ :: Δ} {s , γ} {s′ , γ′} w (le :: split) (x , y , xyw , ρρ , δδ)
+      with Rρ-split-0 S ρ x s s′ le ρρ | RΔ-split-0 Γ y split δδ
+    ... | Jx | Jy = J.arr $E (<> , (_↔E_.to JP $E (x , Jx , xyw))) $E Jy
+
     Rρ-split-+ : ∀ T ρ ρx ρy w s s′ → ρ R.≤ ρx R.+ ρy → R⟦ T , ρ ⟧ρ w s s′ →
                  ∃2 λ x y → Setoid.C (P.obj ((x , y) , w)) ×
                  R⟦ T , ρx ⟧ρ x s s′ × R⟦ T , ρy ⟧ρ y s s′
@@ -136,7 +147,20 @@ module Quantitative.Semantics.Relational {r l}
                  R⟦ Γ , Δ ⟧Δ w γ γ′ →
                  ∃2 λ x y → Setoid.C (P.obj ((x , y) , w)) ×
                  R⟦ Γ , Δx ⟧Δ x γ γ′ × R⟦ Γ , Δy ⟧Δ y γ γ′
-    RΔ-split-+ Γ w split δδ = {!!}
+    RΔ-split-+ nil {nil} {nil} {nil} w nil δδ =
+      --let x , equiv = JP {w} {w} in
+      --let open _↔E_ equiv in
+      --let j , p = from $E W.id w in
+      --x , w , p , j , δδ
+      let x , Jx , Pxww = _↔E_.from JP $E W.id w in
+      x , w , Pxww , Jx , δδ
+    RΔ-split-+ (S :: Γ) {ρ :: Δ} {ρx :: Δx} {ρy :: Δy} {s , γ} {s′ , γ′} w (le :: split) (x , y , x+y=w , ρρ , δδ) with Rρ-split-+ S ρ ρx ρy x s s′ le ρρ | RΔ-split-+ Γ y split δδ
+    ... | xx , xy , xx+xy=x , ρρx , ρρy | yx , yy , yx+yy=y , δδx , δδy =
+      let xy+y , xy+y= , xx+[xy+y]=w = _↔E_.to PP $E (x , xx+xy=x , x+y=w) in
+      let x+yx , x+yx= , [x+yx]+yy=w = _↔E_.from PP $E (y , yx+yy=y , x+y=w) in
+      let xy+yx , xy+yx= , [xy+yx]+yy=xy+y = _↔E_.from PP $E (y , yx+yy=y , xy+y=) in
+      let xy+yx′ , xy+yx=′ , xx+[xy+yx′]=x+yx = _↔E_.to PP $E (x , xx+xy=x , x+yx=) in
+      {!!} , {!!} , {!!} , (xx , yx , {!!} , ρρx , δδx) , (xy , yy , {!!} , ρρy , δδy)
 
 
     -- TODO: report internal error at C-c C-a
@@ -155,9 +179,10 @@ module Quantitative.Semantics.Relational {r l}
     fundamental (cse split er s0r s1r) γ γ′ w δδ = {!!}
     fundamental (the sr) γ γ′ w δδ = fundamental sr γ γ′ w δδ
     fundamental (lam {S = S} sr) γ γ′ w δδ x y ywx s s′ ss =
-      fundamental sr (s , γ) (s′ , γ′) x (y , w , ywx , snd (act-1 R⟦ S ⟧T y s s′) ss , δδ)
-    fundamental (bang split sr) γ γ′ w δδ = {!!}
-    fundamental (unit split) γ γ′ w δδ = {!!}
+      fundamental sr (s , γ) (s′ , γ′) x
+                  (y , w , ywx , snd (act-1 R⟦ S ⟧T y s s′) ss , δδ)
+    fundamental (bang split sr) γ γ′ w δδ = {!fundamental sr γ γ′ w!}
+    fundamental {Γ = Γ} (unit split) γ γ′ w δδ = RΔ-split-0 Γ w split δδ
     fundamental (ten split s0r s1r) γ γ′ w δδ = {!!}
     fundamental eat γ γ′ w δδ = <>
     fundamental (wth s0r s1r) γ γ′ w δδ =

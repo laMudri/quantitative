@@ -133,7 +133,7 @@ module Lib.Setoid where
     }
     where module A = Setoid A ; module B = SetoidI B
 
-  infixr 3 _→E_ _→S_
+  infixr 3 _→E_ _→S_ _↔E_
   _→E_ : ∀ {a b l m} (A : Setoid a l) (B : Setoid b m) → Set _
   A →E B = PiE A (unindexed B)
 
@@ -325,3 +325,12 @@ module Lib.Setoid where
 
     _QED : ∀ x → x ≈ x
     x QED = refl
+
+  -- Equivalence
+
+  record _↔E_ {a b l m} (A : Setoid a l) (B : Setoid b m) : Set (a ⊔ b ⊔ l ⊔ m) where
+    field
+      to : A →E B
+      from : B →E A
+      to-from : let open Setoid (A →S A) in to >>E from ≈ idE _
+      from-to : let open Setoid (B →S B) in from >>E to ≈ idE _
