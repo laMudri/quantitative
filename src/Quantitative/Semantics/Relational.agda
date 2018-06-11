@@ -29,6 +29,7 @@ module Quantitative.Semantics.Relational {r l}
   open import Quantitative.Resources.Context R posemiring
 
   open import Lib.Equality
+  open import Lib.Function
   open import Lib.Nat
   open import Lib.One
   open import Lib.Product
@@ -152,21 +153,33 @@ module Quantitative.Semantics.Relational {r l}
       let x , y , xyw , δδx , δδy = RΔ-split-+ Γ w split δδ in
       let Jx = fundamental er γ γ′ x δδx in
       fundamental sr γ γ′ w (R⟦ Γ , _ ⟧Δ-arr (_↔E_.to JP $E (x , Jx , xyw)) δδy)
-    fundamental {Γ = Γ} (pm split er sr) γ γ′ w δδ =
+    fundamental {Γ = Γ} {tt = pm et st} (pm {S0 = S0} {S1} split er sr) γ γ′ w δδ =
       let x , y , xyw , δδx , δδy = RΔ-split-+ Γ w split δδ in
       let xx , xy , xx+xy=x , ρρxx , ρρxy = fundamental er γ γ′ x δδx in
-      {!fundamental sr (? , ? , γ) (? , ? , γ′) y ?!}
+      let s0 , s1 = ⟦ et ⟧t γ ; s0′ , s1′ = ⟦ et ⟧t γ′ in
+      fundamental sr (s0 , s1 , γ) (s0′ , s1′ , γ′) w
+                  (x , y , xyw , snd (act-1 R⟦ S0 ⟧T x s0 s0′) {!ρρxx!}
+                  , {!add to y!} , {!!} , {!!} , snd (act-1 R⟦ S1 ⟧T {!!} s1 s1′) {!!} , {!!})
     fundamental (proj {i = ttt} er) γ γ′ w δδ = fst (fundamental er γ γ′ w δδ)
     fundamental (proj {i = fff} er) γ γ′ w δδ = snd (fundamental er γ γ′ w δδ)
-    fundamental (exf split er) γ γ′ w δδ = {!Zero-elim!}
-    fundamental (cse split er s0r s1r) γ γ′ w δδ = {!!}
+    fundamental (exf {et = et} split er) γ γ′ w δδ = Zero-elim (⟦ et ⟧t γ)
+    fundamental {Γ = Γ} (cse {S0 = S0} {S1} {et = et} split er s0r s1r) γ γ′ w δδ with RΔ-split-+ Γ w split δδ
+    ... | x , y , xyw , δδx , δδy with ⟦ et ⟧t γ | ⟦ et ⟧t γ′ | fundamental er γ γ′ x δδx
+    ... | inl s | inl s′ | inl ss =
+      fundamental s0r (s , γ) (s′ , γ′) w
+                  (x , y , xyw , snd (act-1 R⟦ S0 ⟧T x s s′) ss , δδy)
+    ... | inr s | inr s′ | inr ss =
+      fundamental s1r (s , γ) (s′ , γ′) w
+                  (x , y , xyw , snd (act-1 R⟦ S1 ⟧T x s s′) ss , δδy)
     fundamental (the sr) γ γ′ w δδ = fundamental sr γ γ′ w δδ
     fundamental (lam {S = S} sr) γ γ′ w δδ x y ywx s s′ ss =
       fundamental sr (s , γ) (s′ , γ′) x
                   (y , w , ywx , snd (act-1 R⟦ S ⟧T y s s′) ss , δδ)
     fundamental (bang split sr) γ γ′ w δδ = {!fundamental sr γ γ′ w!}
     fundamental {Γ = Γ} (unit split) γ γ′ w δδ = RΔ-split-0 Γ w split δδ
-    fundamental (ten split s0r s1r) γ γ′ w δδ = {!!}
+    fundamental {Γ = Γ} (ten split s0r s1r) γ γ′ w δδ =
+      let x , y , xyw , δδx , δδy = RΔ-split-+ Γ w split δδ in
+      x , y , xyw , fundamental s0r γ γ′ x δδx , fundamental s1r γ γ′ y δδy
     fundamental eat γ γ′ w δδ = <>
     fundamental (wth s0r s1r) γ γ′ w δδ =
       fundamental s0r γ γ′ w δδ , fundamental s1r γ γ′ w δδ
