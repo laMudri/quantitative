@@ -63,51 +63,28 @@ module Quantitative.Semantics.Relational {r l}
     ∃2 λ x y → Setoid.C (P.obj ((x , y) , w)) ×
     R⟦ T , ρ ⟧ρ x t t′ × R⟦ Γ , Δ ⟧Δ y γ γ′
 
+  R⟦_⟧T-arr : (S : Ty) → ∀ {w w′} → w′ W.=> w →
+                         ∀ {s s′} → R⟦ S ⟧T w s s′ → R⟦ S ⟧T w′ s s′
+  R⟦ BASE ⟧T-arr {w} {w′} ww {s} {s′} ss = {!!}
+  R⟦ ⊗1 ⟧T-arr ww ss = J.arr $E (<> , ww) $E ss
+  R⟦ &1 ⟧T-arr ww ss = ss
+  R⟦ ⊕0 ⟧T-arr ww {()} {s′} ss
+  R⟦ S ⊸ T ⟧T-arr {w} {w′} ww {f} {f′} ff =
+    λ x y yw′x s s′ ss →
+    ff x y (P.arr $E ((Category.id W y , ww) , Category.id W x) $E yw′x) s s′ ss
+  R⟦ S ⊗ T ⟧T-arr {w} {w′} ww {s , t} {s′ , t′} (x , y , xyw , ss , tt) =
+    x , y , P.arr $E ((Category.id (W ×C W) _) , ww) $E xyw , ss , tt
+  R⟦ S & T ⟧T-arr ww ss = map× (R⟦ S ⟧T-arr ww) (R⟦ T ⟧T-arr ww) ss
+  R⟦ S ⊕ T ⟧T-arr ww (inl ss) = inl (R⟦ S ⟧T-arr ww ss)
+  R⟦ S ⊕ T ⟧T-arr ww (inr tt) = inr (R⟦ T ⟧T-arr ww tt)
+  R⟦ ! ρ S ⟧T-arr {w} {w′} ww {s} {s′} ss = {!!}
 
-  {-
-  Rρ-split-0′ : ∀ T w {s s′} → R⟦ T , R.e0 ⟧ρ w s s′ → Setoid.C (J.obj (<> , w))
-  Rρ-split-0′ BASE w {s} {s′} rr = {!act!}
-  Rρ-split-0′ ⊗1 w {s} {s′} rr = {!!}
-  Rρ-split-0′ &1 w {s} {s′} rr = {!!}
-  Rρ-split-0′ ⊕0 w {s} {s′} rr = {!!}
-  Rρ-split-0′ (S ⊸ T) w {s} {s′} rr = {!!}
-  Rρ-split-0′ (S ⊗ T) w {s , t} {s′ , t′} rr = {!!}
-  Rρ-split-0′ (S & T) w {s} {s′} rr = {!!}
-  Rρ-split-0′ (S ⊕ T) w {s} {s′} rr = {!!}
-  Rρ-split-0′ (! ρ S) w {s} {s′} rr = {!!}
-
-  Rρ-split-0 : ∀ T ρ w s s′ → ρ R.≤ R.e0 →
-               R⟦ T , ρ ⟧ρ w s s′ → Setoid.C (J.obj (<> , w))
-  Rρ-split-0 T ρ w s s′ le rr = Rρ-split-0′ T w {s} {s′} (Rρ-weaken T w le rr)
-
-  RΔ-split-0 : ∀ {n} {Γ : TCtx n} {Δ w γ γ′} → Δ Δ.≤ Δ.e0 →
-               R⟦ Γ , Δ ⟧Δ w γ γ′ → Setoid.C (J.obj (<> , w))
-  RΔ-split-0 {0} {nil} {nil} nil δδ = δδ
-  RΔ-split-0 {succ n} {T :: Γ} {ρ :: Δ} {w} {s , γ} {s′ , γ′} (le :: split) (x , y , xyw , rr , δδ) =
-    {!RΔ-split-0 {n} {Γ} {Δ} split δδ!}
-
-  Rρ-split-+ : ∀ T ρ ρx ρy w s s′ → ρ R.≤ ρx R.+ ρy → R⟦ T , ρ ⟧ρ w s s′ →
-               ∃2 λ x y → Setoid.C (P.obj ((x , y) , w)) ×
-               R⟦ T , ρx ⟧ρ x s s′ × R⟦ T , ρy ⟧ρ y s s′
-  Rρ-split-+ BASE ρ ρx ρy w s s′ le rr = {!!}
-  Rρ-split-+ ⊗1 ρ ρx ρy w s s′ le rr = {!!}
-  Rρ-split-+ &1 ρ ρx ρy w s s′ le rr = {!!}
-  Rρ-split-+ ⊕0 ρ ρx ρy w () s′ le rr
-  Rρ-split-+ (S ⊸ T) ρ ρx ρy w s s′ le rr = {!!}
-  Rρ-split-+ (S ⊗ T) ρ ρx ρy w s s′ le rr = {!!}
-  Rρ-split-+ (S & T) ρ ρx ρy w s s′ le rr = {!!}
-  Rρ-split-+ (S ⊕ T) ρ ρx ρy w s s′ le rr = {!!}
-  Rρ-split-+ (! π S) ρ ρx ρy w s s′ le rr = {!!}
-
-  RΔ-split-+ : ∀ {n} (Γ : TCtx n) {Δ Δx Δy γ γ′} w → Δ Δ.≤ Δx Δ.+ Δy →
-               R⟦ Γ , Δ ⟧Δ w γ γ′ →
-               ∃2 λ x y → Setoid.C (P.obj ((x , y) , w)) ×
-               R⟦ Γ , Δx ⟧Δ x γ γ′ × R⟦ Γ , Δy ⟧Δ y γ γ′
-  RΔ-split-+ {zero} nil {nil} {nil} {nil} {<>} {<>} w nil δδ = w , w , {!PJ!} , δδ , δδ
-  RΔ-split-+ {succ n} (T :: Γ) {ρ :: Δ} {ρx :: Δx} {ρy :: Δy} {s , γ} {s′ , γ′} w (le :: split) (x , y , xyw , rr , δδ) with Rρ-split-+ T ρ ρx ρy x s s′ le rr | RΔ-split-+ Γ y split δδ
-  ... | xx , xy , xp , rrx , rry | yx , yy , yp , δδx , δδy =
-    x , y , xyw , (xx , xy , xp , rrx , {!δδx!}) , (yx , yy , yp , {!!} , δδy)
-  -}
+  R⟦_,_⟧Δ-arr : ∀ {n} (Γ : TCtx n) (Δ : RCtx n) →
+                ∀ {w w′} → w′ W.=> w →
+                ∀ {γ γ′} → R⟦ Γ , Δ ⟧Δ w γ γ′ → R⟦ Γ , Δ ⟧Δ w′ γ γ′
+  R⟦ nil , nil ⟧Δ-arr ww δδ = J.arr $E (<> , ww) $E δδ
+  R⟦ T :: Γ , ρ :: Δ ⟧Δ-arr ww (x , y , xyw , ρρ , δδ) =
+    x , y , P.arr $E (Category.id (W ×C W) _ , ww) $E xyw , ρρ , δδ
 
   module ActLaws (act-≤ : ∀ {A : Set} {π ρ} → π R.≤ ρ → ∀ R w → act {A} π R w ⇒ act ρ R w)
                  (act-0 : ∀ {A : Set} R w → act {A} R.e0 R w ⇒
@@ -171,8 +148,14 @@ module Quantitative.Semantics.Relational {r l}
     fundamental {t = var i} {tt = var refl} (var sub) γ γ′ w δδ = {!sub!}
     fundamental (app split er sr) γ γ′ w δδ = {!fundamental er γ γ′!}
     fundamental (bm split er sr) γ γ′ w δδ = {!!}
-    fundamental (del split er sr) γ γ′ w δδ = fundamental sr γ γ′ w {!fundamental er γ γ′ w!}
-    fundamental (pm split er sr) γ γ′ w δδ = {!!}
+    fundamental {Γ = Γ} (del split er sr) γ γ′ w δδ =
+      let x , y , xyw , δδx , δδy = RΔ-split-+ Γ w split δδ in
+      let Jx = fundamental er γ γ′ x δδx in
+      fundamental sr γ γ′ w (R⟦ Γ , _ ⟧Δ-arr (_↔E_.to JP $E (x , Jx , xyw)) δδy)
+    fundamental {Γ = Γ} (pm split er sr) γ γ′ w δδ =
+      let x , y , xyw , δδx , δδy = RΔ-split-+ Γ w split δδ in
+      let xx , xy , xx+xy=x , ρρxx , ρρxy = fundamental er γ γ′ x δδx in
+      {!fundamental sr (? , ? , γ) (? , ? , γ′) y ?!}
     fundamental (proj {i = ttt} er) γ γ′ w δδ = fst (fundamental er γ γ′ w δδ)
     fundamental (proj {i = fff} er) γ γ′ w δδ = snd (fundamental er γ γ′ w δδ)
     fundamental (exf split er) γ γ′ w δδ = {!Zero-elim!}
