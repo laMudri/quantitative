@@ -147,8 +147,17 @@ module Quantitative.Semantics.Relational {r l}
       ∀ {n d T Γ Δ} {t : Term n d} {tt : Γ ⊢t t :-: T} (tr : Δ ⊢r tt)
       (γ γ′ : ⟦ Γ ⟧Γ) w → R⟦ Γ , Δ ⟧Δ w γ γ′ → R⟦ T ⟧T w (⟦ tt ⟧t γ) (⟦ tt ⟧t γ′)
     fundamental {t = var i} {tt = var refl} (var sub) γ γ′ w δδ = {!sub!}
-    fundamental (app split er sr) γ γ′ w δδ = {!fundamental er γ γ′!}
-    fundamental (bm split er sr) γ γ′ w δδ = {!!}
+    fundamental {Γ = Γ} (app {st = st} split er sr) γ γ′ w δδ =
+      -- NOTE: this use of commutativity seems ugly. Maybe switch order in _⊢r_.app
+      let split′ = Δ.≤-trans split (Δ.≤-reflexive (Δ.+-comm _ _)) in
+      let x , y , xyw , δδx , δδy = RΔ-split-+ Γ w split′ δδ in
+      let s = ⟦ st ⟧t γ ; s′ = ⟦ st ⟧t γ′ in
+      (fundamental er γ γ′ y δδy) w x xyw s s′ (fundamental sr γ γ′ x δδx)
+    fundamental {Γ = Γ} (bm {et = et} split er sr) γ γ′ w δδ =
+      let x , y , xyw , δδx , δδy = RΔ-split-+ Γ w split δδ in
+      let s = ⟦ et ⟧t γ ; s′ = ⟦ et ⟧t γ′ in
+      fundamental sr (s , γ) (s′ , γ′) w
+                  (x , y , xyw , (fundamental er γ γ′ x δδx) , δδy)
     fundamental {Γ = Γ} (del split er sr) γ γ′ w δδ =
       let x , y , xyw , δδx , δδy = RΔ-split-+ Γ w split δδ in
       let Jx = fundamental er γ γ′ x δδx in
