@@ -39,6 +39,15 @@ module Lib.Setoid where
   ≡-Setoid : ∀ {x} → Set x → Setoid x x
   ≡-Setoid X = record { C = X ; setoidOver = ≡-SetoidOver X }
 
+  ⊤-SetoidOver : ∀ {x} (X : Set x) → SetoidOver X lzero
+  ⊤-SetoidOver X = record
+    { _≈_ = λ _ _ → One
+    ; isSetoid = record { refl = <> ; sym = λ _ → <> ; trans = λ _ _ → <> }
+    }
+
+  ⊤-Setoid : ∀ {x} → Set x → Setoid x lzero
+  ⊤-Setoid X = record { C = X ; setoidOver = ⊤-SetoidOver X }
+
   -- Indexed setoids
 
   record IsSetoidI {i c l} {I : Set i} (C : I → Set c)
@@ -174,6 +183,15 @@ module Lib.Setoid where
       }
     ; _$E=_ = λ aq _ → aq
     }
+
+  →E-⊤ : ∀ {a b l} {A : Set a} {B : Set b} (setoidOver : SetoidOver A l) →
+         (A → B) → (record { C = A ; setoidOver = setoidOver } →E ⊤-Setoid B)
+  →E-⊤ setoidOver f = record { _$E_ = f ; _$E=_ = λ _ → <> }
+
+  ≡-→E : ∀ {a b l} {A : Set a} {B : Set b} (setoidOver : SetoidOver B l) →
+         (A → B) → (≡-Setoid A →E record { C = B ; setoidOver = setoidOver })
+  ≡-→E setoidOver f = record { _$E_ = f ; _$E=_ = λ { ≡-refl → refl } }
+    where open SetoidOver setoidOver
 
   -- Pairs
 

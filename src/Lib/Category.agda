@@ -5,6 +5,7 @@ module Lib.Category where
   open import Lib.Level
   open import Lib.One
   open import Lib.Product
+  open import Lib.Relation
   open import Lib.Setoid
 
   record IsCategory {o a e} {Obj : Set o} (Arr : (A B : Obj) → Setoid a e)
@@ -116,6 +117,9 @@ module Lib.Category where
         arr : ∀ {A B} → C.Arr A B →E D.Arr (obj A) (obj B)
         isFunctor : IsFunctor obj arr
       open IsFunctor isFunctor public
+
+  EndoFunctor : ∀ {o a e} (C : Category o a e) → Set (o ⊔ a ⊔ e)
+  EndoFunctor C = Functor C C
 
   module _ {oc od ac ad ec ed}
            {C : Category oc ac ec} {D : Category od ad ed} where
@@ -805,6 +809,19 @@ module Lib.Category where
         module J = Functor J ; module P = Functor P
       field
         isPromonoidal : IsPromonoidal J P
-        sym : ∀ {a b c d} → ΣS (≡-Setoid Obj) (lamS λ x → P.obj ((a , b) , c) ×S P.obj ((b , a) , d))
-                          ↔E Arr c d
+        comm : ∀ {a b c} → P.obj ((a , b) , c) →E P.obj ((b , a) , c)
       open IsPromonoidal isPromonoidal public
+
+  REL : ∀ {a e} (A : Setoid a e) l → Category (a ⊔ lsuc l) _ _
+  REL A l = record
+    { Obj = Rel A l
+    ; Arr = λ R S → ⊤-Setoid ([ A ] R ⇒ S)
+    ; isCategory = record
+      { id = λ R x y r → r
+      ; _>>_ = λ r s x y → s x y Fun.o r x y
+      ; id->> = λ _ → <>
+      ; >>-id = λ _ → <>
+      ; >>->> = λ _ _ _ → <>
+      ; _>>-cong_ = λ _ _ → <>
+      }
+    }

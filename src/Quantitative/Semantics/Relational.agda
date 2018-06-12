@@ -6,21 +6,19 @@ open import Lib.Structure
 
 module Quantitative.Semantics.Relational {r l}
          (W : Category lzero lzero lzero) (let module W = Category W)
-         (Base : Set) (BaseR : W.Obj → Rel Base lzero)
+         (Base : Set) (BaseR : Functor (OP W) (REL (≡-Setoid Base) lzero))
          (J : Profunctor ONE W) (P : Profunctor (W ×C W) W)
          (isSymmetricPromonoidal : IsSymmetricPromonoidal _ J P)
          (R : Set r) (posemiring : Posemiring (≡-Setoid R) l)
-         (act : {A : Set} → R → (W.Obj → Rel A lzero) → (W.Obj → Rel A lzero))
+         (actF : {A : Set} → R → (W.Obj → Rel A lzero) → Functor (OP W) (REL (≡-Setoid A) lzero))
          where
 
   module Wᵒᵖ = Category (OP W)
   module J = Functor J ; module P = Functor P
+  module BaseR = Functor BaseR
+  module actF {A} ρ S = Functor (actF {A} ρ S)
   open IsSymmetricPromonoidal isSymmetricPromonoidal
 
-  --open import Quantitative.Models.RelationTransformer
-  --open DecToppedMeetSemilatticeSemiring decToppedMeetSemilatticeSemiring
-  --  using (posemiring)
-  --open import Quantitative.Models.RelationTransformer.Action
   open import Quantitative.Types.Formers R
   open import Quantitative.Syntax Ty
   open import Quantitative.Types R
@@ -28,7 +26,7 @@ module Quantitative.Semantics.Relational {r l}
   open import Quantitative.Resources R posemiring
   open import Quantitative.Resources.Context R posemiring
 
-  open import Lib.Equality
+  open import Lib.Equality using (_≡_; refl)
   open import Lib.Function
   open import Lib.Nat
   open import Lib.One
@@ -39,10 +37,13 @@ module Quantitative.Semantics.Relational {r l}
   open import Lib.VZip
   open import Lib.Zero
 
+  act : {A : Set} → R → (W.Obj → Rel A lzero) → (W.Obj → Rel A lzero)
+  act = actF.obj
+
   R⟦_⟧T : (T : Ty) → W.Obj → Rel ⟦ T ⟧T lzero
   R⟦_,_⟧ρ : ∀ T ρ → W.Obj → Rel ⟦ T ⟧T lzero
 
-  R⟦ BASE ⟧T w = BaseR w
+  R⟦ BASE ⟧T w = BaseR.obj w
   R⟦ ⊗1 ⟧T w = λ _ _ → Setoid.C (J.obj (<> , w))
   R⟦ &1 ⟧T w = λ _ _ → One
   R⟦ ⊕0 ⟧T w ()
@@ -66,19 +67,19 @@ module Quantitative.Semantics.Relational {r l}
 
   R⟦_⟧T-arr : (S : Ty) → ∀ {w w′} → w′ W.=> w →
                          ∀ {s s′} → R⟦ S ⟧T w s s′ → R⟦ S ⟧T w′ s s′
-  R⟦ BASE ⟧T-arr {w} {w′} ww {s} {s′} ss = {!!}
+  R⟦ BASE ⟧T-arr ww ss = (BaseR.arr $E ww) _ _ ss
   R⟦ ⊗1 ⟧T-arr ww ss = J.arr $E (<> , ww) $E ss
   R⟦ &1 ⟧T-arr ww ss = ss
   R⟦ ⊕0 ⟧T-arr ww {()} {s′} ss
-  R⟦ S ⊸ T ⟧T-arr {w} {w′} ww {f} {f′} ff =
+  R⟦ S ⊸ T ⟧T-arr ww ff =
     λ x y yw′x s s′ ss →
     ff x y (P.arr $E ((Category.id W y , ww) , Category.id W x) $E yw′x) s s′ ss
-  R⟦ S ⊗ T ⟧T-arr {w} {w′} ww {s , t} {s′ , t′} (x , y , xyw , ss , tt) =
+  R⟦ S ⊗ T ⟧T-arr ww {s , t} {s′ , t′} (x , y , xyw , ss , tt) =
     x , y , P.arr $E ((Category.id (W ×C W) _) , ww) $E xyw , ss , tt
   R⟦ S & T ⟧T-arr ww ss = map× (R⟦ S ⟧T-arr ww) (R⟦ T ⟧T-arr ww) ss
   R⟦ S ⊕ T ⟧T-arr ww (inl ss) = inl (R⟦ S ⟧T-arr ww ss)
   R⟦ S ⊕ T ⟧T-arr ww (inr tt) = inr (R⟦ T ⟧T-arr ww tt)
-  R⟦ ! ρ S ⟧T-arr {w} {w′} ww {s} {s′} ss = {!!}
+  R⟦ ! ρ S ⟧T-arr ww ss = (actF.arr ρ R⟦ S ⟧T $E ww) _ _ ss
 
   R⟦_,_⟧Δ-arr : ∀ {n} (Γ : TCtx n) (Δ : RCtx n) →
                 ∀ {w w′} → w′ W.=> w →
@@ -104,21 +105,21 @@ module Quantitative.Semantics.Relational {r l}
     Rρ-weaken T w le rr = act-≤ le R⟦ T ⟧T _ _ _ rr
 
 
-    Rρ-split-0 : ∀ T ρ w s s′ → ρ R.≤ R.e0 → R⟦ T , ρ ⟧ρ w s s′ →
+    Rρ-split-0 : ∀ T {ρ s s′} w → ρ R.≤ R.e0 → R⟦ T , ρ ⟧ρ w s s′ →
                  Setoid.C (J.obj (<> , w))
-    Rρ-split-0 T ρ w s s′ le rr = act-0 (R⟦ T ⟧T) w s s′ (Rρ-weaken T w le rr)
+    Rρ-split-0 T {ρ} {s} {s′} w le rr = act-0 (R⟦ T ⟧T) w s s′ (Rρ-weaken T w le rr)
 
     RΔ-split-0 : ∀ {n} (Γ : TCtx n) {Δ γ γ′} w → Δ Δ.≤ Δ.e0 →
                  R⟦ Γ , Δ ⟧Δ w γ γ′ → Setoid.C (J.obj (<> , w))
     RΔ-split-0 nil {nil} w nil δδ = δδ
     RΔ-split-0 (S :: Γ) {ρ :: Δ} {s , γ} {s′ , γ′} w (le :: split) (x , y , xyw , ρρ , δδ)
-      with Rρ-split-0 S ρ x s s′ le ρρ | RΔ-split-0 Γ y split δδ
+      with Rρ-split-0 S x le ρρ | RΔ-split-0 Γ y split δδ
     ... | Jx | Jy = J.arr $E (<> , (_↔E_.to JP $E (x , Jx , xyw))) $E Jy
 
-    Rρ-split-+ : ∀ T ρ ρx ρy w s s′ → ρ R.≤ ρx R.+ ρy → R⟦ T , ρ ⟧ρ w s s′ →
+    Rρ-split-+ : ∀ T {ρ ρx ρy s s′} w → ρ R.≤ ρx R.+ ρy → R⟦ T , ρ ⟧ρ w s s′ →
                  ∃2 λ x y → Setoid.C (P.obj ((x , y) , w)) ×
                  R⟦ T , ρx ⟧ρ x s s′ × R⟦ T , ρy ⟧ρ y s s′
-    Rρ-split-+ T ρ ρx ρy w s s′ le rr =
+    Rρ-split-+ T {ρ} {ρx} {ρy} {s} {s′} w le rr =
       act-+ ρx ρy (R⟦ T ⟧T) w s s′ (Rρ-weaken T w le rr)
 
     RΔ-split-+ : ∀ {n} (Γ : TCtx n) {Δ Δx Δy γ γ′} w → Δ Δ.≤ Δx Δ.+ Δy →
@@ -132,13 +133,23 @@ module Quantitative.Semantics.Relational {r l}
       --x , w , p , j , δδ
       let x , Jx , Pxww = _↔E_.from JP $E W.id w in
       x , w , Pxww , Jx , δδ
-    RΔ-split-+ (S :: Γ) {ρ :: Δ} {ρx :: Δx} {ρy :: Δy} {s , γ} {s′ , γ′} w (le :: split) (x , y , x+y=w , ρρ , δδ) with Rρ-split-+ S ρ ρx ρy x s s′ le ρρ | RΔ-split-+ Γ y split δδ
+    RΔ-split-+ (S :: Γ) {ρ :: Δ} {ρx :: Δx} {ρy :: Δy} {s , γ} {s′ , γ′} w (le :: split) (x , y , x+y=w , ρρ , δδ) with Rρ-split-+ S x le ρρ | RΔ-split-+ Γ y split δδ
     ... | xx , xy , xx+xy=x , ρρx , ρρy | yx , yy , yx+yy=y , δδx , δδy =
-      let xy+y , xy+y= , xx+[xy+y]=w = _↔E_.to PP $E (x , xx+xy=x , x+y=w) in
       let x+yx , x+yx= , [x+yx]+yy=w = _↔E_.from PP $E (y , yx+yy=y , x+y=w) in
-      let xy+yx , xy+yx= , [xy+yx]+yy=xy+y = _↔E_.from PP $E (y , yx+yy=y , xy+y=) in
-      let xy+yx′ , xy+yx=′ , xx+[xy+yx′]=x+yx = _↔E_.to PP $E (x , xx+xy=x , x+yx=) in
-      {!!} , {!!} , {!!} , (xx , yx , {!!} , ρρx , δδx) , (xy , yy , {!!} , ρρy , δδy)
+      let xy+xx=x = comm $E xx+xy=x in
+      let xx+yx , xx+yx= , xy+[xx+yx]=x+yx = _↔E_.to PP $E (x , xy+xx=x , x+yx=) in
+
+      let xy+y , xy+y= , xx+[xy+y]=w = _↔E_.to PP $E (x , xx+xy=x , x+y=w) in
+      let yy+yx=y = comm $E yx+yy=y in
+      let xy+yy , xy+yy= , [xy+yy]+yx=xy+y = _↔E_.from PP $E (y , yy+yx=y , xy+y=) in
+
+      let [xx+yx]+xy=x+yx = comm $E xy+[xx+yx]=x+yx in
+      let yx+xx=xx+yx = comm $E xx+yx= in
+      let yx+yy , yx+yy= , x+[yx+yy]=w = _↔E_.to PP $E (x+yx , x+yx= , [x+yx]+yy=w) in
+
+      xx+yx , xy+yy , {!yx+yy=!}
+      , (xx , yx , xx+yx= , ρρx , δδx)
+      , (xy , yy , xy+yy= , ρρy , δδy)
 
 
     -- TODO: report internal error at C-c C-a
@@ -169,7 +180,7 @@ module Quantitative.Semantics.Relational {r l}
       let xy+y , xy+y= , xx+[xy+y]=w = _↔E_.to PP $E (x , xx+xy=x , xyw) in
       fundamental sr (s0 , s1 , γ) (s0′ , s1′ , γ′) w
                   (xx , xy+y , xx+[xy+y]=w , snd (act-1 R⟦ S0 ⟧T xx s0 s0′) ρρxx
-                  , xy , y , {!xy+y=!} , snd (act-1 R⟦ S1 ⟧T xy s1 s1′) ρρxy , δδy)
+                  , xy , y , xy+y= , snd (act-1 R⟦ S1 ⟧T xy s1 s1′) ρρxy , δδy)
     fundamental (proj {i = ttt} er) γ γ′ w δδ = fst (fundamental er γ γ′ w δδ)
     fundamental (proj {i = fff} er) γ γ′ w δδ = snd (fundamental er γ γ′ w δδ)
     fundamental (exf {et = et} split er) γ γ′ w δδ = Zero-elim (⟦ et ⟧t γ)
