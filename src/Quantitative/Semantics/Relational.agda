@@ -32,6 +32,7 @@ module Quantitative.Semantics.Relational {r l}
   open import Lib.One
   open import Lib.Product
   open import Lib.Sum
+  open import Lib.Thinning
   open import Lib.Two
   open import Lib.Vec
   open import Lib.VZip
@@ -151,13 +152,36 @@ module Quantitative.Semantics.Relational {r l}
       , (xx , yx , xx+yx= , ρρx , δδx)
       , (xy , yy , xy+yy= , ρρy , δδy)
 
+    Rρ-split-* : ∀ T {ρ ρx ρy s s′} w → ρ R.≤ ρx R.* ρy →
+                 R⟦ T , ρ ⟧ρ w s s′ → act ρx R⟦ T , ρy ⟧ρ w s s′
+    Rρ-split-* T w le ρρ = fst (act-* _ _ R⟦ T ⟧T w _ _) (Rρ-weaken T w le ρρ)
+
+    RΔ-split-* : ∀ {n} (Γ : TCtx n) {Δ ρ Δx γ γ′} w → Δ Δ.≤ ρ Δ.* Δx →
+                 R⟦ Γ , Δ ⟧Δ w γ γ′ → act ρ R⟦ Γ , Δx ⟧Δ w γ γ′
+    RΔ-split-* nil {nil} {ρ} {nil} w nil δδ = {!if the relation ignores the two denotations, act has no effect!}
+    RΔ-split-* (S :: Γ) {π :: Δ} {ρ} {πx :: Δx} {s , γ} {s′ , γ′} w (le :: split) (x , y , xyw , ππ , δδ) =
+      {!RΔ-split-* Γ y split δδ!}
+
+
+    R⟦lookup⟧ : ∀ {n} {Γ : TCtx n} {Δ : RCtx n} {π} w i (γ γ′ : ⟦ Γ ⟧Γ) → Δ Δ.≤ varRCtx i π →
+                R⟦ Γ , Δ ⟧Δ w γ γ′ → R⟦ lookup i Γ , π ⟧ρ w (⟦lookup⟧ i γ) (⟦lookup⟧ i γ′)
+    R⟦lookup⟧ {succ n} {S :: Γ} {ρ :: Δ} {π} w (os i) (s , γ) (s′ , γ′) (le :: sub) (x , y , xyw , ρρ , δδ) =
+      let Jy = RΔ-split-0 Γ y sub δδ in
+      let w=>x = _↔E_.to PJ $E (y , Jy , xyw) in
+      act-≤ le _ _ _ _ ((actF.arr ρ R⟦ S ⟧T $E w=>x) s s′ ρρ)
+    R⟦lookup⟧ {succ n} {S :: Γ} {ρ :: Δ} {π} w (o′ i) (s , γ) (s′ , γ′) (le :: sub) (x , y , xyw , ρρ , δδ) =
+      let Jx = Rρ-split-0 S x le ρρ in
+      let w=>y = _↔E_.to JP $E (x , Jx , xyw) in
+      (actF.arr π R⟦ lookup i Γ ⟧T $E w=>y) _ _ (R⟦lookup⟧ y i γ γ′ sub δδ)
 
     -- TODO: report internal error at C-c C-a
     -- (if it persists to the new Agda version)
     fundamental :
       ∀ {n d T Γ Δ} {t : Term n d} {tt : Γ ⊢t t :-: T} (tr : Δ ⊢r tt)
       (γ γ′ : ⟦ Γ ⟧Γ) w → R⟦ Γ , Δ ⟧Δ w γ γ′ → R⟦ T ⟧T w (⟦ tt ⟧t γ) (⟦ tt ⟧t γ′)
-    fundamental {t = var i} {tt = var refl} (var sub) γ γ′ w δδ = {!sub!}
+    fundamental {Γ = Γ} {t = var i} {tt = var refl} (var sub) γ γ′ w δδ =
+      fst (act-1 R⟦ lookup i Γ ⟧T w (⟦lookup⟧ i γ) (⟦lookup⟧ i γ′))
+          (R⟦lookup⟧ w i γ γ′ sub δδ)
     fundamental {Γ = Γ} (app {st = st} split er sr) γ γ′ w δδ =
       -- NOTE: this use of commutativity seems ugly. Maybe switch order in _⊢r_.app
       let split′ = Δ.≤-trans split (Δ.≤-reflexive (Δ.+-comm _ _)) in
@@ -196,7 +220,7 @@ module Quantitative.Semantics.Relational {r l}
     fundamental (lam {S = S} sr) γ γ′ w δδ x y ywx s s′ ss =
       fundamental sr (s , γ) (s′ , γ′) x
                   (y , w , ywx , snd (act-1 R⟦ S ⟧T y s s′) ss , δδ)
-    fundamental (bang split sr) γ γ′ w δδ = {!fundamental sr γ γ′ w!}
+    fundamental {Γ = Γ} (bang {S = S} {ρ = ρ} split sr) γ γ′ w δδ = {!actF.arr ρ R⟦ S ⟧T!}
     fundamental {Γ = Γ} (unit split) γ γ′ w δδ = RΔ-split-0 Γ w split δδ
     fundamental {Γ = Γ} (ten split s0r s1r) γ γ′ w δδ =
       let x , y , xyw , δδx , δδy = RΔ-split-+ Γ w split δδ in
