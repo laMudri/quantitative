@@ -111,10 +111,10 @@
 
 %% Title information
 \title%[Short Title]
-       {Refined Semantics for Coeffects} %% [Short Title] is optional;
+       {Context Constrained Computation} %% [Short Title] is optional;
                                         %% when present, will be used in
                                         %% header instead of Full Title.
-\titlenote{Working title}             %% \titlenote is optional;
+%\titlenote{Working title}             %% \titlenote is optional;
                                         %% can be repeated if necessary;
                                         %% contents suppressed with 'anonymous'
 %\subtitle{Subtitle}                     %% \subtitle is optional
@@ -172,9 +172,15 @@
 %% Note: \begin{abstract}...\end{abstract} environment must come
 %% before \maketitle command
 \begin{abstract}
-  Key message: refined typing permits refined
-  semantics. Domain-specific properties for domain-specific
-  programming languages.
+  Coeffects are a way of describing the context in which computation
+  takes place. Previous works on coeffect calculi have concentrated on
+  the additional capabilities bestowed upon programs operating in
+  known contexts. For example, a program that knows that its input are
+  streams has the ability to request the $n$th value in that
+  stream. In this work, we consider the converse: programs whose
+  contexts constrain the computations they an perform.
+
+  FIXME: more detail. And edit it down.
 \end{abstract}
 
 
@@ -210,6 +216,26 @@
 %% commands, abstract environment, Computing Classification System
 %% environment and commands, and keywords command.
 \maketitle
+
+\section{Introduction}
+\label{sec:introduction}
+\input{intro}
+
+\section{Syntax}
+\label{sec:syntax}
+\input{syntax}
+
+\section{Semantics}
+\label{sec:semantics}
+\input{semantics}
+
+\section{Example Instantiations}
+\label{sec:examples}
+\input{examples}
+
+\newpage
+
+\appendix
 
 
 \section{Introduction}
