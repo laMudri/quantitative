@@ -1,5 +1,65 @@
-Syntax
+Our syntax is defined with respect to a partially ordered semiring $R$, and we take $\rho,\pi \in R$.
 
+\begin{definition}
+  A \emph{partially ordered semiring} $(R, \leq, 0, +, 1 , \cdot)$ is a poset $(R, \leq)$, commutative monoid $(R, 0, +)$, and monoid $(R, 1, \cdot)$, such that $\cdot$ distributes over $0$ and $+$, and $+$ and $\cdot$ are monotonic with respect to $\leq$.
+\end{definition}
+
+Additionally, we take $i \in \{0,1\}$ wherever it appears.
+Variables are formalised as de Bruijn indices, but presented named $x$ and $y$.
+Curly braces (and $\lambda$) denote the binding of new variables in the following expression.
+
+\begin{displaymath}
+  S,T ::= \fun{S}{T} \mid \excl{\rho}{S} \mid \tensorOne \mid \tensor{S}{T} \mid \withTOne \mid \withT{S}{T} \mid \sumTZero \mid \sumT{S}{T}
+\end{displaymath}
+\begin{displaymath}
+  \begin{array}{rrll}
+    s &  ::= & \lam{x}{s} \mid \bang{s} \mid \unit \mid \ten{s_0}{s_1} \\
+      & \mid & \eat \mid \wth{s_0}{s_1} \mid \inj{i}{s} \\
+    e &  ::= & x \mid \app{e}{s} \mid \bm{T}{e}{\bind{x}{s}} \mid \del{T}{e}{s} \mid \prm{T}{e}{\bind{x,y}{s}} \\
+      & \mid & \proj{i}{e} \mid \exf{T}{e} \mid \cse{T}{e}{\bind{x}{s_0}}{\bind{y}{s_1}}
+  \end{array}
+\end{displaymath}
+
+Contexts $\ctx{\Gamma}{\Delta}$ are to be understood as a \emph{typing context} $\Gamma$ of the form $x_1 : S_1, \ldots, x_n : S_n$, and a \emph{resourcing context} $\Delta$ of the form $x_0^{\rescomment{\rho_0}}, \ldots, x_n^{\rescomment{\rho_n}}$.
+%The resourcing context in which for each $k$, $\rho_k = 0$, will be abbreviated to $\rescomment{0}$.
+Resourcing contexts with matching variables form a left $R$-semimodule, taking $(x_0^{\rescomment{\rho_0}}, \ldots, x_n^{\rescomment{\rho_n}}) + (x_0^{\rescomment{\pi_0}}, \ldots, x_n^{\rescomment{\pi_n}}) = (x_0^{\rescomment{\rho_0 + \pi_0}}, \ldots, x_n^{\rescomment{\rho_n + \pi_n}})$ and $\rho \cdot (x_0^{\rescomment{\rho \cdot \pi_0}}, \ldots, x_n^{\rescomment{\rho \cdot \pi_n}})$.
+
+Our typing and resourcing judgements will be in one of the following two forms.
+\begin{displaymath}
+  \begin{array}{l}
+    \ctxvar{x_1}{S_1}{\rho_1}, \ldots, \ctxvar{x_n}{S_n}{\rho_n} \vdash T \ni s \\
+    \ctxvar{x_1}{S_1}{\rho_1}, \ldots, \ctxvar{x_n}{S_n}{\rho_n} \vdash e \in T
+  \end{array}
+\end{displaymath}
+
+There is a variable rule, two rules for change of direction, and introduction and elimination rules for each type former: functions, bangs, and nullary and binary tensor products, with products, and sums.
+For example, here are the rules for variables, function introduction and elimination, and bang introduction.
+
+\begin{mathpar}
+  % Variables
+  \inferrule{(x : S) \in \Gamma
+           \\ \rescomment{\Delta \leq 0, x^1, 0}}
+          {\ctx{\Gamma}{\Delta} \vdash x \in S}
+
+  % Functions
+  \inferrule{\ctx{\Gamma}{\Delta}, \ctxvar{x}{S}{1} \vdash T \ni s[x]}
+            {\ctx{\Gamma}{\Delta} \vdash \fun{S}{T} \ni \lam{x}{s[x]}}
+
+  \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \fun{S}{T}
+             \\ \ctx{\Gamma}{\Delta_s} \vdash S \ni s
+             \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
+            {\ctx{\Gamma}{\Delta} \vdash \app{e}{s} \in T}
+
+  % Bang
+  \inferrule{\ctx{\Gamma}{\Delta_s} \vdash S \ni s
+             \\ \rescomment{\Delta \leq \rho \cdot \Delta_s}}
+            {\ctx{\Gamma}{\Delta} \vdash \excl{\rho}{S} \ni \bang{s}}
+
+  %\inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \excl{\rho}{S}
+  %           \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S}{\rho} \vdash T \ni s[x]
+  %           \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
+  %          {\ctx{\Gamma}{\Delta} \vdash \bm{T}{e}{\bind{x}{s[x]}} \in T}
+\end{mathpar}                                                                                  
 
 % Local variables:
 % TeX-master: "quantitative"
