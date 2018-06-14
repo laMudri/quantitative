@@ -1,14 +1,14 @@
 In normal typed $\lambda$-calculi, variables may be used multiple
 times, in multiple contexts, for multiple reasons, as long as the
-types agree. The disciplines of linear types \cite{girard} and
-coeffects \cite{petricek,brunel,ghica} refine this by keeping track of
-how variables are used throughout a program. For instance, we might
-track how many times a variable is used, or whether it is used
-covariantly, contravariantly, or invariantly. Coeffects give us a
-general framework of ``context constrained computing'', where
-constraints on variables in the context tell us something interesting
-about the computation being performed. Thus we put the typing and
-usage information to work to tell us facts about programs that might
+types agree. The disciplines of linear types \cite{girard87linear} and
+coeffects \cite{PetricekOM14,BrunelGMZ14,GhicaS14} refine this by
+keeping track of how variables are used throughout a program. For
+instance, we might track how many times a variable is used, or whether
+it is used covariantly, contravariantly, or invariantly. Coeffects
+give us a general framework of ``context constrained computing'',
+where constraints on variables in the context tell us something
+interesting about the computation being performed. Thus we put the
+type information to work to tell us facts about programs that might
 not otherwise be apparent.
 
 We will present work in progress on capturing the ``intensional''
@@ -19,14 +19,17 @@ accommodate the following examples:
 \begin{enumerate}
 \item Linear types that capture properties like ``all list
   manipulating programs are permutations''. This example uses the
-  Kripke-indexing of relations to track the 
-\item Monotonicity types that track whether a program uses its input
-  co-, contra-, or in-variantly (or not at all). In this case, the 
+  Kripke-indexing of relations to track the collection of datums
+  currently being manipulated by the program.
+\item Monotonicity coeffects that track whether a program uses its
+  input co-, contra-, or in-variantly (or not at all). In this case,
+  the Kripke-indexing is not used, but the coeffect annotation
+  describes how to manipulate the relations.
 \item Sensitivity typing, that tracks how sensitive the output of the
   program is in terms of changes to the input. This forms the core of
-  type systems for differential privacy \cite{reed}.
+  type systems for differential privacy \cite{reed10distance}.
 \item Information flow typing, in the style of the Dependency Core
-  Calculus \cite{abadi}.
+  Calculus \cite{abadi99core}.
 \end{enumerate}
 Through discusssion at the workshop, we hope to discover more
 applications of our framework. In future work, we plan to extend our
