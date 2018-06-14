@@ -105,6 +105,29 @@ coeffect annotations as an \emph{analysis} of programs, they do not
 affect the underlying semantics, but comment on it. We introduce our
 semantic framework in the next section.
 
+The order acts as a sub-resourcing relation.
+Well resourced terms can also be weakened by the introduction of $0$-resource
+variables to the context, and satisfy a substitution principle.
+
+\begin{mathpar}
+  \inferrule*[Right=subres]
+             {\ctx{\Gamma}{\Delta} \vdash t : T
+               \\ \rescomment{\Delta' \leq \Delta}}
+             {\ctx{\Gamma}{\Delta'} \vdash t : T}
+
+  \inferrule*[Right=weak]
+             {\ctx{\Gamma}{\Delta}, \ctx{\Gamma'}{\Delta'} \vdash t : T}
+             {\ctx{\Gamma}{\Delta}, \ctxvar{x}{S}{0}, \ctx{\Gamma'}{\Delta'}
+               \vdash t : T}
+
+  \inferrule*[Right=subst]
+             {\ctx{\Gamma}{\Delta} \vdash t : T
+               \\ \forall x.~
+               \ctx{\Gamma'}{\vec{\Delta'_x}} \vdash \vec{t'_x} : \Gamma_x
+               \\ \rescomment{\Delta'' \leq \sum_x \Delta_x \cdot \vec{\Delta'_x}}}
+             {\ctx{\Gamma'}{\Delta''} \vdash t[\vec{t'}] : T}
+\end{mathpar}
+
 
 % Local Variables:
 % TeX-master: "quantitative"

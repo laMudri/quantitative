@@ -14,34 +14,53 @@ We start by giving a standard semantics of types and well typed (but not necessa
 
 The semantics of contexts and terms are as usual.
 
-Using this, we give a semantics of types $T$ into functors from $\mathcal{W}^{op}$ to $\mathrm{Rel}\ \llbracket T \rrbracket$, where $\mathcal{W}$ is a symmetric promonoidal category and $\mathrm{Rel}\ A$ is the category of binary relations on $A$.
+Using this, we give a semantics of types $T$ into functors from $\mathcal{W}^{op}$ to $\mathrm{Rel}~\llbracket T \rrbracket$, where $\mathcal{W}$ is a symmetric promonoidal category and $\mathrm{Rel}~A$ is the category of binary relations on $A$.
+
+\begin{definition}
+  A \emph{symmetric promonoidal category} $(\mathcal{W}, J, P)$ is a category
+  $\mathcal{W}$ and profunctors $J : 1 \nrightarrow \mathcal{W}$ and $P :
+  \mathcal{W} \times \mathcal{W} \nrightarrow \mathcal{W}$ such that $P \odot (J
+  \times 1) \cong 1$, $P \odot (1 \times J) \cong 1$, $P \odot (1 \times P)
+  \cong P \odot (P \times 1)$, and $P \cong P \odot (\pi_2 \times \pi_1)$, such
+  that the triangle, pentagon, and hexagon laws hold.
+\end{definition}
 
 \begin{displaymath}
-  \begin{array}{lll}
-    \llbracket \base \rrbracket^R & = & R_\base b\\
-    \llbracket \fun{S}{T} \rrbracket^R w (f, f') & = & \forall x,y. P(y,w)x \implies \phantom{X} \\
-    \quad \forall s,s'. \llbracket S \rrbracket^R y (s, s') \implies \llbracket T \rrbracket^R x (f\ s, f'\ s') \span \span \\
-    \llbracket \tensorOne \rrbracket^R w (*, *) & = & J w \\
-    \llbracket \tensor{S}{T} \rrbracket^R w ((s, t), (s', t')) & = & \\
-    \quad \exists x,y. P(x,y)w \wedge \llbracket S \rrbracket^R x (s, s') \wedge \llbracket T \rrbracket^R y (t, t') \span \span \\
-    \llbracket \withTOne \rrbracket^R w (*, *) & = & \top \\
-    \llbracket \withT{S}{T} \rrbracket^R w & = & \llbracket S \rrbracket^R w \times_R \llbracket T \rrbracket^R w \\
-    \llbracket \sumTZero \rrbracket^R w (s, s') & \mathrm{impossible} \span \\
-    \llbracket \sumT{S}{T} \rrbracket^R w & = & \llbracket S \rrbracket^R w \uplus_R \llbracket T \rrbracket^R w \\
-    \llbracket \excl{\rho}{S} \rrbracket^R & = & \oc_\rho \llbracket S \rrbracket^R \\
+  \begin{array}{llll}
+    \llbracket \base \rrbracket^R & w & = & R_\base w \\
+    \llbracket \fun{S}{T} \rrbracket^R & w & = & \lambda (f, f').~\forall x,y.~P(y,w)x \implies \phantom{X} \\
+    \quad \forall s,s'.~\llbracket S \rrbracket^R y (s, s') \implies \llbracket
+    T \rrbracket^R x (f~s, f'~s') \span \span \span \\
+    \llbracket \tensorOne \rrbracket^R & w & = & \lambda (*, *).~J w \\
+    \llbracket \tensor{S}{T} \rrbracket^R & w & = & \lambda ((s, t), (s', t')). \\
+    \quad \exists x,y.~P(x,y)w \wedge \llbracket S \rrbracket^R x (s, s') \wedge
+    \llbracket T \rrbracket^R y (t, t') \span \span \span \\
+    \llbracket \withTOne \rrbracket^R & w & = & \top \\
+    \llbracket \withT{S}{T} \rrbracket^R & w & = & \llbracket S \rrbracket^R w \times \llbracket T \rrbracket^R w \\
+    \llbracket \sumTZero \rrbracket^R & w & \mathrm{impossible} \span \\
+    \llbracket \sumT{S}{T} \rrbracket^R & w & = & \llbracket S \rrbracket^R w \uplus \llbracket T \rrbracket^R w \\
+    \llbracket \excl{\rho}{S} \rrbracket^R & w & = & \oc_\rho \llbracket S
+                                                   \rrbracket^R w \\
   \end{array}
 \end{displaymath}
 
-$R \times_R S$ and $R \uplus_R S$ are defined pointwise.
+$R \times S$ and $R \uplus S$ are defined pointwise on relations.
+Particularly, there are two cases for $R \uplus S$:
+
+\begin{itemize}
+  \item $R(r, r')$ implies $(R \uplus S)(\mathrm{inl}~r, \mathrm{inl}~r')$.
+  \item $S(s, s')$ implies $(R \uplus S)(\mathrm{inr}~s, \mathrm{inr}~s')$.
+\end{itemize}
+
 We assume a family of natural transformations $\oc$ satisfying the following laws.
 
 \begin{displaymath}
   \begin{array}{l}
-    \rho \leq \pi \implies (\oc_\pi R\ w \implies \oc_\rho R\ w) \\
-    \oc_0 R\ w \implies J w \\
-    \oc_{\rho+\pi} R\ w\ (a, b) \implies \exists x,y. P(x,y)w \wedge \oc_\rho R\ x\ a \wedge \oc_\pi R\ y\ b \\
-    \oc_1 R\ w \iff R\ w \\
-    \oc_{\rho \cdot \pi} R\ w \iff \oc_\rho(\oc_\pi R)\ w
+    \rho \leq \pi \implies (\oc_\pi R~w \implies \oc_\rho R~w) \\
+    \oc_0 R~w \implies J w \\
+    \oc_{\rho+\pi} R~w~(a, b) \implies \exists x,y. P(x,y)w \wedge \oc_\rho R~x~a \wedge \oc_\pi R~y~b \\
+    \oc_1 R~w \iff R~w \\
+    \oc_{\rho \cdot \pi} R~w \iff \oc_\rho(\oc_\pi R)~w
   \end{array}
 \end{displaymath}
 
@@ -51,7 +70,7 @@ This indexed relational semantics gives us a family of logical relations.
 The fundamental lemma is as follows.
 
 \begin{displaymath}
-  \ctx{\Gamma}{\Delta} \vdash t : S \implies \llbracket \ctx{\Gamma}{\Delta} \rrbracket^R w\ (\gamma, \gamma') \implies \llbracket t \rrbracket^R w\ (s, s')
+  \ctx{\Gamma}{\Delta} \vdash t : S \implies \llbracket \ctx{\Gamma}{\Delta} \rrbracket^R w~(\gamma, \gamma') \implies \llbracket S \rrbracket^R w~(s, s')
 \end{displaymath}
 
 
