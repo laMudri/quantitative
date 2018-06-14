@@ -54,24 +54,24 @@ Particularly, there are two cases for $R \uplus S$:
 
 We assume a family of natural transformations $\oc$ satisfying the following laws.
 
-\begin{displaymath}
-  \begin{array}{l}
-    \rho \leq \pi \implies (\oc_\pi R~w \implies \oc_\rho R~w) \\
-    \oc_0 R~w \implies J w \\
-    \oc_{\rho+\pi} R~w~(a, b) \implies \exists x,y. P(x,y)w \wedge \oc_\rho R~x~a \wedge \oc_\pi R~y~b \\
-    \oc_1 R~w \iff R~w \\
+  \begin{mathpar}
+    \rho \leq \pi \implies (\oc_\pi R~w \implies \oc_\rho R~w) \and
+    \oc_0 R~w \implies J w \and
+    \oc_{\rho+\pi} R~w~(a, b) \implies \exists x,y. P(x,y)w \wedge \oc_\rho R~x~a \wedge \oc_\pi R~y~b \and
+    \oc_1 R~w \iff R~w \and
     \oc_{\rho \cdot \pi} R~w \iff \oc_\rho(\oc_\pi R)~w
-  \end{array}
-\end{displaymath}
+  \end{mathpar}
 
 The semantics of a context $\ctxvar{x_1}{S_1}{\rho_1}, \ldots, \ctxvar{x_n}{S_n}{\rho_n}$ is given by $\tensor{\llbracket \excl{\rho_1}{S_1}}{\tensor{\ldots}{\excl{\rho_n}{S_n}}} \rrbracket^R$.
 
 This indexed relational semantics gives us a family of logical relations.
 The fundamental lemma is as follows.
 
-\begin{displaymath}
-  \ctx{\Gamma}{\Delta} \vdash t : S \implies \llbracket \ctx{\Gamma}{\Delta} \rrbracket^R w~(\gamma, \gamma') \implies \llbracket S \rrbracket^R w~(s, s')
-\end{displaymath}
+\begin{theorem}[fundamental lemma]
+  \begin{displaymath}
+    \ctx{\Gamma}{\Delta} \vdash t : S \implies \llbracket \ctx{\Gamma}{\Delta} \rrbracket^R w~(\gamma, \gamma') \implies \llbracket S \rrbracket^R w~(s, s')
+  \end{displaymath}
+\end{theorem}
 
 
 % Local Variables:
