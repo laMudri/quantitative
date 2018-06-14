@@ -23,18 +23,17 @@ monotonic with respect to $\leq$. We take $\rho,\pi \in R$.
 \medskip
 
 The base language we consider is a
-bidirectional\cite{DBLP:journals/toplas/PierceT00} simply typed
+bidirectional \cite{DBLP:journals/toplas/PierceT00} simply typed
 $\lambda$ calculus with the following types, where $\iota$ ranges over
 some set of base types:
 \begin{displaymath}
   S,T ::= \fun{S}{T} \mid \excl{\rho}{S} \mid \tensorOne \mid \tensor{S}{T} \mid
   \withTOne \mid \withT{S}{T} \mid \sumTZero \mid \sumT{S}{T} \mid \iota
 \end{displaymath}
-Bidirectional typing reduces the amount of type annotation we require.
-Since our language is bidirectionally typed, we have two syntactic
-categories of terms: $e$ ranges over checked terms, and $s$ ranges
-over synthesising terms. We use $t$ to range over both checking and
-synthesising terms.
+Bidirectional typing type annotations required.  Since our language is
+bidirectionally typed, we have two syntactic categories of terms: $e$
+ranges over checked terms, and $s$ ranges over synthesising terms. We
+use $t$ for both.
 \begin{displaymath}
   \begin{aligned}
     s &  ::= \lam{x}{s} \mid \bang{s} \mid \unit \mid \ten{s_0}{s_1} \mid \eat \mid \wth{s_0}{s_1} \mid \inj{i}{s} \mid \emb{e} \\
@@ -56,15 +55,12 @@ partial order on $R$ is extended pointwise to contexts.
 % Contexts $\ctx{\Gamma}{\Delta}$ over variables $x_1, \ldots, x_n$ are to be understood as a \emph{typing context} $\Gamma$ of the form $x_1 : S_1, \ldots, x_n : S_n$, and a \emph{resourcing context} $\Delta$ of the form $x_0^{\rescomment{\rho_0}}, \ldots, x_n^{\rescomment{\rho_n}}$.
 % %The resourcing context in which for each $k$, $\rho_k = 0$, will be abbreviated to $\rescomment{0}$.
 % Resourcing contexts with matching variables form a left $R$-semimodule, taking $(x_0^{\rescomment{\rho_0}}, \ldots, x_n^{\rescomment{\rho_n}}) + (x_0^{\rescomment{\pi_0}}, \ldots, x_n^{\rescomment{\pi_n}}) = (x_0^{\rescomment{\rho_0 + \pi_0}}, \ldots, x_n^{\rescomment{\rho_n + \pi_n}})$ and $\rho \cdot (x_0^{\rescomment{\rho \cdot \pi_0}}, \ldots, x_n^{\rescomment{\rho \cdot \pi_n}})$.
-Typing judgements are either for checking or synthesising types:
-\begin{displaymath}
-  \begin{array}{l}
-    \ctxvar{x_1}{S_1}{\rho_1}, \ldots, \ctxvar{x_n}{S_n}{\rho_n} \vdash T \ni s \\
-    \ctxvar{x_1}{S_1}{\rho_1}, \ldots, \ctxvar{x_n}{S_n}{\rho_n} \vdash e \in T
-  \end{array}
-\end{displaymath}
-When we only care about typability, we write $t : T$ in place of
-either $T \ni t$ or $t \in T$.
+Typing judgements for checked and synthesising terms have the same
+contexts, but either record that a term is checked against a type
+($\Gamma \vdash T \ni S$) or synthesise a type
+($\Gamma \vdash e \in T$).
+% When we only care about typability, we write $t : T$ in place of
+% either $T \ni t$ or $t \in T$.
 
 The typing rules consist of a variable rule, two rules for change of
 direction, and introduction and elimination rules for each type

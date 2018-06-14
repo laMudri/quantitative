@@ -2,18 +2,19 @@ In normal typed $\lambda$-calculi, variables may be used multiple
 times, in multiple contexts, for multiple reasons, as long as the
 types agree. The disciplines of linear types \cite{girard87linear} and
 coeffects \cite{PetricekOM14,BrunelGMZ14,GhicaS14} refine this by
-keeping track of how variables are used throughout a program. For
-instance, we might track how many times a variable is used, or whether
-it is used covariantly, contravariantly, or invariantly. Coeffects
-give us a general framework of ``context constrained computing'',
-where constraints on variables in the context tell us something
-interesting about the computation being performed. Thus we put the
-type information to work to tell us facts about programs that might
-not otherwise be apparent.
+tracking how variables are used. For instance, we
+might track how many times a variable is used, or whether it is used
+covariantly, contravariantly, or invariantly. Such a discipline yields a
+general framework of ``context constrained computing'', where
+constraints on variables in the context tell us something interesting
+about the computation being performed.
+% Thus we put the
+% type information to work to tell us facts about programs that might
+% not otherwise be apparent.
 
 We will present work in progress on capturing the ``intensional''
 properties of programs via a family of Kripke indexed relational
-semantics that refines a simple Set-theoretic semantics of
+semantics that refines a simple set-theoretic semantics of
 programs. The value of our approach lies in its generality. We can
 accommodate the following examples:
 \begin{enumerate}
