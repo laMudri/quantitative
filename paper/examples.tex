@@ -24,13 +24,13 @@ $\equiv \leq \uparrow,\downarrow$ and $\uparrow, \downarrow \leq 0$,
 we take $\mathcal{W}$ to be the one-object, one-arrow category, and
 define the relation transformer $\oc$ to be:
 \begin{mathpar}
-  \oc~0~R = \top
+  \oc_0~R = \top
 
-  \oc~\uparrow~R = R
+  \oc_\uparrow~R = R
 
-  \oc~\downarrow~R = R^{op}
+  \oc_\downarrow~R = R^{op}
 
-  \oc~\equiv~R = R \cap R^{op}
+  \oc_\equiv~R = R \cap R^{op}
 \end{mathpar}
 If we let our base type be natural numbers with the relational
 interpretation $R_{\mathrm{nat}}(n,n') \Leftrightarrow n \leq n'$,
@@ -54,7 +54,7 @@ changes in those variable.
 \paragraph{Information Flow} With the $R = \mathcal{P}(L)$ semiring,
 we again take $\mathcal{W} = R$, and let the relation transformer to
 be
-$\oc l~R~l' = \{\top~\textrm{when }l \geq l'; R~\textrm{otherwise}\}$.
+$\oc_l R~l' = \{\top~\textrm{when }l \geq l'; R~\textrm{otherwise}\}$.
 Then the fundamental lemma yields the same non-interference properties
 as stated by Abadi et al. for the DCC \cite{abadi99core}.
 
