@@ -37,8 +37,8 @@ We now assign to each type $T$ a functor
 $\sem{T}^R : \mathcal{W}^{op} \to \mathrm{Rel}~\sem{T}$ that captures
 a notion of $\mathcal{W}$-indexed ``indistinguishability''. To
 interpret $\oc_\rho S$, we assume we are given a relation transformer
-$\oc_A : R^{op} \to \amthrm{Rel}(A)^{\mathcal{W}^{op}} \to
-\amthrm{Rel}(A)^{\mathcal{W}^{op}}$
+$\oc_A : R^{op} \to \mathrm{Rel}(A)^{\mathcal{W}^{op}} \to
+\mathrm{Rel}(A)^{\mathcal{W}^{op}}$
 that satisfies the axioms of a monoidal exponential comonad. The
 interesting cases are for functions, $\otimes$-products and the
 $\oc_\rho$ modality:
@@ -57,6 +57,11 @@ $\oc_\rho$ modality:
     \oc_\rho \llbracket S \rrbracket^R~w~(s,s')\\
   \end{array}
 \end{displaymath}
+Contexts
+$\ctxvar{x_1}{S_1}{\rho_1}, \ldots, \ctxvar{x_n}{S_n}{\rho_n}$ are
+interpreted as if they were
+$\sem{(\cdots(1 \otimes \oc_{\rho_1}S_1) \cdots \otimes \oc_{\rho_n}
+  S_n)}$.
 With these definitions, we can prove the following fundamental lemma
 for our Kripke-indexed relational semantics.
 
