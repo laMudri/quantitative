@@ -86,13 +86,8 @@ information is tracked:
 
   % Bang
   \inferrule
-  {\Gamma_s \vdash S \ni s \\ \Gamma \leq \rho \cdot \Gamma_s}
+  {\Gamma_1 \vdash S \ni s \\ \Gamma \leq \rho \cdot \Gamma_1}
   {\Gamma \vdash \excl{\rho}{S} \ni \bang{s}}
-
-  %\inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \excl{\rho}{S}
-  %           \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S}{\rho} \vdash T \ni s[x]
-  %           \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
-  %          {\ctx{\Gamma}{\Delta} \vdash \bm{T}{e}{\bind{x}{s[x]}} \in T}
 \end{mathpar}
 Sub-resourcing, weakening (adding $0$-use variables to the context)
 and substitution are all admissible.  In our Agda formalisation, we
