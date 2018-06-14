@@ -19,23 +19,21 @@ accommodate the following examples:
 \begin{enumerate}
 \item Linear types that capture properties like ``all list
   manipulating programs are permutations''. This example uses the
-  Kripke-indexing of relations to track the collection of datums
-  currently being manipulated by the program.
-\item Monotonicity coeffects that track whether a program uses its
-  input co-, contra-, or in-variantly (or not at all). In this case,
-  the Kripke-indexing is not used, but the coeffect annotation
-  describes how to manipulate the relations.
+  Kripke-indexing to track the collection of datums currently being
+  manipulated by the program.
+\item Monotonicity coeffects that track whether a program uses inputs
+  co-, contra-, or in-variantly (or not at all).
 \item Sensitivity typing, that tracks how sensitive the output of the
   program is in terms of changes to the input. This forms the core of
-  type systems for differential privacy \cite{reed10distance}.
+  systems for differential privacy \cite{reed10distance}.
 \item Information flow typing, in the style of the Dependency Core
   Calculus \cite{abadi99core}.
 \end{enumerate}
 Through discusssion at the workshop, we hope to discover more
 applications of our framework. In future work, we plan to extend our
-framework to encompass type dependency, and to explore the space of
-possible inductive data types and elimination principles possible in
-the presence of usage information.
+framework with type dependency, and to explore the space of inductive
+data types and elimination principles possible in the presence of
+usage information.
 
 The syntax and semantics we present here have been formalised in Agda:
 \url{https://github.com/laMudri/quantitative/}. Formalisation of the
