@@ -29,7 +29,9 @@ Curly braces (and $\lambda$) denote the binding of new variables in the followin
 
 Contexts $\ctx{\Gamma}{\Delta}$ over variables $x_1, \ldots, x_n$ are to be understood as a \emph{typing context} $\Gamma$ of the form $x_1 : S_1, \ldots, x_n : S_n$, and a \emph{resourcing context} $\Delta$ of the form $x_0^{\rescomment{\rho_0}}, \ldots, x_n^{\rescomment{\rho_n}}$.
 %The resourcing context in which for each $k$, $\rho_k = 0$, will be abbreviated to $\rescomment{0}$.
-Resourcing contexts with matching variables form a left $R$-semimodule, taking $(x_0^{\rescomment{\rho_0}}, \ldots, x_n^{\rescomment{\rho_n}}) + (x_0^{\rescomment{\pi_0}}, \ldots, x_n^{\rescomment{\pi_n}}) = (x_0^{\rescomment{\rho_0 + \pi_0}}, \ldots, x_n^{\rescomment{\rho_n + \pi_n}})$ and $\rho \cdot (x_0^{\rescomment{\rho \cdot \pi_0}}, \ldots, x_n^{\rescomment{\rho \cdot \pi_n}})$.
+Resourcing contexts with matching variables form a partially ordered left
+$R$-semimodule, with $\leq$ and $+$ defined pointwise on pairs of contexts and
+$\cdot$ defined pointwise on its second argument (the first argument being a scalar).
 
 Our typing and resourcing judgements will be in one of the following two forms.
 \begin{displaymath}
@@ -48,8 +50,8 @@ For example, here are the rules for variables, function introduction and elimina
 \begin{mathpar}
   % Variables
   \inferrule{(x : S) \in \Gamma
-           \\ \rescomment{\Delta \leq 0, x^1, 0}}
-          {\ctx{\Gamma}{\Delta} \vdash x \in S}
+             \\ \rescomment{\Delta \leq 0, x^1, 0}}
+            {\ctx{\Gamma}{\Delta} \vdash x \in S}
 
   % Functions
   \inferrule{\ctx{\Gamma}{\Delta}, \ctxvar{x}{S}{1} \vdash T \ni s[x]}
@@ -69,7 +71,31 @@ For example, here are the rules for variables, function introduction and elimina
   %           \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S}{\rho} \vdash T \ni s[x]
   %           \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
   %          {\ctx{\Gamma}{\Delta} \vdash \bm{T}{e}{\bind{x}{s[x]}} \in T}
-\end{mathpar}                                                                                  
+\end{mathpar}
+
+The order acts as a sub-resourcing relation.
+Well resourced terms can also be weakened by the introduction of $0$-resource
+variables to the context, and satisfy a substitution principle.
+
+\begin{mathpar}
+  \inferrule*[Right=subres]
+             {\ctx{\Gamma}{\Delta} \vdash t : T
+               \\ \rescomment{\Delta' \leq \Delta}}
+             {\ctx{\Gamma}{\Delta'} \vdash t : T}
+
+  \inferrule*[Right=weak]
+             {\ctx{\Gamma}{\Delta}, \ctx{\Gamma'}{\Delta'} \vdash t : T}
+             {\ctx{\Gamma}{\Delta}, \ctxvar{x}{S}{0}, \ctx{\Gamma'}{\Delta'}
+               \vdash t : T}
+
+  \inferrule*[Right=subst]
+             {\ctx{\Gamma}{\Delta} \vdash t : T
+               \\ \forall x.~
+               \ctx{\Gamma'}{\vec{\Delta'_x}} \vdash \vec{t'_x} : \Gamma_x
+               \\ \rescomment{\Delta'' \leq \sum_x \Delta_x \cdot \vec{\Delta'_x}}}
+             {\ctx{\Gamma'}{\Delta''} \vdash t[\vec{t'}] : T}
+\end{mathpar}
+
 
 % Local variables:
 % TeX-master: "quantitative"
