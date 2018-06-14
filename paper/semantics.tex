@@ -1,5 +1,6 @@
-We start by giving a standard semantics of types and well typed (but not necessarily well resourced) terms into sets.
-
+\paragraph{Underlying Semantics} We give a standard semantics of types
+and well typed terms into sets and functions. This semantics ignores
+the usage information. For types, we have:
 \begin{displaymath}
   \begin{array}{ll}
     \llbracket \base \rrbracket = A_\base \\
@@ -11,65 +12,80 @@ We start by giving a standard semantics of types and well typed (but not necessa
     \llbracket \sumT{S}{T} \rrbracket = \llbracket S \rrbracket \uplus \llbracket T \rrbracket \\
   \end{array}
 \end{displaymath}
+Contexts are interpreted as left-nested products. Terms are assigned
+the usual semantics as functions $\sem{t} : \sem{\Gamma} \to \sem{S}$.
 
-The semantics of contexts and terms are as usual.
+\paragraph{Usage-tracking semantics} To derive interesting properties
+from our type system, we refine the set-theoretic semantics by
+Kripke-indexed binary relations. This gives a fundamental lemma for
+our system, that when instantitated in different ways captures the
+examples in the introduction.
 
-Using this, we give a semantics of types $T$ into functors from $\mathcal{W}^{op}$ to $\mathrm{Rel}~\llbracket T \rrbracket$, where $\mathcal{W}$ is a symmetric promonoidal category and $\mathrm{Rel}~A$ is the category of binary relations on $A$.
+Our framework is parameterised by a category $\mathcal{W}$ of
+\emph{possible worlds} that track how resources are distributed by
+programs. To interpret resource separation, we assume that
+$\mathcal{W}$ has \emph{symmetric promonoidal structure}: profunctors
+$J : 1 \nrightarrow \mathcal{W}$ and
+$P : \mathcal{W} \times \mathcal{W} \nrightarrow \mathcal{W}$ such
+that $P \odot (J \times 1) \cong 1$, $P \odot (1 \times J) \cong 1$,
+$P \odot (1 \times P) \cong P \odot (P \times 1)$, and
+$P \cong P \odot (\pi_2 \times \pi_1)$, and the triangle, pentagon,
+and hexagon laws hold\footnote{We don't need the laws to hold to prove
+  the fundamental lemma.}.
 
-\begin{definition}
-  A \emph{symmetric promonoidal category} $(\mathcal{W}, J, P)$ is a category
-  $\mathcal{W}$ and profunctors $J : 1 \nrightarrow \mathcal{W}$ and $P :
-  \mathcal{W} \times \mathcal{W} \nrightarrow \mathcal{W}$ such that $P \odot (J
-  \times 1) \cong 1$, $P \odot (1 \times J) \cong 1$, $P \odot (1 \times P)
-  \cong P \odot (P \times 1)$, and $P \cong P \odot (\pi_2 \times \pi_1)$, such
-  that the triangle, pentagon, and hexagon laws hold.
-\end{definition}
-
+We now assign to each type $T$ a functor
+$\sem{T}^R : \mathcal{W}^{op} \to \mathrm{Rel}~\sem{T}$ that captures
+a notion of $\mathcal{W}$-indexed ``indistinguishability''. To
+interpret $\oc_\rho S$, we assume we are given a relation transformer
+$\oc_A : R^{op} \to \amthrm{Rel}(A)^{\mathcal{W}^{op}} \to
+\amthrm{Rel}(A)^{\mathcal{W}^{op}}$
+that satisfies the axioms of a monoidal exponential comonad. The
+interesting cases are for functions, $\otimes$-products and the
+$\oc_\rho$ modality:
 \begin{displaymath}
-  \begin{array}{llll}
-    \llbracket \base \rrbracket^R & w & = & R_\base w \\
-    \llbracket \fun{S}{T} \rrbracket^R & w & = & \lambda (f, f').~\forall x,y.~P(y,w)x \implies \phantom{X} \\
-    \quad \forall s,s'.~\llbracket S \rrbracket^R y (s, s') \implies \llbracket
-    T \rrbracket^R x (f~s, f'~s') \span \span \span \\
-    \llbracket \tensorOne \rrbracket^R & w & = & \lambda (*, *).~J w \\
-    \llbracket \tensor{S}{T} \rrbracket^R & w & = & \lambda ((s, t), (s', t')). \\
-    \quad \exists x,y.~P(x,y)w \wedge \llbracket S \rrbracket^R x (s, s') \wedge
-    \llbracket T \rrbracket^R y (t, t') \span \span \span \\
-    \llbracket \withTOne \rrbracket^R & w & = & \top \\
-    \llbracket \withT{S}{T} \rrbracket^R & w & = & \llbracket S \rrbracket^R w \times \llbracket T \rrbracket^R w \\
-    \llbracket \sumTZero \rrbracket^R & w & \mathrm{impossible} \span \\
-    \llbracket \sumT{S}{T} \rrbracket^R & w & = & \llbracket S \rrbracket^R w \uplus \llbracket T \rrbracket^R w \\
-    \llbracket \excl{\rho}{S} \rrbracket^R & w & = & \oc_\rho \llbracket S
-                                                   \rrbracket^R w \\
+  \begin{array}{l}
+    \llbracket \fun{S}{T} \rrbracket^R~w~(f,f') = \\
+    \quad \forall x,y.~P(y,w)x \Rightarrow \forall s,s'.~\llbracket S \rrbracket^R y (s, s') \Rightarrow \llbracket
+    T \rrbracket^R x (f~s, f'~s')
+    \\
+    \llbracket \tensor{S}{T} \rrbracket^R~w~((s, t), (s', t')) =\\
+    \quad
+    \exists x,y.~P(x,y)w \wedge \llbracket S \rrbracket^R x (s, s') \wedge
+    \llbracket T \rrbracket^R y (t, t')
+    \\
+    \llbracket \excl{\rho}{S} \rrbracket^R~w~(s,s')=
+    \oc_\rho \llbracket S \rrbracket^R~w~(s,s')\\
   \end{array}
 \end{displaymath}
+With these definitions, we can prove the following fundamental lemma
+for our Kripke-indexed relational semantics.
 
-$R \times S$ and $R \uplus S$ are defined pointwise on relations.
-Particularly, there are two cases for $R \uplus S$:
+% $R \times S$ and $R \uplus S$ are defined pointwise on relations.
+% Particularly, there are two cases for $R \uplus S$:
 
-\begin{itemize}
-  \item $R(r, r')$ implies $(R \uplus S)(\mathrm{inl}~r, \mathrm{inl}~r')$.
-  \item $S(s, s')$ implies $(R \uplus S)(\mathrm{inr}~s, \mathrm{inr}~s')$.
-\end{itemize}
+% \begin{itemize}
+%   \item $R(r, r')$ implies $(R \uplus S)(\mathrm{inl}~r, \mathrm{inl}~r')$.
+%   \item $S(s, s')$ implies $(R \uplus S)(\mathrm{inr}~s, \mathrm{inr}~s')$.
+% \end{itemize}
 
-We assume a family of natural transformations $\oc$ satisfying the following laws.
+% We assume a family of natural transformations $\oc$ satisfying the following laws.
 
-  \begin{mathpar}
-    \rho \leq \pi \implies (\oc_\pi R~w \implies \oc_\rho R~w) \and
-    \oc_0 R~w \implies J w \and
-    \oc_{\rho+\pi} R~w~(a, b) \implies \exists x,y. P(x,y)w \wedge \oc_\rho R~x~a \wedge \oc_\pi R~y~b \and
-    \oc_1 R~w \iff R~w \and
-    \oc_{\rho \cdot \pi} R~w \iff \oc_\rho(\oc_\pi R)~w
-  \end{mathpar}
+%   \begin{mathpar}
+%     \rho \leq \pi \implies (\oc_\pi R~w \implies \oc_\rho R~w) \and
+%     \oc_0 R~w \implies J w \and
+%     \oc_{\rho+\pi} R~w~(a, b) \implies \exists x,y. P(x,y)w \wedge \oc_\rho R~x~a \wedge \oc_\pi R~y~b \and
+%     \oc_1 R~w \iff R~w \and
+%     \oc_{\rho \cdot \pi} R~w \iff \oc_\rho(\oc_\pi R)~w
+%   \end{mathpar}
 
-The semantics of a context $\ctxvar{x_1}{S_1}{\rho_1}, \ldots, \ctxvar{x_n}{S_n}{\rho_n}$ is given by $\tensor{\llbracket \excl{\rho_1}{S_1}}{\tensor{\ldots}{\excl{\rho_n}{S_n}}} \rrbracket^R$.
+% The semantics of a context $\ctxvar{x_1}{S_1}{\rho_1}, \ldots, \ctxvar{x_n}{S_n}{\rho_n}$ is given by $\tensor{\llbracket \excl{\rho_1}{S_1}}{\tensor{\ldots}{\excl{\rho_n}{S_n}}} \rrbracket^R$.
 
-This indexed relational semantics gives us a family of logical relations.
-The fundamental lemma is as follows.
+% This indexed relational semantics gives us a family of logical relations.
+% The fundamental lemma is as follows.
 
-\begin{theorem}[fundamental lemma]
+\begin{theorem}[Fundamental Lemma]
   \begin{displaymath}
-    \ctx{\Gamma}{\Delta} \vdash t : S \implies \llbracket \ctx{\Gamma}{\Delta} \rrbracket^R w~(\gamma, \gamma') \implies \llbracket S \rrbracket^R w~(s, s')
+    \ctx{\Gamma}{\Delta} \vdash t : S \implies \llbracket \ctx{\Gamma}{\Delta} \rrbracket^R w~(\gamma, \gamma') \implies \llbracket S \rrbracket^R w~(\sem{t}s, \sem{t}s')
   \end{displaymath}
 \end{theorem}
 
