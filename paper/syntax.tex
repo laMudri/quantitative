@@ -30,10 +30,10 @@ some set of base types:
   S,T ::= \fun{S}{T} \mid \excl{\rho}{S} \mid \tensorOne \mid \tensor{S}{T} \mid
   \withTOne \mid \withT{S}{T} \mid \sumTZero \mid \sumT{S}{T} \mid \iota
 \end{displaymath}
-Bidirectional typing type annotations required.  Since our language is
-bidirectionally typed, we have two syntactic categories of terms: $e$
-ranges over checked terms, and $s$ ranges over synthesising terms. We
-use $t$ for both.
+Bidirectional typing reduces the type annotations required.  Since our
+language is bidirectionally typed, we have two syntactic categories of
+terms: $s$ ranges over checked terms, and $e$ ranges over synthesising
+terms. We use $t$ for both.
 \begin{displaymath}
   \begin{aligned}
     s &  ::= \lam{x}{s} \mid \bang{s} \mid \unit \mid \ten{s_0}{s_1} \mid \eat \mid \wth{s_0}{s_1} \mid \inj{i}{s} \mid \emb{e} \\
@@ -57,7 +57,7 @@ partial order on $R$ is extended pointwise to contexts.
 % Resourcing contexts with matching variables form a left $R$-semimodule, taking $(x_0^{\rescomment{\rho_0}}, \ldots, x_n^{\rescomment{\rho_n}}) + (x_0^{\rescomment{\pi_0}}, \ldots, x_n^{\rescomment{\pi_n}}) = (x_0^{\rescomment{\rho_0 + \pi_0}}, \ldots, x_n^{\rescomment{\rho_n + \pi_n}})$ and $\rho \cdot (x_0^{\rescomment{\rho \cdot \pi_0}}, \ldots, x_n^{\rescomment{\rho \cdot \pi_n}})$.
 Typing judgements for checked and synthesising terms have the same
 contexts, but either record that a term is checked against a type
-($\Gamma \vdash T \ni S$) or synthesise a type
+($\Gamma \vdash T \ni s$) or synthesise a type
 ($\Gamma \vdash e \in T$).
 % When we only care about typability, we write $t : T$ in place of
 % either $T \ni t$ or $t \in T$.
