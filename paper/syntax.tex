@@ -23,7 +23,7 @@ monotonic with respect to $\leq$. We take $\rho,\pi \in R$.
 \medskip
 
 The base language we consider is a
-bidirectional \cite{DBLP:journals/toplas/PierceT00} simply typed
+bidirectional \citep{DBLP:journals/toplas/PierceT00} simply typed
 $\lambda$ calculus with the following types, where $\iota$ ranges over
 some set of base types:
 \begin{displaymath}
@@ -64,10 +64,9 @@ contexts, but either record that a term is checked against a type
 
 The typing rules consist of a variable rule, two rules for change of
 direction, and introduction and elimination rules for each type
-former. The following rules for variables, function introduction and
-elimination, and $\oc_\rho$ introduction illustrate how usage
-information is tracked:
-\begin{mathpar}
+former. The following rules for variables and function and $\oc_\rho$
+introduction and elimination illustrate how usage information is
+tracked: {\footnotesize\begin{mathpar}
   % Variables
   \inferrule
   {\Gamma \leq 0\Gamma_1, \ctxvar{x}{S}{1}, 0\Gamma_2}
@@ -88,7 +87,14 @@ information is tracked:
   \inferrule
   {\Gamma_1 \vdash S \ni s \\ \Gamma \leq \rho \cdot \Gamma_1}
   {\Gamma \vdash \excl{\rho}{S} \ni \bang{s}}
-\end{mathpar}
+
+  \mprset{flushleft}
+  \inferrule
+  {\Gamma_1 \vdash e \in \excl{\rho}{S} \\\\
+    \Gamma_2, \ctxvar{x}{S}{\rho} \vdash T \ni s[x] \\\\
+    \Gamma \leq \Gamma_1 + \Gamma_2}
+  {\Gamma \vdash \bm{T}{e}{\{x\}s[x]} \in T}
+\end{mathpar}}
 Sub-resourcing, weakening (adding $0$-use variables to the context)
 and substitution are all admissible.  In our Agda formalisation, we
 have constructed our type system in two levels: a non-usage tracked
