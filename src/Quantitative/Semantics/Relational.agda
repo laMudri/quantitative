@@ -38,11 +38,36 @@ module Quantitative.Semantics.Relational {r l}
   open import Lib.VZip
   open import Lib.Zero
 
-  act : {A : Set} → R → (W.Obj → Rel A lzero) → (W.Obj → Rel A lzero)
+  WRel : (A : Set) → Set₁
+  WRel A = W.Obj → Rel A lzero
+
+  infixr 3 _⇒W_ _⇔W_
+  infixr 4 _×W_ _∧W_
+
+  _⇒W_ : ∀ {A} (R S : WRel A) → Set _
+  R ⇒W S = ∀ w → R w ⇒ S w
+
+  _⇔W_ : ∀ {A} (R S : WRel A) → Set _
+  R ⇔W S = R ⇒W S × S ⇒W R
+
+  act : {A : Set} → R → WRel A → WRel A
   act = actF.obj
 
-  R⟦_⟧T : (T : Ty) → W.Obj → Rel ⟦ T ⟧T lzero
-  R⟦_,_⟧ρ : ∀ T ρ → W.Obj → Rel ⟦ T ⟧T lzero
+  1W : WRel One
+  1W w _ _ = Setoid.C (J.obj (<> , w))
+
+  _×W_ : ∀ {A B} → WRel A → WRel B → WRel (A × B)
+  (R ×W S) w (a , b) (a′ , b′) =
+    ∃2 λ x y → Setoid.C (P.obj ((x , y) , w)) × R x a a′ × S y b b′
+
+  ⊤W : ∀ {A} → WRel A
+  ⊤W w a b = 1W w <> <>
+
+  _∧W_ : ∀ {A} (R S : WRel A) → WRel A
+  (R ∧W S) w a b = (R ×W S) w (a , a) (b , b)
+
+  R⟦_⟧T : (T : Ty) → WRel ⟦ T ⟧T
+  R⟦_,_⟧ρ : ∀ T ρ → WRel ⟦ T ⟧T
 
   R⟦ BASE ⟧T w = BaseR.obj w
   R⟦ ⊗1 ⟧T w = λ _ _ → Setoid.C (J.obj (<> , w))
@@ -51,20 +76,16 @@ module Quantitative.Semantics.Relational {r l}
   R⟦ S ⊸ T ⟧T w f f′ =
     ∀ x y → Setoid.C (P.obj ((y , w) , x)) →
     ∀ s s′ → R⟦ S ⟧T y s s′ → R⟦ T ⟧T x (f s) (f′ s′)
-  R⟦ S ⊗ T ⟧T w (s , t) (s′ , t′) =
-    ∃2 λ x y → Setoid.C (P.obj ((x , y) , w)) ×
-    R⟦ S ⟧T x s s′ × R⟦ T ⟧T y t t′
+  R⟦ S ⊗ T ⟧T w = (R⟦ S ⟧T ×W R⟦ T ⟧T) w
   R⟦ S & T ⟧T w = R⟦ S ⟧T w ×R R⟦ T ⟧T w
   R⟦ S ⊕ T ⟧T w = R⟦ S ⟧T w ⊎R R⟦ T ⟧T w
   R⟦ ! ρ S ⟧T w = R⟦ S , ρ ⟧ρ w
 
   R⟦ T , ρ ⟧ρ = act ρ (R⟦ T ⟧T)
 
-  R⟦_,_⟧Δ : ∀ {n} (Γ : TCtx n) (Δ : RCtx n) → W.Obj → Rel ⟦ Γ ⟧Γ lzero
-  R⟦ nil , nil ⟧Δ w = λ _ _ → Setoid.C (J.obj (<> , w))
-  R⟦ T :: Γ , ρ :: Δ ⟧Δ w (t , γ) (t′ , γ′) =
-    ∃2 λ x y → Setoid.C (P.obj ((x , y) , w)) ×
-    R⟦ T , ρ ⟧ρ x t t′ × R⟦ Γ , Δ ⟧Δ y γ γ′
+  R⟦_,_⟧Δ : ∀ {n} (Γ : TCtx n) (Δ : RCtx n) → WRel ⟦ Γ ⟧Γ
+  R⟦ nil , nil ⟧Δ = 1W
+  R⟦ T :: Γ , ρ :: Δ ⟧Δ = R⟦ T , ρ ⟧ρ ×W R⟦ Γ , Δ ⟧Δ
 
   R⟦_⟧T-arr : (S : Ty) → ∀ {w w′} → w′ W.=> w →
                          ∀ {s s′} → R⟦ S ⟧T w s s′ → R⟦ S ⟧T w′ s s′
@@ -89,16 +110,16 @@ module Quantitative.Semantics.Relational {r l}
   R⟦ T :: Γ , ρ :: Δ ⟧Δ-arr ww (x , y , xyw , ρρ , δδ) =
     x , y , P.arr $E (Category.id (W ×C W) _ , ww) $E xyw , ρρ , δδ
 
-  module ActLaws (act-≤ : ∀ {A : Set} {π ρ} → π R.≤ ρ → ∀ R w → act {A} π R w ⇒ act ρ R w)
-                 (act-0 : ∀ {A : Set} R w → act {A} R.e0 R w ⇒
-                                            λ _ _ → Setoid.C (J.obj (<> , w)))
-                 (act-+ : ∀ {A : Set} π ρ R w →
-                          act {A} (π R.+ ρ) R w ⇒
-                          λ a b → ∃2 λ x y → Setoid.C (P.obj ((x , y) , w))
-                                           × act π R x a b × act ρ R y a b)
+  module ActLaws (act-≤ : ∀ {A : Set} {π ρ} → π R.≤ ρ → ∀ R → act {A} π R ⇒W act ρ R)
+                 (act-0 : ∀ {A : Set} R → act {A} R.e0 R ⇒W ⊤W)
+                 (act-+ : ∀ {A : Set} π ρ R →
+                          act {A} (π R.+ ρ) R ⇒W act π R ∧W act ρ R)
                  (act-1 : ∀ {A : Set} R w → act {A} R.e1 R w ⇔ R w)
                  (act-* : ∀ {A : Set} π ρ R w → act {A} (π R.* ρ) R w ⇔
                                                 act π (act ρ R) w)
+                 (act-1W : ∀ ρ → act ρ 1W ⇔W 1W)
+                 (act-×W : ∀ {A B} ρ R S →
+                           act ρ (R ×W S) ⇔W act {A} ρ R ×W act {B} ρ S)
                  where
 
     Rρ-weaken : ∀ T {π ρ} w {s s′} → ρ R.≤ π →
@@ -118,15 +139,12 @@ module Quantitative.Semantics.Relational {r l}
     ... | Jx | Jy = J.arr $E (<> , (_↔E_.to JP $E (x , Jx , xyw))) $E Jy
 
     Rρ-split-+ : ∀ T {ρ ρx ρy s s′} w → ρ R.≤ ρx R.+ ρy → R⟦ T , ρ ⟧ρ w s s′ →
-                 ∃2 λ x y → Setoid.C (P.obj ((x , y) , w)) ×
-                 R⟦ T , ρx ⟧ρ x s s′ × R⟦ T , ρy ⟧ρ y s s′
+                 (R⟦ T , ρx ⟧ρ ∧W R⟦ T , ρy ⟧ρ) w s s′
     Rρ-split-+ T {ρ} {ρx} {ρy} {s} {s′} w le rr =
       act-+ ρx ρy (R⟦ T ⟧T) w s s′ (Rρ-weaken T w le rr)
 
     RΔ-split-+ : ∀ {n} (Γ : TCtx n) {Δ Δx Δy γ γ′} w → Δ Δ.≤ Δx Δ.+ Δy →
-                 R⟦ Γ , Δ ⟧Δ w γ γ′ →
-                 ∃2 λ x y → Setoid.C (P.obj ((x , y) , w)) ×
-                 R⟦ Γ , Δx ⟧Δ x γ γ′ × R⟦ Γ , Δy ⟧Δ y γ γ′
+                 R⟦ Γ , Δ ⟧Δ w γ γ′ → (R⟦ Γ , Δx ⟧Δ ∧W R⟦ Γ , Δy ⟧Δ) w γ γ′
     RΔ-split-+ nil {nil} {nil} {nil} w nil δδ =
       --let x , equiv = JP {w} {w} in
       --let open _↔E_ equiv in
@@ -158,9 +176,9 @@ module Quantitative.Semantics.Relational {r l}
 
     RΔ-split-* : ∀ {n} (Γ : TCtx n) {Δ ρ Δx γ γ′} w → Δ Δ.≤ ρ Δ.* Δx →
                  R⟦ Γ , Δ ⟧Δ w γ γ′ → act ρ R⟦ Γ , Δx ⟧Δ w γ γ′
-    RΔ-split-* nil {nil} {ρ} {nil} w nil δδ = {!if the relation ignores the two denotations, act has no effect!}
+    RΔ-split-* nil {nil} {ρ} {nil} w nil δδ = snd (act-1W ρ) w _ _ δδ
     RΔ-split-* (S :: Γ) {π :: Δ} {ρ} {πx :: Δx} {s , γ} {s′ , γ′} w (le :: split) (x , y , xyw , ππ , δδ) =
-      {!RΔ-split-* Γ y split δδ!}
+      snd (act-×W ρ _ _) w _ _ (x , y , xyw , Rρ-split-* S x le ππ , RΔ-split-* Γ y split δδ)
 
 
     R⟦lookup⟧ : ∀ {n} {Γ : TCtx n} {Δ : RCtx n} {π} w i (γ γ′ : ⟦ Γ ⟧Γ) → Δ Δ.≤ varRCtx i π →
@@ -220,7 +238,9 @@ module Quantitative.Semantics.Relational {r l}
     fundamental (lam {S = S} sr) γ γ′ w δδ x y ywx s s′ ss =
       fundamental sr (s , γ) (s′ , γ′) x
                   (y , w , ywx , snd (act-1 R⟦ S ⟧T y s s′) ss , δδ)
-    fundamental {Γ = Γ} (bang {S = S} {ρ = ρ} split sr) γ γ′ w δδ = {!actF.arr ρ R⟦ S ⟧T!}
+    fundamental {Γ = Γ} (bang {S = S} {ρ = ρ} split sr) γ γ′ w δδ =
+      let lemma = RΔ-split-* Γ w split δδ in
+      (actF.arr ρ R⟦ S ⟧T $E W.id w) {!!} {!!} {!lemma!}
     fundamental {Γ = Γ} (unit split) γ γ′ w δδ = RΔ-split-0 Γ w split δδ
     fundamental {Γ = Γ} (ten split s0r s1r) γ γ′ w δδ =
       let x , y , xyw , δδx , δδy = RΔ-split-+ Γ w split δδ in
