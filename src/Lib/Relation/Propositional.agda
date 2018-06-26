@@ -5,11 +5,15 @@ module Lib.Relation.Propositional where
   open import Lib.Equality
   open import Lib.Function
   open import Lib.Level
+  open import Lib.One
   open import Lib.Product
   open import Lib.Setoid
 
   Rel : ∀ {a} → Set a → (l : Level) → Set _
   Rel A = R.Rel (≡-Setoid A)
+
+  liftR0 : ∀ {a z} {A : Set a} → Set z → Rel A z
+  liftR0 {A = A} = R.liftR0 (≡-Setoid A)
 
   liftR : ∀ {a x y z} {A : Set a} →
           (Set x → Set y → Set z) → Rel A x → Rel A y → Rel A z
@@ -33,3 +37,6 @@ module Lib.Relation.Propositional where
 
   _×R_ : ∀ {a b x y} {A : Set a} {B : Set b} → Rel A x → Rel B y → Rel (A × B) _
   _×R_ {A = A} {B} = R.[ ≡-Setoid A , ≡-Setoid B ]_×R_
+
+  1R : Rel One _
+  1R = R.1R

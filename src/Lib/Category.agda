@@ -825,3 +825,10 @@ module Lib.Category where
       ; _>>-cong_ = λ _ _ → <>
       }
     }
+
+  diag : ∀ {a e A l} → Functor (REL (A ×S A) l) (REL {a} {e} A l)
+  diag = record
+    { obj = λ R x y → R (x , x) (y , y)
+    ; arr = →E-⊤ _ λ rr x y r → rr (x , x) (y , y) r
+    ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
+    }

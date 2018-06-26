@@ -6,18 +6,24 @@ open import Lib.Structure
 
 module Quantitative.Semantics.Relational {r l}
          (W : Category lzero lzero lzero) (let module W = Category W)
-         (Base : Set) (BaseR : Functor (OP W) (REL (≡-Setoid Base) lzero))
+         (let WREL = λ (A : Set) → FUNCTOR (OP W) (REL (≡-Setoid A) lzero))
+         (let module WREL A = Category (WREL A))
+         (Base : Set) (BaseR : WREL.Obj Base)
          (J : Profunctor ONE W) (P : Profunctor (W ×C W) W)
          (isSymmetricPromonoidal : IsSymmetricPromonoidal _ J P)
          (R : Set r) (posemiring : Posemiring (≡-Setoid R) l)
-         (actF : {A : Set} → R → (W.Obj → Rel A lzero) → Functor (OP W) (REL (≡-Setoid A) lzero))
+         (actF2 : ∀ {A} → R → Functor (WREL A) (WREL A))
          where
 
   module Wᵒᵖ = Category (OP W)
   module J = Functor J ; module P = Functor P
   module BaseR = Functor BaseR
-  module actF {A} ρ S = Functor (actF {A} ρ S)
   open IsSymmetricPromonoidal isSymmetricPromonoidal
+
+  module actF2 {A} ρ = Functor (actF2 {A} ρ)
+  act : {A : Set} → R → WREL.Obj A → WREL.Obj A
+  act = actF2.obj
+  module act {A} ρ S = Functor (act {A} ρ S)
 
   open import Quantitative.Types.Formers R
   open import Quantitative.Syntax Ty
@@ -38,95 +44,177 @@ module Quantitative.Semantics.Relational {r l}
   open import Lib.VZip
   open import Lib.Zero
 
-  WRel : (A : Set) → Set₁
-  WRel A = W.Obj → Rel A lzero
+  REL′ : Set → Category _ _ _
+  REL′ A = REL (≡-Setoid A) lzero
+  module REL (A : Set) = Category (REL′ A)
+
+  liftW0 : ∀ {A} → REL.Obj A → WREL.Obj A
+  liftW0 R = record { obj = λ _ → R
+                    ; arr = constE $E λ _ _ r → r
+                    ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
+                    }
+
+  --liftW : ∀ {A} → Functor (REL′ A ×C REL′ A) (REL′ A) →
+  --                Functor (WREL A ×C WREL A) (WREL A)
+  --liftW P = record
+  --  { obj = λ { (R , S) →
+  --    let module RF = Functor R ; module SF = Functor S in record
+  --    { obj = λ w → PF.obj (RF.obj w , SF.obj w)
+  --    ; arr = →E-⊤ _ λ ww → PF.arr $E (RF.arr $E ww , SF.arr $E ww)
+  --    ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
+  --    } }
+  --  ; arr = {!!}
+  --  ; isFunctor = {!!}
+  --  }
+  --  where
+  --  module PF = Functor P
 
   infixr 3 _⇒W_ _⇔W_
-  infixr 4 _×W_ _∧W_
 
-  _⇒W_ : ∀ {A} (R S : WRel A) → Set _
-  R ⇒W S = ∀ w → R w ⇒ S w
+  _⇒W_ : ∀ {A} (R S : WREL.Obj A) → Set _
+  R ⇒W S = ∀ w → Functor.obj R w ⇒ Functor.obj S w
 
-  _⇔W_ : ∀ {A} (R S : WRel A) → Set _
+  _⇔W_ : ∀ {A} (R S : WREL.Obj A) → Set _
   R ⇔W S = R ⇒W S × S ⇒W R
 
-  act : {A : Set} → R → WRel A → WRel A
-  act = actF.obj
+  ⇒W-trans : ∀ {A} {R S T : WREL.Obj A} → R ⇒W S → S ⇒W T → R ⇒W T
+  ⇒W-trans rs st w a b z = st w a b (rs w a b z)
 
-  1W : WRel One
-  1W w _ _ = Setoid.C (J.obj (<> , w))
+  1W : WREL.Obj One
+  1W = record
+    { obj = λ w _ _ → Setoid.C (J.obj (<> , w))
+    ; arr = →E-⊤ _ λ yx _ _ Jx → J.arr $E (<> , yx) $E Jx
+    ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
+    }
 
-  _×W_ : ∀ {A B} → WRel A → WRel B → WRel (A × B)
-  (R ×W S) w (a , b) (a′ , b′) =
-    ∃2 λ x y → Setoid.C (P.obj ((x , y) , w)) × R x a a′ × S y b b′
+  ×W : ∀ {A B} → Functor (WREL A ×C WREL B) (WREL (A × B))
+  ×W = record
+    { obj = λ { (R , S) →
+      let module RF = Functor R ; module SF = Functor S in record
+      { obj = λ { w (a , b) (a′ , b′) →
+                  ∃2 λ x y → Setoid.C (P.obj ((x , y) , w)) ×
+                  RF.obj x a a′ × SF.obj y b b′ }
+      ; arr = →E-⊤ _ λ ww → λ { (a , b) (a′ , b′) (x , y , p , r , s) →
+                                x , y , P.arr $E ((W.id x , W.id y) , ww) $E p , r , s }
+      ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
+      } }
+    ; arr = record
+      { _$E_ = λ { (ηr , ηs) →
+        let module ηr = NatTrans ηr ; module ηs = NatTrans ηs in record
+        { η = λ { w (a , b) (a′ , b′) (x , y , p , r , s) →
+                  x , y , p , ηr.η x a a′ r , ηs.η y b b′ s }
+        ; square = λ _ → <>
+        } }
+      ; _$E=_ = λ _ _ → <>
+      }
+    ; isFunctor = record { arr-id = λ _ _ → <> ; arr->> = λ _ → <> }
+    }
+  module ×W {A B} = Functor (×W {A} {B})
 
-  ⊤W : ∀ {A} → WRel A
-  ⊤W w a b = 1W w <> <>
+  ⊤W : ∀ {A} → WREL.Obj A
+  ⊤W = record
+    { obj = λ w _ _ → Functor.obj 1W w <> <>
+    ; arr = →E-⊤ _ λ yx _ _ Jx → (Functor.arr 1W $E yx) <> <> Jx
+    ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
+    }
 
-  _∧W_ : ∀ {A} (R S : WRel A) → WRel A
-  (R ∧W S) w a b = (R ×W S) w (a , a) (b , b)
+  diagW : ∀ {A} → Functor (WREL (A × A)) (WREL A)
+  diagW {A} = record
+    { obj = λ R → R >>F diag {A = ≡-Setoid A}
+    ; arr = record
+      { _$E_ = λ r → record
+        { η = λ w a b ab → NatTrans.η r w (a , a) (b , b) ab
+        ; square = λ _ → <>
+        }
+      ; _$E=_ = λ _ _ → <>
+      }
+    ; isFunctor = record { arr-id = λ _ _ → <> ; arr->> = λ _ → <> }
+    }
 
-  R⟦_⟧T : (T : Ty) → WRel ⟦ T ⟧T
-  R⟦_,_⟧ρ : ∀ T ρ → WRel ⟦ T ⟧T
+  ∧W : ∀ {A} → Functor (WREL A ×C WREL A) (WREL A)
+  ∧W = ×W >>F diagW
+  module ∧W {A} = Functor (∧W {A})
 
-  R⟦ BASE ⟧T w = BaseR.obj w
-  R⟦ ⊗1 ⟧T w = λ _ _ → Setoid.C (J.obj (<> , w))
-  R⟦ &1 ⟧T w = λ _ _ → One
-  R⟦ ⊕0 ⟧T w ()
-  R⟦ S ⊸ T ⟧T w f f′ =
-    ∀ x y → Setoid.C (P.obj ((y , w) , x)) →
-    ∀ s s′ → R⟦ S ⟧T y s s′ → R⟦ T ⟧T x (f s) (f′ s′)
-  R⟦ S ⊗ T ⟧T w = (R⟦ S ⟧T ×W R⟦ T ⟧T) w
-  R⟦ S & T ⟧T w = R⟦ S ⟧T w ×R R⟦ T ⟧T w
-  R⟦ S ⊕ T ⟧T w = R⟦ S ⟧T w ⊎R R⟦ T ⟧T w
-  R⟦ ! ρ S ⟧T w = R⟦ S , ρ ⟧ρ w
+  →W : ∀ {A B} → Functor (OP (WREL A) ×C WREL B) (WREL (A → B))
+  →W = record
+    { obj = λ { (R , S) →
+      let module RF = Functor R ; module SF = Functor S in record
+      { obj = λ w f f′ →
+        ∀ x y → Setoid.C (P.obj ((y , w) , x)) →
+        ∀ a a′ → RF.obj y a a′ → SF.obj x (f a) (f′ a′)
+      ; arr = →E-⊤ _ λ ww f f′ s x y p a a′ r →
+                       s x y (P.arr $E ((W.id y , ww) , W.id x) $E p) a a′ r
+      ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
+      } }
+    ; arr = record
+      { _$E_ = λ { (ηr , ηs) →
+        let module ηr = NatTrans ηr ; module ηs = NatTrans ηs in record
+        { η = λ w f f′ s x y p a a′ r →
+                ηs.η x (f a) (f′ a′) (s x y p a a′ (ηr.η y a a′ r))
+        ; square = λ _ → <>
+        } }
+      ; _$E=_ = λ _ _ → <>
+      }
+    ; isFunctor = record { arr-id = λ _ _ → <> ; arr->> = λ _ → <> }
+    }
+  module →W {A B} = Functor (→W {A} {B})
 
-  R⟦ T , ρ ⟧ρ = act ρ (R⟦ T ⟧T)
+  R⟦_⟧T : (T : Ty) → WREL.Obj ⟦ T ⟧T
+  R⟦_,_⟧ρ : ∀ T ρ → WREL.Obj ⟦ T ⟧T
 
-  R⟦_,_⟧Δ : ∀ {n} (Γ : TCtx n) (Δ : RCtx n) → WRel ⟦ Γ ⟧Γ
+  R⟦ BASE ⟧T = BaseR
+  R⟦ ⊗1 ⟧T = 1W
+  R⟦ &1 ⟧T = liftW0 (liftR0 One)
+  R⟦ ⊕0 ⟧T = record
+    { obj = λ _ ()
+    ; arr = →E-⊤ _ λ _ ()
+    ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
+    }
+  R⟦ S ⊸ T ⟧T = →W.obj (R⟦ S ⟧T , R⟦ T ⟧T)
+  R⟦ S ⊗ T ⟧T = ×W.obj (R⟦ S ⟧T , R⟦ T ⟧T)
+  R⟦ S & T ⟧T = record
+    { obj = λ w → RS.obj w ×R RT.obj w
+    ; arr = →E-⊤ _ λ ww → λ { (a , b) (a′ , b′) (s , t) →
+                              (RS.arr $E ww) a a′ s , (RT.arr $E ww) b b′ t }
+    ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
+    }
+    where module RS = Functor (R⟦ S ⟧T) ; module RT = Functor (R⟦ T ⟧T)
+  R⟦ S ⊕ T ⟧T = record
+    { obj = λ w → RS.obj w ⊎R RT.obj w
+    ; arr = →E-⊤ _ λ ww →
+      λ { (inl a) (inl a′) (inl s) → inl ((RS.arr $E ww) a a′ s)
+      ; (inr b) (inr b′) (inr t) → inr ((RT.arr $E ww) b b′ t)
+      }
+    ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
+    }
+    where module RS = Functor (R⟦ S ⟧T) ; module RT = Functor (R⟦ T ⟧T)
+  R⟦ ! ρ S ⟧T = R⟦ S , ρ ⟧ρ
+
+  R⟦ T , ρ ⟧ρ = act ρ R⟦ T ⟧T
+
+  R⟦_,_⟧Δ : ∀ {n} (Γ : TCtx n) (Δ : RCtx n) → WREL.Obj ⟦ Γ ⟧Γ
   R⟦ nil , nil ⟧Δ = 1W
-  R⟦ T :: Γ , ρ :: Δ ⟧Δ = R⟦ T , ρ ⟧ρ ×W R⟦ Γ , Δ ⟧Δ
+  R⟦ T :: Γ , ρ :: Δ ⟧Δ = ×W.obj (R⟦ T , ρ ⟧ρ , R⟦ Γ , Δ ⟧Δ)
 
-  R⟦_⟧T-arr : (S : Ty) → ∀ {w w′} → w′ W.=> w →
-                         ∀ {s s′} → R⟦ S ⟧T w s s′ → R⟦ S ⟧T w′ s s′
-  R⟦ BASE ⟧T-arr ww ss = (BaseR.arr $E ww) _ _ ss
-  R⟦ ⊗1 ⟧T-arr ww ss = J.arr $E (<> , ww) $E ss
-  R⟦ &1 ⟧T-arr ww ss = ss
-  R⟦ ⊕0 ⟧T-arr ww {()} {s′} ss
-  R⟦ S ⊸ T ⟧T-arr ww ff =
-    λ x y yw′x s s′ ss →
-    ff x y (P.arr $E ((Category.id W y , ww) , Category.id W x) $E yw′x) s s′ ss
-  R⟦ S ⊗ T ⟧T-arr ww {s , t} {s′ , t′} (x , y , xyw , ss , tt) =
-    x , y , P.arr $E ((Category.id (W ×C W) _) , ww) $E xyw , ss , tt
-  R⟦ S & T ⟧T-arr ww ss = map× (R⟦ S ⟧T-arr ww) (R⟦ T ⟧T-arr ww) ss
-  R⟦ S ⊕ T ⟧T-arr ww (inl ss) = inl (R⟦ S ⟧T-arr ww ss)
-  R⟦ S ⊕ T ⟧T-arr ww (inr tt) = inr (R⟦ T ⟧T-arr ww tt)
-  R⟦ ! ρ S ⟧T-arr ww ss = (actF.arr ρ R⟦ S ⟧T $E ww) _ _ ss
-
-  R⟦_,_⟧Δ-arr : ∀ {n} (Γ : TCtx n) (Δ : RCtx n) →
-                ∀ {w w′} → w′ W.=> w →
-                ∀ {γ γ′} → R⟦ Γ , Δ ⟧Δ w γ γ′ → R⟦ Γ , Δ ⟧Δ w′ γ γ′
-  R⟦ nil , nil ⟧Δ-arr ww δδ = J.arr $E (<> , ww) $E δδ
-  R⟦ T :: Γ , ρ :: Δ ⟧Δ-arr ww (x , y , xyw , ρρ , δδ) =
-    x , y , P.arr $E (Category.id (W ×C W) _ , ww) $E xyw , ρρ , δδ
-
-  module ActLaws (act-≤ : ∀ {A : Set} {π ρ} → π R.≤ ρ → ∀ R → act {A} π R ⇒W act ρ R)
-                 (act-0 : ∀ {A : Set} R → act {A} R.e0 R ⇒W ⊤W)
-                 (act-+ : ∀ {A : Set} π ρ R →
-                          act {A} (π R.+ ρ) R ⇒W act π R ∧W act ρ R)
-                 (act-1 : ∀ {A : Set} R w → act {A} R.e1 R w ⇔ R w)
-                 (act-* : ∀ {A : Set} π ρ R w → act {A} (π R.* ρ) R w ⇔
-                                                act π (act ρ R) w)
+  module ActLaws (act-≤ : ∀ {A π ρ} → π R.≤ ρ → ∀ R → act {A} π R ⇒W act ρ R)
+                 (act-0 : ∀ {A} R → act {A} R.e0 R ⇒W ⊤W)
+                 (act-+ : ∀ {A} π ρ R →
+                          act {A} (π R.+ ρ) R ⇒W ∧W.obj (act π R , act ρ R))
+                 (act-1 : ∀ {A} R → act {A} R.e1 R ⇔W R)
+                 (act-* : ∀ {A} π ρ R → act {A} (π R.* ρ) R ⇔W act π (act ρ R))
                  (act-1W : ∀ ρ → act ρ 1W ⇔W 1W)
-                 (act-×W : ∀ {A B} ρ R S →
-                           act ρ (R ×W S) ⇔W act {A} ρ R ×W act {B} ρ S)
+                 (act-×W : ∀ {A B} ρ R S → act ρ (×W.obj (R , S)) ⇔W
+                                           ×W.obj (act {A} ρ R , act {B} ρ S))
                  where
 
-    Rρ-weaken : ∀ T {π ρ} w {s s′} → ρ R.≤ π →
-                R⟦ T , ρ ⟧ρ w s s′ → R⟦ T , π ⟧ρ w s s′
-    Rρ-weaken T w le rr = act-≤ le R⟦ T ⟧T _ _ _ rr
+    Rρ-weaken : ∀ T {π ρ} → ρ R.≤ π → R⟦ T , ρ ⟧ρ ⇒W R⟦ T , π ⟧ρ
+    Rρ-weaken T le = act-≤ le R⟦ T ⟧T
 
 
+    Rρ-split-0 : ∀ T {ρ} → ρ R.≤ R.e0 → R⟦ T , ρ ⟧ρ ⇒W ⊤W
+    Rρ-split-0 T {ρ} le = ⇒W-trans {R = R⟦ T , ρ ⟧ρ} {R⟦ T , R.e0 ⟧ρ} {⊤W}
+                                   (Rρ-weaken T le) (act-0 R⟦ T ⟧T)
+  {-
     Rρ-split-0 : ∀ T {ρ s s′} w → ρ R.≤ R.e0 → R⟦ T , ρ ⟧ρ w s s′ →
                  Setoid.C (J.obj (<> , w))
     Rρ-split-0 T {ρ} {s} {s′} w le rr = act-0 (R⟦ T ⟧T) w s s′ (Rρ-weaken T w le rr)
@@ -240,7 +328,7 @@ module Quantitative.Semantics.Relational {r l}
                   (y , w , ywx , snd (act-1 R⟦ S ⟧T y s s′) ss , δδ)
     fundamental {Γ = Γ} (bang {S = S} {ρ = ρ} split sr) γ γ′ w δδ =
       let lemma = RΔ-split-* Γ w split δδ in
-      (actF.arr ρ R⟦ S ⟧T $E W.id w) {!!} {!!} {!lemma!}
+      (actF.arr ρ R⟦ S ⟧T $E W.id w) {!!} {!!} {!fundamental sr γ γ′ w!}
     fundamental {Γ = Γ} (unit split) γ γ′ w δδ = RΔ-split-0 Γ w split δδ
     fundamental {Γ = Γ} (ten split s0r s1r) γ γ′ w δδ =
       let x , y , xyw , δδx , δδy = RΔ-split-+ Γ w split δδ in
@@ -251,3 +339,4 @@ module Quantitative.Semantics.Relational {r l}
     fundamental (inj {ttt} sr) γ γ′ w δδ = inl (fundamental sr γ γ′ w δδ)
     fundamental (inj {fff} sr) γ γ′ w δδ = inr (fundamental sr γ γ′ w δδ)
     fundamental [ er ] γ γ′ w δδ = fundamental er γ γ′ w δδ
+  -}

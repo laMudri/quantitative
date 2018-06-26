@@ -6,12 +6,16 @@ module Lib.Relation where
 
   open import Lib.Function
   open import Lib.Level
+  open import Lib.One
   open import Lib.Product
   open import Lib.Setoid
   open import Lib.Sum
 
   module _ {a l} (A : Setoid a l) where
     open Setoid A
+
+    liftR0 : ∀ {z} → Set z → Rel A z
+    liftR0 X _ _ = X
 
     liftR : ∀ {x y z} → (Set x → Set y → Set z) → Rel A x → Rel A y → Rel A z
     liftR P R S x y = P (R x y) (S x y)
@@ -39,3 +43,6 @@ module Lib.Relation where
 
     [_,_]_⊎R_ : ∀ {x y} → Rel A x → Rel B y → Rel (A ⊎S B) _
     [_,_]_⊎R_ = _⊎R_
+
+  1R : Rel OneS _
+  1R _ _ = One
