@@ -269,6 +269,10 @@ module Lib.Setoid where
            A ×S (B ×S C) →E (A ×S B) ×S C
   assocE = record { _$E_ = assoc ; _$E=_ = assoc }
 
+  <_,_>S : ∀ {a b c l m n} {A : Setoid a l} {B : Setoid b m} {C : Setoid c n} →
+           A →E B → A →E C → A →E B ×S C
+  < f , g >S = record { _$E_ = < f $E_ , g $E_ > ; _$E=_ = < f $E=_ , g $E=_ > }
+
   --sndE : ∀ {a b l m} {A : Setoid a l} {B : SetoidI (Setoid.C A) b m} →
   --       PiE (ΣS A B) (lamS λ { (a , b) → B $S a })
   --sndE = record

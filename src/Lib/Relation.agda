@@ -36,7 +36,8 @@ module Lib.Relation where
     [_]_⇔_ R S = ∀ x y → liftR (λ X Y → (X → Y) × (Y → X)) R S x y
 
   module _ {a b l m} (A : Setoid a l) (B : Setoid b m) where
-    module A = Setoid A ; module B = Setoid B
+    private
+      module A = Setoid A ; module B = Setoid B
 
     [_,_]_×R_ : ∀ {x y} → Rel A x → Rel B y → Rel (A ×S B) _
     [_,_]_×R_ R S (xa , xb) (ya , yb) = R xa ya × S xb yb

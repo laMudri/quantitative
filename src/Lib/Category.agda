@@ -400,6 +400,7 @@ module Lib.Category where
         module F = Functor F ; module G = Functor G ; module H = Functor H
         module α = NatTrans α ; module β = NatTrans β
 
+      infixr 5 _>>N_
       _>>N_ : NatTrans F H
       _>>N_ = record
         { η = λ X → α.η X >> β.η X
@@ -500,6 +501,18 @@ module Lib.Category where
         ; arr->> = (C.refl , D.refl) , E.refl
         }
       }
+
+    <_,_>F : Functor C D → Functor C E → Functor C (D ×C E)
+    < F , G >F = record
+      { obj = < F.obj , G.obj >
+      ; arr = < F.arr , G.arr >S
+      ; isFunctor = record
+        { arr-id = < F.arr-id , G.arr-id >
+        ; arr->> = F.arr->> , G.arr->>
+        }
+      }
+      where
+      module F = Functor F ; module G = Functor G
 
   --module _ {oc od oe ac ad ae ec ed ee} {C : Category oc ac ec}
   --         {D : Category od ad ed} {E : Category oe ae ee} where
@@ -832,3 +845,18 @@ module Lib.Category where
     ; arr = →E-⊤ _ λ rr x y r → rr (x , x) (y , y) r
     ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
     }
+
+  module _ {a b l m} (A : Setoid a l) (B : Setoid b m) where
+    private
+      module A = Setoid A ; module B = Setoid B
+
+    RelF : ∀ {n} → (A.C → B.C) → Functor (REL B n) (REL A n)
+    RelF f = record
+      { obj = λ R a b → R (f a) (f b)
+      ; arr = λ {R} {S} → →E-⊤ _ λ rs a b r → rs (f a) (f b) r
+      ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
+      }
+
+  RelF′ : ∀ {a b l} {A : Set a} {B : Set b} →
+          (A → B) → Functor (REL (≡-Setoid B) l) (REL (≡-Setoid A) l)
+  RelF′ {A = A} {B} f = RelF (≡-Setoid A) (≡-Setoid B) f

@@ -33,3 +33,8 @@ module Lib.Function where
   _⟨_⟩_ : ∀ {a b c} {A : Set a} {B : A → Set b} {C : ∀ x → B x → Set c}
           (x : A) → ((x : A) (y : B x) → C x y) → (y : B x) → C x y
   x ⟨ f ⟩ y = f x y
+
+  infixl 4 _on_
+  _on_ : ∀ {a b c} {A : Set a} {B : Set b} {C : (x y : A) → Set c} →
+         ((x y : A) → C x y) → (f : B → A) → ((x y : B) → C (f x) (f y))
+  (f on g) x y = f (g x) (g y)

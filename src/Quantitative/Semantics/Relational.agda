@@ -12,7 +12,7 @@ module Quantitative.Semantics.Relational {r l}
          (J : Profunctor ONE W) (P : Profunctor (W ×C W) W)
          (isSymmetricPromonoidal : IsSymmetricPromonoidal _ J P)
          (R : Set r) (posemiring : Posemiring (≡-Setoid R) l)
-         (actF2 : ∀ {A} → R → Functor (WREL A) (WREL A))
+         (actF : ∀ {A} → R → EndoFunctor (WREL A))
          where
 
   module Wᵒᵖ = Category (OP W)
@@ -20,9 +20,9 @@ module Quantitative.Semantics.Relational {r l}
   module BaseR = Functor BaseR
   open IsSymmetricPromonoidal isSymmetricPromonoidal
 
-  module actF2 {A} ρ = Functor (actF2 {A} ρ)
+  module actF {A} ρ = Functor (actF {A} ρ)
   act : {A : Set} → R → WREL.Obj A → WREL.Obj A
-  act = actF2.obj
+  act = actF.obj
   module act {A} ρ S = Functor (act {A} ρ S)
 
   open import Quantitative.Types.Formers R
@@ -72,13 +72,24 @@ module Quantitative.Semantics.Relational {r l}
   infixr 3 _⇒W_ _⇔W_
 
   _⇒W_ : ∀ {A} (R S : WREL.Obj A) → Set _
-  R ⇒W S = ∀ w → Functor.obj R w ⇒ Functor.obj S w
+  _⇒W_ {A} R S = WREL._=>_ A R S
 
   _⇔W_ : ∀ {A} (R S : WREL.Obj A) → Set _
   R ⇔W S = R ⇒W S × S ⇒W R
 
-  ⇒W-trans : ∀ {A} {R S T : WREL.Obj A} → R ⇒W S → S ⇒W T → R ⇒W T
-  ⇒W-trans rs st w a b z = st w a b (rs w a b z)
+  mapW : ∀ {A B} → (A → B) → WREL.Obj B → WREL.Obj A
+  mapW f R = record
+    { obj = λ w → obj w on f
+    ; arr = →E-⊤ _ λ ww → (arr $E ww) on f
+    ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
+    }
+    where open Functor R
+
+  _[_]⇒W_ : ∀ {A B} (R : WREL.Obj A) (f : A → B) (S : WREL.Obj B) → Set _
+  R [ f ]⇒W S = R ⇒W mapW f S
+
+  _[_]⇒W′_ : ∀ {A B} (R : WREL.Obj A) (f : B → A) (S : WREL.Obj B) → Set _
+  R [ f ]⇒W′ S = WREL._=>_ _ (mapW f R) S
 
   1W : WREL.Obj One
   1W = record
@@ -159,6 +170,49 @@ module Quantitative.Semantics.Relational {r l}
     }
   module →W {A B} = Functor (→W {A} {B})
 
+  ⊤×⊤-⇒W-⊤ : ∀ {A B} → ×W.obj {A} {B} (⊤W , ⊤W) ⇒W ⊤W
+  ⊤×⊤-⇒W-⊤ = record
+    { η = λ w → λ { (a , b) (a′ , b′) (x , y , xyw , Jx , Jy) →
+                    J.arr $E (<> , _↔E_.to JP $E (x , Jx , xyw)) $E Jy }
+    ; square = λ _ → <>
+    }
+
+  ∧×∧-⇒W-×∧× : ∀ {A B} R S T U →
+               ×W.obj {A} {B} (∧W.obj (R , S) , ∧W.obj (T , U)) ⇒W
+                       ∧W.obj (×W.obj (R , T) , ×W.obj (S , U))
+  ∧×∧-⇒W-×∧× R S T U = record
+    { η = λ w → λ { (a , b) (a′ , b′) (x , y , x+y=w
+                                      , (xx , xy , xx+xy=x , r , s)
+                                      , (yx , yy , yx+yy=y , t , u)) →
+      let x+yx , x+yx= , [x+yx]+yy=w = _↔E_.from PP $E (y , yx+yy=y , x+y=w) in
+      let xy+xx=x = comm $E xx+xy=x in
+      let xx+yx , xx+yx= , xy+[xx+yx]=x+yx = _↔E_.to PP $E (x , xy+xx=x , x+yx=) in
+
+      let xy+y , xy+y= , xx+[xy+y]=w = _↔E_.to PP $E (x , xx+xy=x , x+y=w) in
+      let yy+yx=y = comm $E yx+yy=y in
+      let xy+yy , xy+yy= , [xy+yy]+yx=xy+y = _↔E_.from PP $E (y , yy+yx=y , xy+y=) in
+
+      let [xx+yx]+xy=x+yx = comm $E xy+[xx+yx]=x+yx in
+      let yx+xx=xx+yx = comm $E xx+yx= in
+      let yx+yy , yx+yy= , x+[yx+yy]=w = _↔E_.to PP $E (x+yx , x+yx= , [x+yx]+yy=w) in
+
+      xx+yx , xy+yy , {!yx+yy=!}
+      , (xx , yx , xx+yx= , r , t)
+      , (xy , yy , xy+yy= , s , u) }
+    ; square = λ _ → <>
+    }
+
+  R-⇒W-⊤∧R : ∀ {A} (R : WREL.Obj A) → R ⇒W ∧W.obj (⊤W , R)
+  R-⇒W-⊤∧R R = record
+    { η = λ w a b r → let x , Jx , xww = _↔E_.from JP $E W.id w in
+                      x , w , xww , Jx , r
+    ; square = λ _ → <>
+    }
+
+  1-⇒W-1∧1 : 1W ⇒W ∧W.obj (1W , 1W)
+  1-⇒W-1∧1 = R-⇒W-⊤∧R 1W
+
+
   R⟦_⟧T : (T : Ty) → WREL.Obj ⟦ T ⟧T
   R⟦_,_⟧ρ : ∀ T ρ → WREL.Obj ⟦ T ⟧T
 
@@ -205,6 +259,9 @@ module Quantitative.Semantics.Relational {r l}
                  (act-1W : ∀ ρ → act ρ 1W ⇔W 1W)
                  (act-×W : ∀ {A B} ρ R S → act ρ (×W.obj (R , S)) ⇔W
                                            ×W.obj (act {A} ρ R , act {B} ρ S))
+                 (act-mapW : ∀ {A B} ρ (f : A → B) (R : WREL.Obj B) →
+                             NatTrans (actF.obj ρ (mapW f R))
+                                      (mapW f (actF.obj ρ R)))
                  where
 
     Rρ-weaken : ∀ T {π ρ} → ρ R.≤ π → R⟦ T , ρ ⟧ρ ⇒W R⟦ T , π ⟧ρ
@@ -212,63 +269,114 @@ module Quantitative.Semantics.Relational {r l}
 
 
     Rρ-split-0 : ∀ T {ρ} → ρ R.≤ R.e0 → R⟦ T , ρ ⟧ρ ⇒W ⊤W
-    Rρ-split-0 T {ρ} le = ⇒W-trans {R = R⟦ T , ρ ⟧ρ} {R⟦ T , R.e0 ⟧ρ} {⊤W}
-                                   (Rρ-weaken T le) (act-0 R⟦ T ⟧T)
+    Rρ-split-0 T {ρ} le = WREL._>>_ _ {R⟦ T , ρ ⟧ρ} {R⟦ T , R.e0 ⟧ρ} {⊤W}
+                                    (Rρ-weaken T le) (act-0 R⟦ T ⟧T)
+
+    RΔ-split-0 : ∀ {n} Γ {Δ : RCtx n} → Δ Δ.≤ Δ.e0 → R⟦ Γ , Δ ⟧Δ ⇒W ⊤W
+    RΔ-split-0 nil nil = WREL.id _ 1W
+    RΔ-split-0 (S :: Γ) {ρ :: Δ} (le :: split) =
+      WREL._>>_ _ {×W.obj (R⟦ S , ρ ⟧ρ , R⟦ Γ , Δ ⟧Δ)} {×W.obj (⊤W , ⊤W)} {⊤W}
+                (×W.arr $E (Rρ-split-0 S le , RΔ-split-0 Γ split)) ⊤×⊤-⇒W-⊤
+
+    Rρ-split-+ : ∀ T {ρ ρx ρy} → ρ R.≤ ρx R.+ ρy →
+                 R⟦ T , ρ ⟧ρ ⇒W ∧W.obj (R⟦ T , ρx ⟧ρ , R⟦ T , ρy ⟧ρ)
+    Rρ-split-+ T {ρ} {ρx} {ρy} le =
+      WREL._>>_ _ {R⟦ T , ρ ⟧ρ} {R⟦ T , ρx R.+ ρy ⟧ρ}
+                  {∧W.obj (R⟦ T , ρx ⟧ρ , R⟦ T , ρy ⟧ρ)}
+                (Rρ-weaken T le) (act-+ ρx ρy R⟦ T ⟧T)
+
+    RΔ-split-+ : ∀ {n} Γ {Δ Δx Δy : RCtx n} → Δ Δ.≤ Δx Δ.+ Δy →
+                 R⟦ Γ , Δ ⟧Δ ⇒W ∧W.obj (R⟦ Γ , Δx ⟧Δ , R⟦ Γ , Δy ⟧Δ)
+    RΔ-split-+ nil {nil} {nil} {nil} nil = 1-⇒W-1∧1
+    RΔ-split-+ (S :: Γ) {ρ :: Δ} {ρx :: Δx} {ρy :: Δy} (le :: split) =
+      WREL._>>_ _ {×W.obj (R⟦ S , ρ ⟧ρ , R⟦ Γ , Δ ⟧Δ)}
+                  {×W.obj (∧W.obj (R⟦ S , ρx ⟧ρ , R⟦ S , ρy ⟧ρ)
+                          , ∧W.obj (R⟦ Γ , Δx ⟧Δ , R⟦ Γ , Δy ⟧Δ))}
+                  {∧W.obj (×W.obj (R⟦ S , ρx ⟧ρ , R⟦ Γ , Δx ⟧Δ)
+                          , ×W.obj (R⟦ S , ρy ⟧ρ , R⟦ Γ , Δy ⟧Δ))}
+                (×W.arr $E (Rρ-split-+ S le , RΔ-split-+ Γ split))
+                (∧×∧-⇒W-×∧× R⟦ S , ρx ⟧ρ R⟦ S , ρy ⟧ρ R⟦ Γ , Δx ⟧Δ R⟦ Γ , Δy ⟧Δ)
+
+
+    Rρ-split-1 : ∀ T {ρ} → ρ R.≤ R.e1 → act ρ R⟦ T ⟧T ⇒W R⟦ T ⟧T
+    Rρ-split-1 T {ρ} le =
+      WREL._>>_ _ {act ρ R⟦ T ⟧T} {act R.e1 R⟦ T ⟧T} {R⟦ T ⟧T}
+                (Rρ-weaken T le) (fst (act-1 R⟦ T ⟧T))
+
+    --RΔ-split-1 : ∀ {n} Γ {Δ : RCtx n} → Δ Δ.≤ Δ.e1 → R⟦ Γ , Δ ⟧Δ ⇒W R⟦ Γ , Δ.
+
+    Rρ-split-* : ∀ T {ρ π πx} → π R.≤ ρ R.* πx →
+                 R⟦ T , π ⟧ρ ⇒W act ρ R⟦ T , πx ⟧ρ
+    Rρ-split-* T {ρ} {π} {πx} le =
+      WREL._>>_ _ {R⟦ T , π ⟧ρ} {R⟦ T , ρ R.* πx ⟧ρ} {act ρ R⟦ T , πx ⟧ρ}
+                (Rρ-weaken T le) (fst (act-* ρ πx R⟦ T ⟧T))
+
+    RΔ-split-* : ∀ {n} (Γ : TCtx n) {ρ Δ Δx} → Δ Δ.≤ ρ Δ.* Δx →
+                 R⟦ Γ , Δ ⟧Δ ⇒W act ρ R⟦ Γ , Δx ⟧Δ
+    RΔ-split-* nil {ρ} {nil} {nil} nil = snd (act-1W ρ)
+    RΔ-split-* (S :: Γ) {ρ} {π :: Δ} {πx :: Δx} (le :: split) =
+      WREL._>>_ _ {×W.obj (R⟦ S , π ⟧ρ , R⟦ Γ , Δ ⟧Δ)}
+                  {×W.obj (act ρ R⟦ S , πx ⟧ρ , act ρ R⟦ Γ , Δx ⟧Δ)}
+                  {act ρ (×W.obj (R⟦ S , πx ⟧ρ , R⟦ Γ , Δx ⟧Δ))}
+                (×W.arr $E (Rρ-split-* S le , RΔ-split-* Γ split))
+                (snd (act-×W ρ R⟦ S , πx ⟧ρ R⟦ Γ , Δx ⟧Δ))
+
+
+    --fundamental :
+    --  ∀ {n d T Γ Δ} {t : Term n d} {tt : Γ ⊢t t :-: T} (tr : Δ ⊢r tt)
+    --  w (γ γ′ : ⟦ Γ ⟧Γ) → Functor.obj R⟦ Γ , Δ ⟧Δ w γ γ′ → Functor.obj R⟦ T ⟧T w (⟦ tt ⟧t γ) (⟦ tt ⟧t γ′)
+    fundamentalNT :
+      ∀ {n d T Γ Δ} {t : Term n d} {tt : Γ ⊢t t :-: T} (tr : Δ ⊢r tt) →
+      R⟦ Γ , Δ ⟧Δ [ ⟦ tt ⟧t ]⇒W R⟦ T ⟧T
+    fundamentalNT (var sub) = {!!}
+    fundamentalNT (app split tr tr₁) = {!!}
+    fundamentalNT (bm split tr tr₁) = {!!}
+    fundamentalNT (del split tr tr₁) = {!!}
+    fundamentalNT (pm split tr tr₁) = {!!}
+    fundamentalNT (proj tr) = {!!}
+    fundamentalNT (exf split tr) = {!!}
+    fundamentalNT (cse split tr tr₁ tr₂) = {!!}
+    fundamentalNT (the tr) = {!!}
+    fundamentalNT (lam tr) = {!!}
+    fundamentalNT {Γ = Γ} {Δ} (bang {Δs = Δs} {S} {ρ} {st = st} split sr) =
+      let ih = fundamentalNT sr in
+      RΔ-split-* Γ split >>N actF.arr ρ $E ih >>N act-mapW ρ _ _
+    fundamentalNT (unit split) = {!!}
+    fundamentalNT (ten split tr tr₁) = {!!}
+    fundamentalNT eat = {!!}
+    fundamentalNT (wth tr tr₁) = {!!}
+    fundamentalNT (inj tr) = {!!}
+    fundamentalNT [ tr ] = {!!}
+
+    --fundamental {Γ = Γ} (var sub) = {!!}
+    --fundamental {Γ = Γ} (app split er sr) = {!!}
+    --fundamental {Γ = Γ} (bm split er sr) = {!!}
+    --fundamental {Γ = Γ} (del split er sr) = {!!}
+    --fundamental {Γ = Γ} (pm split er sr) = {!!}
+    --fundamental {Γ = Γ} (proj er) = {!!}
+    --fundamental {Γ = Γ} {tt = exf et} (exf split er) w γ γ′ δδ =
+    --  Zero-elim (⟦ et ⟧t γ)
+    --fundamental {Γ = Γ} (cse split er s0r s1r) = {!!}
+    --fundamental {Γ = Γ} (the sr) = fundamental sr
+    --fundamental {Γ = Γ} (lam sr) = {!!}
+    --fundamental {Γ = Γ} {Δ} (bang {Δs = Δs} {S} {ρ = ρ} split sr) w γ γ′ δδ =
+    --  let lemma = η w γ γ′ δδ in
+    --  --{!NatTrans.η (actF.arr ρ $E ?) w γ γ′ (fundamental sr w γ γ′ ?)!}
+    --  let ih = fundamentalNT sr in
+    --  let arrow = actF.arr {⟦ Γ ⟧Γ} ρ in -- arrow $E lemma
+    --  let ih′ = arrow $E ih in
+    --  {!NatTrans.η ih′!}
+    --  where open NatTrans (RΔ-split-* Γ split)
+    --fundamental {Γ = Γ} (unit split) = {!!}
+    --fundamental {Γ = Γ} (ten split s0r s1r) = {!!}
+    --fundamental {Γ = Γ} eat = {!!}
+    --fundamental {Γ = Γ} (wth s0r s1r) = {!!}
+    --fundamental {Γ = Γ} (inj sr) = {!!}
+    --fundamental {Γ = Γ} [ er ] = fundamental er
+
+    --fundamentalNT tr = record { η = fundamental tr ; square = λ _ → <> }
+
   {-
-    Rρ-split-0 : ∀ T {ρ s s′} w → ρ R.≤ R.e0 → R⟦ T , ρ ⟧ρ w s s′ →
-                 Setoid.C (J.obj (<> , w))
-    Rρ-split-0 T {ρ} {s} {s′} w le rr = act-0 (R⟦ T ⟧T) w s s′ (Rρ-weaken T w le rr)
-
-    RΔ-split-0 : ∀ {n} (Γ : TCtx n) {Δ γ γ′} w → Δ Δ.≤ Δ.e0 →
-                 R⟦ Γ , Δ ⟧Δ w γ γ′ → Setoid.C (J.obj (<> , w))
-    RΔ-split-0 nil {nil} w nil δδ = δδ
-    RΔ-split-0 (S :: Γ) {ρ :: Δ} {s , γ} {s′ , γ′} w (le :: split) (x , y , xyw , ρρ , δδ)
-      with Rρ-split-0 S x le ρρ | RΔ-split-0 Γ y split δδ
-    ... | Jx | Jy = J.arr $E (<> , (_↔E_.to JP $E (x , Jx , xyw))) $E Jy
-
-    Rρ-split-+ : ∀ T {ρ ρx ρy s s′} w → ρ R.≤ ρx R.+ ρy → R⟦ T , ρ ⟧ρ w s s′ →
-                 (R⟦ T , ρx ⟧ρ ∧W R⟦ T , ρy ⟧ρ) w s s′
-    Rρ-split-+ T {ρ} {ρx} {ρy} {s} {s′} w le rr =
-      act-+ ρx ρy (R⟦ T ⟧T) w s s′ (Rρ-weaken T w le rr)
-
-    RΔ-split-+ : ∀ {n} (Γ : TCtx n) {Δ Δx Δy γ γ′} w → Δ Δ.≤ Δx Δ.+ Δy →
-                 R⟦ Γ , Δ ⟧Δ w γ γ′ → (R⟦ Γ , Δx ⟧Δ ∧W R⟦ Γ , Δy ⟧Δ) w γ γ′
-    RΔ-split-+ nil {nil} {nil} {nil} w nil δδ =
-      --let x , equiv = JP {w} {w} in
-      --let open _↔E_ equiv in
-      --let j , p = from $E W.id w in
-      --x , w , p , j , δδ
-      let x , Jx , Pxww = _↔E_.from JP $E W.id w in
-      x , w , Pxww , Jx , δδ
-    RΔ-split-+ (S :: Γ) {ρ :: Δ} {ρx :: Δx} {ρy :: Δy} {s , γ} {s′ , γ′} w (le :: split) (x , y , x+y=w , ρρ , δδ) with Rρ-split-+ S x le ρρ | RΔ-split-+ Γ y split δδ
-    ... | xx , xy , xx+xy=x , ρρx , ρρy | yx , yy , yx+yy=y , δδx , δδy =
-      let x+yx , x+yx= , [x+yx]+yy=w = _↔E_.from PP $E (y , yx+yy=y , x+y=w) in
-      let xy+xx=x = comm $E xx+xy=x in
-      let xx+yx , xx+yx= , xy+[xx+yx]=x+yx = _↔E_.to PP $E (x , xy+xx=x , x+yx=) in
-
-      let xy+y , xy+y= , xx+[xy+y]=w = _↔E_.to PP $E (x , xx+xy=x , x+y=w) in
-      let yy+yx=y = comm $E yx+yy=y in
-      let xy+yy , xy+yy= , [xy+yy]+yx=xy+y = _↔E_.from PP $E (y , yy+yx=y , xy+y=) in
-
-      let [xx+yx]+xy=x+yx = comm $E xy+[xx+yx]=x+yx in
-      let yx+xx=xx+yx = comm $E xx+yx= in
-      let yx+yy , yx+yy= , x+[yx+yy]=w = _↔E_.to PP $E (x+yx , x+yx= , [x+yx]+yy=w) in
-
-      xx+yx , xy+yy , {!yx+yy=!}
-      , (xx , yx , xx+yx= , ρρx , δδx)
-      , (xy , yy , xy+yy= , ρρy , δδy)
-
-    Rρ-split-* : ∀ T {ρ ρx ρy s s′} w → ρ R.≤ ρx R.* ρy →
-                 R⟦ T , ρ ⟧ρ w s s′ → act ρx R⟦ T , ρy ⟧ρ w s s′
-    Rρ-split-* T w le ρρ = fst (act-* _ _ R⟦ T ⟧T w _ _) (Rρ-weaken T w le ρρ)
-
-    RΔ-split-* : ∀ {n} (Γ : TCtx n) {Δ ρ Δx γ γ′} w → Δ Δ.≤ ρ Δ.* Δx →
-                 R⟦ Γ , Δ ⟧Δ w γ γ′ → act ρ R⟦ Γ , Δx ⟧Δ w γ γ′
-    RΔ-split-* nil {nil} {ρ} {nil} w nil δδ = snd (act-1W ρ) w _ _ δδ
-    RΔ-split-* (S :: Γ) {π :: Δ} {ρ} {πx :: Δx} {s , γ} {s′ , γ′} w (le :: split) (x , y , xyw , ππ , δδ) =
-      snd (act-×W ρ _ _) w _ _ (x , y , xyw , Rρ-split-* S x le ππ , RΔ-split-* Γ y split δδ)
-
-
     R⟦lookup⟧ : ∀ {n} {Γ : TCtx n} {Δ : RCtx n} {π} w i (γ γ′ : ⟦ Γ ⟧Γ) → Δ Δ.≤ varRCtx i π →
                 R⟦ Γ , Δ ⟧Δ w γ γ′ → R⟦ lookup i Γ , π ⟧ρ w (⟦lookup⟧ i γ) (⟦lookup⟧ i γ′)
     R⟦lookup⟧ {succ n} {S :: Γ} {ρ :: Δ} {π} w (os i) (s , γ) (s′ , γ′) (le :: sub) (x , y , xyw , ρρ , δδ) =
