@@ -23,17 +23,17 @@ monotonic with respect to $\leq$. We take $\rho,\pi \in R$.
 \medskip
 
 The base language we consider is a
-bidirectional \cite{DBLP:journals/toplas/PierceT00} simply typed
+bidirectional \citep{DBLP:journals/toplas/PierceT00} simply typed
 $\lambda$ calculus with the following types, where $\iota$ ranges over
 some set of base types:
 \begin{displaymath}
   S,T ::= \fun{S}{T} \mid \excl{\rho}{S} \mid \tensorOne \mid \tensor{S}{T} \mid
   \withTOne \mid \withT{S}{T} \mid \sumTZero \mid \sumT{S}{T} \mid \iota
 \end{displaymath}
-Bidirectional typing type annotations required.  Since our language is
-bidirectionally typed, we have two syntactic categories of terms: $e$
-ranges over checked terms, and $s$ ranges over synthesising terms. We
-use $t$ for both.
+Bidirectional typing reduces the type annotations required.  Since our
+language is bidirectionally typed, we have two syntactic categories of
+terms: $s$ ranges over checked terms, and $e$ ranges over synthesising
+terms. We use $t$ for both.
 \begin{displaymath}
   \begin{aligned}
     s &  ::= \lam{x}{s} \mid \bang{s} \mid \unit \mid \ten{s_0}{s_1} \mid \eat \mid \wth{s_0}{s_1} \mid \inj{i}{s} \mid \emb{e} \\
@@ -57,17 +57,16 @@ partial order on $R$ is extended pointwise to contexts.
 % Resourcing contexts with matching variables form a left $R$-semimodule, taking $(x_0^{\rescomment{\rho_0}}, \ldots, x_n^{\rescomment{\rho_n}}) + (x_0^{\rescomment{\pi_0}}, \ldots, x_n^{\rescomment{\pi_n}}) = (x_0^{\rescomment{\rho_0 + \pi_0}}, \ldots, x_n^{\rescomment{\rho_n + \pi_n}})$ and $\rho \cdot (x_0^{\rescomment{\rho \cdot \pi_0}}, \ldots, x_n^{\rescomment{\rho \cdot \pi_n}})$.
 Typing judgements for checked and synthesising terms have the same
 contexts, but either record that a term is checked against a type
-($\Gamma \vdash T \ni S$) or synthesise a type
+($\Gamma \vdash T \ni s$) or synthesise a type
 ($\Gamma \vdash e \in T$).
 % When we only care about typability, we write $t : T$ in place of
 % either $T \ni t$ or $t \in T$.
 
 The typing rules consist of a variable rule, two rules for change of
 direction, and introduction and elimination rules for each type
-former. The following rules for variables, function introduction and
-elimination, and $\oc_\rho$ introduction illustrate how usage
-information is tracked:
-\begin{mathpar}
+former. The following rules for variables and function and $\oc_\rho$
+introduction and elimination illustrate how usage information is
+tracked: {\footnotesize\begin{mathpar}
   % Variables
   \inferrule
   {\Gamma \leq 0\Gamma_1, \ctxvar{x}{S}{1}, 0\Gamma_2}
@@ -88,7 +87,14 @@ information is tracked:
   \inferrule
   {\Gamma_1 \vdash S \ni s \\ \Gamma \leq \rho \cdot \Gamma_1}
   {\Gamma \vdash \excl{\rho}{S} \ni \bang{s}}
-\end{mathpar}
+
+  \mprset{flushleft}
+  \inferrule
+  {\Gamma_1 \vdash e \in \excl{\rho}{S} \\\\
+    \Gamma_2, \ctxvar{x}{S}{\rho} \vdash T \ni s[x] \\\\
+    \Gamma \leq \Gamma_1 + \Gamma_2}
+  {\Gamma \vdash \bm{T}{e}{\{x\}s[x]} \in T}
+\end{mathpar}}
 Sub-resourcing, weakening (adding $0$-use variables to the context)
 and substitution are all admissible.  In our Agda formalisation, we
 have constructed our type system in two levels: a non-usage tracked
