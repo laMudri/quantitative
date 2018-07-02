@@ -187,6 +187,27 @@ module Quantitative.Semantics.Relational {r l}
     }
   module →W {A B} = Functor (→W {A} {B})
 
+  &W : ∀ {A B} → Functor (WREL A ×C WREL B) (WREL (A × B))
+  &W = record
+    { obj = λ { (R , S) →
+      let module RF = Functor R ; module SF = Functor S in record
+      { obj = λ w → RF.obj w ×R SF.obj w
+      ; arr = →E-⊤ _ λ ww → λ { (a , b) (a′ , b′) (r , s) →
+                                (RF.arr $E ww) a a′ r , (SF.arr $E ww) b b′ s }
+      ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
+      } }
+    ; arr = record
+      { _$E_ = λ { (α , β) →
+        let module α = NatTrans α ; module β = NatTrans β in record
+        { η = λ { w (a , b) (a′ , b′) (r , s) → α.η w a a′ r , β.η w b b′ s }
+        ; square = λ _ → <>
+        } }
+      ; _$E=_ = λ _ _ → <>
+      }
+    ; isFunctor = record { arr-id = λ _ _ → <> ; arr->> = λ _ → <> }
+    }
+  module &W {A B} = Functor (&W {A} {B})
+
   ⊤×⊤-⇒W-⊤ : ∀ {A B} → ×W.obj {A} {B} (⊤W , ⊤W) ⇒W ⊤W
   ⊤×⊤-⇒W-⊤ = record
     { η = λ w → λ { (a , b) (a′ , b′) (x , y , xyw , Jx , Jy) →
@@ -237,16 +258,39 @@ module Quantitative.Semantics.Relational {r l}
     ; square = λ _ → <>
     }
 
-  map×W : ∀ {A0 B0 A1 B1} {R0 : WREL.Obj A0} {S0 : WREL.Obj B0}
-           {R1 : WREL.Obj A1} {S1 : WREL.Obj B1} {f : A0 → B0} {g : A1 → B1} →
-           R0 [ f ]⇒W S0 → R1 [ g ]⇒W S1 →
-           ×W.obj (R0 , R1) [ map× f g ]⇒W ×W.obj (S0 , S1)
-  map×W α β = record
-    { η = λ w → λ { (a , b) (a′ , b′) (x , y , xyw , p , q) →
-                    x , y , xyw , α.η x a a′ p , β.η y b b′ q }
+  ⊤-⇒W-1 : ∀ A → ⊤W {A} [ (λ _ → <>) ]⇒W 1W
+  ⊤-⇒W-1 A = record
+    { η = λ w a a′ Jw → Jw
     ; square = λ _ → <>
     }
-    where module α = NatTrans α ; module β = NatTrans β
+
+  1×-⇒W : ∀ {B} (S : WREL.Obj B) → ×W.obj (1W , S) [ snd ]⇒W S
+  1×-⇒W S = record
+    { η = λ w → λ { (<> , b) (<> , b′) (x , y , xyw , Jx , bb) →
+                    (arr $E (_↔E_.to JP $E (x , Jx , xyw))) b b′ bb }
+    ; square = λ _ → <>
+    }
+    where open Functor S
+
+  ×1-⇒W : ∀ {A} (R : WREL.Obj A) → ×W.obj (R , 1W) [ fst ]⇒W R
+  ×1-⇒W R = record
+    { η = λ w → λ { (a , <>) (a′ , <>) (x , y , xyw , aa , Jy) →
+                    (arr $E (_↔E_.to PJ $E (y , Jy , xyw))) a a′ aa }
+    ; square = λ _ → <>
+    }
+    where open Functor R
+
+  ××-⇒W : ∀ {A B C} (R : WREL.Obj A) (S : WREL.Obj B) (T : WREL.Obj C) →
+          ×W.obj (×W.obj (R , S) , T) [ unassoc ]⇒W ×W.obj (R , ×W.obj (S , T))
+  ××-⇒W R S T = record
+    { η = λ w → λ { ((a , b) , c) ((a′ , b′) , c′)
+                    (x , y , xyw , (xx , xy , xxxyx , r , s) , t) →
+                    let xy+y , xy+y= , xx+[xy+y]=w =
+                         _↔E_.to PP $E (x , xxxyx , xyw) in
+                    xx , xy+y , xx+[xy+y]=w , r , xy , y , xy+y= , s , t }
+    ; square = λ _ → <>
+    }
+    where open Functor (×W.obj (R , ×W.obj (S , T)))
 
 
   R⟦_⟧T : (T : Ty) → WREL.Obj ⟦ T ⟧T
@@ -262,13 +306,7 @@ module Quantitative.Semantics.Relational {r l}
     }
   R⟦ S ⊸ T ⟧T = →W.obj (R⟦ S ⟧T , R⟦ T ⟧T)
   R⟦ S ⊗ T ⟧T = ×W.obj (R⟦ S ⟧T , R⟦ T ⟧T)
-  R⟦ S & T ⟧T = record
-    { obj = λ w → RS.obj w ×R RT.obj w
-    ; arr = →E-⊤ _ λ ww → λ { (a , b) (a′ , b′) (s , t) →
-                              (RS.arr $E ww) a a′ s , (RT.arr $E ww) b b′ t }
-    ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
-    }
-    where module RS = Functor (R⟦ S ⟧T) ; module RT = Functor (R⟦ T ⟧T)
+  R⟦ S & T ⟧T = &W.obj (R⟦ S ⟧T , R⟦ T ⟧T)
   R⟦ S ⊕ T ⟧T = record
     { obj = λ w → RS.obj w ⊎R RT.obj w
     ; arr = →E-⊤ _ λ ww →
@@ -358,55 +396,134 @@ module Quantitative.Semantics.Relational {r l}
                 (snd (act-×W ρ R⟦ S , πx ⟧ρ R⟦ Γ , Δx ⟧Δ))
 
 
+    --fundamental :
+    --  ∀ {n d T Γ Δ} {t : Term n d} {tt : Γ ⊢t t :-: T} (tr : Δ ⊢r tt)
+    --  w (γ γ′ : ⟦ Γ ⟧Γ) → Functor.obj R⟦ Γ , Δ ⟧Δ w γ γ′ →
+    --                      Functor.obj R⟦ T ⟧T w (⟦ tt ⟧t γ) (⟦ tt ⟧t γ′)
+    --fundamentalNT :
+    --  ∀ {n d T Γ Δ} {t : Term n d} {tt : Γ ⊢t t :-: T} (tr : Δ ⊢r tt) →
+    --  R⟦ Γ , Δ ⟧Δ [ ⟦ tt ⟧t ]⇒W R⟦ T ⟧T
+
+    --fundamental {Γ = Γ} (var sub) w γ γ′ δδ = {!!}
+    --fundamental {Γ = Γ} (app {S = S} {T} {et = et} {st} split er sr) w γ γ′ δδ =
+    --  let ihe = fundamentalNT er ; ihs = fundamentalNT sr in
+    --  let sp = RΔ-split-+ Γ split in
+    --  let nt = sp >>N ∧W.arr $E (ihe , ihs)
+    --              >>N evalW ⟦ et ⟧t ⟦ st ⟧t R⟦ S ⟧T R⟦ T ⟧T in
+    --  NatTrans.η nt w γ γ′ δδ
+    --fundamental {Γ = Γ} (bm {Δe = Δe} {Δs} split er sr) w γ γ′ δδ =
+    --  let ihe = fundamentalNT er ; ihs = fundamentalNT sr in
+    --  let sp = RΔ-split-+ Γ split in
+    --  let nt = sp >>W′ ×W.arr $E (ihe , WREL.id _ R⟦ Γ , Δs ⟧Δ) >>W′ ihs in
+    --  NatTrans.η nt w γ γ′ δδ
+    --fundamental {Γ = Γ} (del {Δe = Δe} {Δs} {T} split er sr) w γ γ′ δδ =
+    --  let ihe = fundamentalNT er ; ihs = fundamentalNT sr in
+    --  let sp = RΔ-split-+ Γ split in
+    --  let nt = sp >>N ∧W.arr $E (ihe , ihs) >>W′ 1×-⇒W R⟦ T ⟧T in
+    --  NatTrans.η nt w γ γ′ δδ
+    --fundamental {Γ = Γ} (pm {Δe = Δe} {Δs} split er sr) w γ γ′ δδ =
+    --  let ihe = fundamentalNT er ; ihs = fundamentalNT sr in
+    --  let sp = RΔ-split-+ Γ split in
+    --  let nt = sp >>W′ ×W.arr $E (ihe , WREL.id _ R⟦ Γ , Δs ⟧Δ) >>W′ {!id ihs!} in
+    --  {!nt!}
+    --fundamental (proj {ttt} er) w γ γ′ δδ = fst (fundamental er w γ γ′ δδ)
+    --fundamental (proj {fff} er) w γ γ′ δδ = snd (fundamental er w γ γ′ δδ)
+    --fundamental {Γ = Γ} {tt = exf et} (exf split er) w γ γ′ δδ =
+    --  Zero-elim (⟦ et ⟧t γ)
+    --fundamental {Γ = Γ} (cse split er s0r s1r) w γ γ′ δδ = {!!}
+    --fundamental {Γ = Γ} (the sr) = fundamental sr
+    --fundamental {Γ = Γ} (lam sr) w γ γ′ δδ =
+    --  let ih = fundamentalNT sr in
+    --  {!!}
+    --fundamental {Γ = Γ} {Δ} (bang {Δs = Δs} {S} {ρ = ρ} split sr) w γ γ′ δδ =
+    --  let ih = fundamentalNT sr in
+    --  let nt = RΔ-split-* Γ split >>N actF.arr ρ $E ih >>N act-mapW ρ _ _ in
+    --  NatTrans.η nt w γ γ′ δδ
+    --fundamental {Γ = Γ} (unit split) w γ γ′ δδ =
+    --  NatTrans.η (RΔ-split-0 Γ split) w γ γ′ δδ
+    --fundamental {Γ = Γ} (ten split s0r s1r) w γ γ′ δδ =
+    --  let ih0 = fundamentalNT s0r ; ih1 = fundamentalNT s1r in
+    --  let nt = RΔ-split-+ Γ split >>N ∧W.arr $E (ih0 , ih1) in
+    --  NatTrans.η nt w γ γ′ δδ
+    --fundamental eat w γ γ′ δδ = <>
+    --fundamental (wth s0r s1r) w γ γ′ δδ =
+    --  fundamental s0r w γ γ′ δδ , fundamental s1r w γ γ′ δδ
+    --fundamental (inj {ttt} sr) w γ γ′ δδ = inl (fundamental sr w γ γ′ δδ)
+    --fundamental (inj {fff} sr) w γ γ′ δδ = inr (fundamental sr w γ γ′ δδ)
+    --fundamental [ er ] = fundamental er
+
+    --fundamentalNT tr = record { η = fundamental tr ; square = λ _ → <> }
+
+    R⟦lookup⟧ : ∀ {n} {Γ : TCtx n} {Δ : RCtx n} {π} i → Δ Δ.≤ varRCtx i π →
+                R⟦ Γ , Δ ⟧Δ [ ⟦lookup⟧ i ]⇒W R⟦ lookup i Γ , π ⟧ρ
+    R⟦lookup⟧ {Γ = T :: Γ} {ρ :: Δ} {π} (os i) (le :: split) =
+      ×W.arr $E (Rρ-weaken T le , RΔ-split-0 Γ split >>N ⊤-⇒W-1 ⟦ Γ ⟧Γ)
+      >>W′ ×1-⇒W R⟦ T , π ⟧ρ
+    R⟦lookup⟧ {Γ = T :: Γ} {ρ :: Δ} {π} (o′ i) (le :: split) =
+      ×W.arr $E (Rρ-split-0 T le >>N ⊤-⇒W-1 ⟦ T ⟧T , R⟦lookup⟧ i split)
+      >>W′ 1×-⇒W R⟦ lookup i Γ , π ⟧ρ
+
     fundamental :
-      ∀ {n d T Γ Δ} {t : Term n d} {tt : Γ ⊢t t :-: T} (tr : Δ ⊢r tt)
-      w (γ γ′ : ⟦ Γ ⟧Γ) → Functor.obj R⟦ Γ , Δ ⟧Δ w γ γ′ → Functor.obj R⟦ T ⟧T w (⟦ tt ⟧t γ) (⟦ tt ⟧t γ′)
-    fundamentalNT :
       ∀ {n d T Γ Δ} {t : Term n d} {tt : Γ ⊢t t :-: T} (tr : Δ ⊢r tt) →
       R⟦ Γ , Δ ⟧Δ [ ⟦ tt ⟧t ]⇒W R⟦ T ⟧T
-
-    fundamental {Γ = Γ} (var sub) w γ γ′ δδ = {!!}
-    fundamental {Γ = Γ} (app {S = S} {T} {et = et} {st} split er sr) w γ γ′ δδ =
-      let ihe = fundamentalNT er ; ihs = fundamentalNT sr in
-      let sp = RΔ-split-+ Γ split in
-      let nt = sp >>N ∧W.arr $E (ihe , ihs) >>N evalW ⟦ et ⟧t ⟦ st ⟧t R⟦ S ⟧T R⟦ T ⟧T in
-      NatTrans.η nt w γ γ′ δδ
-    fundamental {Γ = Γ} (bm {Δe = Δe} {Δs} split er sr) w γ γ′ δδ =
-      let ihe = fundamentalNT er ; ihs = fundamentalNT sr in
-      let sp = RΔ-split-+ Γ split in
-      let nt = sp >>W′ ×W.arr $E (ihe , WREL.id _ R⟦ Γ , Δs ⟧Δ) >>W′ ihs in
-      NatTrans.η nt w γ γ′ δδ
-    fundamental {Γ = Γ} (del {Δe = Δe} {Δs} split er sr) w γ γ′ δδ =
-      let ihe = fundamentalNT er ; ihs = fundamentalNT sr in
-      let sp = RΔ-split-+ Γ split in
-      let nt = sp >>W′ ×W.arr $E (ihe , WREL.id _ R⟦ Γ , Δs ⟧Δ) >>W′ {!1×_ → _!} in
-      NatTrans.η nt w γ γ′ δδ
-    fundamental {Γ = Γ} (pm split er sr) w γ γ′ δδ = {!!}
-    fundamental (proj {ttt} er) w γ γ′ δδ = fst (fundamental er w γ γ′ δδ)
-    fundamental (proj {fff} er) w γ γ′ δδ = snd (fundamental er w γ γ′ δδ)
-    fundamental {Γ = Γ} {tt = exf et} (exf split er) w γ γ′ δδ =
-      Zero-elim (⟦ et ⟧t γ)
-    fundamental {Γ = Γ} (cse split er s0r s1r) w γ γ′ δδ = {!!}
-    fundamental {Γ = Γ} (the sr) = fundamental sr
-    fundamental {Γ = Γ} (lam sr) w γ γ′ δδ = {!!}
-    fundamental {Γ = Γ} {Δ} (bang {Δs = Δs} {S} {ρ = ρ} split sr) w γ γ′ δδ =
-      let ih = fundamentalNT sr in
-      let nt = RΔ-split-* Γ split >>N actF.arr ρ $E ih >>N act-mapW ρ _ _ in
-      NatTrans.η nt w γ γ′ δδ
-    fundamental {Γ = Γ} (unit split) w γ γ′ δδ =
-      NatTrans.η (RΔ-split-0 Γ split) w γ γ′ δδ
-    fundamental {Γ = Γ} (ten split s0r s1r) w γ γ′ δδ =
-      let ih0 = fundamentalNT s0r ; ih1 = fundamentalNT s1r in
-      let nt = RΔ-split-+ Γ split >>N ∧W.arr $E (ih0 , ih1) in
-      NatTrans.η nt w γ γ′ δδ
-    fundamental {Γ = Γ} eat w γ γ′ δδ = <>
-    fundamental (wth s0r s1r) w γ γ′ δδ =
-      fundamental s0r w γ γ′ δδ , fundamental s1r w γ γ′ δδ
-    fundamental (inj {ttt} sr) w γ γ′ δδ = inl (fundamental sr w γ γ′ δδ)
-    fundamental (inj {fff} sr) w γ γ′ δδ = inr (fundamental sr w γ γ′ δδ)
-    fundamental {Γ = Γ} [ er ] = fundamental er
-
-    fundamentalNT tr = record { η = fundamental tr ; square = λ _ → <> }
+    fundamental {Γ = Γ} (var {i} {T} {refl} sub) =
+      R⟦lookup⟧ i sub >>W′ fst (act-1 R⟦ T ⟧T)
+    fundamental {Γ = Γ} (app {S = S} {T} {et = et} {st} split er sr) =
+      RΔ-split-+ Γ split >>N ∧W.arr $E (fundamental er , fundamental sr)
+                         >>N evalW ⟦ et ⟧t ⟦ st ⟧t R⟦ S ⟧T R⟦ T ⟧T
+    fundamental {Γ = Γ} (bm {Δe = Δe} {Δs} split er sr) =
+      let ihe = fundamental er ; ihs = fundamental sr in
+      RΔ-split-+ Γ split >>W′ ×W.arr $E (ihe , WREL.id _ R⟦ Γ , Δs ⟧Δ) >>W′ ihs
+    fundamental {Γ = Γ} (del {Δe = Δe} {Δs} {T = T} split er sr) =
+      let ihe = fundamental er ; ihs = fundamental sr in
+      RΔ-split-+ Γ split >>N ∧W.arr $E (ihe , WREL.id _ R⟦ Γ , Δs ⟧Δ)
+                         >>W′ 1×-⇒W R⟦ Γ , Δs ⟧Δ >>W′ ihs
+    fundamental {Γ = Γ} (pm {Δe = Δe} {Δs} {S0} {S1} split er sr) =
+      let ihe = fundamental er ; ihs = fundamental sr in
+      let ihe′ = ihe >>W′ ×W.arr $E (snd (act-1 R⟦ S0 ⟧T)
+                                    , snd (act-1 R⟦ S1 ⟧T)) in
+      RΔ-split-+ Γ split >>N ∧W.arr $E (ihe′ , WREL.id _ R⟦ Γ , Δs ⟧Δ)
+                         >>W′ ××-⇒W R⟦ S0 , R.e1 ⟧ρ R⟦ S1 , R.e1 ⟧ρ R⟦ Γ , Δs ⟧Δ
+                         >>W′ ihs
+    fundamental (proj {i = ttt} er) = fundamental er >>N record
+      { η = λ w γ γ′ δδ → fst δδ
+      ; square = λ _ → <>
+      }
+    fundamental (proj {i = fff} er) = fundamental er >>N {!!}
+    fundamental (exf {et = et} split er) = record
+      { η = λ w γ γ′ δδ → Zero-elim (⟦ et ⟧t γ)
+      ; square = λ _ → <>
+      }
+    fundamental (cse split er s0r s1r) = {!!}
+    fundamental (the sr) = fundamental sr
+    fundamental {Γ = Γ} {Δ} (lam {S = S} {T} {st = st} sr) =
+      let ih = fundamental sr in
+      let ih′ = ×W.arr $E (snd (act-1 R⟦ S ⟧T) , WREL.id _ R⟦ Γ , Δ ⟧Δ) >>N ih in
+      {!? >>W′ ih′!}
+    fundamental {Γ = Γ} (bang {ρ = ρ} split sr) =
+      let ih = fundamental sr in
+      RΔ-split-* Γ split >>N actF.arr ρ $E ih >>N act-mapW ρ _ _
+    fundamental {Γ = Γ} (unit split) =
+      RΔ-split-0 Γ split
+    fundamental {Γ = Γ} (ten split s0r s1r) =
+      RΔ-split-+ Γ split >>N ∧W.arr $E (fundamental s0r , fundamental s1r)
+    fundamental eat = record { η = λ _ _ _ _ → <> ; square = λ _ → <> }
+    fundamental (wth s0r s1r) =
+      let ih0 = fundamental s0r ; ih1 = fundamental s1r in record
+      { η = λ w γ γ′ δδ → NatTrans.η ih0 w γ γ′ δδ , NatTrans.η ih1 w γ γ′ δδ
+      ; square = λ _ → <>
+      }
+    fundamental (inj {i = ttt} sr) =
+      let ih = fundamental sr in record
+      { η = λ w γ γ′ δδ → inl (NatTrans.η ih w γ γ′ δδ)
+      ; square = λ _ → <>
+      }
+    fundamental (inj {i = fff} sr) =
+      let ih = fundamental sr in record
+      { η = λ w γ γ′ δδ → inr (NatTrans.η ih w γ γ′ δδ)
+      ; square = λ _ → <>
+      }
+    fundamental [ er ] = fundamental er
 
   {-
     R⟦lookup⟧ : ∀ {n} {Γ : TCtx n} {Δ : RCtx n} {π} w i (γ γ′ : ⟦ Γ ⟧Γ) → Δ Δ.≤ varRCtx i π →

@@ -35,6 +35,10 @@ module Lib.Product where
           A × (B × C) → (A × B) × C
   assoc (x , (y , z)) = ((x , y) , z)
 
+  unassoc : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+            (A × B) × C → A × (B × C)
+  unassoc ((x , y) , z) = (x , (y , z))
+
   map× : ∀ {a a′ b b′} {A : Set a} {A′ : Set a′} {B : Set b} {B′ : Set b′} →
          (A → A′) → (B → B′) → A × B → A′ × B′
   map× fa fb = mapΣ fa fb
