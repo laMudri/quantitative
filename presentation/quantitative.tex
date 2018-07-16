@@ -1,0 +1,56 @@
+\documentclass{beamer}
+
+\usepackage{booktabs}
+\usepackage{subcaption}
+
+\usepackage{stmaryrd}
+\usepackage{mathpartir}
+\usepackage{amssymb}
+\usepackage{cmll}
+\usepackage{xcolor}
+\usepackage{paralist}
+\usepackage{makecell}
+
+\input{macros}
+
+\title{Context Constrained Computation}
+\subtitle{via a linear-like lambda calculus}
+\author{Bob Atkey\inst{1} \and James Wood\inst{1}}
+\institute{\inst{1}University of Strathclyde}
+\date{TyDe Workshop, 2018}
+
+\begin{document}
+  \frame{\titlepage}
+  \begin{frame}
+    \frametitle{Moving parts}
+  \end{frame}
+  \begin{frame}[shrink]
+    \frametitle{Products}
+    \begin{table}[]
+      \centering
+      \begin{tabular}{c|c}
+        with product & tensor product
+        \\ \midrule
+        $\withT{A}{B}$ & $\tensor{A}{B}$
+        \\ \midrule
+        \inferrule{\ctx{\Gamma}{\Delta} \vdash S_0 \ni s_0
+                   \\ \ctx{\Gamma}{\Delta} \vdash S_1 \ni s_1}
+                  {\ctx{\Gamma}{\Delta} \vdash \withT{S_0}{S_1} \ni \wth{s_0}{s_1}}
+        &
+        \inferrule{\ctx{\Gamma}{\Delta_0} \vdash S_0 \ni s_0
+                   \\ \ctx{\Gamma}{\Delta_1} \vdash S_1 \ni s_1
+                   \\\\ \rescomment{\Delta \leq \Delta_0 + \Delta_1}}
+                  {\ctx{\Gamma}{\Delta} \vdash \tensor{S_0}{S_1} \ni \ten{s_0}{s_1}}
+        \\ \midrule
+        \inferrule{\ctx{\Gamma}{\Delta} \vdash e \in \withT{S_0}{S_1}}
+                  {\ctx{\Gamma}{\Delta} \vdash \proj{i}{e} \in S_i}
+        &
+        \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \tensor{S_0}{S_1}
+                   \\\\ \ctx{\Gamma}{\Delta_s},
+                        \ctxvar{x}{S_0}{1}, \ctxvar{y}{S_1}{1} \vdash s \in T
+                   \\\\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
+                  {\ctx{\Gamma}{\Delta} \vdash \prm{T}{e}{s} \in T}
+      \end{tabular}
+    \end{table}
+  \end{frame}
+\end{document}
