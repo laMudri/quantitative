@@ -258,6 +258,16 @@ module Quantitative.Semantics.Relational {r l}
     ; square = λ _ → <>
     }
 
+  curryW : ∀ {A B C} (f : A → B → C) (g : A → B)
+           (R : WREL.Obj B) (S : WREL.Obj C) (T : WREL.Obj (B → C)) →
+           ∧W.obj (mapW f T , mapW g R) ⇒W mapW (f <s> g) S →
+           mapW f T ⇒W mapW f (→W.obj (R , S))
+  curryW f g R S T α = record
+    { η = λ w ab ab′ t x y xyw b b′ r → {!η x!}
+    ; square = λ _ → <>
+    }
+    where open NatTrans α
+
   ⊤-⇒W-1 : ∀ A → ⊤W {A} [ (λ _ → <>) ]⇒W 1W
   ⊤-⇒W-1 A = record
     { η = λ w a a′ Jw → Jw
@@ -291,6 +301,13 @@ module Quantitative.Semantics.Relational {r l}
     ; square = λ _ → <>
     }
     where open Functor (×W.obj (R , ×W.obj (S , T)))
+
+  projW : ∀ {A B C} (f : A → B × C) (R : WREL.Obj B) (S : WREL.Obj C) i →
+          mapW f (&W.obj (R , S)) ⇒W Two-rec (mapW (f >> fst) R)
+                                             (mapW (f >> snd) S)
+                                             i
+  projW f R S ttt = record { η = λ w a b → fst ; square = λ _ → <> }
+  projW f R S fff = record { η = λ w a b → snd ; square = λ _ → <> }
 
 
   R⟦_⟧T : (T : Ty) → WREL.Obj ⟦ T ⟧T
@@ -485,11 +502,10 @@ module Quantitative.Semantics.Relational {r l}
       RΔ-split-+ Γ split >>N ∧W.arr $E (ihe′ , WREL.id _ R⟦ Γ , Δs ⟧Δ)
                          >>W′ ××-⇒W R⟦ S0 , R.e1 ⟧ρ R⟦ S1 , R.e1 ⟧ρ R⟦ Γ , Δs ⟧Δ
                          >>W′ ihs
-    fundamental (proj {i = ttt} er) = fundamental er >>N record
-      { η = λ w γ γ′ δδ → fst δδ
-      ; square = λ _ → <>
-      }
-    fundamental (proj {i = fff} er) = fundamental er >>N {!!}
+    fundamental (proj {i = ttt} {S0} {S1} {et = et} er) =
+      fundamental er >>N projW ⟦ et ⟧t R⟦ S0 ⟧T R⟦ S1 ⟧T ttt
+    fundamental (proj {i = fff} {S0} {S1} {et = et} er) =
+      fundamental er >>N projW ⟦ et ⟧t R⟦ S0 ⟧T R⟦ S1 ⟧T fff
     fundamental (exf {et = et} split er) = record
       { η = λ w γ γ′ δδ → Zero-elim (⟦ et ⟧t γ)
       ; square = λ _ → <>
