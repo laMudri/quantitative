@@ -8,7 +8,6 @@
 \usepackage{amssymb}
 \usepackage{cmll}
 \usepackage{xcolor}
-\usepackage{paralist}
 \usepackage{makecell}
 
 \input{macros}
@@ -47,10 +46,35 @@
         &
         \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \tensor{S_0}{S_1}
                    \\\\ \ctx{\Gamma}{\Delta_s},
-                        \ctxvar{x}{S_0}{1}, \ctxvar{y}{S_1}{1} \vdash s \in T
+                        \ctxvar{x}{S_0}{1}, \ctxvar{y}{S_1}{1} \vdash \bind{x,y}{s} \in T
                    \\\\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
-                  {\ctx{\Gamma}{\Delta} \vdash \prm{T}{e}{s} \in T}
+                  {\ctx{\Gamma}{\Delta} \vdash \prm{T}{e}{\bind{x,y}{s}} \in T}
+        \\ \midrule
+        Cartesian product
+        &
+        \makecell{Closed symmetric \\ monoidal product}
       \end{tabular}
     \end{table}
+  \end{frame}
+  \begin{frame}
+    \frametitle{Bang}
+    \begin{itemize}
+      \item Introduction:
+        \inferrule{\ctx{\Gamma}{\Delta_s} \vdash S \ni s
+                   \\ \rescomment{\Delta \leq \rho \cdot \Delta_s}}
+                  {\ctx{\Gamma}{\Delta} \vdash \excl{\rho}{S} \ni \bang{s}}
+      \item Elimination:
+        \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \excl{\rho}{S}
+                   \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S}{\rho}
+                      \vdash T \ni \bind{x}{s}
+                   \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
+                  {\ctx{\Gamma}{\Delta} \vdash \bm{T}{e}{\bind{x}{s}} \in T}
+      \item Graded comonad:
+        \begin{mathpar}
+          \excl{1}{A} \to A
+          \\
+          \excl{\pi \cdot \rho}{A} \to \excl{\pi}{\excl{\rho}{A}}
+        \end{mathpar}
+    \end{itemize}
   \end{frame}
 \end{document}
