@@ -9,6 +9,7 @@
 \usepackage{cmll}
 \usepackage{xcolor}
 \usepackage{makecell}
+\usepackage{tikz-cd}
 
 \input{macros}
 
@@ -22,6 +23,49 @@
   \frame{\titlepage}
   \begin{frame}
     \frametitle{Moving parts}
+    %Basic syntax
+
+    \begin{columns}[onlytextwidth,T]
+      \begin{column}{0.5\textwidth}
+        \centering
+        Partially ordered semiring
+
+        \begin{table}[]
+          \begin{tabular}{c|ccc}
+            $+$      & $0$      & $1$      & $\omega$
+            \\ \hline
+            $0$      & $0$      & $1$      & $\omega$
+            \\
+            $1$      & $1$      & $\omega$ & $\omega$
+            \\
+            $\omega$ & $\omega$ & $\omega$ & $\omega$
+          \end{tabular}
+        \end{table}
+        \begin{table}[]
+          \begin{tabular}{c|ccc}
+            $\cdot$  & $0$ & $1$      & $\omega$
+            \\ \hline
+            $0$      & $0$ & $0$      & $0$
+            \\
+            $1$      & $0$ & $1$      & $\omega$
+            \\
+            $\omega$ & $0$ & $\omega$ & $\omega$
+          \end{tabular}
+        \end{table}
+        \begin{tikzcd}[ampersand replacement=\&, tips=false, column sep=0.5em,
+                       row sep=1em]
+          0 \ar{dr} \&\& 1 \ar{dl}
+          \\
+          \& \omega \&
+        \end{tikzcd}
+      \end{column}
+      \begin{column}{0.5\textwidth}
+        \centering
+        Symmetric promonoidal category
+
+        Bags of keys, under union
+      \end{column}
+    \end{columns}
   \end{frame}
   \begin{frame}[shrink]
     \frametitle{Products}
