@@ -26,10 +26,10 @@ module Quantitative.Semantics.Relational {r l}
   module act {A} ρ S = Functor (act {A} ρ S)
 
   open import Quantitative.Types.Formers R
-  open import Quantitative.Syntax Ty
-  open import Quantitative.Types R
+  open import Quantitative.Syntax Ty renaming ([_] to emb)
+  open import Quantitative.Types R renaming ([_] to emb)
   open import Quantitative.Semantics.Sets R Base
-  open import Quantitative.Resources R posemiring
+  open import Quantitative.Resources R posemiring renaming ([_] to emb)
   open import Quantitative.Resources.Context R posemiring
 
   open import Lib.Equality using (_≡_; refl)
@@ -208,6 +208,31 @@ module Quantitative.Semantics.Relational {r l}
     }
   module &W {A B} = Functor (&W {A} {B})
 
+  ⊕W : ∀ {A B} → Functor (WREL A ×C WREL B) (WREL (A ⊎ B))
+  ⊕W = record
+    { obj = λ { (R , S) →
+      let module RF = Functor R ; module SF = Functor S in record
+      { obj = λ w → RF.obj w ⊎R SF.obj w
+      ; arr = →E-⊤ _ λ ww →
+        λ { (inl a) (inl a′) (inl r) → inl ((RF.arr $E ww) a a′ r)
+        ; (inr b) (inr b′) (inr s) → inr ((SF.arr $E ww) b b′ s)
+        }
+      ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
+      } }
+    ; arr = record
+      { _$E_ = λ { (α , β) →
+        let module α = NatTrans α ; module β = NatTrans β in record
+        { η = λ { w (inl a) (inl a′) (inl r) → inl (α.η w a a′ r)
+                ; w (inr b) (inr b′) (inr s) → inr (β.η w b b′ s)
+                }
+        ; square = λ _ → <>
+        } }
+      ; _$E=_ = λ _ _ → <>
+      }
+    ; isFunctor = record { arr-id = λ _ _ → <> ; arr->> = λ _ → <> }
+    }
+  module ⊕W {A B} = Functor (⊕W {A} {B})
+
   ⊤×⊤-⇒W-⊤ : ∀ {A B} → ×W.obj {A} {B} (⊤W , ⊤W) ⇒W ⊤W
   ⊤×⊤-⇒W-⊤ = record
     { η = λ w → λ { (a , b) (a′ , b′) (x , y , xyw , Jx , Jy) →
@@ -258,12 +283,10 @@ module Quantitative.Semantics.Relational {r l}
     ; square = λ _ → <>
     }
 
-  curryW : ∀ {A B C} (f : A → B → C) (g : A → B)
-           (R : WREL.Obj B) (S : WREL.Obj C) (T : WREL.Obj (B → C)) →
-           ∧W.obj (mapW f T , mapW g R) ⇒W mapW (f <s> g) S →
-           mapW f T ⇒W mapW f (→W.obj (R , S))
-  curryW f g R S T α = record
-    { η = λ w ab ab′ t x y xyw b b′ r → {!η x!}
+  curryW : ∀ {B C} (R : WREL.Obj B) (S : WREL.Obj C) (T : WREL.Obj (B → C)) →
+           ×W.obj (T , R) [ uncurry id ]⇒W S → T ⇒W →W.obj (R , S)
+  curryW R S T α = record
+    { η = λ x f g t  w y xyw a b r → η w (f , a) (g , b) (x , y , xyw , t , r)
     ; square = λ _ → <>
     }
     where open NatTrans α
@@ -302,6 +325,17 @@ module Quantitative.Semantics.Relational {r l}
     }
     where open Functor (×W.obj (R , ×W.obj (S , T)))
 
+  caseW : ∀ {A B C} (R : WREL.Obj A) (S : WREL.Obj B) (T : WREL.Obj C)
+          (f : A → C) (g : B → C) →
+          R [ f ]⇒W T → S [ g ]⇒W T → ⊕W.obj (R , S) [ [ f , g ] ]⇒W T
+  caseW R S T f g rt st = record
+    { η = λ { w (inl a) (inl a′) (inl r) → α.η w a a′ r
+            ; w (inr b) (inr b′) (inr s) → β.η w b b′ s
+            }
+    ; square = λ _ → <>
+    }
+    where module α = NatTrans rt ; module β = NatTrans st
+
   projW : ∀ {A B C} (f : A → B × C) (R : WREL.Obj B) (S : WREL.Obj C) i →
           mapW f (&W.obj (R , S)) ⇒W Two-rec (mapW (f >> fst) R)
                                              (mapW (f >> snd) S)
@@ -324,15 +358,7 @@ module Quantitative.Semantics.Relational {r l}
   R⟦ S ⊸ T ⟧T = →W.obj (R⟦ S ⟧T , R⟦ T ⟧T)
   R⟦ S ⊗ T ⟧T = ×W.obj (R⟦ S ⟧T , R⟦ T ⟧T)
   R⟦ S & T ⟧T = &W.obj (R⟦ S ⟧T , R⟦ T ⟧T)
-  R⟦ S ⊕ T ⟧T = record
-    { obj = λ w → RS.obj w ⊎R RT.obj w
-    ; arr = →E-⊤ _ λ ww →
-      λ { (inl a) (inl a′) (inl s) → inl ((RS.arr $E ww) a a′ s)
-      ; (inr b) (inr b′) (inr t) → inr ((RT.arr $E ww) b b′ t)
-      }
-    ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
-    }
-    where module RS = Functor (R⟦ S ⟧T) ; module RT = Functor (R⟦ T ⟧T)
+  R⟦ S ⊕ T ⟧T = ⊕W.obj (R⟦ S ⟧T , R⟦ T ⟧T)
   R⟦ ! ρ S ⟧T = R⟦ S , ρ ⟧ρ
 
   R⟦ T , ρ ⟧ρ = act ρ R⟦ T ⟧T
@@ -510,12 +536,15 @@ module Quantitative.Semantics.Relational {r l}
       { η = λ w γ γ′ δδ → Zero-elim (⟦ et ⟧t γ)
       ; square = λ _ → <>
       }
-    fundamental (cse split er s0r s1r) = {!!}
+    fundamental {Γ = Γ} (cse {T = T} {et = et} {s0t} {s1t} split er s0r s1r) =
+      let ihe = fundamental er in
+      let ihs0 = fundamental s0r ; ihs1 = fundamental s1r in
+      RΔ-split-+ Γ split >>N ∧W.arr $E (ihe , WREL.id _ R⟦ Γ , {!!} ⟧Δ) >>N {!et!}
     fundamental (the sr) = fundamental sr
     fundamental {Γ = Γ} {Δ} (lam {S = S} {T} {st = st} sr) =
       let ih = fundamental sr in
       let ih′ = ×W.arr $E (snd (act-1 R⟦ S ⟧T) , WREL.id _ R⟦ Γ , Δ ⟧Δ) >>N ih in
-      {!? >>W′ ih′!}
+      {!mapW ⟦ lam st ⟧t R⟦ S ⊸ T ⟧T!}
     fundamental {Γ = Γ} (bang {ρ = ρ} split sr) =
       let ih = fundamental sr in
       RΔ-split-* Γ split >>N actF.arr ρ $E ih >>N act-mapW ρ _ _
@@ -539,7 +568,7 @@ module Quantitative.Semantics.Relational {r l}
       { η = λ w γ γ′ δδ → inr (NatTrans.η ih w γ γ′ δδ)
       ; square = λ _ → <>
       }
-    fundamental [ er ] = fundamental er
+    fundamental (emb er) = fundamental er
 
   {-
     R⟦lookup⟧ : ∀ {n} {Γ : TCtx n} {Δ : RCtx n} {π} w i (γ γ′ : ⟦ Γ ⟧Γ) → Δ Δ.≤ varRCtx i π →
