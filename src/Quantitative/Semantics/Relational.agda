@@ -283,10 +283,12 @@ module Quantitative.Semantics.Relational {r l}
     ; square = λ _ → <>
     }
 
-  curryW : ∀ {B C} (R : WREL.Obj B) (S : WREL.Obj C) (T : WREL.Obj (B → C)) →
-           ×W.obj (T , R) [ uncurry id ]⇒W S → T ⇒W →W.obj (R , S)
-  curryW R S T α = record
-    { η = λ x f g t  w y xyw a b r → η w (f , a) (g , b) (x , y , xyw , t , r)
+  curryW : ∀ {A B C} (R : WREL.Obj A) (S : WREL.Obj B) (T : WREL.Obj C)
+           (f : A → B → C) →
+           ×W.obj (R , S) [ uncurry f ]⇒W T → R [ f ]⇒W →W.obj (S , T)
+  curryW R S T f α = record
+    { η = λ x g g′ r  w y xyw a a′ s →
+          η w (g , a) (g′ , a′) (x , y , xyw , r , s)
     ; square = λ _ → <>
     }
     where open NatTrans α
@@ -324,6 +326,14 @@ module Quantitative.Semantics.Relational {r l}
     ; square = λ _ → <>
     }
     where open Functor (×W.obj (R , ×W.obj (S , T)))
+
+  ×W-swap : ∀ {A B} (R : WREL.Obj A) (S : WREL.Obj B) →
+            ×W.obj (R , S) [ swap ]⇒W ×W.obj (S , R)
+  ×W-swap R S = record
+    { η = λ { w (a , b) (a′ , b′) (x , y , xyw , r , s) →
+              y , x , comm $E xyw , s , r }
+    ; square = λ _ → <>
+    }
 
   caseW : ∀ {A B C} (R : WREL.Obj A) (S : WREL.Obj B) (T : WREL.Obj C)
           (f : A → C) (g : B → C) →
@@ -543,8 +553,10 @@ module Quantitative.Semantics.Relational {r l}
     fundamental (the sr) = fundamental sr
     fundamental {Γ = Γ} {Δ} (lam {S = S} {T} {st = st} sr) =
       let ih = fundamental sr in
-      let ih′ = ×W.arr $E (snd (act-1 R⟦ S ⟧T) , WREL.id _ R⟦ Γ , Δ ⟧Δ) >>N ih in
-      {!mapW ⟦ lam st ⟧t R⟦ S ⊸ T ⟧T!}
+      let ih′ = ×W-swap R⟦ Γ , Δ ⟧Δ R⟦ S ⟧T
+           >>W′ ×W.arr $E (snd (act-1 R⟦ S ⟧T) , WREL.id _ R⟦ Γ , Δ ⟧Δ)
+           >>N ih in
+      curryW R⟦ Γ , Δ ⟧Δ R⟦ S ⟧T R⟦ T ⟧T _ ih′
     fundamental {Γ = Γ} (bang {ρ = ρ} split sr) =
       let ih = fundamental sr in
       RΔ-split-* Γ split >>N actF.arr ρ $E ih >>N act-mapW ρ _ _
