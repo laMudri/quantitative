@@ -32,7 +32,7 @@ module Quantitative.Semantics.Relational {r l}
   open import Quantitative.Resources R posemiring renaming ([_] to emb)
   open import Quantitative.Resources.Context R posemiring
 
-  open import Lib.Equality using (_≡_; refl)
+  open import Lib.Equality using (_≡_; refl; subst2)
   open import Lib.Function
   open import Lib.Nat
   open import Lib.One
@@ -85,12 +85,26 @@ module Quantitative.Semantics.Relational {r l}
     }
     where open Functor R
 
-  mapW-unit : ∀ {A B R S} (f : A → B) → R ⇒W S → mapW f R ⇒W mapW f S
-  mapW-unit f rs = record
+  mapW-func : ∀ {A B R S} (f : A → B) → R ⇒W S → mapW f R ⇒W mapW f S
+  mapW-func f rs = record
     { η = λ w a b fr → η w (f a) (f b) fr
     ; square = λ _ → <>
     }
     where open NatTrans rs
+
+  mapW-subst : ∀ {A B} R {f g : A → B} → f ≡E g → mapW f R ⇒W mapW g R
+  mapW-subst R fg = record
+    { η = λ w a b r → subst2 (obj w) (fg (refl {a = a})) (fg (refl {a = b})) r
+    ; square = λ _ → <>
+    }
+    where open Functor R
+
+  mapW-id : ∀ {A} {R : WREL.Obj A} → mapW id R ⇒W R
+  mapW-id = idN _
+
+  mapW->> : ∀ {A B C R} (f : A → B) (g : B → C) →
+            mapW (f >> g) R ⇒W mapW f (mapW g R)
+  mapW->> f g = idN _
 
   _[_]⇒W_ : ∀ {A B} (R : WREL.Obj A) (f : A → B) (S : WREL.Obj B) → Set _
   R [ f ]⇒W S = R ⇒W mapW f S
@@ -102,11 +116,11 @@ module Quantitative.Semantics.Relational {r l}
 
   _>>W_ : ∀ {A B C} {R : WREL.Obj A} {S : WREL.Obj B} {T : WREL.Obj C}
           {f : A → B} {g : B → C} → R [ f ]⇒W S → S [ g ]⇒W T → R [ f >> g ]⇒W T
-  _>>W_ {f = f} {g} rs st = rs >>N mapW-unit f st
+  _>>W_ {f = f} {g} rs st = rs >>N mapW-func f st
 
   _>>W′_ : ∀ {A B} {R : WREL.Obj A} {S T : WREL.Obj B}
           {f : A → B} → R [ f ]⇒W S → S ⇒W T → R [ f ]⇒W T
-  rs >>W′ st = rs >>N mapW-unit _ st
+  rs >>W′ st = rs >>N mapW-func _ st
 
   1W : WREL.Obj One
   1W = record
@@ -335,6 +349,10 @@ module Quantitative.Semantics.Relational {r l}
     ; square = λ _ → <>
     }
 
+  ∧-⇒W-× : ∀ {A B C} (f : A → B) (g : A → C) (R : WREL.Obj B) (S : WREL.Obj C) →
+           ∧W.obj (mapW f R , mapW g S) [ < f , g > ]⇒W ×W.obj (R , S)
+  ∧-⇒W-× f g R S = idN (∧W.obj (mapW f R , mapW g S))
+
   caseW : ∀ {A B C} (R : WREL.Obj A) (S : WREL.Obj B) (T : WREL.Obj C)
           (f : A → C) (g : B → C) →
           R [ f ]⇒W T → S [ g ]⇒W T → ⊕W.obj (R , S) [ [ f , g ] ]⇒W T
@@ -352,6 +370,24 @@ module Quantitative.Semantics.Relational {r l}
                                              i
   projW f R S ttt = record { η = λ w a b → fst ; square = λ _ → <> }
   projW f R S fff = record { η = λ w a b → snd ; square = λ _ → <> }
+
+  ×-⊎-distrib-l : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
+                  (A ⊎ B) × C → (A × C) ⊎ (B × C)
+  ×-⊎-distrib-l (inl a , c) = inl (a , c)
+  ×-⊎-distrib-l (inr b , c) = inr (b , c)
+
+  ×-⊕W-distrib-l :
+    ∀ {A B C} (R : WREL.Obj A) (S : WREL.Obj B) (T : WREL.Obj C) →
+    ×W.obj (⊕W.obj (R , S) , T) [ ×-⊎-distrib-l ]⇒W
+      ⊕W.obj (×W.obj (R , T) , ×W.obj (S , T))
+  ×-⊕W-distrib-l R S T = record
+    { η = λ { w (a , b) (a′ , b′) (x , y , xyw , inl r , t) →
+              inl (x , y , xyw , r , t)
+            ; w (a , b) (a′ , b′) (x , y , xyw , inr s , t) →
+              inr (x , y , xyw , s , t)
+            }
+    ; square = λ _ → <>
+    }
 
 
   R⟦_⟧T : (T : Ty) → WREL.Obj ⟦ T ⟧T
@@ -546,10 +582,27 @@ module Quantitative.Semantics.Relational {r l}
       { η = λ w γ γ′ δδ → Zero-elim (⟦ et ⟧t γ)
       ; square = λ _ → <>
       }
-    fundamental {Γ = Γ} (cse {T = T} {et = et} {s0t} {s1t} split er s0r s1r) =
+    fundamental {Γ = Γ} (cse {Δe = Δe} {Δs} {S0 = S0} {S1} {T = T} {et = et} {s0t} {s1t} split er s0r s1r) =
       let ihe = fundamental er in
-      let ihs0 = fundamental s0r ; ihs1 = fundamental s1r in
-      RΔ-split-+ Γ split >>N ∧W.arr $E (ihe , WREL.id _ R⟦ Γ , {!!} ⟧Δ) >>N {!et!}
+      let ihs0 = ×W.arr $E (snd (act-1 R⟦ S0 ⟧T) , WREL.id _ R⟦ Γ , Δs ⟧Δ)
+             >>N fundamental s0r in
+      let ihs1 = ×W.arr $E (snd (act-1 R⟦ S1 ⟧T) , WREL.id _ R⟦ Γ , Δs ⟧Δ)
+             >>N fundamental s1r in
+      RΔ-split-+ Γ split >>N ∧W.arr $E (ihe , WREL.id _ R⟦ Γ , Δs ⟧Δ)
+        >>N ∧-⇒W-× ⟦ et ⟧t id (⊕W.obj (R⟦ S0 ⟧T , R⟦ S1 ⟧T)) R⟦ Γ , Δs ⟧Δ
+        >>N mapW-func < ⟦ et ⟧t , id >
+          (×-⊕W-distrib-l R⟦ S0 ⟧T R⟦ S1 ⟧T R⟦ Γ , Δs ⟧Δ
+           >>N mapW-func ×-⊎-distrib-l
+             (caseW (×W.obj (R⟦ S0 ⟧T , R⟦ Γ , Δs ⟧Δ))
+                            (×W.obj (R⟦ S1 ⟧T , R⟦ Γ , Δs ⟧Δ))
+                            R⟦ T ⟧T ⟦ s0t ⟧t ⟦ s1t ⟧t ihs0 ihs1))
+        >>N mapW-subst R⟦ T ⟧T lemma
+      where
+      lemma : < ⟦ et ⟧t , id > >> ×-⊎-distrib-l >> [ ⟦ s0t ⟧t , ⟦ s1t ⟧t ]
+                ≡E ⟦ cse et s0t s1t ⟧t
+      lemma {γ} refl with ⟦ et ⟧t γ
+      ... | inl e0 = refl
+      ... | inr e1 = refl
     fundamental (the sr) = fundamental sr
     fundamental {Γ = Γ} {Δ} (lam {S = S} {T} {st = st} sr) =
       let ih = fundamental sr in

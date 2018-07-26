@@ -193,6 +193,11 @@ module Lib.Setoid where
   ≡-→E setoidOver f = record { _$E_ = f ; _$E=_ = λ { ≡-refl → refl } }
     where open SetoidOver setoidOver
 
+  infix 4 _≡E_
+  _≡E_ : ∀ {a b} {A : Set a} {B : Set b} (f g : A → B) → Set _
+  _≡E_ {A = A} {B} f g =
+    let open Setoid (≡-Setoid A →S ≡-Setoid B) in ≡-→E _ f ≈ ≡-→E _ g
+
   -- Pairs
 
   ΣS : ∀ {a b l m} (A : Setoid a l) (B : SetoidI (Setoid.C A) b m) →
