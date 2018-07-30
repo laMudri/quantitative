@@ -413,19 +413,22 @@ module Quantitative.Semantics.Relational {r l}
   R⟦ nil , nil ⟧Δ = 1W
   R⟦ T :: Γ , ρ :: Δ ⟧Δ = ×W.obj (R⟦ T , ρ ⟧ρ , R⟦ Γ , Δ ⟧Δ)
 
-  module ActLaws (act-≤ : ∀ {A π ρ} → π R.≤ ρ → ∀ R → act {A} π R ⇒W act ρ R)
-                 (act-0 : ∀ {A} R → act {A} R.e0 R ⇒W ⊤W)
-                 (act-+ : ∀ {A} π ρ R →
-                          act {A} (π R.+ ρ) R ⇒W ∧W.obj (act π R , act ρ R))
-                 (act-1 : ∀ {A} R → act {A} R.e1 R ⇔W R)
-                 (act-* : ∀ {A} π ρ R → act {A} (π R.* ρ) R ⇔W act π (act ρ R))
-                 (act-1W : ∀ ρ → act ρ 1W ⇔W 1W)
-                 (act-×W : ∀ {A B} ρ R S → act ρ (×W.obj (R , S)) ⇔W
-                                           ×W.obj (act {A} ρ R , act {B} ρ S))
-                 (act-mapW : ∀ {A B} ρ (f : A → B) (R : WREL.Obj B) →
-                             NatTrans (actF.obj ρ (mapW f R))
-                                      (mapW f (actF.obj ρ R)))
-                 where
+  record IsAct (act : {A : Set} → R → WREL.Obj A → WREL.Obj A)
+               : Set (lsuc lzero ⊔ r ⊔ l) where
+    field
+      act-≤ : ∀ {A π ρ} → π R.≤ ρ → ∀ R → act {A} π R ⇒W act ρ R
+      act-0 : ∀ {A} R → act {A} R.e0 R ⇒W ⊤W
+      act-+ : ∀ {A} π ρ R → act {A} (π R.+ ρ) R ⇒W ∧W.obj (act π R , act ρ R)
+      act-1 : ∀ {A} R → act {A} R.e1 R ⇔W R
+      act-* : ∀ {A} π ρ R → act {A} (π R.* ρ) R ⇔W act π (act ρ R)
+      act-1W : ∀ ρ → act ρ 1W ⇔W 1W
+      act-×W : ∀ {A B} ρ R S → act ρ (×W.obj (R , S)) ⇔W
+                               ×W.obj (act {A} ρ R , act {B} ρ S)
+      act-mapW : ∀ {A B} ρ (f : A → B) (R : WREL.Obj B) →
+                 NatTrans (act ρ (mapW f R)) (mapW f (act ρ R))
+
+  module ActLaws (isAct : IsAct act) where
+    open IsAct isAct
 
     Rρ-weaken : ∀ T {π ρ} → ρ R.≤ π → R⟦ T , ρ ⟧ρ ⇒W R⟦ T , π ⟧ρ
     Rρ-weaken T le = act-≤ le R⟦ T ⟧T
