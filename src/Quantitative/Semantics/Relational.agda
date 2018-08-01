@@ -258,24 +258,18 @@ module Quantitative.Semantics.Relational {r l}
                ×W.obj {A} {B} (∧W.obj (R , S) , ∧W.obj (T , U)) ⇒W
                        ∧W.obj (×W.obj (R , T) , ×W.obj (S , U))
   ∧×∧-⇒W-×∧× R S T U = record
-    { η = λ w → λ { (a , b) (a′ , b′) (x , y , x+y=w
-                                      , (xx , xy , xx+xy=x , r , s)
-                                      , (yx , yy , yx+yy=y , t , u)) →
-      let x+yx , x+yx= , [x+yx]+yy=w = _↔E_.from PP $E (y , yx+yy=y , x+y=w) in
-      let xy+xx=x = comm $E xx+xy=x in
-      let xx+yx , xx+yx= , xy+[xx+yx]=x+yx = _↔E_.to PP $E (x , xy+xx=x , x+yx=) in
-
-      let xy+y , xy+y= , xx+[xy+y]=w = _↔E_.to PP $E (x , xx+xy=x , x+y=w) in
-      let yy+yx=y = comm $E yx+yy=y in
-      let xy+yy , xy+yy= , [xy+yy]+yx=xy+y = _↔E_.from PP $E (y , yy+yx=y , xy+y=) in
-
-      let [xx+yx]+xy=x+yx = comm $E xy+[xx+yx]=x+yx in
-      let yx+xx=xx+yx = comm $E xx+yx= in
-      let yx+yy , yx+yy= , x+[yx+yy]=w = _↔E_.to PP $E (x+yx , x+yx= , [x+yx]+yy=w) in
-
-      xx+yx , xy+yy , {!yx+yy=!}
-      , (xx , yx , xx+yx= , r , t)
-      , (xy , yy , xy+yy= , s , u) }
+    { η = λ x → λ { (a , b) (a′ , b′) (x1 , x2 , x1+x2=x
+                                      , (x11 , x12 , x11+x12=x1 , r , s)
+                                      , (x21 , x22 , x21+x22=x2 , t , u)) →
+      let x′ , x12+x2=x′ , x11+x′=x = _↔E_.to PP $E (x1 , x11+x12=x1 , x1+x2=x) in
+      let x22+x21=x2 = comm $E x21+x22=x2 in
+      let y2 , x12+x22=y2 , y2+x21=x′ = _↔E_.from PP $E (x2 , x22+x21=x2 , x12+x2=x′) in
+      let x21+y2=x′ = comm $E y2+x21=x′ in
+      let y1 , x11+x21=y1 , y1+y2=x = _↔E_.from PP $E (x′ , x21+y2=x′ , x11+x′=x) in
+      y1 , y2 , y1+y2=x
+      , (x11 , x21 , x11+x21=y1 , r , t)
+      , (x12 , x22 , x12+x22=y2 , s , u)
+      }
     ; square = λ _ → <>
     }
 
