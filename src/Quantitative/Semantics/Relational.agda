@@ -414,7 +414,7 @@ module Quantitative.Semantics.Relational {r l}
       act-0 : ∀ {A} R → act {A} R.e0 R ⇒W ⊤W
       act-+ : ∀ {A} π ρ R → act {A} (π R.+ ρ) R ⇒W ∧W.obj (act π R , act ρ R)
       act-1 : ∀ {A} R → act {A} R.e1 R ⇔W R
-      act-* : ∀ {A} π ρ R → act {A} (π R.* ρ) R ⇔W act π (act ρ R)
+      act-* : ∀ {A} π ρ R → act {A} (π R.* ρ) R ⇒W act π (act ρ R)
       act-1W : ∀ ρ → 1W ⇒W act ρ 1W
       act-×W : ∀ {A B} ρ R S → ×W.obj (act {A} ρ R , act {B} ρ S) ⇒W
                                act ρ (×W.obj (R , S))
@@ -469,7 +469,7 @@ module Quantitative.Semantics.Relational {r l}
                  R⟦ T , π ⟧ρ ⇒W act ρ R⟦ T , πx ⟧ρ
     Rρ-split-* T {ρ} {π} {πx} le =
       WREL._>>_ _ {R⟦ T , π ⟧ρ} {R⟦ T , ρ R.* πx ⟧ρ} {act ρ R⟦ T , πx ⟧ρ}
-                (Rρ-weaken T le) (fst (act-* ρ πx R⟦ T ⟧T))
+                (Rρ-weaken T le) (act-* ρ πx R⟦ T ⟧T)
 
     RΔ-split-* : ∀ {n} (Γ : TCtx n) {ρ Δ Δx} → Δ Δ.≤ ρ Δ.* Δx →
                  R⟦ Γ , Δ ⟧Δ ⇒W act ρ R⟦ Γ , Δx ⟧Δ
