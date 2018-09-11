@@ -11,6 +11,8 @@
 \usepackage{makecell}
 \usepackage{tikz-cd}
 
+\usetikzlibrary{positioning}
+
 \input{macros}
 
 \title{Context Constrained Computation}
@@ -27,7 +29,12 @@
     \begin{itemize}
     \item Constrain how variables are used
     \item Derive more free theorems about constrained programs
-    \item Generalise the ``how many'' of linear typing
+    \item Generalise the ``how many'' of linear typing \pause
+      \begin{itemize}
+      \item At what security level? -- information flow \pause
+      \item How far away? -- sensitivity analysis \pause
+      \item In which direction? -- monotonicity
+      \end{itemize}
     \end{itemize}
   \end{frame}
   \begin{frame}
@@ -36,43 +43,89 @@
 
     \begin{columns}[onlytextwidth,T]
       \begin{column}{0.5\textwidth}
-        \centering
-        Partially ordered semiring
-
-        \begin{table}[]
-          \begin{tabular}{c|ccc}
-            $+$      & $0$      & $1$      & $\omega$
-            \\ \hline
-            $0$      & $0$      & $1$      & $\omega$
+        \only<1>{
+          \centering
+          Partially ordered semiring
+          \begin{table}[]
+            \begin{tabular}{c|ccc}
+              $+$      & $0$      & $1$      & $\omega$
+              \\ \hline
+              $0$      & $0$      & $1$      & $\omega$
+              \\
+              $1$      & $1$      & $\omega$ & $\omega$
+              \\
+              $\omega$ & $\omega$ & $\omega$ & $\omega$
+            \end{tabular}
+          \end{table}
+          \begin{table}[]
+            \begin{tabular}{c|ccc}
+              $\cdot$  & $0$ & $1$      & $\omega$
+              \\ \hline
+              $0$      & $0$ & $0$      & $0$
+              \\
+              $1$      & $0$ & $1$      & $\omega$
+              \\
+              $\omega$ & $0$ & $\omega$ & $\omega$
+            \end{tabular}
+          \end{table}
+          \begin{tikzcd}[ampersand replacement=\&, tips=false, column sep=0.5em,
+                         row sep=1em]
+            0 \ar{dr} \&\& 1 \ar{dl}
             \\
-            $1$      & $1$      & $\omega$ & $\omega$
-            \\
-            $\omega$ & $\omega$ & $\omega$ & $\omega$
-          \end{tabular}
-        \end{table}
-        \begin{table}[]
-          \begin{tabular}{c|ccc}
-            $\cdot$  & $0$ & $1$      & $\omega$
-            \\ \hline
-            $0$      & $0$ & $0$      & $0$
-            \\
-            $1$      & $0$ & $1$      & $\omega$
-            \\
-            $\omega$ & $0$ & $\omega$ & $\omega$
-          \end{tabular}
-        \end{table}
-        \begin{tikzcd}[ampersand replacement=\&, tips=false, column sep=0.5em,
-                       row sep=1em]
-          0 \ar{dr} \&\& 1 \ar{dl}
-          \\
-          \& \omega \&
-        \end{tikzcd}
+            \& \omega \&
+          \end{tikzcd}
+        }
+        \only<2>{
+          \centering
+          Partially ordered semiring
+          \begin{align*}
+            \mathcal{T} &= \mathbb{R} \cup \{\infty\}
+          \end{align*}
+          \begin{align*}
+            {+} &= \min \\
+            {\cdot} &= +
+          \end{align*}
+          \begin{tikzpicture}[-, node distance=0.5em]
+            \node (0) {$0$};
+            \node[above=of 0] (1) {$1$};
+            \node[above=of 1] (2) {$2$};
+            \node[above=of 2] (dots) {$\vdots$};
+            \node[above=of dots] (inf) {$\infty$};
+            \path (0) edge (1)
+                  (1) edge (2)
+                  (2) edge (dots)
+                  (dots) edge (inf);
+          \end{tikzpicture}
+        }
       \end{column}
       \begin{column}{0.5\textwidth}
+        \minipage[c][0.65\textheight][s]{\columnwidth}
         \centering
         Symmetric promonoidal category
-
-        Bags of keys, under union
+        \vfill
+        \only<1>{
+          Bags of keys, under union
+          \vfill
+          \begin{tikzpicture}[->]
+            \node (*) {$*$};
+            \path (*) edge[loop above] (*)
+                  (*) edge[loop, in=60, out=120, distance=1.0cm] (*)
+                  (*) edge[loop, in=45, out=135, distance=2.0cm] node[above] {$\vdots$} (*);
+          \end{tikzpicture}
+        }
+        \only<2>{
+          \begin{align*}
+            \mathcal{T}
+          \end{align*}
+          \vfill
+          \begin{tikzpicture}[->]
+            \node (*) {$*$};
+            \path (*) edge[loop above] (*)
+                  (*) edge[loop, in=60, out=120, distance=1.0cm] (*)
+                  (*) edge[loop, in=45, out=135, distance=2.0cm] node[above] {$\vdots$} (*);
+          \end{tikzpicture}
+        }
+        \endminipage
       \end{column}
     \end{columns}
   \end{frame}
