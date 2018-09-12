@@ -4,7 +4,7 @@
 \newcommand{\base}[0]{\iota}
 
 \newcommand{\fun}[2]{#1 \multimap #2}
-\newcommand{\lam}[2]{\lambda #1. #2}
+\newcommand{\lam}[2]{\lambda #1.~#2}
 \newcommand{\app}[2]{#1~#2}
 
 \newcommand{\excl}[2]{\oc_{#1} #2}
@@ -44,3 +44,16 @@
 %\def\tobar{\mathrel{\mkern3mu  \vcenter{\hbox{$\scriptscriptstyle+$}}%
 %                    \mkern-12mu{\to}}}
 \newcommand\tobar{\mathrel{\ooalign{\hfil$\mapstochar\mkern5mu$\hfil\cr$\to$\cr}}}
+
+\pgfdeclarearrow{
+  name = o,
+  parameters = { \the\pgfarrowlength },
+  setup code = {
+    \pgfarrowssavethe\pgfarrowlength
+  },
+  drawing code = {
+    \pgfpathmoveto{0.5\pgfarrowlength}{0em}
+    \pgfpathcircle{0.5\pgfarrowlength}
+  },
+  defaults = { length = 0.5em }
+}
