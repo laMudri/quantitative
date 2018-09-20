@@ -3,9 +3,11 @@
 \fi
 
 \newcommand{\bind}[2]{\{#1\}#2}
-\newcommand{\ctx}[2]{{#1}^{\rescomment{#2}}}
+%\newcommand{\ctx}[2]{{#1}^{\rescomment{#2}}}
+\newcommand{\ctx}[2]{{#2}_{#1}}
 \newcommand{\ctxvar}[3]{#1 \stackrel{\rescomment{#3}}: #2}
-\newcommand{\rescomment}[1]{{\color{red}#1}}
+%\newcommand{\rescomment}[1]{{\color{red}#1}}
+\newcommand{\rescomment}[1]{{#1}}
 
 
 \newcommand{\ann}[2]{#1 : #2}
@@ -22,7 +24,7 @@
 \newcommand{\bm}[4]{\if\newelims0%
 \operatorname{bm}_{#1}(#2, \bind{#3}{#4})%
 \else%
-\operatorname{let}~\bang{#3} = #2~\operatorname{in}~#4 : #1%
+\mathrm{let}~\bang{#3} = #2~\mathrm{in}~#4 : #1%
 \fi}
 
 \newcommand{\tensorOne}[0]{1}
@@ -30,7 +32,7 @@
 \newcommand{\del}[3]{\if\newelims0%
 \operatorname{del}_{#1}(#2, #3)%
 \else%
-\operatorname{let}~\unit = #2~\operatorname{in}~#3 : #1%
+\mathrm{let}~\unit = #2~\mathrm{in}~#3 : #1%
 \fi}
 
 \newcommand{\tensor}[2]{#1 \otimes #2}
@@ -38,7 +40,7 @@
 \newcommand{\prm}[5]{\if\newelims0%
 \operatorname{pm}_{#1}(#2, \bind{#3, #4}{#5})%
 \else%
-\operatorname{let}~\ten{#3}{#4} = #2~\operatorname{in}~#5 : #1%
+\mathrm{let}~\ten{#3}{#4} = #2~\mathrm{in}~#5 : #1%
 \fi}
 
 \newcommand{\withTOne}[0]{\top}
@@ -56,8 +58,12 @@
 \newcommand{\cse}[6]{\if\newelims0%
 \operatorname{case}_{#1}(#2, \bind{#3}{#4}, \bind{#5}{#6})%
 \else%
-\operatorname{case}~#2~\operatorname{of}~\inj{0}{#3} \mapsto #4; \inj{1}{#5} \mapsto #6%
+\mathrm{case}~#2~\mathrm{of}~\inj{0}{#3} \mapsto #4; \inj{1}{#5} \mapsto #6%
 \fi}
+
+
+\newcommand{\typed}[1]{\mathit{#1t}}
+\newcommand{\resourced}[1]{\mathit{#1r}}
 
 
 \newcommand{\sem}[1]{\llbracket #1 \rrbracket}
@@ -65,16 +71,3 @@
 %\def\tobar{\mathrel{\mkern3mu  \vcenter{\hbox{$\scriptscriptstyle+$}}%
 %                    \mkern-12mu{\to}}}
 \newcommand\tobar{\mathrel{\ooalign{\hfil$\mapstochar\mkern5mu$\hfil\cr$\to$\cr}}}
-
-\pgfdeclarearrow{
-  name = o,
-  parameters = { \the\pgfarrowlength },
-  setup code = {
-    \pgfarrowssavethe\pgfarrowlength
-  },
-  drawing code = {
-    \pgfpathmoveto{0.5\pgfarrowlength}{0em}
-    \pgfpathcircle{0.5\pgfarrowlength}
-  },
-  defaults = { length = 0.5em }
-}

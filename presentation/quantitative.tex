@@ -12,6 +12,8 @@
 \usepackage{tikz-cd}
 
 \usetikzlibrary{positioning}
+%\usetikzlibrary{decorations.markings}
+\usetikzlibrary{arrows}
 
 \def\newelims{1}
 \input{macros}
@@ -39,16 +41,85 @@
     \end{itemize}
   \end{frame}
   \begin{frame}
+    \frametitle{Metasyntax}
+    \begin{itemize}
+    \item<1-> Scopes $m$, $n$ (natural numbers), typing contexts $\Gamma$,
+      resourcing contexts $\Delta$
+    \item<2-> Bidirectional two-level typing
+      \begin{itemize}
+      \item<2-> Well scoped synthesising terms $e$ and checkable terms $s$
+      \item<2-> $t$ ranges over $e$ and $s$.
+      \item<3-> Synthesis: $\typed e : (\Gamma \vdash e \in S)$
+      \item<3-> Checking: $\typed s : (\Gamma \vdash S \ni s)$
+      \item<4-> Either: $\typed t : (\Gamma \vdash t : S)$
+      \item<5-> Resourcing: $\resourced t : (\Delta \vdash \typed t)$
+      \item<6-> Abbreviations $\ctx{\Gamma}{\Delta} \vdash e \in S$,
+        $\ctx{\Gamma}{\Delta} \vdash S \ni s$, etc.
+      \end{itemize}
+    \item<7-> Simultaneous substitution: $t[\sigma]$, $\typed t[\typed \sigma]$,
+      $\resourced t[\resourced \sigma]$
+    \item<8-> Semiring: $(R, 0, +, 1, \cdot)$, general elements $\rho, \pi$
+    \end{itemize}
+  \end{frame}
+  \begin{frame}
+    \frametitle{Substitution}
+    \begin{itemize}
+      % \item<1-> A well scoped substitution $\sigma$ maps variables $x$ to
+      %   synthesising terms $e_x$.
+    \item<1-> Well scoped substitution
+      \begin{flalign*}
+        m \Rightarrow n :\equiv \prod_{x \in n}{\mathrm{Tm}~m~\mathrm{syn}}
+      \end{flalign*}
+      % \item $\typed \sigma : \Gamma_m \Rightarrow_\sigma \Gamma_n$
+    \item<2-> Typed substitution refines scoped substitution
+      \begin{flalign*}
+        \Gamma_m \Rightarrow_\sigma^t \Gamma_n :\equiv
+        \prod_{(x : T) \in \Gamma_n}{\Gamma_m \vdash \sigma~x \in T}
+      \end{flalign*}
+    \item<3-> Resourced substitution refines typed substitution
+      \begin{flalign*}
+        \Delta_m \Rightarrow_{\typed \sigma}^r \Delta_n :\equiv
+        \sum_{\Delta'} & \left(\mathop{+}_{x^\rho \in \Delta_n}\rho \cdot \Delta'_x =
+          \Delta_m\right) \\
+        &\times \left(\prod_{x^\rho \in \Delta_n}{\Delta'_x \vdash \typed
+            \sigma~x}\right)
+      \end{flalign*}
+    \end{itemize}
+  \end{frame}
+  \begin{frame}
+    \frametitle{Resourced substitution example}
+    \begin{itemize}
+    \item
+      \begin{flalign*}
+        \Delta_m \Rightarrow_{\typed \sigma}^r \Delta_n :\equiv
+        \sum_{\Delta'} & \left(\mathop{+}_{x^\rho \in \Delta_n}\rho \cdot \Delta'_x =
+          \Delta_m\right) \\
+        &\times \left(\prod_{x^\rho \in \Delta_n}{\Delta'_x \vdash \typed
+            \sigma~x}\right)
+      \end{flalign*}
+    \item Variable rule
+      \inferrule{\ctx{\Gamma}{\Delta} \leq \underline 0, \ctxvar{x}{S}{1}, \underline 0}
+                {\ctx{\Gamma}{\Delta} \vdash x \in S}
+    \item<2->
+      $\mathrm{id}_\Delta :\equiv (\Delta', \mathit{prf}, \mathrm{var}) \quad
+      \textrm{where}~\Delta'_x :\equiv \underline 0, x^1, \underline 0$
+    \item<3-> $\mathop{+}_{x^\rho \in \Delta_n}\rho \cdot \Delta'_x =
+      \mathop{+}_{x^\rho \in \Delta_n}\rho \cdot (\underline 0, x^1,
+      \underline 0) = \mathop{+}_{x^\rho \in \Delta_n}\underline 0, x^\rho,
+      \underline 0 = \Delta_n$
+    \end{itemize}
+  \end{frame}
+  \begin{frame}
     \frametitle{Function}
     \begin{itemize}
-      \item Introduction:
-        \inferrule{\ctx{\Gamma}{\Delta}, \ctxvar{x}{S}{1} \vdash T \ni \bind{x}{s}}
-                  {\ctx{\Gamma}{\Delta} \vdash \lam{x}{s} \ni \fun{S}{T}}
-      \item Elimination:
-        \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \fun{S}{T}
-                   \\ \ctx{\Gamma}{\Delta_s} \vdash S \ni s
-                   \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
-                  {\ctx{\Gamma}{\Delta} \vdash \app{e}{s} \in T}
+    \item Introduction:
+      \inferrule{\ctx{\Gamma}{\Delta}, \ctxvar{x}{S}{1} \vdash T \ni \bind{x}{s}}
+                {\ctx{\Gamma}{\Delta} \vdash \lam{x}{s} \ni \fun{S}{T}}
+    \item Elimination:
+      \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \fun{S}{T}
+                 \\ \ctx{\Gamma}{\Delta_s} \vdash S \ni s
+                 \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
+                {\ctx{\Gamma}{\Delta} \vdash \app{e}{s} \in T}
     \end{itemize}
   \end{frame}
   \begin{frame}
@@ -65,9 +136,9 @@
         &
         \makecell{Closed symmetric \\ monoidal product}
         \\
-        \begin{tikzcd}[-o, ampersand replacement=\&, column sep=2em, row sep=3em]
-          \& \ar[swap]{dl}{f} C \ar[dashrightarrow,swap,near end]{d}{\langle f,g \rangle} \ar{dr}{g} \& \\
-          A \& \ar{l}{\pi_0} \withT{A}{B} \ar[swap]{r}{\pi_1} \& B
+        \begin{tikzcd}[ampersand replacement=\&, column sep=2em, row sep=3em]
+          \& \ar[-o,swap]{dl}{f} C \ar[-o,dashed,swap,near end]{d}{\langle f,g \rangle} \ar[-o]{dr}{g} \& \\
+          A \& \ar[-o]{l}{\pi_0} \withT{A}{B} \ar[-o,swap]{r}{\pi_1} \& B
         \end{tikzcd}
         &
         $\begin{aligned}
@@ -88,69 +159,70 @@
   \begin{frame}
     \frametitle{With product}
     \begin{itemize}
-      \item Introduction:
-        \inferrule{\ctx{\Gamma}{\Delta} \vdash S_0 \ni s_0
-                   \\ \ctx{\Gamma}{\Delta} \vdash S_1 \ni s_1}
-                  {\ctx{\Gamma}{\Delta} \vdash \withT{S_0}{S_1} \ni \wth{s_0}{s_1}}
-      \item Elimination:
-        \inferrule{\ctx{\Gamma}{\Delta} \vdash e \in \withT{S_0}{S_1}
-                   \\ i \in \{0,1\}}
-                  {\ctx{\Gamma}{\Delta} \vdash \proj{i}{e} \in S_i}
-      \item Defined via elimination
+    \item Introduction:
+      \inferrule{\ctx{\Gamma}{\Delta} \vdash S_0 \ni s_0
+                 \\ \ctx{\Gamma}{\Delta} \vdash S_1 \ni s_1}
+                {\ctx{\Gamma}{\Delta} \vdash \withT{S_0}{S_1} \ni \wth{s_0}{s_1}}
+    \item Elimination:
+      \inferrule{\ctx{\Gamma}{\Delta} \vdash e \in \withT{S_0}{S_1}
+                 \\ i \in \{0,1\}}
+                {\ctx{\Gamma}{\Delta} \vdash \proj{i}{e} \in S_i}
+    \item Defined via elimination
     \end{itemize}
   \end{frame}
   \begin{frame}
     \frametitle{Tensor product}
     \begin{itemize}
-      \item Introduction:
-        \inferrule{\ctx{\Gamma}{\Delta_0} \vdash S_0 \ni s_0
-                   \\ \ctx{\Gamma}{\Delta_1} \vdash S_1 \ni s_1
-                   \\\\ \rescomment{\Delta \leq \Delta_0 + \Delta_1}}
-                  {\ctx{\Gamma}{\Delta} \vdash \tensor{S_0}{S_1} \ni \ten{s_0}{s_1}}
-      \item Elimination:
-        \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \tensor{S_0}{S_1}
-                   \\\\ \ctx{\Gamma}{\Delta_s},
-                        \ctxvar{x}{S_0}{1}, \ctxvar{y}{S_1}{1} \vdash \bind{x,y}{s} \in T
-                   \\\\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
-                  {\ctx{\Gamma}{\Delta} \vdash \prm{T}{e}{x}{y}{s} \in T}
-      \item Defined via introduction
+    \item Introduction:
+      \inferrule{\ctx{\Gamma}{\Delta_0} \vdash S_0 \ni s_0
+                 \\ \ctx{\Gamma}{\Delta_1} \vdash S_1 \ni s_1
+                 \\\\ \rescomment{\Delta \leq \Delta_0 + \Delta_1}}
+                {\ctx{\Gamma}{\Delta} \vdash \tensor{S_0}{S_1} \ni \ten{s_0}{s_1}}
+    \item Elimination:
+      \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \tensor{S_0}{S_1}
+                 \\\\ \ctx{\Gamma}{\Delta_s},
+                      \ctxvar{x}{S_0}{1}, \ctxvar{y}{S_1}{1} \vdash \bind{x,y}{s} \in T
+                 \\\\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
+                {\ctx{\Gamma}{\Delta} \vdash \prm{T}{e}{x}{y}{s} \in T}
+    \item Defined via introduction
     \end{itemize}
   \end{frame}
   \begin{frame}
     \frametitle{Sum}
     \begin{itemize}
-      \item Introduction:
-        \inferrule{\ctx{\Gamma}{\Delta} \vdash S_i \ni s_i \\ i \in \{0,1\}}
-                  {\ctx{\Gamma}{\Delta} \vdash \sumT{S_0}{S_1} \ni \bang{s}}
-      \item Elimination:
-        \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \sumT{S_0}{S_1}
-                   \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S_0}{1}
-                      \vdash T \ni \bind{x}{s_0}
-                   \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{y}{S_1}{1}
-                      \vdash T \ni \bind{y}{s_1}
-                   \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
-                  {\ctx{\Gamma}{\Delta} \vdash \cse{T}{e}{x}{s_0}{y}{s_1} \in T}
+    \item Introduction:
+      \inferrule{\ctx{\Gamma}{\Delta} \vdash S_i \ni s_i \\ i \in \{0,1\}}
+                {\ctx{\Gamma}{\Delta} \vdash \sumT{S_0}{S_1} \ni \bang{s}}
+    \item Elimination:
+      \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \sumT{S_0}{S_1}
+                 \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S_0}{1}
+                    \vdash T \ni \bind{x}{s_0}
+                 \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{y}{S_1}{1}
+                    \vdash T \ni \bind{y}{s_1}
+                 \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
+                {\ctx{\Gamma}{\Delta} \vdash \cse{T}{e}{x}{s_0}{y}{s_1} \in T}
+    \item Coproduct
     \end{itemize}
   \end{frame}
   \begin{frame}
     \frametitle{Bang}
     \begin{itemize}
-      \item Introduction:
-        \inferrule{\ctx{\Gamma}{\Delta_s} \vdash S \ni s
-                   \\ \rescomment{\Delta \leq \rho \cdot \Delta_s}}
-                  {\ctx{\Gamma}{\Delta} \vdash \excl{\rho}{S} \ni \bang{s}}
-      \item Elimination:
-        \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \excl{\rho}{S}
-                   \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S}{\rho}
-                      \vdash T \ni \bind{x}{s}
-                   \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
-                  {\ctx{\Gamma}{\Delta} \vdash \bm{T}{e}{x}{s} \in T}
-      \item Graded comonad:
-        \begin{mathpar}
-          \excl{1}{A} \to A
-          \\
-          \excl{\pi \cdot \rho}{A} \to \excl{\pi}{\excl{\rho}{A}}
-        \end{mathpar}
+    \item Introduction:
+      \inferrule{\ctx{\Gamma}{\Delta_s} \vdash S \ni s
+                 \\ \rescomment{\Delta \leq \rho \cdot \Delta_s}}
+                {\ctx{\Gamma}{\Delta} \vdash \excl{\rho}{S} \ni \bang{s}}
+    \item Elimination:
+      \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \excl{\rho}{S}
+                 \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S}{\rho}
+                    \vdash T \ni \bind{x}{s}
+                 \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
+                {\ctx{\Gamma}{\Delta} \vdash \bm{T}{e}{x}{s} \in T}
+    \item Graded comonad:
+      \begin{mathpar}
+        \excl{1}{A} \to A
+        \\
+        \excl{\pi \cdot \rho}{A} \to \excl{\pi}{\excl{\rho}{A}}
+      \end{mathpar}
     \end{itemize}
   \end{frame}
   \begin{frame}
@@ -259,21 +331,41 @@
         }
         \only<2>{
           \begin{align*}
-            \mathcal{T}
+            \mathcal{T}_\leq
           \end{align*}
-          \vfill
-          \begin{tikzpicture}[->]
-            \node (*) {$*$};
-            \path (*) edge[loop above] (*)
-                  (*) edge[loop, in=60, out=120, distance=1.0cm] (*)
-                  (*) edge[loop, in=45, out=135, distance=2.0cm] node[above] {$\vdots$} (*);
-          \end{tikzpicture}
         }
         \only<3>{
           Trivial
         }
+
+        Base type
+        \vfill
+        \only<1>{
+          \begin{align*}
+            & \mathrm{KEY} \\
+            & \llbracket \mathrm{KEY} \rrbracket := \mathbb N \\
+            & \llbracket \mathrm{KEY} \rrbracket^R~ks~(k, l) := \{k\} = \{l\} = ks
+          \end{align*}
+        }
+        \only<2>{
+          \begin{align*}
+            & R \\
+            & \llbracket R \rrbracket := \mathbb R \\
+            & \llbracket R \rrbracket^R~k~(x, y) := | x - y | \leq k
+          \end{align*}
+        }
+        \only<3>{
+          \begin{align*}
+            & N \\
+            & \llbracket N \rrbracket := \mathbb N \\
+            & \llbracket N \rrbracket^R~\_~(m, n) := m \leq n
+          \end{align*}
+        }
         \endminipage
       \end{column}
     \end{columns}
+  \end{frame}
+  \begin{frame}
+    \frametitle{Relational semantics}
   \end{frame}
 \end{document}
