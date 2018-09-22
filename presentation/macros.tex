@@ -4,7 +4,7 @@
 
 \newcommand{\bind}[2]{\{#1\}#2}
 %\newcommand{\ctx}[2]{{#1}^{\rescomment{#2}}}
-\newcommand{\ctx}[2]{{#2}_{#1}}
+\newcommand{\ctx}[2]{{#2}^{#1}}
 \newcommand{\ctxvar}[3]{#1 \stackrel{\rescomment{#3}}: #2}
 %\newcommand{\rescomment}[1]{{\color{red}#1}}
 \newcommand{\rescomment}[1]{{#1}}
@@ -20,7 +20,7 @@
 \newcommand{\app}[2]{#1~#2}
 
 \newcommand{\excl}[2]{\oc_{#1} #2}
-\newcommand{\bang}[1]{\operatorname{bang}~#1}
+\newcommand{\bang}[1]{\operatorname{bang} #1}
 \newcommand{\bm}[4]{\if\newelims0%
 \operatorname{bm}_{#1}(#2, \bind{#3}{#4})%
 \else%
@@ -48,13 +48,13 @@
 
 \newcommand{\withT}[2]{#1 \with #2}
 \newcommand{\wth}[2]{(#1, #2)_{\with}}
-\newcommand{\proj}[2]{\operatorname{proj}_{#1}(#2)}
+\newcommand{\proj}[2]{\operatorname{proj}_{#1} #2}
 
 \newcommand{\sumTZero}[0]{0}
 \newcommand{\exf}[2]{\operatorname{ex-falso}_{#1}(#2)}
 
 \newcommand{\sumT}[2]{#1 \oplus #2}
-\newcommand{\inj}[2]{\operatorname{inj}_{#1}(#2)}
+\newcommand{\inj}[2]{\operatorname{inj}_{#1} #2}
 \newcommand{\cse}[6]{\if\newelims0%
 \operatorname{case}_{#1}(#2, \bind{#3}{#4}, \bind{#5}{#6})%
 \else%
