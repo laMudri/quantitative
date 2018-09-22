@@ -15,38 +15,39 @@ module Quantitative.Semantics.Relational {r l}
          (actF : ∀ {A} → R → EndoFunctor (WREL A))
          where
 
-  module Wᵒᵖ = Category (OP W)
-  module J = Functor J ; module P = Functor P
-  module BaseR = Functor BaseR
-  open IsSymmetricPromonoidal isSymmetricPromonoidal
+  private
+    module Wᵒᵖ = Category (OP W)
+    module J = Functor J ; module P = Functor P
+    module BaseR = Functor BaseR
+    open IsSymmetricPromonoidal isSymmetricPromonoidal
 
-  module actF {A} ρ = Functor (actF {A} ρ)
-  act : {A : Set} → R → WREL.Obj A → WREL.Obj A
-  act = actF.obj
-  module act {A} ρ S = Functor (act {A} ρ S)
+    module actF {A} ρ = Functor (actF {A} ρ)
+    act : {A : Set} → R → WREL.Obj A → WREL.Obj A
+    act = actF.obj
+    module act {A} ρ S = Functor (act {A} ρ S)
 
-  open import Quantitative.Types.Formers R
-  open import Quantitative.Syntax Ty renaming ([_] to emb)
-  open import Quantitative.Types R renaming ([_] to emb)
-  open import Quantitative.Semantics.Sets R Base
-  open import Quantitative.Resources R posemiring renaming ([_] to emb)
-  open import Quantitative.Resources.Context R posemiring
+    open import Quantitative.Types.Formers R
+    open import Quantitative.Syntax Ty renaming ([_] to emb)
+    open import Quantitative.Types R renaming ([_] to emb)
+    open import Quantitative.Semantics.Sets R Base
+    open import Quantitative.Resources R posemiring renaming ([_] to emb)
+    open import Quantitative.Resources.Context R posemiring
 
-  open import Lib.Equality using (_≡_; refl; subst2)
-  open import Lib.Function
-  open import Lib.Nat
-  open import Lib.One
-  open import Lib.Product
-  open import Lib.Sum
-  open import Lib.Thinning
-  open import Lib.Two
-  open import Lib.Vec
-  open import Lib.VZip
-  open import Lib.Zero
+    open import Lib.Equality using (_≡_; refl; subst2)
+    open import Lib.Function
+    open import Lib.Nat
+    open import Lib.One
+    open import Lib.Product
+    open import Lib.Sum
+    open import Lib.Thinning
+    open import Lib.Two
+    open import Lib.Vec
+    open import Lib.VZip
+    open import Lib.Zero
 
-  REL′ : Set → Category _ _ _
-  REL′ A = REL (≡-Setoid A) lzero
-  module REL (A : Set) = Category (REL′ A)
+    REL′ : Set → Category _ _ _
+    REL′ A = REL (≡-Setoid A) lzero
+    module REL (A : Set) = Category (REL′ A)
 
   liftW0 : ∀ {A} → REL.Obj A → WREL.Obj A
   liftW0 R = record { obj = λ _ → R

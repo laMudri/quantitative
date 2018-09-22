@@ -1,5 +1,6 @@
 module Quantitative.Models.RelationTransformer.Action where
 
+  open import Lib.Category
   open import Lib.Equality
   open import Lib.Function
   open import Lib.Level
@@ -7,6 +8,7 @@ module Quantitative.Models.RelationTransformer.Action where
   open import Lib.Product
   open import Lib.Relation.Propositional
   open import Lib.Structure using (DecToppedMeetSemilatticeSemiring)
+  open import Lib.Setoid
   open import Lib.Sum
 
   open import Quantitative.Models.RelationTransformer hiding (_≤_)
@@ -52,3 +54,58 @@ module Quantitative.Models.RelationTransformer.Action where
   act-+ con con R a b = < id , id > , fst
   act-+ con inv R a b = < snd , id > , < fst o snd , fst >
   act-+ inv y R a b = < id , act-≤ (inv≤ y) R a b > , fst
+
+  open import Quantitative.Semantics.Relational ONE {!!} {!!}
+    (record { obj = λ _ → OneS
+            ; arr = record { _$E_ = λ _ → →E-⊤ _ λ _ → <> ; _$E=_ = λ _ _ → <> }
+            ; isFunctor = record { arr-id = λ _ _ → <> ; arr->> = λ _ → <> }
+            })
+    (record { obj = λ _ → OneS
+            ; arr = record { _$E_ = λ _ → →E-⊤ _ λ _ → <> ; _$E=_ = λ _ _ → <> }
+            ; isFunctor = record { arr-id = λ _ _ → <> ; arr->> = λ _ → <> }
+            })
+    (record { isPromonoidal = record
+              { JP = record
+                { to = →E-⊤ _ λ _ → <>
+                ; from = record { _$E_ = λ _ → <> , <> , <>
+                                ; _$E=_ = λ _ → refl , refl , <> , <>
+                                }
+                ; to-from = λ _ → refl , refl , <> , <>
+                ; from-to = λ _ → <>
+                }
+              ; PJ = record
+                { to = →E-⊤ _ λ _ → <>
+                ; from = record { _$E_ = λ _ → <> , <> , <>
+                                ; _$E=_ = λ _ → refl , refl , <> , <>
+                                }
+                ; to-from = λ _ → refl , refl , <> , <>
+                ; from-to = λ _ → <>
+                }
+              ; PP = record
+                { to = record { _$E_ = λ _ → <> , <> , <>
+                              ; _$E=_ = λ _ → refl , refl , <> , <>
+                              }
+                ; from = record { _$E_ = λ _ → <> , <> , <>
+                                ; _$E=_ = λ _ → refl , refl , <> , <>
+                                }
+                ; to-from = λ _ → refl , refl , <> , <>
+                ; from-to = λ _ → refl , refl , <> , <>
+                }
+              }
+            ; comm = →E-⊤ _ λ _ → <>
+            })
+    RelAct posemiring (λ x → record
+      { obj = λ R → record
+        { obj = λ u → act x (Functor.obj R u)
+        ; arr = record { _$E_ = λ _ _ _ S → S ; _$E=_ = λ _ → <> }
+        ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
+        }
+      ; arr = record
+        { _$E_ = λ α → record
+          { η = λ X x₁ y x₂ → {!NatTrans.η α X x₁ y!}
+          ; square = {!!}
+          }
+        ; _$E=_ = {!!}
+        }
+      ; isFunctor = record { arr-id = {!!} ; arr->> = {!!} }
+      })
