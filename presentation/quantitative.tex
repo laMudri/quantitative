@@ -65,8 +65,12 @@
     \frametitle{Metasyntax}
     \begin{itemize}
     \item Partially ordered semiring: $(R, \leq, 0, +, 1, \cdot)$, general elements $\rho, \pi$ \pause
-    \item Scopes $m$, $n$ (natural numbers), typing contexts $\Gamma$,
-      resourcing contexts $\Delta$ \pause
+    \item Contexts
+      \begin{itemize}
+      \item Scopes $m$, $n$ (natural numbers)
+      \item typing contexts $\Gamma = x : S, \ldots, y : T$
+      \item resourcing contexts $\Delta = x^\pi, \ldots, y^\rho$ \pause
+      \end{itemize}
     \item Bidirectional two-level typing
       \begin{itemize}
       \item Well scoped synthesising terms $e$ and checkable terms $s$
@@ -78,8 +82,8 @@
       \item Abbreviations $\ctx{\Gamma}{\Delta} \vdash e \in S$,
         $\ctx{\Gamma}{\Delta} \vdash S \ni s$, etc. \pause
       \end{itemize}
-    \item Simultaneous substitution: $t[\sigma]$, $\typed t[\typed \sigma]$,
-      $\resourced t[\resourced \sigma]$
+    %\item Simultaneous substitution: $t[\sigma]$, $\typed t[\typed \sigma]$,
+    %  $\resourced t[\resourced \sigma]$
     \end{itemize}
   \end{frame}
   %\begin{frame}
@@ -147,11 +151,13 @@
     \frametitle{Tensor product}
     \begin{itemize}
     \item Introduction:
+
       \inferrule{\ctx{\Gamma}{\Delta_0} \vdash S_0 \ni s_0
                  \\ \ctx{\Gamma}{\Delta_1} \vdash S_1 \ni s_1
                  \\\\ \rescomment{\Delta \leq \Delta_0 + \Delta_1}}
                 {\ctx{\Gamma}{\Delta} \vdash \tensor{S_0}{S_1} \ni \ten{s_0}{s_1}}
     \item Elimination:
+
       \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \tensor{S_0}{S_1}
                  \\\\ \ctx{\Gamma}{\Delta_s},
                       \ctxvar{x}{S_0}{1}, \ctxvar{y}{S_1}{1} \vdash \bind{x,y}{s} \in T
@@ -203,20 +209,21 @@
     \begin{itemize}
     \item<1-> Well scoped substitution
       \begin{flalign*}
-        m \Rightarrow n :\equiv \prod_{x \in n}{\mathrm{Tm}~m~\mathrm{syn}}
+        m \Rightarrow n :\equiv (x \in n) \to \mathrm{Tm}~m~\mathrm{syn}
       \end{flalign*}
     \item<2-> Typed substitution refines scoped substitution
+      ($\sigma : m \Rightarrow n$)
       \begin{flalign*}
         \Gamma_m \Rightarrow_\sigma^t \Gamma_n :\equiv
-        \prod_{(x : T) \in \Gamma_n}{\Gamma_m \vdash \sigma~x \in T}
+        \left((x : T) \in \Gamma_n\right) \to \Gamma_m \vdash \sigma~x \in T
       \end{flalign*}
     \item<3-> Resourced substitution refines typed substitution
+      ($\sigma t : \Gamma_m \Rightarrow_\sigma^t \Gamma_n$)
       \begin{flalign*}
-        \Delta_m \Rightarrow_{\typed \sigma}^r \Delta_n :\equiv
-        \sum_{\Delta'} & \left(\mathop{+}_{x^\rho \in \Delta_n}\rho \cdot \Delta'_x =
-          \Delta_m\right) \\
-        &\times \left(\prod_{x^\rho \in \Delta_n}{\Delta'_x \vdash \typed
-            \sigma~x}\right)
+        \Delta_m \Rightarrow_{\typed \sigma}^r \Delta_n :\equiv {}
+        &(\Delta' : n \to \mathop{RCtx} m) \\
+        &\times \left(\Delta_m \leq \sum_{x^\rho \in \Delta_n}\rho \cdot \Delta'_x\right) \\
+        &\times \left((x^\rho \in \Delta_n) \to \Delta'_x \vdash \typed \sigma~x\right)
       \end{flalign*}
     \end{itemize}
   \end{frame}
@@ -225,11 +232,10 @@
     \begin{itemize}
     \item
       \begin{flalign*}
-        \Delta_m \Rightarrow_{\typed \sigma}^r \Delta_n :\equiv
-        \sum_{\Delta'} & \left(\mathop{+}_{x^\rho \in \Delta_n}\rho \cdot \Delta'_x =
-          \Delta_m\right) \\
-        &\times \left(\prod_{x^\rho \in \Delta_n}{\Delta'_x \vdash \typed
-            \sigma~x}\right)
+        \Delta_m \Rightarrow_{\typed \sigma}^r \Delta_n :\equiv {}
+        &(\Delta' : n \to \mathop{RCtx} m) \\
+        &\times \left(\Delta_m \leq \sum_{x^\rho \in \Delta_n}\rho \cdot \Delta'_x\right) \\
+        &\times \left((x^\rho \in \Delta_n) \to \Delta'_x \vdash \typed \sigma~x\right)
       \end{flalign*}
     \item Variable rule
       \inferrule{\ctx{\Gamma}{\Delta} \leq \underline 0, \ctxvar{x}{S}{1}, \underline 0}
