@@ -140,10 +140,12 @@
       \inferrule{\ctx{\Gamma}{\Delta} \vdash S_0 \ni s_0
                  \\ \ctx{\Gamma}{\Delta} \vdash S_1 \ni s_1}
                 {\ctx{\Gamma}{\Delta} \vdash \withT{S_0}{S_1} \ni \wth{s_0}{s_1}}
+      \bigskip
     \item Elimination:
       \inferrule{\ctx{\Gamma}{\Delta} \vdash e \in \withT{S_0}{S_1}
                  \\ i \in \{0,1\}}
                 {\ctx{\Gamma}{\Delta} \vdash \proj{i}{e} \in S_i}
+      \bigskip
     \item Negative type
     \end{itemize}
   \end{frame}
@@ -151,18 +153,18 @@
     \frametitle{Tensor product}
     \begin{itemize}
     \item Introduction:
-
       \inferrule{\ctx{\Gamma}{\Delta_0} \vdash S_0 \ni s_0
                  \\ \ctx{\Gamma}{\Delta_1} \vdash S_1 \ni s_1
                  \\\\ \rescomment{\Delta \leq \Delta_0 + \Delta_1}}
                 {\ctx{\Gamma}{\Delta} \vdash \tensor{S_0}{S_1} \ni \ten{s_0}{s_1}}
+      \bigskip
     \item Elimination:
-
       \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \tensor{S_0}{S_1}
                  \\\\ \ctx{\Gamma}{\Delta_s},
                       \ctxvar{x}{S_0}{1}, \ctxvar{y}{S_1}{1} \vdash \bind{x,y}{s} \in T
                  \\\\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
                 {\ctx{\Gamma}{\Delta} \vdash \prm{T}{e}{x}{y}{s} \in T}
+      \bigskip
     \item Positive type
     \end{itemize}
   \end{frame}
@@ -410,6 +412,13 @@
         $\implies$ if assignments in the environment increase/decrease, the
         result follows suit
       \end{itemize}
+    \end{itemize}
+  \end{frame}
+  \begin{frame}
+    \frametitle{Conclusion}
+    \begin{itemize}
+    \item Reed, Pierce 2010 -- Distance Makes the Types Grow Stronger
+    \item \url{https://github.com/laMudri/quantitative}
     \end{itemize}
   \end{frame}
 \end{document}
