@@ -160,53 +160,6 @@
     \end{itemize}
   \end{frame}
   \begin{frame}
-    \frametitle{Substitution}
-    \begin{itemize}
-    \item<1-> Well scoped substitution
-      \begin{flalign*}
-        m \Rightarrow n :\equiv (x \in n) \to \mathrm{Tm}~m~\mathrm{syn}
-      \end{flalign*}
-    \item<2-> Typed substitution refines scoped substitution
-      ($\sigma : m \Rightarrow n$)
-      \begin{flalign*}
-        \Gamma_m \Rightarrow_\sigma^t \Gamma_n :\equiv
-        \left((x : T) \in \Gamma_n\right) \to \Gamma_m \vdash \sigma~x \in T
-      \end{flalign*}
-    \item<3-> Resourced substitution refines typed substitution
-      ($\sigma t : \Gamma_m \Rightarrow_\sigma^t \Gamma_n$)
-      \begin{flalign*}
-        \Delta_m \Rightarrow_{\typed \sigma}^r \Delta_n :\equiv {}
-        \only<3>{
-          &(\Delta' : n \to \mathop{RCtx} m) \\
-          &\times \left(\Delta_m \leq \sum_{x^\rho \in \Delta_n}\rho \cdot \Delta'_x\right)
-        } \only<4>{
-          &(\Delta' : \mathrm{Mat}~R~(m, n) \\
-          &\times \left(\Delta_m \leq \Delta'\Delta_n\right)
-        } \\
-        &\times \left((x^\rho \in \Delta_n) \to \Delta'_x \vdash \typed \sigma~x\right)
-      \end{flalign*}
-    \end{itemize}
-  \end{frame}
-  \begin{frame}
-    \frametitle{Resourced substitution example}
-    \begin{itemize}
-    \item
-      \begin{flalign*}
-        \Delta_m \Rightarrow_{\typed \sigma}^r \Delta_n :\equiv {}
-        &(\Delta' : \mathrm{Mat}~R~(m, n) \\
-        &\times \left(\Delta_m \leq \Delta'\Delta_n\right) \\
-        &\times \left((x^\rho \in \Delta_n) \to \Delta'_x \vdash \typed \sigma~x\right)
-      \end{flalign*}
-    \item Variable rule
-      \inferrule{\ctx{\Gamma}{\Delta} \leq \underline 0, \ctxvar{x}{S}{1}, \underline 0}
-                {\ctx{\Gamma}{\Delta} \vdash x \in S}
-    \item<2->
-      $\mathrm{id}_\Delta :\equiv (\Delta', \mathit{prf}, \mathrm{var}) \quad
-      \textrm{where}~\Delta'_x :\equiv \underline 0, x^1, \underline 0$
-    \item<3-> $\mathit{prf}$ is $\Delta = I\Delta = \Delta'\Delta$
-    \end{itemize}
-  \end{frame}
-  \begin{frame}
     \frametitle{Fundamental lemma, revisited}
     \begin{itemize}
     \item $\llbracket tt \rrbracket : \llbracket \Gamma \rrbracket \to
