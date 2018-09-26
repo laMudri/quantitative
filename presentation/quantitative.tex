@@ -45,12 +45,13 @@
   \begin{frame}
     \frametitle{Fundamental lemma}
     \begin{itemize}
-    \item $\llbracket t \rrbracket : \llbracket \Gamma \rrbracket \to
+    \item<1-> Relational parametricity argument
+    \item<2-> $\llbracket t \rrbracket : \llbracket \Gamma \rrbracket \to
       \llbracket S \rrbracket$
-    \item $\forall w.~\forall(\gamma, \gamma') \in \llbracket \Gamma
-      \rrbracket^R~w.~(\llbracket t \rrbracket~\gamma, \llbracket t
-      \rrbracket~\gamma') \in \llbracket S \rrbracket^R~w$
-    \item Consequences:
+    \item<3-> $\forall w.~\forall(\alert<4>{\gamma}, \alert<4>{\gamma'}) \in \llbracket \Gamma
+      \rrbracket^R~w.~(\alert<4>{\llbracket t \rrbracket~\gamma}, \alert<4>{\llbracket t
+      \rrbracket~\gamma'}) \in \llbracket S \rrbracket^R~w$
+    \item<5-> Consequences:
       \begin{itemize}
       \item Worlds are bags of keys, semiring counts usages \\
         $\implies$ all functions are permutations
@@ -80,24 +81,35 @@
       \item Either: $\typed t : (\Gamma \vdash t : S)$ \pause
       \item Resourcing: $\resourced t : (\Delta \vdash \typed t)$ \pause
       \item Abbreviations $\ctx{\Gamma}{\Delta} \vdash e \in S$,
-        $\ctx{\Gamma}{\Delta} \vdash S \ni s$, etc. \pause
+        $\ctx{\Gamma}{\Delta} \vdash S \ni s$, etc.
       \end{itemize}
-    %\item Simultaneous substitution: $t[\sigma]$, $\typed t[\typed \sigma]$,
-    %  $\resourced t[\resourced \sigma]$
     \end{itemize}
+  \end{frame}
+  \begin{frame}
+    \frametitle{Products}
+    \begin{align*}
+      \textrm{With} && \textrm{Tensor} \\
+      \withT{A}{B} && \tensor{A}{B}
+    \end{align*}
+    \begin{align*}
+      \onslide<2->{\mathop{swap_\with} &: \fun{\withT{A}{B}}{\withT{B}{A}}} \\
+      \onslide<2->{\mathop{swap_\otimes} &: \fun{\tensor{A}{B}}{\tensor{B}{A}}} \\
+      \onslide<3->{\mathop{choose} &: \fun{\withT{A}{A}}{\fun{\mathrm{Bool}}{A}}} \\
+      \onslide<4->{\mathop{curry} &: \fun{(\fun{A}{\fun{B}{C}})}{(\fun{\tensor{A}{B}}{C})}}
+    \end{align*}
   \end{frame}
   \begin{frame}
     \frametitle{With product}
     \begin{itemize}
     \item Introduction:
-      \inferrule{\ctx{\Gamma}{\Delta} \vdash S_0 \ni s_0
-                 \\ \ctx{\Gamma}{\Delta} \vdash S_1 \ni s_1}
-                {\ctx{\Gamma}{\Delta} \vdash \withT{S_0}{S_1} \ni \wth{s_0}{s_1}}
+      \inferrule{\alert<2>{\ctx{\Gamma}{\Delta}} \vdash S_0 \ni s_0
+                 \\ \alert<2>{\ctx{\Gamma}{\Delta}} \vdash S_1 \ni s_1}
+                {\alert<2>{\ctx{\Gamma}{\Delta}} \vdash \withT{S_0}{S_1} \ni \wth{s_0}{s_1}}
       \bigskip
     \item Elimination:
-      \inferrule{\ctx{\Gamma}{\Delta} \vdash e \in \withT{S_0}{S_1}
+      \inferrule{\alert<3>{\ctx{\Gamma}{\Delta}} \vdash e \in \withT{S_0}{S_1}
                  \\ i \in \{0,1\}}
-                {\ctx{\Gamma}{\Delta} \vdash \proj{i}{e} \in S_i}
+                {\alert<3>{\ctx{\Gamma}{\Delta}} \vdash \proj{i}{e} \in S_i}
       \bigskip
     \item Negative type
     \end{itemize}
@@ -106,17 +118,17 @@
     \frametitle{Tensor product}
     \begin{itemize}
     \item Introduction:
-      \inferrule{\ctx{\Gamma}{\Delta_0} \vdash S_0 \ni s_0
-                 \\ \ctx{\Gamma}{\Delta_1} \vdash S_1 \ni s_1
-                 \\\\ \rescomment{\Delta \leq \Delta_0 + \Delta_1}}
-                {\ctx{\Gamma}{\Delta} \vdash \tensor{S_0}{S_1} \ni \ten{s_0}{s_1}}
+      \inferrule{\alert<2>{\ctx{\Gamma}{\Delta_0}} \vdash S_0 \ni s_0
+                 \\ \alert<3>{\ctx{\Gamma}{\Delta_1}} \vdash S_1 \ni s_1
+                 \\\\ \alert<4>{\rescomment{\Delta \leq \Delta_0 + \Delta_1}}}
+                {\alert<4>{\ctx{\Gamma}{\Delta}} \vdash \tensor{S_0}{S_1} \ni \ten{s_0}{s_1}}
       \bigskip
     \item Elimination:
-      \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \tensor{S_0}{S_1}
-                 \\\\ \ctx{\Gamma}{\Delta_s},
+      \inferrule{\alert<5>{\ctx{\Gamma}{\Delta_e}} \vdash e \in \tensor{S_0}{S_1}
+                 \\\\ \alert<6>{\ctx{\Gamma}{\Delta_s}},
                       \ctxvar{x}{S_0}{1}, \ctxvar{y}{S_1}{1} \vdash \bind{x,y}{s} \in T
-                 \\\\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
-                {\ctx{\Gamma}{\Delta} \vdash \prm{T}{e}{x}{y}{s} \in T}
+                 \\\\ \alert<7>{\rescomment{\Delta \leq \Delta_e + \Delta_s}}}
+                {\alert<7>{\ctx{\Gamma}{\Delta}} \vdash \prm{T}{e}{x}{y}{s} \in T}
       \bigskip
     \item Positive type
     \end{itemize}
@@ -126,20 +138,25 @@
     \begin{itemize}
     \item Introduction:
       \inferrule{\ctx{\Gamma}{\Delta_s} \vdash S \ni s
-                 \\ \rescomment{\Delta \leq \rho \cdot \Delta_s}}
+                 \\ \alert<2>{\rescomment{\Delta \leq \rho \cdot \Delta_s}}}
                 {\ctx{\Gamma}{\Delta} \vdash \excl{\rho}{S} \ni \bang{s}}
     \item Elimination:
       \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \excl{\rho}{S}
-                 \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S}{\rho}
+                 \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S}{\alert<3>{\rho}}
                     \vdash T \ni \bind{x}{s}
                  \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
                 {\ctx{\Gamma}{\Delta} \vdash \bm{T}{e}{x}{s} \in T}
-    \item Graded comonad:
-      \begin{mathpar}
-        \excl{1}{A} \to A
-        \\
-        \excl{\pi \cdot \rho}{A} \to \excl{\pi}{\excl{\rho}{A}}
-      \end{mathpar}
+    \item<4-> Graded comonad:
+      \begin{align*}
+        \mathop{extract} &: \excl{1}{A} \to A \\
+        \mathop{extract} &= \lam{\mathit{ba}}{\emb{\bm{A}{ba}{a}{a}}}
+      \end{align*}
+      \onslide<5->{
+      \begin{align*}
+        \mathop{duplicate} &: \excl{\pi \cdot \rho}{A} \to \excl{\pi}{\excl{\rho}{A}} \\
+        \mathop{duplicate} &= \lam{\mathit{ba}}{\emb{\bm{\excl{\pi}{\excl{\rho}{A}}}{ba}{a}{\bang{(\bang{\emb{a}})}}}}
+      \end{align*}
+      }
     \end{itemize}
   \end{frame}
   \begin{frame}
@@ -216,9 +233,12 @@
   \begin{frame}
     \frametitle{Conclusion}
     \begin{itemize}
+    \item \url{https://github.com/laMudri/quantitative} \pause
+    \item Abadi, Banerjee, Heintze 1999 -- A Core Calculus of Dependency
     \item Reed, Pierce 2010 -- Distance Makes the Types Grow Stronger
-      % More references
-    \item \url{https://github.com/laMudri/quantitative}
+    \item Arntzenius 2018 -- Type inference for monotonicity \pause
+    \item Staged computation?
+    \item More problems?
     \end{itemize}
   \end{frame}
 \end{document}
