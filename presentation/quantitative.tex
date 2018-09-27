@@ -30,8 +30,8 @@
     \frametitle{Motivation}
 
     \begin{itemize}
-    \item Constrain how variables are used
-    \item Derive more free theorems about constrained programs
+    \item Constrain how variables are used \pause
+    \item Derive more free theorems about constrained programs \pause
     \item Generalise the ``how many'' of linear typing \pause
       \begin{itemize}
       \item At what security level? -- information flow \pause
@@ -43,23 +43,62 @@
     \end{itemize}
   \end{frame}
   \begin{frame}
+    \frametitle{Permutations}
+    \newcommand{\KEY}{\mathrm{KEY}}
+    \begin{itemize}
+    \item Have: \pause
+      \begin{itemize}
+      \item A linearly used type $\KEY$ \pause
+      \item An operation $\mathop{compareAndSwap} : \fun{\tensor{\KEY}{\KEY}}{\tensor{\KEY}{\KEY}}$ \pause
+      \end{itemize}
+    \item Programmer writes $\mathop{sort} : \fun{\mathrm{List}~\KEY}{\mathrm{List}~\KEY}$ \pause
+    \end{itemize}
+    \begin{block}{Free theorem}
+      $\mathop{sort}$ is a permutation
+    \end{block}
+  \end{frame}
+  %\begin{frame}
+  %  \frametitle{Sensitivity analysis}
+  %  \newcommand{\R}{\mathrm{R}}
+  %  \begin{itemize}
+  %  \item Have: \pause
+  %    \begin{itemize}
+  %    \item A type of real numbers $\R$ \pause
+  %    \item An operations $\mathop{+} : \fun{\tensor{\R}{\R}}{\R}$ \pause
+  %    \end{itemize}
+  %  \item Programmer writes $\mathop{sort} : \fun{\mathrm{List}~\KEY}{\mathrm{List}~\KEY}$ \pause
+  %  \end{itemize}
+  %  \begin{block}{Free theorem}
+  %    All functions $\fun{R}{R}$ are non-expansive maps
+  %  \end{block}
+  %\end{frame}
+  \begin{frame}
+    \frametitle{Monotonicity}
+    \newcommand{\Z}{\mathbb{Z}}
+    \begin{itemize}
+    \item Have: \pause
+      \begin{itemize}
+      \item A type of integers $\Z$ \pause
+      \item $+ : \fun{\tensor{\Z}{\Z}}{\Z}$ \pause
+      \item $\mathop{neg} : \fun{\excl{\downarrow}{\Z}}{\Z}$ \pause
+      \item $\mathop{zero} : \fun{\excl{0}{\Z}}{\Z}$ \pause
+      \item $\dots$
+      \end{itemize}
+    \item Programmer writes a function $f : \fun{\Z}{\Z}$ \pause
+    \end{itemize}
+    \begin{block}{Free theorem}
+      $f$ is monotonic
+    \end{block}
+  \end{frame}
+  \begin{frame}
     \frametitle{Fundamental lemma}
     \begin{itemize}
     \item<1-> Relational parametricity argument
     \item<2-> $\llbracket t \rrbracket : \llbracket \Gamma \rrbracket \to
       \llbracket S \rrbracket$
-    \item<3-> $\forall w.~\forall(\alert<4>{\gamma}, \alert<4>{\gamma'}) \in \llbracket \Gamma
-      \rrbracket^R~w.~(\alert<4>{\llbracket t \rrbracket~\gamma}, \alert<4>{\llbracket t
-      \rrbracket~\gamma'}) \in \llbracket S \rrbracket^R~w$
-    \item<5-> Consequences:
-      \begin{itemize}
-      \item Worlds are bags of keys, semiring counts usages \\
-        $\implies$ all functions are permutations
-      \item Worlds are distances, semiring tracks distances \\
-        $\implies$ all functions are non-expansive
-      \item Worlds are trivial, semiring tracks polarity \\
-        $\implies$ all functions are monotonic
-      \end{itemize}
+    \item<3-> $\forall \alert<4>{w}.~\forall(\alert<3>{\gamma}, \alert<3>{\gamma'}) \in \alert<5>{\llbracket \Gamma
+      \rrbracket^R}~\alert<4>{w}.~(\alert<3>{\llbracket t \rrbracket~\gamma}, \alert<3>{\llbracket t
+      \rrbracket~\gamma'}) \in \alert<5>{\llbracket S \rrbracket^R}~\alert<4>{w}$
     \end{itemize}
   \end{frame}
   \begin{frame}
@@ -72,10 +111,10 @@
       \item typing contexts $\Gamma = x : S, \ldots, y : T$
       \item resourcing contexts $\Delta = x^\pi, \ldots, y^\rho$ \pause
       \end{itemize}
-    \item Bidirectional two-level typing
+    \item Bidirectional layered typing
       \begin{itemize}
-      \item Well scoped synthesising terms $e$ and checkable terms $s$
-      \item $t$ ranges over $e$ and $s$. \pause
+      \item Well scoped terms $e : \mathrm{Term}~n~\mathrm{syn}$ and $s : \mathrm{Term}~n~\mathrm{chk}$
+      \item $t : \mathrm{Term}~n~d$ ranges over $e$ and $s$. \pause
       \item Synthesis: $\typed e : (\Gamma \vdash e \in S)$ \pause
       \item Checking: $\typed s : (\Gamma \vdash S \ni s)$ \pause
       \item Either: $\typed t : (\Gamma \vdash t : S)$ \pause
@@ -100,86 +139,89 @@
   \end{frame}
   \begin{frame}
     \frametitle{With product}
-    \begin{itemize}
-    \item Introduction:
-      \inferrule{\alert<2>{\ctx{\Gamma}{\Delta}} \vdash S_0 \ni s_0
-                 \\ \alert<2>{\ctx{\Gamma}{\Delta}} \vdash S_1 \ni s_1}
-                {\alert<2>{\ctx{\Gamma}{\Delta}} \vdash \withT{S_0}{S_1} \ni \wth{s_0}{s_1}}
-      \bigskip
-    \item Elimination:
-      \inferrule{\alert<3>{\ctx{\Gamma}{\Delta}} \vdash e \in \withT{S_0}{S_1}
+    \begin{block}{}
+      Negative type
+    \end{block}
+    \begin{block}{Introduction}<2->
+      \inferrule{\alert<3>{\ctx{\Gamma}{\Delta}} \vdash S_0 \ni s_0
+                 \\ \alert<3>{\ctx{\Gamma}{\Delta}} \vdash S_1 \ni s_1}
+                {\alert<3>{\ctx{\Gamma}{\Delta}} \vdash \withT{S_0}{S_1} \ni \wth{s_0}{s_1}}
+    \end{block}
+    \begin{block}{Elimination}<4->
+      \inferrule{\alert<5>{\ctx{\Gamma}{\Delta}} \vdash e \in \withT{S_0}{S_1}
                  \\ i \in \{0,1\}}
-                {\alert<3>{\ctx{\Gamma}{\Delta}} \vdash \proj{i}{e} \in S_i}
-      \bigskip
-    \item Negative type
-    \end{itemize}
+                {\alert<5>{\ctx{\Gamma}{\Delta}} \vdash \proj{i}{e} \in S_i}
+    \end{block}
   \end{frame}
   \begin{frame}
     \frametitle{Tensor product}
-    \begin{itemize}
-    \item Introduction:
-      \inferrule{\alert<2>{\ctx{\Gamma}{\Delta_0}} \vdash S_0 \ni s_0
-                 \\ \alert<3>{\ctx{\Gamma}{\Delta_1}} \vdash S_1 \ni s_1
-                 \\\\ \alert<4>{\rescomment{\Delta \leq \Delta_0 + \Delta_1}}}
-                {\alert<4>{\ctx{\Gamma}{\Delta}} \vdash \tensor{S_0}{S_1} \ni \ten{s_0}{s_1}}
-      \bigskip
-    \item Elimination:
-      \inferrule{\alert<5>{\ctx{\Gamma}{\Delta_e}} \vdash e \in \tensor{S_0}{S_1}
-                 \\\\ \alert<6>{\ctx{\Gamma}{\Delta_s}},
-                      \ctxvar{x}{S_0}{1}, \ctxvar{y}{S_1}{1} \vdash \bind{x,y}{s} \in T
-                 \\\\ \alert<7>{\rescomment{\Delta \leq \Delta_e + \Delta_s}}}
-                {\alert<7>{\ctx{\Gamma}{\Delta}} \vdash \prm{T}{e}{x}{y}{s} \in T}
-      \bigskip
-    \item Positive type
-    \end{itemize}
+    \begin{block}{}
+      Positive type
+    \end{block}
+    \begin{block}{Introduction}<2->
+      \inferrule{\alert<3>{\ctx{\Gamma}{\Delta_0}} \vdash S_0 \ni s_0
+                 \\ \alert<4>{\ctx{\Gamma}{\Delta_1}} \vdash S_1 \ni s_1
+                 \\\\ \alert<5>{\rescomment{\Delta \leq \Delta_0 + \Delta_1}}}
+                {\alert<5>{\ctx{\Gamma}{\Delta}} \vdash \tensor{S_0}{S_1} \ni \ten{s_0}{s_1}}
+    \end{block}
+    \begin{block}{Elimination}<6->
+      \inferrule{\alert<7>{\ctx{\Gamma}{\Delta_e}} \vdash e \in \tensor{S_0}{S_1}
+                 \\\\ \alert<8>{\ctx{\Gamma}{\Delta_s}},
+                      \alert<9>{\ctxvar{x}{S_0}{1}, \ctxvar{y}{S_1}{1}} \vdash \bind{x,y}{s} \in T
+                 \\\\ \alert<10>{\rescomment{\Delta \leq \Delta_e + \Delta_s}}}
+                {\alert<10>{\ctx{\Gamma}{\Delta}} \vdash \prm{T}{e}{x}{y}{s} \in T}
+    \end{block}
   \end{frame}
   \begin{frame}
     \frametitle{Bang}
-    \begin{itemize}
-    \item Introduction:
-      \inferrule{\ctx{\Gamma}{\Delta_s} \vdash S \ni s
-                 \\ \alert<2>{\rescomment{\Delta \leq \rho \cdot \Delta_s}}}
-                {\ctx{\Gamma}{\Delta} \vdash \excl{\rho}{S} \ni \bang{s}}
-    \item Elimination:
+    \begin{block}{Introduction}
+      \inferrule{\ctx{\alert<3>{\Gamma}}{\Delta_s} \vdash S \ni s
+                 \\ \alert<2-3>{\rescomment{\Delta \leq \rho \cdot \Delta_s}}}
+                {\ctx{\alert<3>{\Gamma}}{\Delta} \vdash \excl{\rho}{S} \ni \bang{s}}
+    \end{block}
+    \begin{block}{Elimination}<4->
       \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \excl{\rho}{S}
-                 \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S}{\alert<3>{\rho}}
+                 \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S}{\alert<5>{\rho}}
                     \vdash T \ni \bind{x}{s}
                  \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
                 {\ctx{\Gamma}{\Delta} \vdash \bm{T}{e}{x}{s} \in T}
-    \item<4-> Graded comonad:
+    \end{block}
+    \begin{block}{Graded comonad}<6->
       \begin{align*}
+        \onslide<7->{
         \mathop{extract} &: \excl{1}{A} \to A \\
         \mathop{extract} &= \lam{\mathit{ba}}{\emb{\bm{A}{ba}{a}{a}}}
-      \end{align*}
-      \onslide<5->{
-      \begin{align*}
+        }
+        \\\\
+        \onslide<8->{
         \mathop{duplicate} &: \excl{\pi \cdot \rho}{A} \to \excl{\pi}{\excl{\rho}{A}} \\
         \mathop{duplicate} &= \lam{\mathit{ba}}{\emb{\bm{\excl{\pi}{\excl{\rho}{A}}}{ba}{a}{\bang{(\bang{\emb{a}})}}}}
+        }
       \end{align*}
-      }
-    \end{itemize}
+    \end{block}
   \end{frame}
   \begin{frame}
     \frametitle{Fundamental lemma, revisited}
     \begin{itemize}
     \item $\llbracket tt \rrbracket : \llbracket \Gamma \rrbracket \to
-      \llbracket S \rrbracket$
+      \llbracket S \rrbracket$ \pause
+    \item $\llbracket S \rrbracket^R : \mathcal{W} \to
+      \llbracket S \rrbracket \times \llbracket S \rrbracket \to \Omega$
     \item $\llbracket \ctx{\Gamma}{\Delta} \rrbracket^R : \mathcal{W} \to
-      \llbracket \Gamma \rrbracket \times \llbracket \Gamma \rrbracket \to \Omega$
-    \item $\forall w.~\forall(\gamma, \gamma') \in \llbracket \ctx{\Gamma}{\Delta}
+      \llbracket \Gamma \rrbracket \times \llbracket \Gamma \rrbracket \to \Omega$ \pause
+    \item If $tt$ is well resourced, $\forall w.~\forall(\gamma, \gamma') \in \llbracket \ctx{\Gamma}{\Delta}
       \rrbracket^R~w.~(\llbracket tt \rrbracket~\gamma, \llbracket tt
-      \rrbracket~\gamma') \in \llbracket S \rrbracket^R~w$
+      \rrbracket~\gamma') \in \llbracket S \rrbracket^R~w$ \pause
     \item Consequences:
       \begin{itemize}
       \item Worlds are bags of keys, semiring counts usages \\
-        $\implies$ the keys appearing in the context are a permutation of the
-        keys appearing in the term
-      \item Worlds specify maximum distance, semiring tracks distances \\
-        $\implies$ the term is sensitive to changes in variables proportional to
-        the annotations on those variables
+        $\implies$ all functions are permutations
       \item Worlds are trivial, semiring tracks polarity \\
-        $\implies$ if assignments in the environment increase/decrease, the
-        result follows suit
+        $\implies$ all functions are monotonic \pause
+      \item Worlds are distances, semiring tracks distances \\
+        $\implies$ all functions are non-expansive \pause
+      \item Worlds are sets of security levels, semiring same \\
+        $\implies$ high security data do not interfere with low security data
       \end{itemize}
     \end{itemize}
   \end{frame}
