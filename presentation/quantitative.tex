@@ -30,8 +30,8 @@
     \frametitle{Motivation}
 
     \begin{itemize}
-    \item Constrain how variables are used
-    \item Derive more free theorems about constrained programs
+    \item Constrain how variables are used \pause
+    \item Derive more free theorems about constrained programs \pause
     \item Generalise the ``how many'' of linear typing \pause
       \begin{itemize}
       \item At what security level? -- information flow \pause
@@ -43,367 +43,197 @@
     \end{itemize}
   \end{frame}
   \begin{frame}
+    \frametitle{Permutations}
+    \newcommand{\KEY}{\mathrm{KEY}}
+    \begin{itemize}
+    \item Have: \pause
+      \begin{itemize}
+      \item A linearly used type $\KEY$ \pause
+      \item An operation $\mathop{compareAndSwap} : \fun{\tensor{\KEY}{\KEY}}{\tensor{\KEY}{\KEY}}$ \pause
+      \end{itemize}
+    \item Programmer writes $\mathop{sort} : \fun{\mathrm{List}~\KEY}{\mathrm{List}~\KEY}$ \pause
+    \end{itemize}
+    \begin{block}{Free theorem}
+      $\mathop{sort}$ is a permutation
+    \end{block}
+  \end{frame}
+  %\begin{frame}
+  %  \frametitle{Sensitivity analysis}
+  %  \newcommand{\R}{\mathrm{R}}
+  %  \begin{itemize}
+  %  \item Have: \pause
+  %    \begin{itemize}
+  %    \item A type of real numbers $\R$ \pause
+  %    \item An operations $\mathop{+} : \fun{\tensor{\R}{\R}}{\R}$ \pause
+  %    \end{itemize}
+  %  \item Programmer writes $\mathop{sort} : \fun{\mathrm{List}~\KEY}{\mathrm{List}~\KEY}$ \pause
+  %  \end{itemize}
+  %  \begin{block}{Free theorem}
+  %    All functions $\fun{R}{R}$ are non-expansive maps
+  %  \end{block}
+  %\end{frame}
+  \begin{frame}
+    \frametitle{Monotonicity}
+    \newcommand{\Z}{\mathbb{Z}}
+    \begin{itemize}
+    \item Have: \pause
+      \begin{itemize}
+      \item A type of integers $\Z$ \pause
+      \item $+ : \fun{\tensor{\Z}{\Z}}{\Z}$ \pause
+      \item $\mathop{neg} : \fun{\excl{\downarrow}{\Z}}{\Z}$ \pause
+      \item $\mathop{zero} : \fun{\excl{0}{\Z}}{\Z}$ \pause
+      \item $\dots$
+      \end{itemize}
+    \item Programmer writes a function $f : \fun{\Z}{\Z}$ \pause
+    \end{itemize}
+    \begin{block}{Free theorem}
+      $f$ is monotonic
+    \end{block}
+  \end{frame}
+  \begin{frame}
     \frametitle{Fundamental lemma}
     \begin{itemize}
-    \item $\llbracket t \rrbracket : \llbracket \Gamma \rrbracket \to
+    \item<1-> Relational parametricity argument
+    \item<2-> $\llbracket t \rrbracket : \llbracket \Gamma \rrbracket \to
       \llbracket S \rrbracket$
-    \item $\forall w.~\forall(\gamma, \gamma') \in \llbracket \Gamma
-      \rrbracket^R~w.~(\llbracket t \rrbracket~\gamma, \llbracket t
-      \rrbracket~\gamma') \in \llbracket S \rrbracket^R~w$
-    \item Consequences:
-      \begin{itemize}
-      \item Worlds are bags of keys, semiring counts usages \\
-        $\implies$ all functions are permutations
-      \item Worlds are distances, semiring tracks distances \\
-        $\implies$ all functions are non-expansive
-      \item Worlds are trivial, semiring tracks polarity \\
-        $\implies$ all functions are monotonic
-      \end{itemize}
+    \item<3-> $\forall \alert<4>{w}.~\forall(\alert<3>{\gamma}, \alert<3>{\gamma'}) \in \alert<5>{\llbracket \Gamma
+      \rrbracket^R}~\alert<4>{w}.~(\alert<3>{\llbracket t \rrbracket~\gamma}, \alert<3>{\llbracket t
+      \rrbracket~\gamma'}) \in \alert<5>{\llbracket S \rrbracket^R}~\alert<4>{w}$
     \end{itemize}
   \end{frame}
   \begin{frame}
     \frametitle{Metasyntax}
     \begin{itemize}
     \item Partially ordered semiring: $(R, \leq, 0, +, 1, \cdot)$, general elements $\rho, \pi$ \pause
-    \item Scopes $m$, $n$ (natural numbers), typing contexts $\Gamma$,
-      resourcing contexts $\Delta$ \pause
-    \item Bidirectional two-level typing
+    \item Contexts
       \begin{itemize}
-      \item Well scoped synthesising terms $e$ and checkable terms $s$
-      \item $t$ ranges over $e$ and $s$. \pause
+      \item Scopes $m$, $n$ (natural numbers)
+      \item typing contexts $\Gamma = x : S, \ldots, y : T$
+      \item resourcing contexts $\Delta = x^\pi, \ldots, y^\rho$ \pause
+      \end{itemize}
+    \item Bidirectional layered typing
+      \begin{itemize}
+      \item Well scoped terms $e : \mathrm{Term}~n~\mathrm{syn}$ and $s : \mathrm{Term}~n~\mathrm{chk}$
+      \item $t : \mathrm{Term}~n~d$ ranges over $e$ and $s$. \pause
       \item Synthesis: $\typed e : (\Gamma \vdash e \in S)$ \pause
       \item Checking: $\typed s : (\Gamma \vdash S \ni s)$ \pause
       \item Either: $\typed t : (\Gamma \vdash t : S)$ \pause
       \item Resourcing: $\resourced t : (\Delta \vdash \typed t)$ \pause
       \item Abbreviations $\ctx{\Gamma}{\Delta} \vdash e \in S$,
-        $\ctx{\Gamma}{\Delta} \vdash S \ni s$, etc. \pause
+        $\ctx{\Gamma}{\Delta} \vdash S \ni s$, etc.
       \end{itemize}
-    \item Simultaneous substitution: $t[\sigma]$, $\typed t[\typed \sigma]$,
-      $\resourced t[\resourced \sigma]$
     \end{itemize}
   \end{frame}
-  %\begin{frame}
-  %  \frametitle{Function}
-  %  \begin{itemize}
-  %  \item Introduction:
-  %    \inferrule{\ctx{\Gamma}{\Delta}, \ctxvar{x}{S}{1} \vdash T \ni \bind{x}{s}}
-  %              {\ctx{\Gamma}{\Delta} \vdash \fun{S}{T} \ni \lam{x}{s}}
-  %  \item Elimination:
-  %    \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \fun{S}{T}
-  %               \\ \ctx{\Gamma}{\Delta_s} \vdash S \ni s
-  %               \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
-  %              {\ctx{\Gamma}{\Delta} \vdash \app{e}{s} \in T}
-  %  \end{itemize}
-  %\end{frame}
-  %\begin{frame}
-  %  \frametitle{Products}
-  %  \begin{table}[]
-  %    \centering
-  %    \begin{tabular}{c|c}
-  %      With product & Tensor product
-  %      \\ \midrule
-  %      $\withT{A}{B}$ & $\tensor{A}{B}$
-  %      \pause
-  %      \\ \midrule
-  %      Cartesian product
-  %      &
-  %      \makecell{Closed symmetric \\ monoidal product}
-  %      \\
-  %      \begin{tikzcd}[ampersand replacement=\&, column sep=2em, row sep=3em]
-  %        \& \ar[-o,swap]{dl}{f} C \ar[-o,dashed,swap,near end]{d}{\langle f,g \rangle} \ar[-o]{dr}{g} \& \\
-  %        A \& \ar[-o]{l}{\pi_0} \withT{A}{B} \ar[-o,swap]{r}{\pi_1} \& B
-  %      \end{tikzcd}
-  %      &
-  %      $\begin{aligned}
-  %        &\fun{(\tensor{A}{B})}{C} \\
-  %        &\quad \cong \fun{A}{(\fun{B}{C})}
-  %      \end{aligned}$
-  %      \pause
-  %      \\ \midrule
-  %      $\Pi(t : \mathbf{2})~\mathrm{if}~t~\mathrm{then}~A~\mathrm{else}~B$
-  %      &
-  %      $\Sigma(\_ : A)~B$
-  %      %\makecell{Defined via elimination \\ (projection)}
-  %      %&
-  %      %\makecell{Defined via introduction \\ (split-resource pairing)}
-  %    \end{tabular}
-  %  \end{table}
-  %\end{frame}
+  \begin{frame}
+    \frametitle{Products}
+    \begin{align*}
+      \textrm{With} && \textrm{Tensor} \\
+      \withT{A}{B} && \tensor{A}{B}
+    \end{align*}
+    \begin{align*}
+      \onslide<2->{\mathop{swap_\with} &: \fun{\withT{A}{B}}{\withT{B}{A}}} \\
+      \onslide<2->{\mathop{swap_\otimes} &: \fun{\tensor{A}{B}}{\tensor{B}{A}}} \\
+      \onslide<3->{\mathop{choose} &: \fun{\withT{A}{A}}{\fun{\mathrm{Bool}}{A}}} \\
+      \onslide<4->{\mathop{curry} &: \fun{(\fun{A}{\fun{B}{C}})}{(\fun{\tensor{A}{B}}{C})}}
+    \end{align*}
+  \end{frame}
   \begin{frame}
     \frametitle{With product}
-    \begin{itemize}
-    \item Introduction:
-      \inferrule{\ctx{\Gamma}{\Delta} \vdash S_0 \ni s_0
-                 \\ \ctx{\Gamma}{\Delta} \vdash S_1 \ni s_1}
-                {\ctx{\Gamma}{\Delta} \vdash \withT{S_0}{S_1} \ni \wth{s_0}{s_1}}
-    \item Elimination:
-      \inferrule{\ctx{\Gamma}{\Delta} \vdash e \in \withT{S_0}{S_1}
+    \begin{block}{}
+      Negative type
+    \end{block}
+    \begin{block}{Introduction}<2->
+      \inferrule{\alert<3>{\ctx{\Gamma}{\Delta}} \vdash S_0 \ni s_0
+                 \\ \alert<3>{\ctx{\Gamma}{\Delta}} \vdash S_1 \ni s_1}
+                {\alert<3>{\ctx{\Gamma}{\Delta}} \vdash \withT{S_0}{S_1} \ni \wth{s_0}{s_1}}
+    \end{block}
+    \begin{block}{Elimination}<4->
+      \inferrule{\alert<5>{\ctx{\Gamma}{\Delta}} \vdash e \in \withT{S_0}{S_1}
                  \\ i \in \{0,1\}}
-                {\ctx{\Gamma}{\Delta} \vdash \proj{i}{e} \in S_i}
-    \item Negative type
-    \end{itemize}
+                {\alert<5>{\ctx{\Gamma}{\Delta}} \vdash \proj{i}{e} \in S_i}
+    \end{block}
   \end{frame}
   \begin{frame}
     \frametitle{Tensor product}
-    \begin{itemize}
-    \item Introduction:
-      \inferrule{\ctx{\Gamma}{\Delta_0} \vdash S_0 \ni s_0
-                 \\ \ctx{\Gamma}{\Delta_1} \vdash S_1 \ni s_1
-                 \\\\ \rescomment{\Delta \leq \Delta_0 + \Delta_1}}
-                {\ctx{\Gamma}{\Delta} \vdash \tensor{S_0}{S_1} \ni \ten{s_0}{s_1}}
-    \item Elimination:
-      \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \tensor{S_0}{S_1}
-                 \\\\ \ctx{\Gamma}{\Delta_s},
-                      \ctxvar{x}{S_0}{1}, \ctxvar{y}{S_1}{1} \vdash \bind{x,y}{s} \in T
-                 \\\\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
-                {\ctx{\Gamma}{\Delta} \vdash \prm{T}{e}{x}{y}{s} \in T}
-    \item Positive type
-    \end{itemize}
+    \begin{block}{}
+      Positive type
+    \end{block}
+    \begin{block}{Introduction}<2->
+      \inferrule{\alert<3>{\ctx{\Gamma}{\Delta_0}} \vdash S_0 \ni s_0
+                 \\ \alert<4>{\ctx{\Gamma}{\Delta_1}} \vdash S_1 \ni s_1
+                 \\\\ \alert<5>{\rescomment{\Delta \leq \Delta_0 + \Delta_1}}}
+                {\alert<5>{\ctx{\Gamma}{\Delta}} \vdash \tensor{S_0}{S_1} \ni \ten{s_0}{s_1}}
+    \end{block}
+    \begin{block}{Elimination}<6->
+      \inferrule{\alert<7>{\ctx{\Gamma}{\Delta_e}} \vdash e \in \tensor{S_0}{S_1}
+                 \\\\ \alert<8>{\ctx{\Gamma}{\Delta_s}},
+                      \alert<9>{\ctxvar{x}{S_0}{1}, \ctxvar{y}{S_1}{1}} \vdash \bind{x,y}{s} \in T
+                 \\\\ \alert<10>{\rescomment{\Delta \leq \Delta_e + \Delta_s}}}
+                {\alert<10>{\ctx{\Gamma}{\Delta}} \vdash \prm{T}{e}{x}{y}{s} \in T}
+    \end{block}
   \end{frame}
-  %\begin{frame}
-  %  \frametitle{Sum}
-  %  \begin{itemize}
-  %  \item Introduction:
-  %    \inferrule{\ctx{\Gamma}{\Delta} \vdash S_i \ni s_i \\ i \in \{0,1\}}
-  %              {\ctx{\Gamma}{\Delta} \vdash \sumT{S_0}{S_1} \ni \inj{i}{s}}
-  %  \item Elimination:
-  %    \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \sumT{S_0}{S_1}
-  %               \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S_0}{1}
-  %                  \vdash T \ni \bind{x}{s_0}
-  %               \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{y}{S_1}{1}
-  %                  \vdash T \ni \bind{y}{s_1}
-  %               \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
-  %              {\ctx{\Gamma}{\Delta} \vdash \cse{T}{e}{x}{s_0}{y}{s_1} \in T}
-  %  \item Coproduct
-  %  \end{itemize}
-  %\end{frame}
   \begin{frame}
     \frametitle{Bang}
-    \begin{itemize}
-    \item Introduction:
-      \inferrule{\ctx{\Gamma}{\Delta_s} \vdash S \ni s
-                 \\ \rescomment{\Delta \leq \rho \cdot \Delta_s}}
-                {\ctx{\Gamma}{\Delta} \vdash \excl{\rho}{S} \ni \bang{s}}
-    \item Elimination:
+    \begin{block}{Introduction}
+      \inferrule{\ctx{\alert<3>{\Gamma}}{\Delta_s} \vdash S \ni s
+                 \\ \alert<2-3>{\rescomment{\Delta \leq \rho \cdot \Delta_s}}}
+                {\ctx{\alert<3>{\Gamma}}{\Delta} \vdash \excl{\rho}{S} \ni \bang{s}}
+    \end{block}
+    \begin{block}{Elimination}<4->
       \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \excl{\rho}{S}
-                 \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S}{\rho}
+                 \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S}{\alert<5>{\rho}}
                     \vdash T \ni \bind{x}{s}
                  \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
                 {\ctx{\Gamma}{\Delta} \vdash \bm{T}{e}{x}{s} \in T}
-    \item Graded comonad:
-      \begin{mathpar}
-        \excl{1}{A} \to A
-        \\
-        \excl{\pi \cdot \rho}{A} \to \excl{\pi}{\excl{\rho}{A}}
-      \end{mathpar}
-    \end{itemize}
+    \end{block}
+    \begin{block}{Graded comonad}<6->
+      \begin{align*}
+        \onslide<7->{
+        \mathop{extract} &: \excl{1}{A} \to A \\
+        \mathop{extract} &= \lam{\mathit{ba}}{\emb{\bm{A}{ba}{a}{a}}}
+        }
+        \\\\
+        \onslide<8->{
+        \mathop{duplicate} &: \excl{\pi \cdot \rho}{A} \to \excl{\pi}{\excl{\rho}{A}} \\
+        \mathop{duplicate} &= \lam{\mathit{ba}}{\emb{\bm{\excl{\pi}{\excl{\rho}{A}}}{ba}{a}{\bang{(\bang{\emb{a}})}}}}
+        }
+      \end{align*}
+    \end{block}
   \end{frame}
-  \begin{frame}
-    \frametitle{Substitution}
-    \begin{itemize}
-    \item<1-> Well scoped substitution
-      \begin{flalign*}
-        m \Rightarrow n :\equiv \prod_{x \in n}{\mathrm{Tm}~m~\mathrm{syn}}
-      \end{flalign*}
-    \item<2-> Typed substitution refines scoped substitution
-      \begin{flalign*}
-        \Gamma_m \Rightarrow_\sigma^t \Gamma_n :\equiv
-        \prod_{(x : T) \in \Gamma_n}{\Gamma_m \vdash \sigma~x \in T}
-      \end{flalign*}
-    \item<3-> Resourced substitution refines typed substitution
-      \begin{flalign*}
-        \Delta_m \Rightarrow_{\typed \sigma}^r \Delta_n :\equiv
-        \sum_{\Delta'} & \left(\mathop{+}_{x^\rho \in \Delta_n}\rho \cdot \Delta'_x =
-          \Delta_m\right) \\
-        &\times \left(\prod_{x^\rho \in \Delta_n}{\Delta'_x \vdash \typed
-            \sigma~x}\right)
-      \end{flalign*}
-    \end{itemize}
-  \end{frame}
-  \begin{frame}
-    \frametitle{Resourced substitution example}
-    \begin{itemize}
-    \item
-      \begin{flalign*}
-        \Delta_m \Rightarrow_{\typed \sigma}^r \Delta_n :\equiv
-        \sum_{\Delta'} & \left(\mathop{+}_{x^\rho \in \Delta_n}\rho \cdot \Delta'_x =
-          \Delta_m\right) \\
-        &\times \left(\prod_{x^\rho \in \Delta_n}{\Delta'_x \vdash \typed
-            \sigma~x}\right)
-      \end{flalign*}
-    \item Variable rule
-      \inferrule{\ctx{\Gamma}{\Delta} \leq \underline 0, \ctxvar{x}{S}{1}, \underline 0}
-                {\ctx{\Gamma}{\Delta} \vdash x \in S}
-    \item<2->
-      $\mathrm{id}_\Delta :\equiv (\Delta', \mathit{prf}, \mathrm{var}) \quad
-      \textrm{where}~\Delta'_x :\equiv \underline 0, x^1, \underline 0$
-    \item<3-> $\mathop{+}_{x^\rho \in \Delta_n}\rho \cdot \Delta'_x =
-      \mathop{+}_{x^\rho \in \Delta_n}\rho \cdot (\underline 0, x^1,
-      \underline 0) = \mathop{+}_{x^\rho \in \Delta_n}\underline 0, x^\rho,
-      \underline 0 = \Delta_n$
-    \end{itemize}
-  \end{frame}
-  %\begin{frame}
-  %  \frametitle{Moving parts}
-
-  %  \begin{columns}[onlytextwidth,T]
-  %    \begin{column}{0.5\textwidth}
-  %      \only<1>{
-  %        \centering
-  %        Partially ordered semiring
-  %        \begin{table}[]
-  %          \begin{tabular}{c|ccc}
-  %            $+$      & $0$      & $1$      & $\omega$
-  %            \\ \hline
-  %            $0$      & $0$      & $1$      & $\omega$
-  %            \\
-  %            $1$      & $1$      & $\omega$ & $\omega$
-  %            \\
-  %            $\omega$ & $\omega$ & $\omega$ & $\omega$
-  %          \end{tabular}
-  %        \end{table}
-  %        \begin{table}[]
-  %          \begin{tabular}{c|ccc}
-  %            $\cdot$  & $0$ & $1$      & $\omega$
-  %            \\ \hline
-  %            $0$      & $0$ & $0$      & $0$
-  %            \\
-  %            $1$      & $0$ & $1$      & $\omega$
-  %            \\
-  %            $\omega$ & $0$ & $\omega$ & $\omega$
-  %          \end{tabular}
-  %        \end{table}
-  %        \begin{tikzcd}[ampersand replacement=\&, tips=false, column sep=0.5em,
-  %                       row sep=1em]
-  %          0 \ar{dr} \&\& 1 \ar{dl}
-  %          \\
-  %          \& \omega \&
-  %        \end{tikzcd}
-  %      }
-  %      \only<2>{
-  %        \centering
-  %        Partially ordered semiring
-  %        \begin{align*}
-  %          \mathcal{T} &= \mathbb{R} \cup \{\infty\}
-  %        \end{align*}
-  %        \begin{align*}
-  %          {+} &= \min \\
-  %          {\cdot} &= +
-  %        \end{align*}
-  %        \begin{tikzpicture}[-, node distance=0.5em]
-  %          \node (0) {$0$};
-  %          \node[above=of 0] (1) {$1$};
-  %          \node[above=of 1] (2) {$2$};
-  %          \node[above=of 2] (dots) {$\vdots$};
-  %          \node[above=of dots] (inf) {$\infty$};
-  %          \path (0) edge (1)
-  %                (1) edge (2)
-  %                (2) edge (dots)
-  %                (dots) edge (inf);
-  %        \end{tikzpicture}
-  %      }
-  %      \only<3>{
-  %        \centering
-  %        Partially ordered semiring
-  %        \begin{align*}
-  %          + &= \wedge
-  %        \end{align*}
-  %        \begin{table}[]
-  %          \begin{tabular}{c|cccc}
-  %            $\cdot$      & $0$ & $\uparrow$   & $\downarrow$ & $\equiv$
-  %            \\ \hline
-  %            $0$          & $0$ & $0$          & $0$          & $0$
-  %            \\
-  %            $\uparrow$   & $0$ & $\uparrow$   & $\downarrow$ & $\equiv$
-  %            \\
-  %            $\downarrow$ & $0$ & $\downarrow$ & $\uparrow$   & $\equiv$
-  %            \\
-  %            $\equiv$     & $0$ & $\equiv$     & $\equiv$     & $\equiv$
-  %          \end{tabular}
-  %        \end{table}
-  %        \begin{tikzcd}[ampersand replacement=\&, tips=false, column sep=0.5em,
-  %                       row sep=0.5em]
-  %          \& \ar{dl} 0 \ar{dr} \&
-  %          \\
-  %          \uparrow \ar{dr} \&\& \downarrow \ar{dl}
-  %          \\
-  %          \& \equiv \&
-  %        \end{tikzcd}
-  %      }
-  %    \end{column}
-  %    \begin{column}{0.5\textwidth}
-  %      \minipage[c][0.65\textheight][s]{\columnwidth}
-  %      \centering
-  %      Symmetric promonoidal category
-  %      \vfill
-  %      \only<1>{
-  %        Bags of keys, under union
-  %        \vfill
-  %        \begin{tikzpicture}[->]
-  %          \node (*) {$*$};
-  %          \path (*) edge[loop above] (*)
-  %                (*) edge[loop, in=60, out=120, distance=1.0cm] (*)
-  %                (*) edge[loop, in=45, out=135, distance=2.0cm] node[above] {$\vdots$} (*);
-  %        \end{tikzpicture}
-  %      }
-  %      \only<2>{
-  %        \begin{align*}
-  %          \mathcal{T}_\leq
-  %        \end{align*}
-  %      }
-  %      \only<3>{
-  %        Trivial
-  %      }
-
-  %      Base type
-  %      \vfill
-  %      \only<1>{
-  %        \begin{align*}
-  %          & \mathrm{KEY} \\
-  %          & \llbracket \mathrm{KEY} \rrbracket := \mathbb N \\
-  %          & \llbracket \mathrm{KEY} \rrbracket^R~ks~(k, l) := \{k\} = \{l\} = ks
-  %        \end{align*}
-  %      }
-  %      \only<2>{
-  %        \begin{align*}
-  %          & R \\
-  %          & \llbracket R \rrbracket := \mathbb R \\
-  %          & \llbracket R \rrbracket^R~k~(x, y) := | x - y | \leq k
-  %        \end{align*}
-  %      }
-  %      \only<3>{
-  %        \begin{align*}
-  %          & N \\
-  %          & \llbracket N \rrbracket := \mathbb N \\
-  %          & \llbracket N \rrbracket^R~\_~(m, n) := m \leq n
-  %        \end{align*}
-  %      }
-  %      \endminipage
-  %    \end{column}
-  %  \end{columns}
-  %\end{frame}
   \begin{frame}
     \frametitle{Fundamental lemma, revisited}
     \begin{itemize}
     \item $\llbracket tt \rrbracket : \llbracket \Gamma \rrbracket \to
-      \llbracket S \rrbracket$
+      \llbracket S \rrbracket$ \pause
+    \item $\llbracket S \rrbracket^R : \mathcal{W} \to
+      \llbracket S \rrbracket \times \llbracket S \rrbracket \to \Omega$
     \item $\llbracket \ctx{\Gamma}{\Delta} \rrbracket^R : \mathcal{W} \to
-      \llbracket \Gamma \rrbracket \times \llbracket \Gamma \rrbracket \to \Omega$
-    \item $\forall w.~\forall(\gamma, \gamma') \in \llbracket \ctx{\Gamma}{\Delta}
+      \llbracket \Gamma \rrbracket \times \llbracket \Gamma \rrbracket \to \Omega$ \pause
+    \item If $tt$ is well resourced, $\forall w.~\forall(\gamma, \gamma') \in \llbracket \ctx{\Gamma}{\Delta}
       \rrbracket^R~w.~(\llbracket tt \rrbracket~\gamma, \llbracket tt
-      \rrbracket~\gamma') \in \llbracket S \rrbracket^R~w$
+      \rrbracket~\gamma') \in \llbracket S \rrbracket^R~w$ \pause
     \item Consequences:
       \begin{itemize}
       \item Worlds are bags of keys, semiring counts usages \\
-        $\implies$ the keys appearing in the context are a permutation of the
-        keys appearing in the term
-      \item Worlds specify maximum distance, semiring tracks distances \\
-        $\implies$ the term is sensitive to changes in variables proportional to
-        the annotations on those variables
+        $\implies$ all functions are permutations
       \item Worlds are trivial, semiring tracks polarity \\
-        $\implies$ if assignments in the environment increase/decrease, the
-        result follows suit
+        $\implies$ all functions are monotonic \pause
+      \item Worlds are distances, semiring tracks distances \\
+        $\implies$ all functions are non-expansive \pause
+      \item Worlds are sets of security levels, semiring same \\
+        $\implies$ high security data do not interfere with low security data
       \end{itemize}
+    \end{itemize}
+  \end{frame}
+  \begin{frame}
+    \frametitle{Conclusion}
+    \begin{itemize}
+    \item \url{https://github.com/laMudri/quantitative} \pause
+    \item Abadi, Banerjee, Heintze 1999 -- A Core Calculus of Dependency
+    \item Reed, Pierce 2010 -- Distance Makes the Types Grow Stronger
+    \item Arntzenius 2018 -- Type inference for monotonicity \pause
+    \item Staged computation?
+    \item More problems?
     \end{itemize}
   \end{frame}
 \end{document}
