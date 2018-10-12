@@ -179,8 +179,10 @@ module Quantitative.Resources.Substitution
   weakenVarsRes Δl ρ le (inj sr) = inj (weakenVarsRes Δl ρ le sr)
   weakenVarsRes Δl ρ le [ sr ] = [ weakenVarsRes Δl ρ le sr ]
 
+  -- Δ ⊢r*[ ρs ] tts  means Δ can be split into an m×n matrix M
+  -- such that Δ ≤ M ρs
+  -- and for all i, M_i ⊢r tts_i
   infix 3 _⊢r*[_]_
-
   data _⊢r*[_]_ {n d Γ} (Δ : RCtx n)
                 : ∀ {m} → Vec C m → Vec (TypedTerm d Γ) m → Set (c ⊔ l′)
               where
