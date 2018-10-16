@@ -1,4 +1,4 @@
-\documentclass{beamer}
+\documentclass[fleqn]{beamer}
 
 \usepackage{booktabs}
 \usepackage{subcaption}
@@ -10,6 +10,7 @@
 \usepackage{xcolor}
 \usepackage{makecell}
 \usepackage{tikz-cd}
+\usepackage{nccmath}
 
 \usetikzlibrary{positioning}
 %\usetikzlibrary{decorations.markings}
@@ -25,6 +26,7 @@
 \date{TyDe Workshop, 2018}
 
 \begin{document}
+  \setlength{\abovedisplayskip}{0pt}
   \frame{\titlepage}
   \begin{frame}
     \frametitle{Motivation}
@@ -96,9 +98,9 @@
     \item<1-> Relational parametricity argument
     \item<2-> $\llbracket t \rrbracket : \llbracket \Gamma \rrbracket \to
       \llbracket S \rrbracket$
-    \item<3-> $\forall \alert<4>{w}.~\forall(\alert<3>{\gamma}, \alert<3>{\gamma'}) \in \alert<5>{\llbracket \Gamma
-      \rrbracket^R}~\alert<4>{w}.~(\alert<3>{\llbracket t \rrbracket~\gamma}, \alert<3>{\llbracket t
-      \rrbracket~\gamma'}) \in \alert<5>{\llbracket S \rrbracket^R}~\alert<4>{w}$
+    \item<3-> $\forall \alert<5>{w}.~\forall(\alert<4>{\gamma}, \alert<4>{\gamma'}) \in \alert<6>{\llbracket \Gamma
+      \rrbracket^R}~\alert<5>{w}.~(\alert<4>{\llbracket t \rrbracket~\gamma}, \alert<4>{\llbracket t
+      \rrbracket~\gamma'}) \in \alert<6>{\llbracket S \rrbracket^R}~\alert<5>{w}$
     \end{itemize}
   \end{frame}
   \begin{frame}
@@ -126,16 +128,18 @@
   \end{frame}
   \begin{frame}
     \frametitle{Products}
-    \begin{align*}
-      \textrm{With} && \textrm{Tensor} \\
-      \withT{A}{B} && \tensor{A}{B}
-    \end{align*}
-    \begin{align*}
-      \onslide<2->{\mathop{swap_\with} &: \fun{\withT{A}{B}}{\withT{B}{A}}} \\
-      \onslide<2->{\mathop{swap_\otimes} &: \fun{\tensor{A}{B}}{\tensor{B}{A}}} \\
-      \onslide<3->{\mathop{choose} &: \fun{\withT{A}{A}}{\fun{\mathrm{Bool}}{A}}} \\
-      \onslide<4->{\mathop{curry} &: \fun{(\fun{A}{\fun{B}{C}})}{(\fun{\tensor{A}{B}}{C})}}
-    \end{align*}
+    \begin{ceqn}
+      \begin{align*}
+        \textrm{With} && \textrm{Tensor} \\
+        \withT{A}{B} && \tensor{A}{B}
+      \end{align*}
+      \begin{align*}
+        \onslide<2->{\mathop{swap_\with} &: \fun{\withT{A}{B}}{\withT{B}{A}}} \\
+        \onslide<2->{\mathop{swap_\otimes} &: \fun{\tensor{A}{B}}{\tensor{B}{A}}} \\
+        \onslide<3->{\mathop{choose} &: \fun{\withT{A}{A}}{\fun{\mathrm{Bool}}{A}}} \\
+        \onslide<4->{\mathop{curry} &: \fun{(\fun{A}{\fun{B}{C}})}{(\fun{\tensor{A}{B}}{C})}}
+      \end{align*}
+    \end{ceqn}
   \end{frame}
   \begin{frame}
     \frametitle{With product}
@@ -180,14 +184,14 @@
                 {\ctx{\alert<3>{\Gamma}}{\Delta} \vdash \excl{\rho}{S} \ni \bang{s}}
     \end{block}
     \begin{block}{Elimination}<4->
-      \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \excl{\rho}{S}
+      \inferrule{\ctx{\Gamma}{\Delta_e} \vdash e \in \excl{\alert<5>{\rho}}{S}
                  \\ \ctx{\Gamma}{\Delta_s}, \ctxvar{x}{S}{\alert<5>{\rho}}
                     \vdash T \ni \bind{x}{s}
                  \\ \rescomment{\Delta \leq \Delta_e + \Delta_s}}
                 {\ctx{\Gamma}{\Delta} \vdash \bm{T}{e}{x}{s} \in T}
     \end{block}
     \begin{block}{Graded comonad}<6->
-      \begin{align*}
+      \begin{flalign*}
         \onslide<7->{
         \mathop{extract} &: \excl{1}{A} \to A \\
         \mathop{extract} &= \lam{\mathit{ba}}{\emb{\bm{A}{ba}{a}{a}}}
@@ -197,7 +201,59 @@
         \mathop{duplicate} &: \excl{\pi \cdot \rho}{A} \to \excl{\pi}{\excl{\rho}{A}} \\
         \mathop{duplicate} &= \lam{\mathit{ba}}{\emb{\bm{\excl{\pi}{\excl{\rho}{A}}}{ba}{a}{\bang{(\bang{\emb{a}})}}}}
         }
-      \end{align*}
+      \end{flalign*}
+    \end{block}
+  \end{frame}
+  \begin{frame}[t]
+    \frametitle{Substitution}
+    \begin{block}{Well scoped substitution}<1->
+      \begin{flalign*}
+        m \Rightarrow n :\equiv (x \in n) \to \mathrm{Tm}~m~\mathrm{syn}
+      \end{flalign*}
+    \end{block}
+    \begin{block}{Typed sub'n refines scoped sub'n ($\sigma : m \Rightarrow n$)}<2->
+      \begin{flalign*}
+        \Gamma_m \Rightarrow_\sigma^t \Gamma_n :\equiv
+        \left((x : T) \in \Gamma_n\right) \to \Gamma_m \vdash \sigma~x \in T
+      \end{flalign*}
+    \end{block}
+    \begin{block}{Resourced sub'n refines typed sub'n ($\sigma t : \Gamma_m \Rightarrow_\sigma^t \Gamma_n$)}<3->
+      \begin{flalign*}
+        \Delta_m \Rightarrow_{\typed \sigma}^r \Delta_n :\equiv {}
+        \only<3>{
+          &(\Delta' : n \to \mathop{RCtx} m) \\
+          &\times \left(\Delta_m \leq \sum_{x^\rho \in \Delta_n}\rho \cdot \Delta'_x\right)
+        } \only<4>{
+          &(\Delta' : \mathrm{Mat}~R~(m, n) \\
+          &\times \left(\Delta_m \leq \Delta'\Delta_n\right)
+        } \\
+        &\times \left((x^\rho \in \Delta_n) \to \Delta'_x \vdash \typed \sigma~x\right)
+      \end{flalign*}
+    \end{block}
+  \end{frame}
+  \begin{frame}
+    \frametitle{Resourced substitution example}
+    \begin{block}{Resourced sub'n refines typed sub'n ($\sigma t : \Gamma_m \Rightarrow_\sigma^t \Gamma_n$)}
+      \begin{flalign*}
+        \Delta_m \Rightarrow_{\typed \sigma}^r \Delta_n :\equiv {}
+        &(\Delta' : \mathrm{Mat}~R~(m, n) \\
+        &\times \left(\Delta_m \leq \Delta'\Delta_n\right) \\
+        &\times \left((x^\rho \in \Delta_n) \to \Delta'_x \vdash \typed \sigma~x\right)
+      \end{flalign*}
+    \end{block}
+    \begin{block}{Variable rule}<2->
+      \begin{flalign*}
+        \inferrule{\ctx{\Gamma}{\Delta} \leq \underline 0, \ctxvar{x}{S}{1}, \underline 0}
+                  {\ctx{\Gamma}{\Delta} \vdash x \in S}
+      \end{flalign*}
+    \end{block}
+    \begin{block}{Identity substitution}<3->
+      \begin{itemize}
+      \item<3->
+        $\mathrm{id}_\Delta :\equiv (\Delta', \mathit{prf}, \mathrm{var}) \quad
+        \textrm{where}~\Delta'_x :\equiv \underline 0, x^1, \underline 0$
+      \item<4-> $\mathit{prf}$ is $\Delta = I\Delta = \Delta'\Delta$
+      \end{itemize}
     \end{block}
   \end{frame}
   \begin{frame}
@@ -206,9 +262,9 @@
     \item $\llbracket tt \rrbracket : \llbracket \Gamma \rrbracket \to
       \llbracket S \rrbracket$ \pause
     \item $\llbracket S \rrbracket^R : \mathcal{W} \to
-      \llbracket S \rrbracket \times \llbracket S \rrbracket \to \Omega$
+      \llbracket S \rrbracket \times \llbracket S \rrbracket \to \mathrm{Prop}$
     \item $\llbracket \ctx{\Gamma}{\Delta} \rrbracket^R : \mathcal{W} \to
-      \llbracket \Gamma \rrbracket \times \llbracket \Gamma \rrbracket \to \Omega$ \pause
+      \llbracket \Gamma \rrbracket \times \llbracket \Gamma \rrbracket \to \mathrm{Prop}$ \pause
     \item If $tt$ is well resourced, $\forall w.~\forall(\gamma, \gamma') \in \llbracket \ctx{\Gamma}{\Delta}
       \rrbracket^R~w.~(\llbracket tt \rrbracket~\gamma, \llbracket tt
       \rrbracket~\gamma') \in \llbracket S \rrbracket^R~w$ \pause
