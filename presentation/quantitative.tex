@@ -258,9 +258,15 @@
   \end{frame}
   \begin{frame}
     \frametitle{Fundamental lemma, revisited}
-    \begin{itemize}
+    \begin{itemize} \pause
     \item $\llbracket tt \rrbracket : \llbracket \Gamma \rrbracket \to
-      \llbracket S \rrbracket$ \pause
+      \llbracket S \rrbracket$ -- standard $ \mathrm{Set} $ semantics \pause
+      \begin{itemize}
+      \item $ \llbracket \withT{S}{T} \rrbracket =
+        \llbracket \tensor{S}{T} \rrbracket =
+        \llbracket S \rrbracket \times \llbracket T \rrbracket $ \pause
+      \item $ \llbracket \excl{\rho}{S} \rrbracket = \llbracket S \rrbracket $ \pause
+      \end{itemize}
     \item $\llbracket S \rrbracket^R : \mathcal{W} \to
       \llbracket S \rrbracket \times \llbracket S \rrbracket \to \mathrm{Prop}$
     \item $\llbracket \ctx{\Gamma}{\Delta} \rrbracket^R : \mathcal{W} \to
