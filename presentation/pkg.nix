@@ -2,7 +2,7 @@
 let
   tex-env = texlive.combine {
     inherit (texlive) scheme-small latexmk beamer stmaryrd mathpartir
-                      cmll xcolor paralist makecell tikz-cd;
+                      cmll xcolor paralist makecell tikz-cd ncctools;
   };
 in stdenv.mkDerivation {
   name = "quantitative-presentation";
