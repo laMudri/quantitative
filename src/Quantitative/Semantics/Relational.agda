@@ -1,4 +1,5 @@
 open import Lib.Category
+open import Lib.Category.Examples
 open import Lib.Level
 open import Lib.Relation.Propositional
 open import Lib.Setoid
