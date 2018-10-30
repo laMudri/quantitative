@@ -35,8 +35,11 @@ module Lib.Category where
 
     _=>_ : (A B : Obj) → Set a
     A => B = let open Setoid (Arr A B) in C
-    open module Dummy {A B : Obj} =
-      Setoid (Arr A B) using (_≈_; refl; sym; trans) public
+
+    private
+      module Dummy {A B : Obj} = Setoid (Arr A B)
+                                 using (_≈_; refl; sym; trans)
+    open Dummy public
 
     open IsCategory isCategory public
 
@@ -794,15 +797,15 @@ module Lib.Category where
         ⊗⊗ : NatIso {C = C ×C C ×C C} {C}
                     (assocC >>F map×C ⊗ (idF C) >>F ⊗)
                     (map×C (idF C) ⊗ >>F ⊗)
-
+      module I⊗ = NatIso I⊗ ; module ⊗I = NatIso ⊗I ; module ⊗⊗ = NatIso ⊗⊗
+      field
         triangle : ∀ x y →
-          NatIso.η ⊗⊗ (x , I , y) >> ⊗.arr $E (id x , NatIso.η I⊗ y)
-            ≈ ⊗.arr $E (NatIso.η ⊗I x , id y)
+          ⊗⊗.η (x , I , y) >> ⊗.arr $E (id x , I⊗.η y)
+            ≈ ⊗.arr $E (⊗I.η x , id y)
         pentagon : ∀ w x y z →
-          let open NatIso ⊗⊗ in
-          ⊗.arr $E (η (w , x , y) , id z) >> η (w , ⊗.obj (x , y) , z)
-              >> ⊗.arr $E (id w , η (x , y , z))
-            ≈ η (⊗.obj (w , x) , y , z) >> η (w , x , ⊗.obj (y , z))
+          ⊗.arr $E (⊗⊗.η (w , x , y) , id z) >> ⊗⊗.η (w , ⊗.obj (x , y) , z)
+              >> ⊗.arr $E (id w , ⊗⊗.η (x , y , z))
+            ≈ ⊗⊗.η (⊗.obj (w , x) , y , z) >> ⊗⊗.η (w , x , ⊗.obj (y , z))
 
     idPF : Profunctor C C
     idPF = swapF >>F homF C
@@ -824,6 +827,45 @@ module Lib.Category where
         isPromonoidal : IsPromonoidal J P
         comm : ∀ {a b c} → P.obj ((a , b) , c) →E P.obj ((b , a) , c)
       open IsPromonoidal isPromonoidal public
+
+  record MonoidalCategory o a e : Set (lsuc (o ⊔ a ⊔ e)) where
+    field
+      C : Category o a e
+    open Category C public
+    field
+      I : Obj
+      ⊗ : Functor (C ×C C) C
+      isMonoidal : IsMonoidal C I ⊗
+    module ⊗ = Functor ⊗
+    open IsMonoidal isMonoidal public
+
+  module _ {o oh ah eh : Level} (V : MonoidalCategory oh ah eh) where
+    private module V = MonoidalCategory V
+
+    record IsEnrichedCategory (Obj : Set o) (Arr : (A B : Obj) → V.Obj)
+                              : Set (o ⊔ oh ⊔ ah ⊔ eh) where
+      field
+        id : ∀ A → V.I V.=> Arr A A
+        >> : ∀ {A B C} → V.⊗.obj (Arr A B , Arr B C) V.=> Arr A C
+
+        id->> : ∀ {A B : Obj} →
+                V.⊗.arr $E (id A , V.id (Arr A B)) V.>> >> V.≈ V.I⊗.η (Arr A B)
+        >>-id : ∀ {A B : Obj} →
+                V.⊗.arr $E (V.id (Arr A B) , id B) V.>> >> V.≈ V.⊗I.η (Arr A B)
+        >>->> : ∀ {A B C D : Obj} →
+                V.⊗.arr $E (>> , V.id (Arr C D)) V.>> >>
+                  V.≈ V.⊗⊗.η (Arr A B , Arr B C , Arr C D)
+                      V.>> V.⊗.arr $E ((V.id (Arr A B)) , >>) V.>> >>
+
+  record EnrichedCategory o {oh ah eh} (V : MonoidalCategory oh ah eh)
+                          : Set (lsuc o ⊔ oh ⊔ ah ⊔ eh) where
+    module V = MonoidalCategory V
+    field
+      Obj : Set o
+      Arr : (A B : Obj) → V.Obj
+      isEnrichedCategory : IsEnrichedCategory V Obj Arr
+
+    open IsEnrichedCategory isEnrichedCategory public
 
   REL : ∀ {a e} (A : Setoid a e) l → Category (a ⊔ lsuc l) _ _
   REL A l = record
