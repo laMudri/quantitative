@@ -15,6 +15,9 @@ module Lib.Setoid where
       sym : ∀ {x y} → x ≈ y → y ≈ x
       trans : ∀ {x y z} → x ≈ y → y ≈ z → x ≈ z
 
+    ≡⇒≈ : ∀ {x y} → x ≡ y → x ≈ y
+    ≡⇒≈ ≡-refl = refl
+
   record SetoidOver {c} (C : Set c) l : Set (c ⊔ lsuc l) where
     infix 4 _≈_
     field
@@ -121,7 +124,7 @@ module Lib.Setoid where
          : Set (a ⊔ b ⊔ l ⊔ m) where
     private
       module A = Setoid A ; module B = SetoidI B
-    infixl 6 _$E_ _$E=_
+    infixl 20 _$E_ _$E=_
     field
       _$E_ : (x : A.C) → B.C x
       _$E=_ : ∀ {x y} → x A.≈ y → _$E_ x B.≈ _$E_ y
@@ -174,6 +177,13 @@ module Lib.Setoid where
                  [ A , C ] (f >>E g) ≈ (f′ >>E g′)
     ff >>E-cong gg = λ xx → gg (ff xx)
 
+  precomposeE : ∀ {a a′ b l l′ m} {A : Setoid a l} {A′ : Setoid a′ l′} {B : Setoid b m} →
+                A →E A′ → (A′ →S B) →E (A →S B)
+  precomposeE f = record
+    { _$E_ = λ g → f >>E g
+    ; _$E=_ = λ gg xx → gg (f $E= xx)
+    }
+
   constE : ∀ {a b l m} {A : Setoid a l} {B : Setoid b m} →
            A →E (B →S A)
   constE {A = A} {B} = record
@@ -188,15 +198,16 @@ module Lib.Setoid where
          (A → B) → (record { C = A ; setoidOver = setoidOver } →E ⊤-Setoid B)
   →E-⊤ setoidOver f = record { _$E_ = f ; _$E=_ = λ _ → <> }
 
-  ≡-→E : ∀ {a b l} {A : Set a} {B : Set b} (setoidOver : SetoidOver B l) →
+  ≡-→E : ∀ {a b l} {A : Set a} {B : Set b} {setoidOver : SetoidOver B l} →
          (A → B) → (≡-Setoid A →E record { C = B ; setoidOver = setoidOver })
-  ≡-→E setoidOver f = record { _$E_ = f ; _$E=_ = λ { ≡-refl → refl } }
+  ≡-→E {setoidOver = setoidOver} f =
+    record { _$E_ = f ; _$E=_ = λ { ≡-refl → refl } }
     where open SetoidOver setoidOver
 
   infix 4 _≡E_
   _≡E_ : ∀ {a b} {A : Set a} {B : Set b} (f g : A → B) → Set _
   _≡E_ {A = A} {B} f g =
-    let open Setoid (≡-Setoid A →S ≡-Setoid B) in ≡-→E _ f ≈ ≡-→E _ g
+    let open Setoid (≡-Setoid A →S ≡-Setoid B) in ≡-→E f ≈ ≡-→E g
 
   -- Pairs
 
@@ -238,6 +249,12 @@ module Lib.Setoid where
     ; _$E=_ = λ xx yy → xx , yy
     }
     where module A = Setoid A ; module B = Setoid B
+
+  dupE : ∀ {a l} {A : Setoid a l} → A →E (A ×S A)
+  dupE {A = A} = record
+    { _$E_ = λ x → x , x
+    ; _$E=_ = λ xx → xx , xx
+    }
 
   map×S : ∀ {a a′ b b′ l l′ m m′}
           {A : Setoid a l} {A′ : Setoid a′ l′}
@@ -340,6 +357,33 @@ module Lib.Setoid where
       }
     }
     where open Setoid S
+
+  -- Propositions and logic
+
+  Prop : ∀ l → Setoid (lsuc l) l
+  Prop l = record
+    { C = Set l
+    ; setoidOver = record
+      { _≈_ = λ A B → (A → B) × (B → A)
+      ; isSetoid = record
+        { refl = λ {A} → id , id
+        ; sym = λ { (f , g) → g , f }
+        ; trans = λ { (f , g) (f′ , g′) → f′ o f , g o g′ }
+        }
+      }
+    }
+
+  ∨S : ∀ {l m} → Prop l ×S Prop m →E Prop (l ⊔ m)
+  ∨S = record
+    { _$E_ = uncurry _⊎_
+    ; _$E=_ = uncurry λ xx yy → map⊎ (fst xx) (fst yy) , map⊎ (snd xx) (snd yy)
+    }
+
+  ∧S : ∀ {l m} → Prop l ×S Prop m →E Prop (l ⊔ m)
+  ∧S = record
+    { _$E_ = uncurry _×_
+    ; _$E=_ = uncurry λ xx yy → map× (fst xx) (fst yy) , map× (snd xx) (snd yy)
+    }
 
   module SetoidReasoning {a l} (S : Setoid a l) where
     open Setoid S

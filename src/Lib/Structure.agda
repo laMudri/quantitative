@@ -178,6 +178,10 @@ module Lib.Structure {c l} (S : Setoid c l) where
     *-monoid : Monoid
     *-monoid = record { isMonoid = *-isMonoid }
 
+    plus mult : S ×S S →E S
+    plus = record { _$E_ = uncurry _+_ ; _$E=_ = uncurry _+-cong_ }
+    mult = record { _$E_ = uncurry _*_ ; _$E=_ = uncurry _*-cong_ }
+
   -- Mixing order and structure
 
   record IsPomonoid {l′} (≤ : Rel l′) (e : C) (· : Op2) : Set (c ⊔ l ⊔ l′) where
