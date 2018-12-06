@@ -177,11 +177,20 @@ module Lib.Setoid where
                  [ A , C ] (f >>E g) ≈ (f′ >>E g′)
     ff >>E-cong gg = λ xx → gg (ff xx)
 
-  precomposeE : ∀ {a a′ b l l′ m} {A : Setoid a l} {A′ : Setoid a′ l′} {B : Setoid b m} →
-                A →E A′ → (A′ →S B) →E (A →S B)
+  precomposeE :
+    ∀ {a a′ b l l′ m} {A : Setoid a l} {A′ : Setoid a′ l′} {B : Setoid b m} →
+    A →E A′ → (A′ →S B) →E (A →S B)
   precomposeE f = record
     { _$E_ = λ g → f >>E g
     ; _$E=_ = λ gg xx → gg (f $E= xx)
+    }
+
+  postcomposeE :
+    ∀ {a b b′ l m m′} {A : Setoid a l} {B : Setoid b m} {B′ : Setoid b′ m′} →
+    B →E B′ → (A →S B) →E (A →S B′)
+  postcomposeE f = record
+    { _$E_ = λ g → g >>E f
+    ; _$E=_ = λ gg xx → f $E= gg xx
     }
 
   constE : ∀ {a b l m} {A : Setoid a l} {B : Setoid b m} →

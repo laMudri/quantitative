@@ -17,11 +17,17 @@ module Lib.Thinning where
   ≤-refl zero = oz
   ≤-refl (succ m) = os (≤-refl m)
 
+  oe : ∀ {m} → m ≤ m
+  oe = ≤-refl _
+
   z≤ : ∀ n → zero ≤ n
   z≤ zero = oz
   z≤ (succ x) = o′ (z≤ x)
 
-  <⇒≤ : ∀ {x y} → succ x ≤ y → x ≤ y
+  _<_ : (x y : Nat) → Set
+  x < y = succ x ≤ y
+
+  <⇒≤ : ∀ {x y} → x < y → x ≤ y
   <⇒≤ (os th) = o′ th
   <⇒≤ (o′ th) = o′ (<⇒≤ th)
 
@@ -32,6 +38,29 @@ module Lib.Thinning where
   z≤-unique : ∀ {n} (th th′ : zero ≤ n) → th ≡ th′
   z≤-unique oz oz = refl
   z≤-unique (o′ th) (o′ th′) = cong o′ (z≤-unique th th′)
+
+  <s : ∀ n → n < succ n
+  <s n = ≤-refl (succ n)
+
+  k+>⇒≰ : ∀ {m n} k → k +N n < m → m ≤ n → Zero
+  k+>⇒≰ k () oz
+  k+>⇒≰ {succ m} {succ n} k lt (os le) = k+>⇒≰ k (op lt′) le
+    where
+    lt′ : succ (k +N n) < succ m
+    lt′ rewrite +N-succ k n = lt
+  k+>⇒≰ {m} {succ n} k lt (o′ le) = k+>⇒≰ (succ k) lt′ le
+    where
+    lt′ : succ (k +N n) < m
+    lt′ rewrite +N-succ k n = lt
+
+  >⇒≰ : ∀ {m n} → n < m → m ≤ n → Zero
+  >⇒≰ = k+>⇒≰ 0
+
+  oe-unique : ∀ {n} (th ph : n ≤ n) → th ≡ ph
+  oe-unique {zero} oz oz = refl
+  oe-unique {succ n} (os th) (os ph) = cong os (oe-unique th ph)
+  oe-unique {succ n} (os th) (o′ ph) = Zero-elim (>⇒≰ (<s n) ph)
+  oe-unique {succ n} (o′ th) ph = Zero-elim (>⇒≰ (<s n) th)
 
   osInj : ∀ {m n} {th th′ : m ≤ n} → os th ≡ os th′ → th ≡ th′
   osInj refl = refl
@@ -50,11 +79,25 @@ module Lib.Thinning where
   succ x ≤? zero = no λ ()
   succ x ≤? succ y = mapDec os op (x ≤? y)
 
-  _<_ : (x y : Nat) → Set
-  x < y = succ x ≤ y
-
   _<?_ : ∀ x y → Dec (x < y)
   x <? y = succ x ≤? y
+
+  infixr 5 _≤-comp_
+  _≤-comp_ : ∀ {m n o} → m ≤ n → n ≤ o → m ≤ o
+  th ≤-comp oz = th
+  os th ≤-comp os ph = os (th ≤-comp ph)
+  o′ th ≤-comp os ph = o′ (th ≤-comp ph)
+  th ≤-comp o′ ph = o′ (th ≤-comp ph)
+
+  comp-oe : ∀ {m n} (mn : m ≤ n) → mn ≤-comp oe ≡ mn
+  comp-oe {n = zero} mn = refl
+  comp-oe {n = succ n} (os mn) = cong os (comp-oe mn)
+  comp-oe {n = succ n} (o′ mn) = cong o′ (comp-oe mn)
+
+  oe-comp : ∀ {m n} (mn : m ≤ n) → oe ≤-comp mn ≡ mn
+  oe-comp oz = refl
+  oe-comp {m = .(succ _)} (os mn) = cong os (oe-comp mn)
+  oe-comp (o′ mn) = cong o′ (oe-comp mn)
 
   Fin : Nat → Set
   Fin n = 1 ≤ n

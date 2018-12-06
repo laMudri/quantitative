@@ -11,16 +11,26 @@ module Quantitative.Resources.Context
   open import Lib.Module
   open import Lib.Nat
   open import Lib.Product hiding (assoc)
+  open import Lib.Structure.Sugar
   open import Lib.Thinning as Θ hiding (_≤_; ≤-refl)
   open import Lib.Vec
   open import Lib.VZip
 
   module R = Posemiring POS
 
+  open import Lib.Matrix.Setoid (≡-Setoid C)
+  open import Lib.Matrix.Poset (record { poset = R.poset })
+  open import Lib.Matrix.Addition
+    (record { commutativeMonoid = R.+-commutativeMonoid })
+  open import Lib.Matrix.Addition.Order
+    (record { commutativePomonoid = R.+-commutativePomonoid })
+  open import Lib.Matrix.Multiplication (record { semiring = R.semiring })
+  open import Lib.Matrix.VecCompat (≡-Setoid C)
+
   -- Resource contexts
 
   RCtx : Nat → Set c
-  RCtx = Vec {c} C
+  RCtx n = Mat (n , 1)
 
   infix 4 _≈_ _≤_
 
@@ -28,151 +38,34 @@ module Quantitative.Resources.Context
     -- Equality of contexts
 
     _≈_ : ∀ {n} (Δ′ Δ : RCtx n) → Set _
-    _≈_ = VZip _≡_
-
-    ≈-refl : ∀ {n} (Δ : RCtx n) → Δ ≈ Δ
-    ≈-refl nil = nil
-    ≈-refl (p :: Δ) = refl :: ≈-refl Δ
-
-    ≈-sym : ∀ {n} {Δ′ Δ : RCtx n} → Δ′ ≈ Δ → Δ ≈ Δ′
-    ≈-sym nil = nil
-    ≈-sym (r :: rs) = sym r :: ≈-sym rs
-
-    ≈-trans : ∀ {n} {Δ Δ′ Δ″ : RCtx n} → Δ ≈ Δ′ → Δ′ ≈ Δ″ → Δ ≈ Δ″
-    ≈-trans nil nil = nil
-    ≈-trans (xy :: xys) (yz :: yzs) = trans xy yz :: ≈-trans xys yzs
+    Δ′ ≈ Δ = Δ′ ≈M Δ
 
     -- Reasoning syntax for _≈_
     infixr 1 _≈[_]Δ_
     infixr 2 _≈Δ-QED
 
     _≈[_]Δ_ : ∀ {n} Δ {Δ′ Δ″ : RCtx n} → Δ ≈ Δ′ → Δ′ ≈ Δ″ → Δ ≈ Δ″
-    Δ ≈[ xy ]Δ yz = ≈-trans xy yz
+    _≈[_]Δ_ Δ {Δ′} {Δ″} xy yz = transM {x = Δ} {y = Δ′} {z = Δ″} xy yz
 
     _≈Δ-QED : ∀ {n} (Δ : RCtx n) → Δ ≈ Δ
-    Δ ≈Δ-QED = ≈-refl Δ
+    Δ ≈Δ-QED = reflM {x = Δ}
 
     -- Pointwise order on contexts
 
     _≤_ : ∀ {n} (Δ′ Δ : RCtx n) → Set _
-    _≤_ = VZip R._≤_
-
-    ≤-refl : ∀ {n} (Δ : RCtx n) → Δ ≤ Δ
-    ≤-refl nil = nil
-    ≤-refl (p :: Δ) = R.≤-refl :: ≤-refl Δ
-
-    ≤-reflexive : ∀ {n} {Δ0 Δ1 : RCtx n} → Δ0 ≈ Δ1 → Δ0 ≤ Δ1
-    ≤-reflexive nil = nil
-    ≤-reflexive (eq :: eqs) = R.≤-reflexive eq :: ≤-reflexive eqs
-
-    ≤-trans : ∀ {n} {Δ0 Δ1 Δ2 : RCtx n} → Δ0 ≤ Δ1 → Δ1 ≤ Δ2 → Δ0 ≤ Δ2
-    ≤-trans nil nil = nil
-    ≤-trans (le01 :: sub01) (le12 :: sub12) = R.≤-trans le01 le12 :: ≤-trans sub01 sub12
+    Δ′ ≤ Δ = Δ′ ≤M Δ
 
     -- Reasoning syntax for _≤_
     infixr 1 _≤[_]Δ_
     infixr 2 _≤Δ-QED
 
     _≤[_]Δ_ : ∀ {n} Δ {Δ′ Δ″ : RCtx n} → Δ ≤ Δ′ → Δ′ ≤ Δ″ → Δ ≤ Δ″
-    Δ ≤[ xy ]Δ yz = ≤-trans xy yz
+    _≤[_]Δ_ Δ {Δ′} {Δ″} xy yz = ≤M-trans {x = Δ} {y = Δ′} {z = Δ″} xy yz
 
     _≤Δ-QED : ∀ {n} (Δ : RCtx n) → Δ ≤ Δ
-    Δ ≤Δ-QED = ≤-refl Δ
+    Δ ≤Δ-QED = ≤M-refl {x = Δ}
 
-    -- Operations for building contexts
-
-    infixl 6 _+Δ_ _+Δ-mono_ _+Δ-cong_
-    infixl 7 _*Δ_ _*Δ-mono_ _*Δ-cong_
-
-    0Δ 1Δ : ∀ {n} → RCtx n
-    0Δ = replicateVec _ R.e0
-    1Δ = replicateVec _ R.e1
-
-  varRCtx : ∀ {n} → 1 Θ.≤ n → C → RCtx n
-  varRCtx (os th) ρ = ρ :: 0Δ
-  varRCtx (o′ th) ρ = R.e0 :: varRCtx th ρ
-
-  private
-    _+Δ_ : ∀ {n} (Δ0 Δ1 : RCtx n) → RCtx n
-    _+Δ_ = vzip R._+_
-
-    _*Δ_ : ∀ {n} → C → RCtx n → RCtx n
-    _*Δ_ ρ = vmap (ρ R.*_)
-
-    -- Properties about those operations
-
-    _+Δ-cong_ : ∀ {n} {Δ0 Δ0′ Δ1 Δ1′ : RCtx n} →
-                Δ0 ≈ Δ0′ → Δ1 ≈ Δ1′ → Δ0 +Δ Δ1 ≈ Δ0′ +Δ Δ1′
-    nil +Δ-cong nil = nil
-    (eq0 :: eqs0) +Δ-cong (eq1 :: eqs1) = (eq0 R.+-cong eq1) :: eqs0 +Δ-cong eqs1
-
-    _+Δ-mono_ : ∀ {n} {Δ0 Δ0′ Δ1 Δ1′ : RCtx n} →
-                Δ0 ≤ Δ0′ → Δ1 ≤ Δ1′ → Δ0 +Δ Δ1 ≤ Δ0′ +Δ Δ1′
-    nil +Δ-mono nil = nil
-    (le0 :: sub0) +Δ-mono (le1 :: sub1) = le0 R.+-mono le1 :: sub0 +Δ-mono sub1
-
-    _*Δ-cong_ : ∀ {n ρ ρ′} {Δ Δ′ : RCtx n} →
-                ρ ≡ ρ′ → Δ ≈ Δ′ → ρ *Δ Δ ≈ ρ′ *Δ Δ′
-    eq *Δ-cong nil = nil
-    eq *Δ-cong (eqΔ :: eqs) = (eq R.*-cong eqΔ) :: eq *Δ-cong eqs
-
-    _*Δ-mono_ : ∀ {n ρ ρ′} {Δ Δ′ : RCtx n} →
-                ρ R.≤ ρ′ → Δ ≤ Δ′ → ρ *Δ Δ ≤ ρ′ *Δ Δ′
-    le *Δ-mono nil = nil
-    le *Δ-mono (leΔ :: sub) = le R.*-mono leΔ :: le *Δ-mono sub
-
-    +Δ-identity : (∀ {n} Δ → 0Δ {n} +Δ Δ ≈ Δ)
-                × (∀ {n} Δ → Δ +Δ 0Δ {n} ≈ Δ)
-    fst +Δ-identity = go
-      where
-      go : ∀ {n} Δ → 0Δ {n} +Δ Δ ≈ Δ
-      go nil = nil
-      go (p :: Δ) = fst R.+-identity p :: go Δ
-    snd +Δ-identity = go
-      where
-      go : ∀ {n} Δ → Δ +Δ 0Δ {n} ≈ Δ
-      go nil = nil
-      go (p :: Δ) = snd R.+-identity p :: go Δ
-
-    +Δ-comm : ∀ {n} (Δ Δ′ : RCtx n) → Δ +Δ Δ′ ≈ Δ′ +Δ Δ
-    +Δ-comm nil nil = nil
-    +Δ-comm (p :: Δ) (p′ :: Δ′) = R.+-comm p p′ :: +Δ-comm Δ Δ′
-
-    +Δ-assoc : ∀ {n} (Δ Δ′ Δ″ : RCtx n) →
-               (Δ +Δ Δ′) +Δ Δ″ ≈ Δ +Δ (Δ′ +Δ Δ″)
-    +Δ-assoc nil nil nil = nil
-    +Δ-assoc (p :: Δ) (p′ :: Δ′) (p″ :: Δ″) = R.+-assoc p p′ p″ :: +Δ-assoc Δ Δ′ Δ″
-
-    *Δ-identity : (∀ {n} (Δ : RCtx n) → R.e1 *Δ Δ ≈ Δ)
-                × (∀ {n} ρ → ρ *Δ replicateVec n R.e1 ≈ replicateVec n ρ)
-    fst *Δ-identity nil = nil
-    fst *Δ-identity (p :: Δ) = fst R.*-identity p :: fst *Δ-identity Δ
-
-    snd *Δ-identity {zero} ρ = nil
-    snd *Δ-identity {succ n} ρ = snd R.*-identity ρ :: snd *Δ-identity {n} ρ
-
-    e0*Δ : ∀ {n} Δ → R.e0 *Δ Δ ≈ 0Δ {n}
-    e0*Δ nil = nil
-    e0*Δ (p :: Δ) = snd R.annihil p :: e0*Δ Δ
-
-    *Δempty : ∀ {n} ρ → ρ *Δ 0Δ ≈ 0Δ {n}
-    *Δempty ρ =
-      ρ *Δ replicateVec _ R.e0     ≈[ vmap-replicateVec (ρ R.*_) _ R.e0 ]Δ
-      replicateVec _ (ρ R.* R.e0)  ≈[ replicateVZip _ (fst R.annihil ρ) ]Δ
-      replicateVec _ R.e0            ≈Δ-QED
-
-    *Δ-distrib-+ : ∀ {n} (Δ : RCtx n) (ρ ρ′ : C) →
-                   (ρ R.+ ρ′) *Δ Δ ≈ ρ *Δ Δ +Δ ρ′ *Δ Δ
-    *Δ-distrib-+ nil ρ ρ′ = nil
-    *Δ-distrib-+ (p :: Δ) ρ ρ′ =
-      snd R.distrib p ρ ρ′ :: *Δ-distrib-+ Δ ρ ρ′
-
-    *Δ-distrib-+Δ : ∀ {n} (ρ : C) (Δ Δ′ : RCtx n) →
-                    ρ *Δ (Δ +Δ Δ′) ≈ ρ *Δ Δ +Δ ρ *Δ Δ′
-    *Δ-distrib-+Δ ρ nil nil = nil
-    *Δ-distrib-+Δ ρ (p :: Δ) (p′ :: Δ′) =
-      fst R.distrib ρ p p′ :: *Δ-distrib-+Δ ρ Δ Δ′
-
+  {-
   RCtx-setoid : Nat → Setoid _ _
   RCtx-setoid n = record
     { C = RCtx n
@@ -286,6 +179,7 @@ module Quantitative.Resources.Context
 
     _≤[_]_ = _≤[_]Δ_ {n}
     _≤-QED = _≤Δ-QED {n}
+  -}
 
   --module ≈Δ-Reasoning where
 

@@ -21,17 +21,6 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
   open import Lib.Thinning
   open import Lib.Two
 
-  private
-    module Add (mn : Nat × Nat) = ΣCommutativeMonoid (MatCM mn)
-      using ()
-      renaming ( e to 0M; _·_ to _+M_; identity to +M-identity; assoc to +M-assoc
-               ; _·-cong_ to _+M-cong_; comm to +M-comm
-               )
-    module AddI {mn : Nat × Nat} = Add mn
-
-  open Add using (0M)
-  open AddI using (_+M_)
-
   sum : ∀ {n} → (≡-Setoid (Fin n) →S Carrier) →E Carrier
   sum {zero} = constE $E e0
   sum {succ n} = < < idE _ , constE $E zeroth >S >>E uncurryS (idE _)
@@ -102,15 +91,19 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
     f : _ → _ → _
     f M N = ≡-→E (λ { (i , k) → ≡-→E λ j → (M $E (i , j)) * (N $E (j , k)) })
 
+  infixr 7 _*M_
+  _*M_ : ∀ {m n o} → Mat (m , n) → Mat (n , o) → Mat (m , o)
+  M *M N = multM $E (M , N)
+
   -- Properties
 
-  multM-identity : (∀ {mn} (N : Mat mn) → multM $E (1M _ , N) ≈M N)
-                 × (∀ {mn} (M : Mat mn) → multM $E (M , 1M _) ≈M M)
+  multM-identity : (∀ {mn} (N : Mat mn) → 1M _ *M N ≈M N)
+                 × (∀ {mn} (M : Mat mn) → M *M 1M _ ≈M M)
   multM-identity = li , ri
     where
     open SetoidReasoning Carrier
 
-    li : ∀ {mn} (N : Mat mn) → multM $E (1M _ , N) ≈M N
+    li : ∀ {mn} (N : Mat mn) → 1M _ *M N ≈M N
     li {succ m , n} N {os i , k} ≡.refl =
       multM $E (1M _ , N) $E (os i , k)  ≈[ refl ]≈
       indic (floor (mapDec _ _ (i ≟th z≤ m))) * N $E (zeroth , k)
@@ -145,13 +138,13 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
             ≈[ sum {m} $E= (λ { {j} ≡.refl →
               ≡⇒≈ (≡.cong indic (floor-mapDec _ _ _)) *-cong refl }) ]≈
           (sum $E ≡-→E λ j → indic (floor (i ≟th j)) * N $E (o′ j , k))
-            ≈[ li (remove-col $E N) {i , k} ≡.refl ]≈
+            ≈[ li (remove-row $E N) {i , k} ≡.refl ]≈
           N $E (o′ i , k)  QED)
         ]≈
       e0 + N $E (o′ i , k)  ≈[ fst +-identity _ ]≈
       N $E (o′ i , k)  QED
 
-    ri : ∀ {mn} (M : Mat mn) → multM $E (M , 1M _) ≈M M
+    ri : ∀ {mn} (M : Mat mn) → M *M 1M _ ≈M M
     ri {m , succ n} M {i , os k} ≡.refl =
       multM $E (M , 1M _) $E (i , os k)  ≈[ refl ]≈
       M $E (i , zeroth) * indic (floor (mapDec _ _ (z≤ n ≟th k)))
@@ -187,7 +180,7 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
             ≈[ (sum {n} $E= λ { {j} ≡.refl →
                refl *-cong ≡⇒≈ (≡.cong indic (floor-mapDec _ _ _)) }) ]≈
           (sum $E ≡-→E λ j → M $E (i , o′ j) * indic (floor (j ≟th k)))
-            ≈[ ri (remove-row $E M) {i , k} ≡.refl ]≈
+            ≈[ ri (remove-col $E M) {i , k} ≡.refl ]≈
           M $E (i , o′ k)  QED)
         ]≈
       e0 + M $E (i , o′ k)  ≈[ fst +-identity _ ]≈
@@ -195,7 +188,7 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
 
   multM-assoc :
     ∀ {m n o p} (M : Mat (m , n)) (N : Mat (n , o)) (O : Mat (o , p)) →
-    multM $E (multM $E (M , N) , O) ≈M multM $E (M , multM $E (N , O))
+    (M *M N) *M O ≈M M *M (N *M O)
   multM-assoc {m} {n} {o} {p} M N O {i , l} ≡.refl =
     (sum $E ≡-→E λ k → (sum $E ≡-→E λ j → M $E (i , j) * N $E (j , k)) * O $E (k , l))
       ≈[ (sum {o} $E= λ { {k} ≡.refl → sum-* (≡-→E λ j → M $E (i , j) * N $E (j , k)) (O $E (k , l)) }) ]≈
@@ -215,9 +208,9 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
   -- Interaction between addition and multiplication
 
   annihilM :
-    (∀ {m n o} (M : Mat (m , n)) → multM $E (M , 0M (n , o)) ≈M 0M (m , o))
+    (∀ {m n o} (M : Mat (m , n)) → M *M 0M {n , o} ≈M 0M {m , o})
     ×
-    (∀ {m n o} (N : Mat (n , o)) → multM $E (0M (m , n) , N) ≈M 0M (m , o))
+    (∀ {m n o} (N : Mat (n , o)) → 0M {m , n} *M N ≈M 0M {m , o})
   annihilM .fst {m} {n} {o} M {i , k} ≡.refl =
     trans (sum {n} $E= (λ { {j} ≡.refl → annihil .fst (M $E (i , j)) }))
           (sum-e0 n)
@@ -227,10 +220,10 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
 
   distribM :
     (∀ {m n o} (M : Mat (m , n)) (N O : Mat (n , o)) →
-     multM $E (M , N +M O) ≈M multM $E (M , N) +M multM $E (M , O))
+     M *M (N +M O) ≈M M *M N +M M *M O)
     ×
     (∀ {m n o} (M : Mat (n , o)) (N O : Mat (m , n)) →
-     multM $E (N +M O , M) ≈M multM $E (N , M) +M multM $E (O , M))
+     (N +M O) *M M ≈M N *M M +M O *M M)
   distribM .fst {m} {n} {o} M N O {i , k} ≡.refl =
     trans (sum {n} $E= (λ { {j} ≡.refl → distrib .fst _ _ _ }))
           (sum-+ {n} _ _)

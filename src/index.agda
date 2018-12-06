@@ -21,6 +21,7 @@ module index where
   import Lib.Relation
   import Lib.Relation.Propositional
   import Lib.Category
+  import Lib.Category.Examples
 
   import Quantitative.Syntax
   import Quantitative.Syntax.Direction

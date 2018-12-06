@@ -29,3 +29,11 @@ module Lib.Nat where
   zero ≟Nat succ n = no (λ ())
   succ m ≟Nat zero = no (λ ())
   succ m ≟Nat succ n = mapDec (cong succ) succInj (m ≟Nat n)
+
+  +N-assoc : ∀ m n o → (m +N n) +N o ≡ m +N (n +N o)
+  +N-assoc zero n o = refl
+  +N-assoc (succ x) n o = cong succ (+N-assoc x n o)
+
+  +N-comm : ∀ m n → m +N n ≡ n +N m
+  +N-comm m zero = +N-zero m
+  +N-comm m (succ n) = trans (+N-succ m n) (cong succ (+N-comm m n))

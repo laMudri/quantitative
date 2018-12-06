@@ -10,7 +10,7 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
     module F = Setoid F
 
   record IsSemimodule (0s 1s : S.C) (_+s_ _*s_ : Op2 S)
-                      (0f 1f : F.C) (_+f_ : Op2 F) (_*f_ : S.C → F.C → F.C)
+                      (0f : F.C) (_+f_ : Op2 F) (_*f_ : S.C → F.C → F.C)
                       : Set (cs ⊔ cf ⊔ ls ⊔ lf) where
     infixr 7 _*f-cong_
     field
@@ -43,10 +43,10 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
     field
       0s 1s : S.C
       _+s_ _*s_ : Op2 S
-      0f 1f : F.C
+      0f : F.C
       _+f_ : Op2 F
       _*f_ : S.C → F.C → F.C
-      isSemimodule : IsSemimodule 0s 1s _+s_ _*s_ 0f 1f _+f_ _*f_
+      isSemimodule : IsSemimodule 0s 1s _+s_ _*s_ 0f _+f_ _*f_
     open IsSemimodule isSemimodule public
 
     +*s-semiring : Semiring S
@@ -64,7 +64,7 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
 
   record IsPosemimodule {l′s l′f} (≤s : Rel S l′s) (≤f : Rel F l′f)
                         (0s 1s : S.C) (+s *s : Op2 S)
-                        (0f 1f : F.C) (+f : Op2 F) (*f : S.C → F.C → F.C)
+                        (0f : F.C) (+f : Op2 F) (*f : S.C → F.C → F.C)
                         : Set (cs ⊔ cf ⊔ ls ⊔ lf ⊔ l′s ⊔ l′f) where
     infixr 6 _+s-mono_ _+f-mono_
     infixr 7 _*s-mono_ _*f-mono_
@@ -75,7 +75,7 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
       _*f-mono_ : ∀ {x x′ y y′} → ≤s x x′ → ≤f y y′ → ≤f (*f x y) (*f x′ y′)
       ≤s-isPoset : IsPoset S ≤s
       ≤f-isPoset : IsPoset F ≤f
-      isSemimodule : IsSemimodule 0s 1s +s *s 0f 1f +f *f
+      isSemimodule : IsSemimodule 0s 1s +s *s 0f +f *f
     open IsPoset ≤s-isPoset public
       renaming (antisym to ≤s-antisym; isPreorder to ≤s-isPreorder;
                 ≤-reflexive to ≤s-reflexive; ≤-trans to ≤s-trans;
@@ -95,10 +95,10 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
       _≤f_ : Rel F l′f
       0s 1s : S.C
       _+s_ _*s_ : Op2 S
-      0f 1f : F.C
+      0f : F.C
       _+f_ : Op2 F
       _*f_ : S.C → F.C → F.C
-      isPosemimodule : IsPosemimodule _≤s_ _≤f_ 0s 1s _+s_ _*s_ 0f 1f _+f_ _*f_
+      isPosemimodule : IsPosemimodule _≤s_ _≤f_ 0s 1s _+s_ _*s_ 0f _+f_ _*f_
     open IsPosemimodule isPosemimodule public
 
     ≤+*s-posemiring : Posemiring S l′s
@@ -121,12 +121,12 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
          {l′s l′f} (≤s : Rel S l′s) (∧s : Op2 S)
          (≤f : Rel F l′f) (∧f : Op2 F)
          (0s 1s : S.C) (+s *s : Op2 S)
-         (0f 1f : F.C) (+f : Op2 F) (*f : S.C → F.C → F.C)
+         (0f : F.C) (+f : Op2 F) (*f : S.C → F.C → F.C)
          : Set (cs ⊔ cf ⊔ ls ⊔ lf ⊔ l′s ⊔ l′f) where
     field
       ∧s-isMeetSemilattice : IsMeetSemilattice S ≤s ∧s
       ∧f-isMeetSemilattice : IsMeetSemilattice F ≤f ∧f
-      isPosemimodule : IsPosemimodule ≤s ≤f 0s 1s +s *s 0f 1f +f *f
+      isPosemimodule : IsPosemimodule ≤s ≤f 0s 1s +s *s 0f +f *f
     open IsPosemimodule isPosemimodule public
 
     open IsMeetSemilattice ∧s-isMeetSemilattice public
@@ -150,12 +150,12 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
       _∧f_ : Op2 F
       0s 1s : S.C
       _+s_ _*s_ : Op2 S
-      0f 1f : F.C
+      0f : F.C
       _+f_ : Op2 F
       _*f_ : S.C → F.C → F.C
       isMeetSemilatticeSemimodule :
         IsMeetSemilatticeSemimodule _≤s_ _∧s_ _≤f_ _∧f_
-                                    0s 1s _+s_ _*s_ 0f 1f _+f_ _*f_
+                                    0s 1s _+s_ _*s_ 0f _+f_ _*f_
     open IsMeetSemilatticeSemimodule isMeetSemilatticeSemimodule public
 
     posemimodule : Posemimodule l′s l′f
@@ -174,12 +174,12 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
          {l′s l′f} (≤s : Rel S l′s) (∧s : Op2 S)
          (≤f : Rel F l′f) (∧f : Op2 F)
          (0s 1s ⊤s : S.C) (+s *s : Op2 S)
-         (0f 1f ⊤f : F.C) (+f : Op2 F) (*f : S.C → F.C → F.C)
+         (0f ⊤f : F.C) (+f : Op2 F) (*f : S.C → F.C → F.C)
          : Set (cs ⊔ cf ⊔ ls ⊔ lf ⊔ l′s ⊔ l′f) where
     field
       ∧s-isToppedMeetSemilattice : IsToppedMeetSemilattice S ≤s ⊤s ∧s
       ∧f-isToppedMeetSemilattice : IsToppedMeetSemilattice F ≤f ⊤f ∧f
-      isPosemimodule : IsPosemimodule ≤s ≤f 0s 1s +s *s 0f 1f +f *f
+      isPosemimodule : IsPosemimodule ≤s ≤f 0s 1s +s *s 0f +f *f
     open IsPosemimodule isPosemimodule public
 
     open IsToppedMeetSemilattice ∧s-isToppedMeetSemilattice public
@@ -195,7 +195,7 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
                 isMeetSemilattice to ∧f-isMeetSemilattice)
 
     isMeetSemilatticeSemimodule :
-      IsMeetSemilatticeSemimodule ≤s ∧s ≤f ∧f 0s 1s +s *s 0f 1f +f *f
+      IsMeetSemilatticeSemimodule ≤s ∧s ≤f ∧f 0s 1s +s *s 0f +f *f
     isMeetSemilatticeSemimodule = record
       { ∧s-isMeetSemilattice = ∧s-isMeetSemilattice
       ; ∧f-isMeetSemilattice = ∧f-isMeetSemilattice
@@ -217,13 +217,13 @@ module Lib.Module {cs cf ls lf} (S : Setoid cs ls) (F : Setoid cf lf) where
       _∧f_ : Op2 F
       0s 1s ⊤s : S.C
       _+s_ _*s_ : Op2 S
-      0f 1f ⊤f : F.C
+      0f ⊤f : F.C
       _+f_ : Op2 F
       _*f_ : S.C → F.C → F.C
       isToppedMeetSemilatticeSemimodule :
         IsToppedMeetSemilatticeSemimodule _≤s_ _∧s_ _≤f_ _∧f_
                                           0s 1s ⊤s _+s_ _*s_
-                                          0f 1f ⊤f _+f_ _*f_
+                                          0f ⊤f _+f_ _*f_
     open IsToppedMeetSemilatticeSemimodule isToppedMeetSemilatticeSemimodule public
 
     meetSemilatticeSemimodule : MeetSemilatticeSemimodule l′s l′f

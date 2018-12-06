@@ -221,6 +221,13 @@ module Lib.Structure {c l} (S : Setoid c l) where
     open IsPoset isPoset public
     open IsCommutativeMonoid isCommutativeMonoid public
 
+    isPomonoid : IsPomonoid ≤ e ·
+    isPomonoid = record
+      { _·-mono_ = _·-mono_
+      ; isPoset = isPoset
+      ; isMonoid = isMonoid
+      }
+
   record CommutativePomonoid l′ : Set (c ⊔ l ⊔ lsuc l′) where
     infix 4 _≤_
     infixr 5 _·_
@@ -240,6 +247,9 @@ module Lib.Structure {c l} (S : Setoid c l) where
     commutativeMonoid = record { isCommutativeMonoid = isCommutativeMonoid }
     open CommutativeMonoid commutativeMonoid public
       using (monoid)
+
+    pomonoid : Pomonoid l′
+    pomonoid = record { isPomonoid = isPomonoid }
 
   -- Here so that we can prove that (C, _≤_, ⊤, _∧_) is a commutative pomonoid
   -- (so that we know what a commutative pomonoid is)
@@ -324,6 +334,22 @@ module Lib.Structure {c l} (S : Setoid c l) where
     open IsPoset isPoset public
     open IsSemiring isSemiring public
 
+    +-isCommutativePomonoid : IsCommutativePomonoid ≤ e0 +
+    +-isCommutativePomonoid = record
+      { _·-mono_ = _+-mono_
+      ; isPoset = isPoset
+      ; isCommutativeMonoid = +-isCommutativeMonoid
+      }
+    open IsCommutativePomonoid +-isCommutativePomonoid public using ()
+      renaming (isPomonoid to +-isPomonoid)
+
+    *-isPomonoid : IsPomonoid ≤ e1 *
+    *-isPomonoid = record
+      { _·-mono_ = _*-mono_
+      ; isPoset = isPoset
+      ; isMonoid = *-isMonoid
+      }
+
   record Posemiring l′ : Set (c ⊔ l ⊔ lsuc l′) where
     infix 4 _≤_
     infixr 6 _+_
@@ -344,6 +370,15 @@ module Lib.Structure {c l} (S : Setoid c l) where
     semiring = record { isSemiring = isSemiring }
     open Semiring semiring public
       using (+-monoid; +-commutativeMonoid; *-monoid)
+
+    +-commutativePomonoid : CommutativePomonoid l′
+    +-commutativePomonoid =
+      record { isCommutativePomonoid = +-isCommutativePomonoid }
+    open CommutativePomonoid +-commutativePomonoid public using ()
+      renaming (pomonoid to +-pomonoid)
+
+    *-pomonoid : Pomonoid l′
+    *-pomonoid = record { isPomonoid = *-isPomonoid }
 
   record IsMeetSemilatticeSemiring
            {l′} (≤ : Rel l′) (e0 e1 : C) (+ * _∧_ : Op2)

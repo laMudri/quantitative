@@ -35,3 +35,16 @@ module Lib.Matrix.Addition {c l} (M : ΣCommutativeMonoid c l) where
     where
     _+_ : (M N : Mat mn) → Mat mn
     M + N = ≡-→E λ ij → (M $E ij) · (N $E ij)
+
+  private
+    module Explicit (mn : Nat × Nat) = ΣCommutativeMonoid (MatCM mn)
+    module Implicit {mn : Nat × Nat} = Explicit mn
+
+  open Explicit public using ()
+    renaming (commutativeMonoid to Mat-commutativeMonoid; monoid to Mat-monoid)
+  open Implicit public using ()
+    renaming ( e to 0M; _·_ to _+M_; identity to +M-identity; assoc to +M-assoc
+             ; _·-cong_ to _+M-cong_; comm to +M-comm
+             ; isCommutativeMonoid to isCommutativeMonoidM
+             ; isMonoid to isMonoidM
+             )
