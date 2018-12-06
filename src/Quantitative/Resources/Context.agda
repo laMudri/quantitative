@@ -16,7 +16,9 @@ module Quantitative.Resources.Context
   open import Lib.Vec
   open import Lib.VZip
 
-  module R = Posemiring POS
+  module R where
+    open Posemiring POS public
+    posemiring = POS
 
   open import Lib.Matrix.Setoid (≡-Setoid C)
   open import Lib.Matrix.Poset (record { poset = R.poset })
@@ -32,38 +34,27 @@ module Quantitative.Resources.Context
   RCtx : Nat → Set c
   RCtx n = Mat (n , 1)
 
-  infix 4 _≈_ _≤_
+  -- TODO: RCtx ↦ Mat, maybe in a different module
 
-  private
-    -- Equality of contexts
+  -- Reasoning syntax for _≈M_
+  infixr 1 _≈[_]M_
+  infixr 2 _≈M-QED
 
-    _≈_ : ∀ {n} (Δ′ Δ : RCtx n) → Set _
-    Δ′ ≈ Δ = Δ′ ≈M Δ
+  _≈[_]M_ : ∀ {n} Δ {Δ′ Δ″ : RCtx n} → Δ ≈M Δ′ → Δ′ ≈M Δ″ → Δ ≈M Δ″
+  _≈[_]M_ Δ {Δ′} {Δ″} xy yz = transM {x = Δ} {y = Δ′} {z = Δ″} xy yz
 
-    -- Reasoning syntax for _≈_
-    infixr 1 _≈[_]Δ_
-    infixr 2 _≈Δ-QED
+  _≈M-QED : ∀ {n} (Δ : RCtx n) → Δ ≈M Δ
+  Δ ≈M-QED = reflM {x = Δ}
 
-    _≈[_]Δ_ : ∀ {n} Δ {Δ′ Δ″ : RCtx n} → Δ ≈ Δ′ → Δ′ ≈ Δ″ → Δ ≈ Δ″
-    _≈[_]Δ_ Δ {Δ′} {Δ″} xy yz = transM {x = Δ} {y = Δ′} {z = Δ″} xy yz
+  -- Reasoning syntax for _≤M_
+  infixr 1 _≤[_]M_
+  infixr 2 _≤M-QED
 
-    _≈Δ-QED : ∀ {n} (Δ : RCtx n) → Δ ≈ Δ
-    Δ ≈Δ-QED = reflM {x = Δ}
+  _≤[_]M_ : ∀ {n} Δ {Δ′ Δ″ : RCtx n} → Δ ≤M Δ′ → Δ′ ≤M Δ″ → Δ ≤M Δ″
+  _≤[_]M_ Δ {Δ′} {Δ″} xy yz = ≤M-trans {x = Δ} {y = Δ′} {z = Δ″} xy yz
 
-    -- Pointwise order on contexts
-
-    _≤_ : ∀ {n} (Δ′ Δ : RCtx n) → Set _
-    Δ′ ≤ Δ = Δ′ ≤M Δ
-
-    -- Reasoning syntax for _≤_
-    infixr 1 _≤[_]Δ_
-    infixr 2 _≤Δ-QED
-
-    _≤[_]Δ_ : ∀ {n} Δ {Δ′ Δ″ : RCtx n} → Δ ≤ Δ′ → Δ′ ≤ Δ″ → Δ ≤ Δ″
-    _≤[_]Δ_ Δ {Δ′} {Δ″} xy yz = ≤M-trans {x = Δ} {y = Δ′} {z = Δ″} xy yz
-
-    _≤Δ-QED : ∀ {n} (Δ : RCtx n) → Δ ≤ Δ
-    Δ ≤Δ-QED = ≤M-refl {x = Δ}
+  _≤M-QED : ∀ {n} (Δ : RCtx n) → Δ ≤M Δ
+  Δ ≤M-QED = ≤M-refl {x = Δ}
 
   {-
   RCtx-setoid : Nat → Setoid _ _

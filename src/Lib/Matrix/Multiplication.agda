@@ -74,8 +74,8 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
   *-indic ttt x = snd *-identity x
   *-indic fff x = fst annihil x
 
-  1M : ∀ m → Mat (m , m)
-  1M m = ≡-→E (indic o floor o (uncurry _≟th_))
+  1M : ∀ {m} → Mat (m , m)
+  1M = ≡-→E (indic o floor o (uncurry _≟th_))
 
   multM : ∀ {m n o} → MatS (m , n) ×S MatS (n , o) →E MatS (m , o)
   multM {m} {n} {o} = record
@@ -97,15 +97,15 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
 
   -- Properties
 
-  multM-identity : (∀ {mn} (N : Mat mn) → 1M _ *M N ≈M N)
-                 × (∀ {mn} (M : Mat mn) → M *M 1M _ ≈M M)
+  multM-identity : (∀ {mn} (N : Mat mn) → 1M *M N ≈M N)
+                 × (∀ {mn} (M : Mat mn) → M *M 1M ≈M M)
   multM-identity = li , ri
     where
     open SetoidReasoning Carrier
 
-    li : ∀ {mn} (N : Mat mn) → 1M _ *M N ≈M N
+    li : ∀ {mn} (N : Mat mn) → 1M *M N ≈M N
     li {succ m , n} N {os i , k} ≡.refl =
-      multM $E (1M _ , N) $E (os i , k)  ≈[ refl ]≈
+      multM $E (1M , N) $E (os i , k)  ≈[ refl ]≈
       indic (floor (mapDec _ _ (i ≟th z≤ m))) * N $E (zeroth , k)
        + (sum $E ((≡-→E λ j → indic (floor (os i ≟th j)) * N $E (j , k))
                   oE (≡-→E o′)))
@@ -128,7 +128,7 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
       N $E (os i , k) + e0  ≈[ snd +-identity _ ]≈
       N $E (os i , k)  QED
     li {succ m , n} N {o′ i , k} ≡.refl =
-      multM $E (1M _ , N) $E (o′ i , k)  ≈[ refl ]≈
+      multM $E (1M , N) $E (o′ i , k)  ≈[ refl ]≈
       e0 * N $E (zeroth , k)
        + (sum $E ((≡-→E λ j → indic (floor (o′ i ≟th j)) * N $E (j , k))
                   oE (≡-→E o′)))
@@ -144,9 +144,9 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
       e0 + N $E (o′ i , k)  ≈[ fst +-identity _ ]≈
       N $E (o′ i , k)  QED
 
-    ri : ∀ {mn} (M : Mat mn) → M *M 1M _ ≈M M
+    ri : ∀ {mn} (M : Mat mn) → M *M 1M ≈M M
     ri {m , succ n} M {i , os k} ≡.refl =
-      multM $E (M , 1M _) $E (i , os k)  ≈[ refl ]≈
+      multM $E (M , 1M) $E (i , os k)  ≈[ refl ]≈
       M $E (i , zeroth) * indic (floor (mapDec _ _ (z≤ n ≟th k)))
        + (sum $E ((≡-→E λ j → M $E (i , j) * indic (floor (j ≟th os k)))
                   oE (≡-→E o′)))
@@ -170,7 +170,7 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
       M $E (i , os k) + e0  ≈[ snd +-identity _ ]≈
       M $E (i , os k)  QED
     ri {m , succ n} M {i , o′ k} ≡.refl =
-      multM $E (M , 1M _) $E (i , o′ k)  ≈[ refl ]≈
+      multM $E (M , 1M) $E (i , o′ k)  ≈[ refl ]≈
       M $E (i , zeroth) * e0
        + (sum $E ((≡-→E λ j → M $E (i , j) * indic (floor (j ≟th o′ k)))
                   oE (≡-→E o′)))

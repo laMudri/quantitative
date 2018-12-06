@@ -106,3 +106,25 @@ module Lib.Structure.Sugar where
     σPomonoid : ΣPomonoid c l l′
     σPomonoid = record { Carrier = Carrier ; pomonoid = pomonoid }
     open ΣPomonoid σPomonoid public using (σMonoid; σPoset; σPreorder)
+
+  record ΣPosemiring c l l′ : Set (lsuc (c ⊔ l ⊔ l′)) where
+    field
+      Carrier : Setoid c l
+      posemiring : Posemiring Carrier l′
+    open Setoid Carrier public
+    open Posemiring posemiring public
+
+    σSemiring : ΣSemiring c l
+    σSemiring = record { semiring = semiring }
+    open ΣSemiring σSemiring public
+      using (+-σCommutativeMonoid; +-σMonoid; *-σMonoid)
+
+    +-σCommutativePomonoid : ΣCommutativePomonoid c l l′
+    +-σCommutativePomonoid =
+      record { commutativePomonoid = +-commutativePomonoid }
+    open ΣCommutativePomonoid +-σCommutativePomonoid public
+      using (σPoset; σPreorder)
+      renaming (σPomonoid to +-σPomonoid)
+
+    *-σPomonoid : ΣPomonoid c l l′
+    *-σPomonoid = record { pomonoid = *-pomonoid }

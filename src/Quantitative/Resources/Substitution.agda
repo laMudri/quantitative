@@ -24,6 +24,8 @@ module Quantitative.Resources.Substitution
   open import Lib.Matrix.Addition.Order
     (record { commutativePomonoid = R.+-commutativePomonoid })
   open import Lib.Matrix.Multiplication (record { semiring = R.semiring })
+  open import Lib.Matrix.Multiplication.Order
+    (record { posemiring = R.posemiring })
   open import Lib.Matrix.Multiplication.Basis (record { semiring = R.semiring })
   open import Lib.Matrix.Poset (record { poset = R.poset })
   open import Lib.Nat
@@ -192,21 +194,25 @@ module Quantitative.Resources.Substitution
 
   SubstRes : ∀ {m n} {vf : Subst m n} {Γm Γn} → SubstTy vf Γm Γn → RCtx m → RCtx n → Set (c ⊔ l′)
   SubstRes {m} {n} vft Δm Δn =
-    ∃ λ (M : Mat (m , n)) →
-      Δm ≤M multM $E (M , Δn)
-    × (∀ i → transpose $E (thin i oe $E M) ⊢r vft i)
+    ∃ λ (M : Mat (n , m)) →
+      Δn ≤M M *M Δm
+    × (∀ i → thin oe i $E M ⊢r vft i)
 
-  {-
   substituteRes :
     ∀ {m n d Γm Γn S} {Δm : RCtx m} {Δn : RCtx n}
     {t : Term m d} {tt : Γm ⊢t t :-: S} → Δm ⊢r tt →
     {vf : Subst m n} {vft : SubstTy vf Γm Γn} → SubstRes vft Δm Δn →
     Δn ⊢r substituteTy tt vft
   substituteRes (var sub′) (M , sub , ur) = {!!}
-  substituteRes (app split er sr) (M , sub , ur) =
-    let er′ = substituteRes er (M , {!!} , ur) in
-    let sr′ = substituteRes sr (M , {!!} , ur) in
-    app {!!} er′ sr′
+  substituteRes {Δm = Δm} {Δn} (app {Δe = Δe} {Δs} split er sr) (M , sub , ur) =
+    let er′ = substituteRes {Δn = M *M Δe} er (M , ≤M-refl {x = M *M Δe} , ur) in
+    let sr′ = substituteRes {Δn = M *M Δs} sr (M , ≤M-refl {x = M *M Δs} , ur) in
+    -- TODO: fix the definition of Mat to be less setoidal
+    app (≤M-trans {_} {Δn} {M *M Δm} {M *M Δe +M M *M Δs} sub
+         (≤M-trans {_} {M *M Δm} {M *M (Δe +M Δs)} {M *M Δe +M M *M Δs}
+                   (_*M-mono_ {_} {_} {_} {M} {M} {Δm} {Δe +M Δs} (≤M-refl {_} {M}) split)
+          (≤M-reflexive {_} {M *M (Δe +M Δs)} {M *M Δe +M M *M Δs} (distribM .fst M Δe Δs))))
+        er′ sr′
   substituteRes (bm split er sr) (M , sub , ur) = {!!}
   substituteRes (del split er sr) (M , sub , ur) = {!!}
   substituteRes (pm split er sr) (M , sub , ur) = {!!}
@@ -222,7 +228,6 @@ module Quantitative.Resources.Substitution
   substituteRes (wth s0r s1r) (M , sub , ur) = {!!}
   substituteRes (inj sr) (M , sub , ur) = {!!}
   substituteRes [ er ] (M , sub , ur) = {!!}
-  -}
 
   {-
   -- Δ ⊢r*[ ρs ] tts  means Δ can be split into an m×n matrix M
