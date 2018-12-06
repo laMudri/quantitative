@@ -15,7 +15,7 @@ module Lib.Matrix.Addition.Order {c l l′}
   open import Lib.Product
   open import Lib.Setoid
 
-  MatPCM : Nat × Nat → ΣCommutativePomonoid (c ⊔ l) l l′
+  MatPCM : Nat × Nat → ΣCommutativePomonoid c l l′
   MatPCM mn@(m , n) = record
     { Carrier = MatS mn
     ; commutativePomonoid = record

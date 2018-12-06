@@ -15,26 +15,26 @@ module Lib.Matrix.Addition {c l} (M : ΣCommutativeMonoid c l) where
   open import Lib.Setoid
   open import Lib.Thinning
 
-  MatCM : Nat × Nat → ΣCommutativeMonoid (c ⊔ l) l
+  MatCM : Nat × Nat → ΣCommutativeMonoid c l
   MatCM mn@(m , n) = record
     { Carrier = MatS mn
     ; commutativeMonoid = record
-      { e = constE $E e
+      { e = λ _ → e
       ; _·_ = _+_
       ; isCommutativeMonoid = record
-        { comm = λ { M N {ij} ≡.refl → comm (M $E ij) (N $E ij) }
+        { comm = λ { M N ij → comm (M ij) (N ij) }
         ; isMonoid = record
-          { identity = (λ { N {ij} ≡.refl → fst identity (N $E ij) })
-                     , (λ { M {ij} ≡.refl → snd identity (M $E ij) })
-          ; assoc = λ { M N O {ij} ≡.refl → assoc _ _ _ }
-          ; _·-cong_ = λ { MM NN {ij} ≡.refl → MM ≡.refl ·-cong NN ≡.refl }
+          { identity = (λ { N ij → fst identity (N ij) })
+                     , (λ { M ij → snd identity (M ij) })
+          ; assoc = λ { M N O ij → assoc _ _ _ }
+          ; _·-cong_ = λ { MM NN ij → MM ij ·-cong NN ij }
           }
         }
       }
     }
     where
     _+_ : (M N : Mat mn) → Mat mn
-    M + N = ≡-→E λ ij → (M $E ij) · (N $E ij)
+    (M + N) ij = M ij · N ij
 
   private
     module Explicit (mn : Nat × Nat) = ΣCommutativeMonoid (MatCM mn)

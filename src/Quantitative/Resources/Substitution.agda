@@ -207,11 +207,9 @@ module Quantitative.Resources.Substitution
   substituteRes {Δm = Δm} {Δn} (app {Δe = Δe} {Δs} split er sr) (M , sub , ur) =
     let er′ = substituteRes {Δn = M *M Δe} er (M , ≤M-refl {x = M *M Δe} , ur) in
     let sr′ = substituteRes {Δn = M *M Δs} sr (M , ≤M-refl {x = M *M Δs} , ur) in
-    -- TODO: fix the definition of Mat to be less setoidal
-    app (≤M-trans {_} {Δn} {M *M Δm} {M *M Δe +M M *M Δs} sub
-         (≤M-trans {_} {M *M Δm} {M *M (Δe +M Δs)} {M *M Δe +M M *M Δs}
-                   (_*M-mono_ {_} {_} {_} {M} {M} {Δm} {Δe +M Δs} (≤M-refl {_} {M}) split)
-          (≤M-reflexive {_} {M *M (Δe +M Δs)} {M *M Δe +M M *M Δs} (distribM .fst M Δe Δs))))
+    app (≤M-trans sub
+         (≤M-trans (_*M-mono_ (≤M-refl) split)
+          (≤M-reflexive (distribM .fst M Δe Δs))))
         er′ sr′
   substituteRes (bm split er sr) (M , sub , ur) = {!!}
   substituteRes (del split er sr) (M , sub , ur) = {!!}

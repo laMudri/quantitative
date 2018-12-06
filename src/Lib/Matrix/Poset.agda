@@ -14,13 +14,13 @@ module Lib.Matrix.Poset {c l l′} (Po : ΣPoset c l l′) where
   open import Lib.Product
   open import Lib.Setoid
 
-  MatPo : Nat × Nat → ΣPoset (c ⊔ l) l l′
+  MatPo : Nat × Nat → ΣPoset c l l′
   MatPo mn@(m , n) = record
     { Carrier = MatS mn
     ; poset = record
       { _≤_ = _≤M_
       ; isPoset = record
-        { antisym = λ { MN NM {ij} ≡.refl → antisym (MN ij) (NM ij) }
+        { antisym = λ { MN NM ij → antisym (MN ij) (NM ij) }
         ; isPreorder = isPreorderM
         }
       }

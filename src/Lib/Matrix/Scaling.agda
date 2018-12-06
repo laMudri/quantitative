@@ -21,10 +21,9 @@ module Lib.Matrix.Scaling {c l} (R : ΣSemiring c l) where
       open import Lib.Module Carrier (MatS mn)
 
       scaleM : Carrier →E MatS mn →S MatS mn
-      scaleM = record
-        { _$E_ = λ x → postcomposeE (curryS mult $E x)
-        ; _$E=_ = λ xx MM ii → (curryS mult $E= xx) (MM ii)
-        }
+      scaleM ._$E_ x ._$E_ M ij = x * M ij
+      scaleM ._$E_ x ._$E=_ MM ij = refl *-cong MM ij
+      scaleM ._$E=_ xx MM ij = xx *-cong MM ij
 
       _**_ : C → Mat mn → Mat mn
       x ** M = scaleM $E x $E M
@@ -44,15 +43,15 @@ module Lib.Matrix.Scaling {c l} (R : ΣSemiring c l) where
           ; _*f-cong_ = λ where
             xx MM ii → xx *-cong MM ii
           ; annihil = λ where
-            .fst x ≡.refl → annihil .fst x
-            .snd M ≡.refl → annihil .snd (M $E _)
+            .fst x ij → annihil .fst x
+            .snd M ij → annihil .snd (M ij)
           ; distrib = λ where
-            .fst x M N ≡.refl → distrib .fst x (M $E _) (N $E _)
-            .snd x y M ≡.refl → distrib .snd (M $E _) x y
+            .fst x M N ij → distrib .fst x (M ij) (N ij)
+            .snd x y M ij → distrib .snd (M ij) x y
           ; assoc = λ where
-            x y M ≡.refl → *-assoc x y (M $E _)
+            x y M ij → *-assoc x y (M ij)
           ; identity = λ where
-            M ≡.refl → *-identity .fst (M $E _)
+            M ij → *-identity .fst (M ij)
           }
         }
       open Semimodule Mat-semimodule public

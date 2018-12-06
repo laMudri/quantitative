@@ -13,13 +13,13 @@ module Lib.Matrix.Preorder {c l l′} (PreO : ΣPreorder c l l′) where
   open import Lib.Product
   open import Lib.Setoid
 
-  MatPreO : Nat × Nat → ΣPreorder (c ⊔ l) l l′
+  MatPreO : Nat × Nat → ΣPreorder c l l′
   MatPreO mn@(m , n) = record
     { Carrier = MatS mn
     ; preorder = record
-      { _≤_ = λ M N → ∀ ij → M $E ij ≤ N $E ij
+      { _≤_ = λ M N → ∀ ij → M ij ≤ N ij
       ; isPreorder = record
-        { ≤-reflexive = λ MM ij → ≤-reflexive (MM {ij} {ij} ≡.refl)
+        { ≤-reflexive = λ MM ij → ≤-reflexive (MM ij)
         ; ≤-trans = λ MN NO ij → ≤-trans (MN ij) (NO ij)
         }
       }
