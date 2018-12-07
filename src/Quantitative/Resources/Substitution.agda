@@ -235,18 +235,19 @@ module Quantitative.Resources.Substitution
   substituteRes (bm split er sr) (M , sub , ur) = {!!}
   substituteRes (del split er sr) (M , sub , ur) = {!!}
   substituteRes (pm split er sr) (M , sub , ur) = {!!}
-  substituteRes (proj er) (M , sub , ur) = {!!}
+  substituteRes (proj er) σr = proj (substituteRes er σr)
   substituteRes (exf split er) (M , sub , ur) = {!!}
   substituteRes (cse split er s0r s1r) (M , sub , ur) = {!!}
-  substituteRes (the sr) (M , sub , ur) = {!!}
+  substituteRes (the sr) σr = the (substituteRes sr σr)
   substituteRes (lam sr) (M , sub , ur) = {!!}
   substituteRes (bang split sr) (M , sub , ur) = {!!}
   substituteRes (unit split) (M , sub , ur) = {!!}
   substituteRes (ten split s0r s1r) (M , sub , ur) = {!!}
-  substituteRes eat (M , sub , ur) = {!!}
-  substituteRes (wth s0r s1r) (M , sub , ur) = {!!}
-  substituteRes (inj sr) (M , sub , ur) = {!!}
-  substituteRes [ er ] (M , sub , ur) = {!!}
+  substituteRes eat σr = eat
+  substituteRes (wth s0r s1r) σr =
+    wth (substituteRes s0r σr) (substituteRes s1r σr)
+  substituteRes (inj sr) σr = inj (substituteRes sr σr)
+  substituteRes [ er ] σr = [ substituteRes er σr ]
 
   {-
   -- Δ ⊢r*[ ρs ] tts  means Δ can be split into an m×n matrix M
