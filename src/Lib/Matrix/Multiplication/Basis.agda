@@ -18,11 +18,11 @@ module Lib.Matrix.Multiplication.Basis {c l} (R : ΣSemiring c l) where
   open import Lib.Setoid
   open import Lib.Thinning
 
-  basis-vec : ∀ {n} → Fin n → Mat (n , 1)
-  basis-vec k (i , j) = indic (floor (k ≟th i))
+  basis-col : ∀ {n} → Fin n → Mat (n , 1)
+  basis-col k (i , j) = indic (floor (k ≟th i))
 
   choose-col : ∀ {m n} (j : Fin n) (M : Mat (m , n)) →
-               M *M basis-vec j ≈M thin oe j $E M
+               M *M basis-col j ≈M thin oe j $E M
   choose-col {m} {succ n} (os j) M (i , k) =
     M (i , zeroth) * indic (floor (mapDec (≡.cong os) osInj (j ≟th z≤ _)))
      + (sum λ j′ → M (i , o′ j′) * indic (floor (os j ≟th o′ j′)))

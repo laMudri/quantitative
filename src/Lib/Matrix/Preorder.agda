@@ -12,6 +12,8 @@ module Lib.Matrix.Preorder {c l l′} (PreO : ΣPreorder c l l′) where
   open import Lib.Nat
   open import Lib.Product
   open import Lib.Setoid
+  open import Lib.Sum
+  open import Lib.Thinning renaming (_≤_ to _≤th_) using (Fin; part)
 
   MatPreO : Nat × Nat → ΣPreorder c l l′
   MatPreO mn@(m , n) = record
@@ -35,3 +37,9 @@ module Lib.Matrix.Preorder {c l l′} (PreO : ΣPreorder c l l′) where
     renaming ( _≤_ to _≤M_; ≤-refl to ≤M-refl; ≤-reflexive to ≤M-reflexive
              ; ≤-trans to ≤M-trans; isPreorder to isPreorderM
              )
+
+  _+↓-mono_ : ∀ {m m′ n} {M M′ : Mat (m , n)} {N N′ : Mat (m′ , n)} →
+              M ≤M M′ → N ≤M N′ → M +↓ N ≤M M′ +↓ N′
+  (_+↓-mono_ {m} {m′} {n} MM NN) (i , j) with part m′ i
+  ... | inl i′ = NN (i′ , j)
+  ... | inr i′ = MM (i′ , j)

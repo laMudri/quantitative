@@ -30,7 +30,7 @@ module Quantitative.Resources
   data _⊢r_ {n} {Γ : TCtx n} (Δ : RCtx n)
             : ∀ {d S} {t : Term n d} (tt : Γ ⊢t t :-: S) → Set (l′ ⊔ c) where
     var : ∀ {th T} {eq : T ≡ lookup th Γ}
-          (sub : Δ ≤M basis-vec th)
+          (sub : Δ ≤M basis-col th)
           →
           Δ ⊢r var {th = th} eq
     app : ∀ {Δe Δs S T e s} {et : Γ ⊢t e ∈ S ⊸ T} {st : Γ ⊢t S ∋ s}

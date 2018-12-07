@@ -192,21 +192,42 @@ module Quantitative.Resources.Substitution
   weakenVarsRes Δl ρ le [ sr ] = [ weakenVarsRes Δl ρ le sr ]
   -}
 
+  weakenRes : ∀ {n d Γ S Δ Δ′} {t : Term n d} {tt : Γ ⊢t t :-: S} →
+              Δ′ ≤M Δ → Δ ⊢r tt → Δ′ ⊢r tt
+  weakenRes sub (var sub′) = var (≤M-trans sub sub′)
+  weakenRes sub (app split er sr) = app (≤M-trans sub split) er sr
+  weakenRes sub (bm split er sr) = bm (≤M-trans sub split) er sr
+  weakenRes sub (del split er sr) = del (≤M-trans sub split) er sr
+  weakenRes sub (pm split er sr) = pm (≤M-trans sub split) er sr
+  weakenRes sub (proj er) = proj (weakenRes sub er)
+  weakenRes sub (exf split er) = exf (≤M-trans sub split) er
+  weakenRes sub (cse split er s0r s1r) = cse (≤M-trans sub split) er s0r s1r
+  weakenRes sub (the sr) = the (weakenRes sub sr)
+  weakenRes sub (lam sr) = lam (weakenRes (sub +↓-mono ≤M-refl) sr)
+  weakenRes sub (bang split sr) = bang (≤M-trans sub split) sr
+  weakenRes sub (unit split) = unit (≤M-trans sub split)
+  weakenRes sub (ten split s0r s1r) = ten (≤M-trans sub split) s0r s1r
+  weakenRes sub eat = eat
+  weakenRes sub (wth s0r s1r) = wth (weakenRes sub s0r) (weakenRes sub s1r)
+  weakenRes sub (inj sr) = inj (weakenRes sub sr)
+  weakenRes sub [ er ] = [ weakenRes sub er ]
+
   SubstRes : ∀ {m n} {vf : Subst m n} {Γm Γn} → SubstTy vf Γm Γn → RCtx m → RCtx n → Set (c ⊔ l′)
   SubstRes {m} {n} vft Δm Δn =
     ∃ λ (M : Mat (n , m)) →
       Δn ≤M M *M Δm
-    × (∀ i → thin oe i $E M ⊢r vft i)
+    × (∀ i → M *M basis-col i ⊢r vft i)
 
   substituteRes :
     ∀ {m n d Γm Γn S} {Δm : RCtx m} {Δn : RCtx n}
     {t : Term m d} {tt : Γm ⊢t t :-: S} → Δm ⊢r tt →
     {vf : Subst m n} {vft : SubstTy vf Γm Γn} → SubstRes vft Δm Δn →
     Δn ⊢r substituteTy tt vft
-  substituteRes (var sub′) (M , sub , ur) = {!!}
+  substituteRes (var {i} {.(lookup i _)} {eq = refl} sub′) (M , sub , ur) =
+    weakenRes (≤M-trans sub (≤M-refl *M-mono sub′)) (ur i)
   substituteRes {Δm = Δm} {Δn} (app {Δe = Δe} {Δs} split er sr) (M , sub , ur) =
-    let er′ = substituteRes {Δn = M *M Δe} er (M , ≤M-refl {x = M *M Δe} , ur) in
-    let sr′ = substituteRes {Δn = M *M Δs} sr (M , ≤M-refl {x = M *M Δs} , ur) in
+    let er′ = substituteRes er (M , ≤M-refl , ur) in
+    let sr′ = substituteRes sr (M , ≤M-refl , ur) in
     app (≤M-trans sub
          (≤M-trans (_*M-mono_ (≤M-refl) split)
           (≤M-reflexive (distribM .fst M Δe Δs))))

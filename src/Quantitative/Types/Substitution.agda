@@ -46,19 +46,6 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
   SubstTy : ∀ {m n} → Subst m n → TCtx m → TCtx n → Set c
   SubstTy {m} {n} vf Γm Γn = (th : Fin m) → Γn ⊢t vf th ∈ lookup th Γm
 
-  singleSubstTy : ∀ {m Γ e S} → Γ ⊢t e ∈ S →
-                  SubstTy (singleSubst {m} e) (S :: Γ) Γ
-  singleSubstTy et (os th) = et
-  singleSubstTy et (o′ th) = var refl
-
-  multiSubstTy : ∀ {m n} {Γm : TCtx m} {Γn : TCtx n}
-                 {es : Vec (Term m syn) n}
-                 (ets : VZip (λ S e → Γm ⊢t e ∈ S) Γn es) →
-                 SubstTy (multiSubst es) (Γn +V Γm) Γm
-  multiSubstTy nil i = var refl
-  multiSubstTy (et :: ets) (os i) = et
-  multiSubstTy (et :: ets) (o′ i) = multiSubstTy ets i
-
   liftSubstTy : ∀ {m n Γm Γn} T {vf : Subst m n} →
                 SubstTy vf Γm Γn → SubstTy (liftSubst vf) (T :: Γm) (T :: Γn)
   liftSubstTy T vft (os th) = var refl
@@ -104,3 +91,16 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
   substituteTy (inj st) vft =
     inj (substituteTy st vft)
   substituteTy [ et ] vft = [ substituteTy et vft ]
+
+  singleSubstTy : ∀ {m Γ e S} → Γ ⊢t e ∈ S →
+                  SubstTy (singleSubst {m} e) (S :: Γ) Γ
+  singleSubstTy et (os th) = et
+  singleSubstTy et (o′ th) = var refl
+
+  multiSubstTy : ∀ {m n} {Γm : TCtx m} {Γn : TCtx n}
+                 {es : Vec (Term m syn) n}
+                 (ets : VZip (λ S e → Γm ⊢t e ∈ S) Γn es) →
+                 SubstTy (multiSubst es) (Γn +V Γm) Γm
+  multiSubstTy nil i = var refl
+  multiSubstTy (et :: ets) (os i) = et
+  multiSubstTy (et :: ets) (o′ i) = multiSubstTy ets i
