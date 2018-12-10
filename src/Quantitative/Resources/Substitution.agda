@@ -241,7 +241,10 @@ module Quantitative.Resources.Substitution
   substituteRes (the sr) σr = the (substituteRes sr σr)
   substituteRes (lam sr) (M , sub , ur) = {!!}
   substituteRes (bang split sr) (M , sub , ur) = {!!}
-  substituteRes (unit split) (M , sub , ur) = {!!}
+  substituteRes (unit split) (M , sub , ur) =
+    unit (≤M-trans  sub
+          (≤M-trans (≤M-refl *M-mono split)
+                    (≤M-reflexive (annihilM .fst M))))
   substituteRes (ten split s0r s1r) (M , sub , ur) = {!!}
   substituteRes eat σr = eat
   substituteRes (wth s0r s1r) σr =
