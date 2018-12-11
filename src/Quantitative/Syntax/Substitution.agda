@@ -9,32 +9,32 @@ module Quantitative.Syntax.Substitution {c} (Ty : Set c) where
   open import Lib.Two
   open import Lib.Vec
 
-  weakenVars : ∀ {m d} l → Term (l +N m) d → Term (l +N succ m) d
-  weakenVars l (var th) = var (weakenFin l th)
-  weakenVars l (app e s) = app (weakenVars l e) (weakenVars l s)
-  weakenVars l (bm S e s) = bm S (weakenVars l e) (weakenVars (succ l) s)
-  weakenVars l (del S e s) = del S (weakenVars l e) (weakenVars l s)
-  weakenVars l (pm S e s) = pm S (weakenVars l e) (weakenVars (2 +N l) s)
-  weakenVars l (proj i e) = proj i (weakenVars l e)
-  weakenVars l (exf S e) = exf S (weakenVars l e)
-  weakenVars l (cse S e s0 s1) =
-    cse S (weakenVars l e) (weakenVars (succ l) s0) (weakenVars (succ l) s1)
-  weakenVars l (the S s) = the S (weakenVars l s)
-  weakenVars l (lam s) = lam (weakenVars (succ l) s)
-  weakenVars l (bang s) = bang (weakenVars l s)
-  weakenVars l unit = unit
-  weakenVars l (ten s0 s1) = ten (weakenVars l s0) (weakenVars l s1)
-  weakenVars l eat = eat
-  weakenVars l (wth s0 s1) = wth (weakenVars l s0) (weakenVars l s1)
-  weakenVars l (inj i s) = inj i (weakenVars l s)
-  weakenVars l [ e ] = [ weakenVars l e ]
+  rename : ∀ {m n d} → m ≤ n → Term m d → Term n d
+  rename th (var i) = var (i ≤-comp th)
+  rename th (app e s) = app (rename th e) (rename th s)
+  rename th (bm S e s) = bm S (rename th e) (rename (os th) s)
+  rename th (del S e s) = del S (rename th e) (rename th s)
+  rename th (pm S e s) = pm S (rename th e) (rename (os (os th)) s)
+  rename th (proj i e) = proj i (rename th e)
+  rename th (exf S e) = exf S (rename th e)
+  rename th (cse S e s0 s1) =
+    cse S (rename th e) (rename (os th) s0) (rename (os th) s1)
+  rename th (the S s) = the S (rename th s)
+  rename th (lam s) = lam (rename (os th) s)
+  rename th (bang s) = bang (rename th s)
+  rename th unit = unit
+  rename th (ten s0 s1) = ten (rename th s0) (rename th s1)
+  rename th eat = eat
+  rename th (wth s0 s1) = wth (rename th s0) (rename th s1)
+  rename th (inj i s) = inj i (rename th s)
+  rename th [ e ] = [ rename th e ]
 
   Subst : Nat → Nat → Set c
   Subst m n = Fin m → Term n syn
 
   liftSubst : ∀ {m n} → Subst m n → Subst (succ m) (succ n)
-  liftSubst vf (os th) = var zeroth
-  liftSubst vf (o′ th) = weakenVars 0 (vf th)
+  liftSubst vf (os i) = var zeroth
+  liftSubst vf (o′ i) = rename (o′ oe) (vf i)
 
   liftSubstN : ∀ {m n} l → Subst m n → Subst (l +N m) (l +N n)
   liftSubstN zero vf = vf
