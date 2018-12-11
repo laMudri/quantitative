@@ -10,6 +10,7 @@ module Quantitative.Types {c} (C : Set c) where
   open import Lib.Product
   open import Lib.Two
   open import Lib.Vec
+  open import Lib.Vec.Thinning
 
   infix 4 _∈_ _∋_ _:-:_
   infix 3 _⊢t_
@@ -33,7 +34,7 @@ module Quantitative.Types {c} (C : Set c) where
   data _⊢t_ {n} (Γ : TCtx n)
             : ∀ {d} {t : Term n d} {T} → Consequent t T → Set c where
     var : ∀ {th T} →
-          T ≡ lookup th Γ
+          T ≡ lookup′ th Γ
           →
           Γ ⊢t var th ∈ T
     app : ∀ {e s S T}

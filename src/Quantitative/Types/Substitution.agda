@@ -11,45 +11,45 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
   open import Lib.Thinning
   open import Lib.Two
   open import Lib.Vec
+  open import Lib.Vec.Thinning
   open import Lib.VZip
 
-  weakenVarsTy :
-    ∀ {m l d T} {t : Term _ d} {Γm : TCtx m} (Γl : TCtx l) S →
-    Γl +V Γm ⊢t t :-: T → Γl +V S :: Γm ⊢t weakenVars l t :-: T
-  weakenVarsTy {l = l} {Γm = Γm} Γl S (var {th = th} {T} eq) =
-    var (trans eq (sym (lookup-weakenFin Γl S Γm th)))
-  weakenVarsTy Γl S (app et st) =
-    app (weakenVarsTy Γl S et) (weakenVarsTy Γl S st)
-  weakenVarsTy Γl S (bm et st) =
-    bm (weakenVarsTy Γl S et) (weakenVarsTy (_ :: Γl) S st)
-  weakenVarsTy Γl S (del et st) =
-    del (weakenVarsTy Γl S et) (weakenVarsTy Γl S st)
-  weakenVarsTy Γl S (pm et st) =
-    pm (weakenVarsTy Γl S et) (weakenVarsTy (_ :: _ :: Γl) S st)
-  weakenVarsTy Γl S (proj et) = proj (weakenVarsTy Γl S et)
-  weakenVarsTy Γl S (exf et) = exf (weakenVarsTy Γl S et)
-  weakenVarsTy Γl S (cse et s0t s1t) =
-    cse (weakenVarsTy Γl S et) (weakenVarsTy (_ :: Γl) S s0t)
-                               (weakenVarsTy (_ :: Γl) S s1t)
-  weakenVarsTy Γl S (the st) = the (weakenVarsTy Γl S st)
-  weakenVarsTy Γl S (lam st) = lam (weakenVarsTy (_ :: Γl) S st)
-  weakenVarsTy Γl S (bang st) = bang (weakenVarsTy Γl S st)
-  weakenVarsTy Γl S unit = unit
-  weakenVarsTy Γl S (ten s0 s1) =
-    ten (weakenVarsTy Γl S s0) (weakenVarsTy Γl S s1)
-  weakenVarsTy Γl S eat = eat
-  weakenVarsTy Γl S (wth s0 s1) =
-    wth (weakenVarsTy Γl S s0) (weakenVarsTy Γl S s1)
-  weakenVarsTy Γl S (inj st) = inj (weakenVarsTy Γl S st)
-  weakenVarsTy Γl S [ et ] = [ weakenVarsTy Γl S et ]
+  RenTy : ∀ {m n} → m ≤ n → TCtx m → TCtx n → Set c
+  RenTy {m} {n} th Γm Γn = VZip _≡_ (thin th Γn) Γm
+
+  renameTy : ∀ {m n d T} {t : Term m d} {Γm Γn} {th : m ≤ n} →
+             RenTy th Γm Γn → Γm ⊢t t :-: T → Γn ⊢t rename th t :-: T
+  renameTy {Γm = Γm} {Γn} {th} tht (var {th = i} refl) = var (sym q′)
+    where
+    q′ : lookup′ (i ≤-comp th) Γn ≡ lookup′ i Γm
+    q′ = cong headVec (trans (VZip≡ (thin-comp i th Γn)) (cong (thin i) (VZip≡ tht)))
+  renameTy tht (app et st) = app (renameTy tht et) (renameTy tht st)
+  renameTy tht (bm et st) = bm (renameTy tht et) (renameTy (refl :: tht) st)
+  renameTy tht (del et st) = del (renameTy tht et) (renameTy tht st)
+  renameTy tht (pm et st) =
+    pm (renameTy tht et) (renameTy (refl :: refl :: tht) st)
+  renameTy tht (proj et) = proj (renameTy tht et)
+  renameTy tht (exf et) = exf (renameTy tht et)
+  renameTy tht (cse et s0t s1t) =
+    cse (renameTy tht et) (renameTy (refl :: tht) s0t)
+                          (renameTy (refl :: tht) s1t)
+  renameTy tht (the st) = the (renameTy tht st)
+  renameTy tht (lam st) = lam (renameTy (refl :: tht) st)
+  renameTy tht (bang st) = bang (renameTy tht st)
+  renameTy tht unit = unit
+  renameTy tht (ten s0t s1t) = ten (renameTy tht s0t) (renameTy tht s1t)
+  renameTy tht eat = eat
+  renameTy tht (wth s0t s1t) = wth (renameTy tht s0t) (renameTy tht s1t)
+  renameTy tht (inj st) = inj (renameTy tht st)
+  renameTy tht [ et ] = [ renameTy tht et ]
 
   SubstTy : ∀ {m n} → Subst m n → TCtx m → TCtx n → Set c
-  SubstTy {m} {n} vf Γm Γn = (th : Fin m) → Γn ⊢t vf th ∈ lookup th Γm
+  SubstTy {m} {n} vf Γm Γn = (th : Fin m) → Γn ⊢t vf th ∈ lookup′ th Γm
 
   liftSubstTy : ∀ {m n Γm Γn} T {vf : Subst m n} →
                 SubstTy vf Γm Γn → SubstTy (liftSubst vf) (T :: Γm) (T :: Γn)
   liftSubstTy T vft (os th) = var refl
-  liftSubstTy T vft (o′ th) = weakenVarsTy nil T (vft th)
+  liftSubstTy T vft (o′ th) = renameTy (thin-oe _) (vft th)
 
   liftSubstNTy : ∀ {m n l Γm Γn} (Γl : TCtx l) {vf : Subst m n} →
                  SubstTy vf Γm Γn →
