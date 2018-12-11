@@ -36,13 +36,32 @@ module Quantitative.Resources.Substitution
   open import Lib.Vec
   open import Lib.VZip
 
-  {-
   -- Weakening lemma
   weakenVarsRes :
     ∀ {l m d S T t} {Γm : TCtx m} {Γl : TCtx l}
     {tt : Γl +V Γm ⊢t t :-: T} {Δm : RCtx m} (Δl : RCtx l) ρ →
-    ρ R.≤ R.e0 → Δl +V Δm ⊢r tt →
-    Δl +V ρ :: Δm ⊢r weakenVarsTy {d = d} Γl S tt
+    ρ R.≤ R.e0 → Δm +↓ Δl ⊢r tt →
+    Δm +↓ [- ρ -] +↓ Δl ⊢r weakenVarsTy {d = d} Γl S tt
+  weakenVarsRes Δl ρ le (var sub) = {!var!}
+  weakenVarsRes Δl ρ le (app split er sr) = {!!}
+  weakenVarsRes Δl ρ le (bm split er sr) = {!!}
+  weakenVarsRes Δl ρ le (del split er sr) = {!!}
+  weakenVarsRes Δl ρ le (pm split er sr) = {!!}
+  weakenVarsRes Δl ρ le (proj er) = proj (weakenVarsRes Δl ρ le er)
+  weakenVarsRes Δl ρ le (exf split er) = {!!}
+  weakenVarsRes Δl ρ le (cse split er s0r s1r) = {!!}
+  weakenVarsRes Δl ρ le (the sr) = the (weakenVarsRes Δl ρ le sr)
+  weakenVarsRes Δl ρ le (lam sr) = lam {!weakenVarsRes (Δl +↓ [- R.e1 -]) ρ le sr!}
+  weakenVarsRes Δl ρ le (bang split sr) = {!!}
+  weakenVarsRes Δl ρ le (unit split) = unit {!!}
+  weakenVarsRes Δl ρ le (ten split s0r s1r) = {!!}
+  weakenVarsRes Δl ρ le eat = eat
+  weakenVarsRes Δl ρ le (wth s0r s1r) =
+    wth (weakenVarsRes Δl ρ le s0r) (weakenVarsRes Δl ρ le s1r)
+  weakenVarsRes Δl ρ le (inj sr) = inj (weakenVarsRes Δl ρ le sr)
+  weakenVarsRes Δl ρ le [ er ] = [ weakenVarsRes Δl ρ le er ]
+
+  {-
   weakenVarsRes {l} {m = m} {S = S} {Γm = Γm} {Γl} {Δm = Δm} Δl ρ le (var {th = th} sub) =
     var (sub′ Δl th sub)
     where
