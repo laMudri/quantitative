@@ -8,7 +8,7 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
 
   open import Lib.Equality
   open import Lib.Function
-  open import Lib.Thinning
+  open import Lib.Thinning hiding (_∈_)
   open import Lib.Two
   open import Lib.Vec
   open import Lib.Vec.Thinning
@@ -22,7 +22,8 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
   renameTy {Γm = Γm} {Γn} {th} tht (var {th = i} refl) = var (sym q′)
     where
     q′ : lookup′ (i ≤-comp th) Γn ≡ lookup′ i Γm
-    q′ = cong headVec (trans (VZip≡ (thin-comp i th Γn)) (cong (thin i) (VZip≡ tht)))
+    q′ = cong headVec (trans (VZip≡ (thin-comp i th Γn))
+                             (cong (thin i) (VZip≡ tht)))
   renameTy tht (app et st) = app (renameTy tht et) (renameTy tht st)
   renameTy tht (bm et st) = bm (renameTy tht et) (renameTy (refl :: tht) st)
   renameTy tht (del et st) = del (renameTy tht et) (renameTy tht st)
