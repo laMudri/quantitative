@@ -10,6 +10,8 @@ module Lib.Equality where
 
   {-# BUILTIN EQUALITY _≡_ #-}
 
+  -- Basic lemmas
+
   cong : ∀ {a b} {A : Set a} {B : Set b} {x y : A} (f : A → B) → x ≡ y → f x ≡ f y
   cong f refl = refl
 
@@ -30,11 +32,18 @@ module Lib.Equality where
            {x x′ : A} {y y′ : B} → x ≡ x′ → y ≡ y′ → P x y → P x′ y′
   subst2 P refl refl pxy = pxy
 
+  coerce : ∀ {l} {A B : Set l} → A ≡ B → A → B
+  coerce = subst (λ X → X)
+
+  -- Propositionality
+
   IsProp : ∀ {a} → Set a → Set a
   IsProp A = (x y : A) → x ≡ y
 
   ≡IsProp : ∀ {a A x y} → IsProp (_≡_ {a} {A} x y)
   ≡IsProp refl refl = refl
+
+  -- Reasoning syntax
 
   infixr 1 _=[_]=_
   infixr 2 _QED
@@ -62,3 +71,7 @@ module Lib.Equality where
 
   DecEq : ∀ {x} → Set x → Set x
   DecEq X = (x y : X) → Dec (x ≡ y)
+
+  ≡⇒refl : ∀ {a l} {A : Set a} (R : (x y : A) → Set l) → (∀ x → R x x) →
+           {x y : A} → x ≡ y → R x y
+  ≡⇒refl R r refl = r _

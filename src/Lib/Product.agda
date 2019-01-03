@@ -2,17 +2,19 @@ module Lib.Product where
   open import Lib.Dec
   open import Lib.Level
 
+  infixr 1 _,_
+
   record Σ {a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
     constructor _,_
     field
       fst : A
       snd : B fst
   open Σ public
-  infixr 1 _,_
+
+  infixr 2 _×_ _×?_
 
   _×_ : ∀ {a b} → Set a → Set b → Set (a ⊔ b)
   A × B = Σ A λ _ → B
-  infixr 2 _×_
 
   ∃ : ∀ {a b} {A : Set a} (B : A → Set b) → Set (a ⊔ b)
   ∃ = Σ _
