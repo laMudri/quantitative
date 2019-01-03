@@ -14,6 +14,9 @@ module Quantitative.Resources.Substitution
   open import Quantitative.Resources C POS
   open import Quantitative.Resources.Context C POS
 
+  open import Lib.Dec
+  open import Lib.Dec.Properties
+  open import Lib.Equality as ≡ using (_≡_; ≡⇒refl)
   open import Lib.Function
   open import Lib.Level
   open import Lib.One
@@ -31,185 +34,51 @@ module Quantitative.Resources.Substitution
   open import Lib.Nat
   open import Lib.Product
   open import Lib.Sum
+  open import Lib.Sum.Pointwise
   open import Lib.Thinning
   open import Lib.Two
   open import Lib.Vec
-  open import Lib.VZip
+  open import Lib.Vec.Thinning using (lookup′)
 
-  -- Weakening lemma
-  weakenVarsRes :
-    ∀ {l m d S T t} {Γm : TCtx m} {Γl : TCtx l}
-    {tt : Γl +V Γm ⊢t t :-: T} {Δm : RCtx m} (Δl : RCtx l) ρ →
-    ρ R.≤ R.e0 → Δm +↓ Δl ⊢r tt →
-    Δm +↓ [- ρ -] +↓ Δl ⊢r weakenVarsTy {d = d} Γl S tt
-  weakenVarsRes Δl ρ le (var sub) = {!var!}
-  weakenVarsRes Δl ρ le (app split er sr) = {!!}
-  weakenVarsRes Δl ρ le (bm split er sr) = {!!}
-  weakenVarsRes Δl ρ le (del split er sr) = {!!}
-  weakenVarsRes Δl ρ le (pm split er sr) = {!!}
-  weakenVarsRes Δl ρ le (proj er) = proj (weakenVarsRes Δl ρ le er)
-  weakenVarsRes Δl ρ le (exf split er) = {!!}
-  weakenVarsRes Δl ρ le (cse split er s0r s1r) = {!!}
-  weakenVarsRes Δl ρ le (the sr) = the (weakenVarsRes Δl ρ le sr)
-  weakenVarsRes Δl ρ le (lam sr) = lam {!weakenVarsRes (Δl +↓ [- R.e1 -]) ρ le sr!}
-  weakenVarsRes Δl ρ le (bang split sr) = {!!}
-  weakenVarsRes Δl ρ le (unit split) = unit {!!}
-  weakenVarsRes Δl ρ le (ten split s0r s1r) = {!!}
-  weakenVarsRes Δl ρ le eat = eat
-  weakenVarsRes Δl ρ le (wth s0r s1r) =
-    wth (weakenVarsRes Δl ρ le s0r) (weakenVarsRes Δl ρ le s1r)
-  weakenVarsRes Δl ρ le (inj sr) = inj (weakenVarsRes Δl ρ le sr)
-  weakenVarsRes Δl ρ le [ er ] = [ weakenVarsRes Δl ρ le er ]
+  RenRes : ∀ {m n} → m ≤ n → RCtx m → RCtx n → Set l′
+  RenRes th Δm Δn = thin             th  oe $E Δn ≤M Δm
+                  × thin (complement th) oe $E Δn ≤M [| R.e0 |]
 
-  {-
-  weakenVarsRes {l} {m = m} {S = S} {Γm = Γm} {Γl} {Δm = Δm} Δl ρ le (var {th = th} sub) =
-    var (sub′ Δl th sub)
+  renameRes :
+    ∀ {m n d Γm Γn S} {Δm : RCtx m} {Δn : RCtx n}
+    {t : Term m d} {tt : Γm ⊢t t :-: S} {th : m ≤ n} {tht : RenTy th Γm Γn} →
+    RenRes th Δm Δn → Δm ⊢r tt → Δn ⊢r renameTy {th = th} tht tt
+  renameRes {Δm = Δm} {Δn} {th = th} thr (var {th = i} {eq = refl} sub) = var go
     where
-    sub′ : ∀ {l} (Δl : RCtx l) th → Δl +V Δm ≤M varRCtx th R.e1 →
-           Δl +V ρ :: Δm ≤M varRCtx (weakenFin l th) R.e1
-    sub′ nil th sub = le :: sub
-    sub′ {succ l} (π :: Δl) (os th) (π≤ :: sub)
-      rewrite VZip≡ (replicateVec-+V l m R.e0)
-            | VZip≡ (replicateVec-+V l (succ m) R.e0)
-      = π≤ :: (takeVZip Δl (Δ.e0 {l}) sub +VZip le :: dropVZip Δl (Δ.e0 {l}) sub)
-    sub′ (π :: Δl) (o′ th) (π≤ :: sub) = π≤ :: sub′ Δl th sub
-  weakenVarsRes {l} {Δm = Δm} Δl ρ le (app {Δe = Δe} {Δs} split er sr)
-    rewrite sym (VZip≡ (takeDropVec≡ l Δe))
-          | sym (VZip≡ (takeDropVec≡ l Δs))
-    with takeVec l Δe | dropVec l Δe | takeVec l Δs | dropVec l Δs
-  ... | Δel | Δem | Δsl | Δsm
-    rewrite VZip≡ (vzip-+V R._+_ Δel Δsl Δem Δsm)
-    = app split′ (weakenVarsRes Δel R.e0 R.≤-refl er)
-                 (weakenVarsRes Δsl R.e0 R.≤-refl sr)
-    where
-    split′ : Δl +V ρ :: Δm ≤M (Δel +V R.e0 :: Δem) Δ.+ (Δsl +V R.e0 :: Δsm)
-    split′ rewrite VZip≡ (vzip-+V R._+_ Δel Δsl (R.e0 :: Δem) (R.e0 :: Δsm))
-                 | fst R.+-identity R.e0
-      = takeVZip Δl (Δel Δ.+ Δsl) split
-          +VZip le
-             :: dropVZip Δl (Δel Δ.+ Δsl) split
-  weakenVarsRes {l} {Δm = Δm} Δl ρ le (bm {Δe = Δe} {Δs} split er sr)
-    rewrite sym (VZip≡ (takeDropVec≡ l Δe))
-          | sym (VZip≡ (takeDropVec≡ l Δs))
-    with takeVec l Δe | dropVec l Δe | takeVec l Δs | dropVec l Δs
-  ... | Δel | Δem | Δsl | Δsm
-    rewrite VZip≡ (vzip-+V R._+_ Δel Δsl Δem Δsm)
-    = bm split′ (weakenVarsRes Δel R.e0 R.≤-refl er)
-                (weakenVarsRes (_ :: Δsl) R.e0 R.≤-refl sr)
-    where
-    -- TODO: this is the same lemma as for app
-    split′ : Δl +V ρ :: Δm ≤M (Δel +V R.e0 :: Δem) Δ.+ (Δsl +V R.e0 :: Δsm)
-    split′ rewrite VZip≡ (vzip-+V R._+_ Δel Δsl (R.e0 :: Δem) (R.e0 :: Δsm))
-                 | fst R.+-identity R.e0
-      = takeVZip Δl (Δel Δ.+ Δsl) split
-          +VZip le
-             :: dropVZip Δl (Δel Δ.+ Δsl) split
-  weakenVarsRes {l} {Δm = Δm} Δl ρ le (del {Δe = Δe} {Δs} split er sr)
-    rewrite sym (VZip≡ (takeDropVec≡ l Δe))
-          | sym (VZip≡ (takeDropVec≡ l Δs))
-    with takeVec l Δe | dropVec l Δe | takeVec l Δs | dropVec l Δs
-  ... | Δel | Δem | Δsl | Δsm
-    rewrite VZip≡ (vzip-+V R._+_ Δel Δsl Δem Δsm)
-    = del split′ (weakenVarsRes Δel R.e0 R.≤-refl er)
-                 (weakenVarsRes Δsl R.e0 R.≤-refl sr)
-    where
-    -- TODO: this is the same lemma as for app
-    split′ : Δl +V ρ :: Δm ≤M (Δel +V R.e0 :: Δem) Δ.+ (Δsl +V R.e0 :: Δsm)
-    split′ rewrite VZip≡ (vzip-+V R._+_ Δel Δsl (R.e0 :: Δem) (R.e0 :: Δsm))
-                 | fst R.+-identity R.e0
-      = takeVZip Δl (Δel Δ.+ Δsl) split
-          +VZip le
-             :: dropVZip Δl (Δel Δ.+ Δsl) split
-  weakenVarsRes {l} {Δm = Δm} Δl ρ le (pm {Δe = Δe} {Δs} split er sr)
-    rewrite sym (VZip≡ (takeDropVec≡ l Δe))
-          | sym (VZip≡ (takeDropVec≡ l Δs))
-    with takeVec l Δe | dropVec l Δe | takeVec l Δs | dropVec l Δs
-  ... | Δel | Δem | Δsl | Δsm
-    rewrite VZip≡ (vzip-+V R._+_ Δel Δsl Δem Δsm)
-    = pm split′ (weakenVarsRes Δel R.e0 R.≤-refl er)
-                (weakenVarsRes (_ :: _ :: Δsl) R.e0 R.≤-refl sr)
-    where
-    -- TODO: this is the same lemma as for app
-    split′ : Δl +V ρ :: Δm ≤M (Δel +V R.e0 :: Δem) Δ.+ (Δsl +V R.e0 :: Δsm)
-    split′ rewrite VZip≡ (vzip-+V R._+_ Δel Δsl (R.e0 :: Δem) (R.e0 :: Δsm))
-                 | fst R.+-identity R.e0
-      = takeVZip Δl (Δel Δ.+ Δsl) split
-          +VZip le
-             :: dropVZip Δl (Δel Δ.+ Δsl) split
-  weakenVarsRes Δl ρ le (proj er) = proj (weakenVarsRes Δl ρ le er)
-  weakenVarsRes {l} {Δm = Δm} Δl ρ le (exf {Δe = Δe} {Δs} split er)
-    rewrite sym (VZip≡ (takeDropVec≡ l Δe))
-          | sym (VZip≡ (takeDropVec≡ l Δs))
-    with takeVec l Δe | dropVec l Δe | takeVec l Δs | dropVec l Δs
-  ... | Δel | Δem | Δsl | Δsm
-    rewrite VZip≡ (vzip-+V R._+_ Δel Δsl Δem Δsm)
-    = exf split′ (weakenVarsRes Δel R.e0 R.≤-refl er)
-    where
-    -- TODO: this is the same lemma as for app
-    split′ : Δl +V ρ :: Δm ≤M (Δel +V R.e0 :: Δem) Δ.+ (Δsl +V R.e0 :: Δsm)
-    split′ rewrite VZip≡ (vzip-+V R._+_ Δel Δsl (R.e0 :: Δem) (R.e0 :: Δsm))
-                 | fst R.+-identity R.e0
-      = takeVZip Δl (Δel Δ.+ Δsl) split
-          +VZip le
-             :: dropVZip Δl (Δel Δ.+ Δsl) split
-  weakenVarsRes {l} {Δm = Δm} Δl ρ le (cse {Δe = Δe} {Δs} split er s0r s1r)
-    rewrite sym (VZip≡ (takeDropVec≡ l Δe))
-          | sym (VZip≡ (takeDropVec≡ l Δs))
-    with takeVec l Δe | dropVec l Δe | takeVec l Δs | dropVec l Δs
-  ... | Δel | Δem | Δsl | Δsm
-    rewrite VZip≡ (vzip-+V R._+_ Δel Δsl Δem Δsm)
-    = cse split′ (weakenVarsRes Δel R.e0 R.≤-refl er)
-                 (weakenVarsRes (_ :: Δsl) R.e0 R.≤-refl s0r)
-                 (weakenVarsRes (_ :: Δsl) R.e0 R.≤-refl s1r)
-    where
-    -- TODO: this is the same lemma as for app
-    split′ : Δl +V ρ :: Δm ≤M (Δel +V R.e0 :: Δem) Δ.+ (Δsl +V R.e0 :: Δsm)
-    split′ rewrite VZip≡ (vzip-+V R._+_ Δel Δsl (R.e0 :: Δem) (R.e0 :: Δsm))
-                 | fst R.+-identity R.e0
-      = takeVZip Δl (Δel Δ.+ Δsl) split
-          +VZip le
-             :: dropVZip Δl (Δel Δ.+ Δsl) split
-  weakenVarsRes Δl ρ le (the sr) = the (weakenVarsRes Δl ρ le sr)
-  weakenVarsRes Δl ρ le (lam sr) = lam (weakenVarsRes (R.e1 :: Δl) ρ le sr)
-  weakenVarsRes {l} {Δm = Δm} Δl ρ le (bang {Δs = Δs} {ρ = π} split sr)
-    rewrite sym (VZip≡ (takeDropVec≡ l Δs))
-    with takeVec l Δs | dropVec l Δs
-  ... | Δsl | Δsm
-    rewrite VZip≡ (vmap-+V (π R.*_) Δsl Δsm)
-    = bang split′ (weakenVarsRes Δsl R.e0 R.≤-refl sr)
-    where
-    split′ : Δl +V ρ :: Δm ≤M π Δ.* (Δsl +V R.e0 :: Δsm)
-    split′ rewrite VZip≡ (vmap-+V (π R.*_) Δsl (R.e0 :: Δsm))
-                 | fst R.annihil π
-      = takeVZip Δl (π Δ.* Δsl) split +VZip le :: dropVZip Δl (π Δ.* Δsl) split
-  weakenVarsRes {l} {m} {Δm = Δm} Δl ρ le (unit split)
-    rewrite VZip≡ (replicateVec-+V l m R.e0)
-    = unit split′
-    where
-    split′ : Δl +V ρ :: Δm ≤M Δ.e0
-    split′ rewrite VZip≡ (replicateVec-+V l (succ m) R.e0)
-      = takeVZip Δl Δ.e0 split +VZip le :: dropVZip Δl Δ.e0 split
-  weakenVarsRes {l} {Δm = Δm} Δl ρ le (ten {Δs0 = Δs0} {Δs1} split s0r s1r)
-    rewrite sym (VZip≡ (takeDropVec≡ l Δs0))
-          | sym (VZip≡ (takeDropVec≡ l Δs1))
-    with takeVec l Δs0 | dropVec l Δs0 | takeVec l Δs1 | dropVec l Δs1
-  ... | Δs0l | Δs0m | Δs1l | Δs1m
-    rewrite VZip≡ (vzip-+V R._+_ Δs0l Δs1l Δs0m Δs1m)
-    = ten split′ (weakenVarsRes Δs0l R.e0 R.≤-refl s0r)
-                 (weakenVarsRes Δs1l R.e0 R.≤-refl s1r)
-    where
-    split′ : Δl +V ρ :: Δm ≤M (Δs0l +V R.e0 :: Δs0m) Δ.+ (Δs1l +V R.e0 :: Δs1m)
-    split′ rewrite VZip≡ (vzip-+V R._+_ Δs0l Δs1l (R.e0 :: Δs0m) (R.e0 :: Δs1m))
-                 | fst R.+-identity R.e0
-      = takeVZip Δl (Δs0l Δ.+ Δs1l) split
-          +VZip le
-             :: dropVZip Δl (Δs0l Δ.+ Δs1l) split
-  weakenVarsRes Δl ρ le eat = eat
-  weakenVarsRes Δl ρ le (wth s0r s1r) =
-    wth (weakenVarsRes Δl ρ le s0r) (weakenVarsRes Δl ρ le s1r)
-  weakenVarsRes Δl ρ le (inj sr) = inj (weakenVarsRes Δl ρ le sr)
-  weakenVarsRes Δl ρ le [ sr ] = [ weakenVarsRes Δl ρ le sr ]
-  -}
+    go : Δn ≤M basis-col (i ≤-comp th)
+    go (j , o′ ())
+    go (j , k@(os oz)) with j ∈? th
+    ... | inr j∈thᶜ rewrite false→≡no (j ⊆? i ≤-comp th)
+                                      (∈c⇒∉ j∈thᶜ o ⊆comp⇒⊆r i)
+                                      .snd
+                          | ⊆-factor j∈thᶜ .snd = thr .snd (_ , k)
+    ... | inl j∈th with ⊆-factor j∈th
+    ...   | j′ , refl with R.≤-trans (thr .fst (j′ , k)) (sub (j′ , k))
+    ...     | res with j′ ⊆? i | j′ ≤-comp th ⊆? i ≤-comp th
+    ...       | a | b with dec-agree (⊆-comp-cong-r _) ⊆-comp-cancel-r a b
+    ...         | inl <> = res
+    ...         | inr <> = res
+  renameRes thr (app split er sr) = app {!thin-≤M ? ? split!} {!!} {!!}
+  renameRes thr (bm split er sr) = {!!}
+  renameRes thr (del split er sr) = {!!}
+  renameRes thr (pm split er sr) = {!!}
+  renameRes thr (proj er) = proj (renameRes thr er)
+  renameRes thr (exf split er) = {!!}
+  renameRes thr (cse split er s0r s1r) = {!!}
+  renameRes thr (the sr) = the (renameRes thr sr)
+  renameRes thr (lam sr) = {!!}
+  renameRes thr (bang split sr) = {!!}
+  renameRes thr (unit split) = unit {!!}
+  renameRes thr (ten split s0r s1r) = {!!}
+  renameRes thr eat = eat
+  renameRes thr (wth s0r s1r) = wth (renameRes thr s0r) (renameRes thr s1r)
+  renameRes thr (inj sr) = inj (renameRes thr sr)
+  renameRes thr [ er ] = [ renameRes thr er ]
 
   weakenRes : ∀ {n d Γ S Δ Δ′} {t : Term n d} {tt : Γ ⊢t t :-: S} →
               Δ′ ≤M Δ → Δ ⊢r tt → Δ′ ⊢r tt
@@ -242,7 +111,7 @@ module Quantitative.Resources.Substitution
     {t : Term m d} {tt : Γm ⊢t t :-: S} → Δm ⊢r tt →
     {vf : Subst m n} {vft : SubstTy vf Γm Γn} → SubstRes vft Δm Δn →
     Δn ⊢r substituteTy tt vft
-  substituteRes (var {i} {.(lookup i _)} {eq = refl} sub′) (M , sub , ur) =
+  substituteRes (var {i} {.(lookup′ i _)} {eq = refl} sub′) (M , sub , ur) =
     weakenRes (≤M-trans sub (≤M-refl *M-mono sub′)) (ur i)
   substituteRes {Δm = Δm} {Δn} (app {Δe = Δe} {Δs} split er sr) (M , sub , ur) =
     let er′ = substituteRes er (M , ≤M-refl , ur) in

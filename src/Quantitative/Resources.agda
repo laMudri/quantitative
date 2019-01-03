@@ -24,12 +24,13 @@ module Quantitative.Resources
   open import Lib.Level
   open import Lib.Two
   open import Lib.Vec
+  open import Lib.Vec.Thinning
 
   infix 3 _⊢r_
 
   data _⊢r_ {n} {Γ : TCtx n} (Δ : RCtx n)
             : ∀ {d S} {t : Term n d} (tt : Γ ⊢t t :-: S) → Set (l′ ⊔ c) where
-    var : ∀ {th T} {eq : T ≡ lookup th Γ}
+    var : ∀ {th T} {eq : T ≡ lookup′ th Γ}
           (sub : Δ ≤M basis-col th)
           →
           Δ ⊢r var {th = th} eq
@@ -40,7 +41,7 @@ module Quantitative.Resources
           Δ ⊢r app et st
     bm : ∀ {Δe Δs S T ρ e s} {et : Γ ⊢t e ∈ ! ρ S} {st : S :: Γ ⊢t T ∋ s}
          (split : Δ ≤M Δe +M Δs)
-         (er : Δe ⊢r et) (sr : Δs +↓ [| ρ |] ⊢r st)
+         (er : Δe ⊢r et) (sr : Δs +↓ [- ρ -] ⊢r st)
          →
          Δ ⊢r bm et st
     del : ∀ {Δe Δs T e s} {et : Γ ⊢t e ∈ ⊗1} {st : Γ ⊢t T ∋ s}
@@ -51,7 +52,7 @@ module Quantitative.Resources
     pm : ∀ {Δe Δs S0 S1 T e s}
          {et : Γ ⊢t e ∈ S0 ⊗ S1} {st : S0 :: S1 :: Γ ⊢t T ∋ s}
          (split : Δ ≤M Δe +M Δs)
-         (er : Δe ⊢r et) (sr : Δs +↓ [| R.e1 |] +↓ [| R.e1 |] ⊢r st)
+         (er : Δe ⊢r et) (sr : Δs +↓ [- R.e1 -] +↓ [- R.e1 -] ⊢r st)
          →
          Δ ⊢r pm et st
     proj : ∀ {i S0 S1 e} {et : Γ ⊢t e ∈ S0 & S1}
@@ -66,7 +67,8 @@ module Quantitative.Resources
     cse : ∀ {Δe Δs S0 S1 T e s0 s1} {et : Γ ⊢t e ∈ S0 ⊕ S1}
           {s0t : S0 :: Γ ⊢t T ∋ s0} {s1t : S1 :: Γ ⊢t T ∋ s1}
           (split : Δ ≤M Δe +M Δs)
-          (er : Δe ⊢r et) (s0r : Δs +↓ [| R.e1 |] ⊢r s0t) (s1r : Δs +↓ [| R.e1 |] ⊢r s1t)
+          (er : Δe ⊢r et) (s0r : Δs +↓ [- R.e1 -] ⊢r s0t)
+                          (s1r : Δs +↓ [- R.e1 -] ⊢r s1t)
           →
           Δ ⊢r cse et s0t s1t
     the : ∀ {S s} {st : Γ ⊢t S ∋ s}
@@ -75,7 +77,7 @@ module Quantitative.Resources
           Δ ⊢r the st
 
     lam : ∀ {S T s} {st : S :: Γ ⊢t T ∋ s}
-          (sr : Δ +↓ [| R.e1 |] ⊢r st)
+          (sr : Δ +↓ [- R.e1 -] ⊢r st)
           →
           Δ ⊢r lam st
     bang : ∀ {Δs S ρ s} {st : Γ ⊢t S ∋ s}
