@@ -19,9 +19,3 @@ module Lib.Sum where
   swap⊎ : ∀ {a b} {A : Set a} {B : Set b} → A ⊎ B → B ⊎ A
   swap⊎ (inl a) = inr a
   swap⊎ (inr b) = inl b
-
-  data _⊎R_ {a b r s} {A : Set a} {B : Set b}
-            (R : (x y : A) → Set r) (S : (x y : B) → Set s) :
-            (x y : A ⊎ B) → Set (r ⊔ s) where
-    inl : {x y : A} → R x y → (R ⊎R S) (inl x) (inl y)
-    inr : {x y : B} → S x y → (R ⊎R S) (inr x) (inr y)

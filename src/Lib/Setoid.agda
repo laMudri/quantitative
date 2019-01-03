@@ -8,6 +8,7 @@ module Lib.Setoid where
   open import Lib.Product
   open import Lib.One
   open import Lib.Sum
+  open import Lib.Sum.Pointwise
 
   record IsSetoid {c l} {C : Set c} (_≈_ : C → C → Set l) : Set (c ⊔ l) where
     field

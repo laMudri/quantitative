@@ -1,16 +1,18 @@
 module Lib.Dec where
   open import Lib.Function
   open import Lib.One
+  open import Lib.Sum
   open import Lib.Two
   open import Lib.Zero
 
-  data Dec {x} (X : Set x) : Set x where
-    yes : (p : X) → Dec X
-    no : (np : X → Zero) → Dec X
+  Dec : ∀ {x} (X : Set x) → Set x
+  Dec X = X ⊎ Not X
+
+  pattern yes p = inl p
+  pattern no np = inr np
 
   mapDec : ∀ {x y X Y} → (X → Y) → (Y → X) → Dec {x} X → Dec {y} Y
-  mapDec f g (yes p) = yes (f p)
-  mapDec f g (no np) = no (λ z → np (g z))
+  mapDec f g = map⊎ f (λ ¬x y → ¬x (g y))
 
   Not? : ∀ {x X} → Dec {x} X → Dec (Not X)
   Not? (yes p) = no λ np → np p
