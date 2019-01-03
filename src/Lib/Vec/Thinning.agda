@@ -13,9 +13,9 @@ module Lib.Vec.Thinning where
     thin (os th) (x :: xs) = x :: thin th xs
     thin (o′ th) (x :: xs) = thin th xs
 
-    thin-oe : ∀ {n} (xs : Vec A n) → VZip _≡_ (thin oe xs) xs
-    thin-oe nil = nil
-    thin-oe (x :: xs) = refl :: (thin-oe xs)
+    thin-oi : ∀ {n} (xs : Vec A n) → VZip _≡_ (thin oi xs) xs
+    thin-oi nil = nil
+    thin-oi (x :: xs) = refl :: (thin-oi xs)
 
     thin-comp : ∀ {m n o} (th : m ≤ n) (ph : n ≤ o) xs →
                 VZip _≡_ (thin (th ≤-comp ph) xs) (thin th (thin ph xs))

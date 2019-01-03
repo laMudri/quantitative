@@ -100,16 +100,16 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
     li : ∀ {mn} (N : Mat mn) → 1M *M N ≈M N
     li {succ m , n} N (os i , k) =
       (1M *M N) (os i , k)  ≈[ refl ]≈
-      indic (floor (mapDec _ _ (i ≟th z≤ m))) * N (zeroth , k)
+      indic (floor (mapDec _ _ (i ≟th oe m))) * N (zeroth , k)
        + (sum λ j → indic (floor (os i ≟th o′ j)) * N (o′ j , k))
         ≈[
-         (indic (floor (mapDec _ _ (i ≟th z≤ m))) * N (zeroth , k)
+         (indic (floor (mapDec _ _ (i ≟th oe m))) * N (zeroth , k)
             ≈[ ≡⇒≈ (≡.cong indic
               (≡.trans (floor-mapDec _ _ _)
-                       (floor-true _ (z≤-unique i (z≤ m))))) *-cong refl ]≈
+                       (floor-true _ (oe-unique i (oe m))))) *-cong refl ]≈
           e1 * N (zeroth , k)  ≈[ *-identity .fst _ ]≈
           N (zeroth , k)
-            ≈[ ≡⇒≈ (≡.cong (λ z → N (os z , k)) (z≤-unique (z≤ m) i)) ]≈
+            ≈[ ≡⇒≈ (≡.cong (λ z → N (os z , k)) (oe-unique (oe m) i)) ]≈
           N (os i , k)  QED)
         +-cong
          ((sum λ j → e0 * N (o′ j , k))
@@ -137,16 +137,16 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
     ri : ∀ {mn} (M : Mat mn) → M *M 1M ≈M M
     ri {m , succ n} M (i , os k) =
       (M *M 1M) (i , os k)  ≈[ refl ]≈
-      M (i , zeroth) * indic (floor (mapDec _ _ (z≤ n ≟th k)))
+      M (i , zeroth) * indic (floor (mapDec _ _ (oe n ≟th k)))
        + (sum λ j → M (i , o′ j) * indic (floor (o′ j ≟th os k)))
         ≈[
-         (M (i , zeroth) * indic (floor (mapDec _ _ (z≤ n ≟th k)))
+         (M (i , zeroth) * indic (floor (mapDec _ _ (oe n ≟th k)))
             ≈[ refl *-cong ≡⇒≈ (≡.cong indic
               (≡.trans (floor-mapDec _ _ _)
-                       (floor-true _ (z≤-unique (z≤ n) k)))) ]≈
+                       (floor-true _ (oe-unique (oe n) k)))) ]≈
           M (i , zeroth) * e1  ≈[ *-identity .snd _ ]≈
           M (i , zeroth)
-            ≈[ ≡⇒≈ (≡.cong (λ z → M (i , os z)) (z≤-unique (z≤ n) k)) ]≈
+            ≈[ ≡⇒≈ (≡.cong (λ z → M (i , os z)) (oe-unique (oe n) k)) ]≈
           M (i , os k)  QED)
         +-cong
          ((sum λ j → M (i , o′ j) * e0)

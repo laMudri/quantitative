@@ -82,7 +82,7 @@ module Lib.Vec where
     (neq : i /= j) (x : A) (xs : Vec {a} A m) →
     lookup j (insertVec i x xs) ≡ lookup (punchOut neq) xs
   lookup-/=-insertVec {i = os i} {os j} neq x xs =
-    Zero-elim (neq (cong os (z≤-unique i j)))
+    Zero-elim (neq (cong os (oe-unique i j)))
   lookup-/=-insertVec {i = os i} {o′ j} neq x xs = refl
   lookup-/=-insertVec {i = o′ ()} {j} neq x nil
   lookup-/=-insertVec {i = o′ i} {os j} neq x (x′ :: xs) = refl

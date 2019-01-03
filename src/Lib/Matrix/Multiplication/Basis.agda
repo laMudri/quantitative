@@ -20,11 +20,11 @@ module Lib.Matrix.Multiplication.Basis {c l} (R : ΣSemiring c l) where
   open import Lib.Thinning
 
   basis-col : ∀ {n} → Fin n → Mat (n , 1)
-  basis-col k = set′ k oe (λ _ → e1) $E [| e0 |]
+  basis-col k = set′ k oi (λ _ → e1) $E [| e0 |]
   -- basis-col k (i , j) = indic (floor (k ≟th i))
 
   choose-col : ∀ {m n} (j : Fin n) (M : Mat (m , n)) →
-               M *M basis-col j ≈M thin oe j $E M
+               M *M basis-col j ≈M thin oi j $E M
   choose-col {m} {succ n} (os j) M (i , k) =
     (M *M basis-col (os j)) (i , k)  ≈[ refl ]≈
     (sum λ j′ → M (i , j′) * basis-col (os j) (j′ , k))
@@ -37,8 +37,8 @@ module Lib.Matrix.Multiplication.Basis {c l} (R : ΣSemiring c l) where
         M (i , zeroth) * e1
           ≈[ *-identity .snd _ ]≈
         M (i , zeroth)
-          ≈[ ≡⇒≈ (≡.sym (≡.cong M (≡.cong2 _,_ (comp-oe i) lemma))) ]≈
-        M (i ≤-comp oe , k ≤-comp os j)  QED)
+          ≈[ ≡⇒≈ (≡.sym (≡.cong M (≡.cong2 _,_ (comp-oi i) lemma))) ]≈
+        M (i ≤-comp oi , k ≤-comp os j)  QED)
       +-cong
        ((sum λ j′ → M (i , o′ j′) * basis-col (os j) (o′ j′ , k))
           ≈[ (sum-cong {n} λ j′ → refl *-cong lemma3 j′) ]≈
@@ -47,19 +47,19 @@ module Lib.Matrix.Multiplication.Basis {c l} (R : ΣSemiring c l) where
         (sum {n} λ j′ → e0)  ≈[ sum-e0 n ]≈
         e0  QED)
       ]≈
-    M (i ≤-comp oe , k ≤-comp os j) + e0  ≈[ +-identity .snd _ ]≈
-    M (i ≤-comp oe , k ≤-comp os j)  ≈[ refl ]≈
-    (thin oe (os j) $E M) (i , k)  QED
+    M (i ≤-comp oi , k ≤-comp os j) + e0  ≈[ +-identity .snd _ ]≈
+    M (i ≤-comp oi , k ≤-comp os j)  ≈[ refl ]≈
+    (thin oi (os j) $E M) (i , k)  QED
     where
     open SetoidReasoning Carrier
 
     lemma : k ≤-comp os j ≡ zeroth
-    lemma rewrite oe-unique k zeroth | z≤-unique (oz ≤-comp j) (z≤ n) = ≡.refl
+    lemma rewrite oi-unique k zeroth | oe-unique (oz ≤-comp j) (oe n) = ≡.refl
 
     lemma2 : basis-col (os j) (zeroth , k) ≈ e1
-    lemma2 rewrite true→≡yes (z≤ n ⊆? j) (empty-⊆ (z≤ n) j) .snd
+    lemma2 rewrite true→≡yes (oe n ⊆? j) (empty-⊆ (oe n) j) .snd
                  | true→≡yes (k ⊆? zeroth)
-                             (≡⇒refl _⊆_ ⊆-refl (oe-unique k zeroth))
+                             (≡⇒refl _⊆_ ⊆-refl (oi-unique k zeroth))
                              .snd
                  = refl
 
@@ -80,18 +80,18 @@ module Lib.Matrix.Multiplication.Basis {c l} (R : ΣSemiring c l) where
           ≈[ (sum-cong {n} λ j′ → refl *-cong lemma j′) ]≈
         (sum λ j′ → M (i , o′ j′) * basis-col j (j′ , k))
           ≈[ choose-col {m} {n} j (remove-col $E M) (i , k) ]≈
-        M (i ≤-comp oe , o′ (k ≤-comp j))  QED)
+        M (i ≤-comp oi , o′ (k ≤-comp j))  QED)
       ]≈
-    e0 + M (i ≤-comp oe , o′ (k ≤-comp j))  ≈[ +-identity .fst _ ]≈
-    M (i ≤-comp oe , o′ (k ≤-comp j))  ≈[ refl ]≈
-    (thin oe (o′ j) $E M) (i , k)  QED
+    e0 + M (i ≤-comp oi , o′ (k ≤-comp j))  ≈[ +-identity .fst _ ]≈
+    M (i ≤-comp oi , o′ (k ≤-comp j))  ≈[ refl ]≈
+    (thin oi (o′ j) $E M) (i , k)  QED
     where
     open SetoidReasoning Carrier
 
     lemma : ∀ j′ → basis-col (o′ j) (o′ j′ , k) ≈ basis-col j (j′ , k)
     lemma j′ with j′ ⊆? j
     lemma j′ | yes sub rewrite true→≡yes (k ⊆? zeroth)
-                                         (≡⇒refl _⊆_ ⊆-refl (oe-unique k zeroth))
+                                         (≡⇒refl _⊆_ ⊆-refl (oi-unique k zeroth))
                                          .snd
                        = refl
     lemma j′ | no nsub = refl

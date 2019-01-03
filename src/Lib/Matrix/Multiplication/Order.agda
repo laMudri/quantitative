@@ -16,7 +16,7 @@ module Lib.Matrix.Multiplication.Order {c l l′}
   open import Lib.Nat
   open import Lib.Product
   open import Lib.Setoid
-  open import Lib.Thinning using (Fin; oz; os; o′; z≤) renaming (_≤_ to _≤th_)
+  open import Lib.Thinning using (Fin; oz; os; o′; oe) renaming (_≤_ to _≤th_)
 
   sum-mono : ∀ {n u v} → (∀ i → u i ≤ v i) → sum u ≤ sum {n} v
   sum-mono {zero} uv = ≤-refl

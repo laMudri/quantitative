@@ -50,7 +50,7 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
   liftSubstTy : ∀ {m n Γm Γn} T {vf : Subst m n} →
                 SubstTy vf Γm Γn → SubstTy (liftSubst vf) (T :: Γm) (T :: Γn)
   liftSubstTy T vft (os th) = var refl
-  liftSubstTy T vft (o′ th) = renameTy (thin-oe _) (vft th)
+  liftSubstTy T vft (o′ th) = renameTy (thin-oi _) (vft th)
 
   liftSubstNTy : ∀ {m n l Γm Γn} (Γl : TCtx l) {vf : Subst m n} →
                  SubstTy vf Γm Γn →

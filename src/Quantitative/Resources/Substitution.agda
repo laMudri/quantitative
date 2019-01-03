@@ -41,8 +41,8 @@ module Quantitative.Resources.Substitution
   open import Lib.Vec.Thinning using (lookup′)
 
   RenRes : ∀ {m n} → m ≤ n → RCtx m → RCtx n → Set l′
-  RenRes th Δm Δn = thin             th  oe $E Δn ≤M Δm
-                  × thin (complement th) oe $E Δn ≤M [| R.e0 |]
+  RenRes th Δm Δn = thin             th  oi $E Δn ≤M Δm
+                  × thin (complement th) oi $E Δn ≤M [| R.e0 |]
 
   renameRes :
     ∀ {m n d Γm Γn S} {Δm : RCtx m} {Δn : RCtx n}
@@ -404,7 +404,7 @@ module Quantitative.Resources.Substitution
          Δn ⊢r vft th
     go {succ m} {Δm = ρ :: Δm} (os {n = .m} th) (le :: sub)
                                (cons {Δt = Δt} {Δts} split tr vfr)
-       rewrite z≤-unique (z≤ _) th with <>
+       rewrite oe-unique (oe _) th with <>
     go {succ m} {Δm = ρ :: Δm} (os {_} {.m} th) (le :: sub)
                                (cons {Δt = Δt} {Δts} split tr vfr) | <> =
       weakenRes split′ tr

@@ -20,12 +20,12 @@ module Lib.Thinning where
   ≤-refl zero = oz
   ≤-refl (succ m) = os (≤-refl m)
 
-  oe : ∀ {m} → m ≤ m
-  oe = ≤-refl _
+  oi : ∀ {m} → m ≤ m
+  oi = ≤-refl _
 
-  z≤ : ∀ n → zero ≤ n
-  z≤ zero = oz
-  z≤ (succ x) = o′ (z≤ x)
+  oe : ∀ n → zero ≤ n
+  oe zero = oz
+  oe (succ x) = o′ (oe x)
 
   _<_ : (x y : Nat) → Set
   x < y = succ x ≤ y
@@ -38,9 +38,9 @@ module Lib.Thinning where
   op (os th) = th
   op (o′ th) = <⇒≤ th
 
-  z≤-unique : ∀ {n} (th th′ : zero ≤ n) → th ≡ th′
-  z≤-unique oz oz = refl
-  z≤-unique (o′ th) (o′ th′) = cong o′ (z≤-unique th th′)
+  oe-unique : ∀ {n} (th th′ : zero ≤ n) → th ≡ th′
+  oe-unique oz oz = refl
+  oe-unique (o′ th) (o′ th′) = cong o′ (oe-unique th th′)
 
   <s : ∀ n → n < succ n
   <s n = ≤-refl (succ n)
@@ -59,11 +59,11 @@ module Lib.Thinning where
   >⇒≰ : ∀ {m n} → n < m → m ≤ n → Zero
   >⇒≰ = k+>⇒≰ 0
 
-  oe-unique : ∀ {n} (th ph : n ≤ n) → th ≡ ph
-  oe-unique {zero} oz oz = refl
-  oe-unique {succ n} (os th) (os ph) = cong os (oe-unique th ph)
-  oe-unique {succ n} (os th) (o′ ph) = Zero-elim (>⇒≰ (<s n) ph)
-  oe-unique {succ n} (o′ th) ph = Zero-elim (>⇒≰ (<s n) th)
+  oi-unique : ∀ {n} (th ph : n ≤ n) → th ≡ ph
+  oi-unique {zero} oz oz = refl
+  oi-unique {succ n} (os th) (os ph) = cong os (oi-unique th ph)
+  oi-unique {succ n} (os th) (o′ ph) = Zero-elim (>⇒≰ (<s n) ph)
+  oi-unique {succ n} (o′ th) ph = Zero-elim (>⇒≰ (<s n) th)
 
   osInj : ∀ {m n} {th th′ : m ≤ n} → os th ≡ os th′ → th ≡ th′
   osInj refl = refl
@@ -78,7 +78,7 @@ module Lib.Thinning where
   o′ th ≟th o′ th′ = mapDec (cong o′) o′Inj (th ≟th th′)
 
   _≤?_ : ∀ x y → Dec (x ≤ y)
-  zero ≤? y = yes (z≤ _)
+  zero ≤? y = yes (oe _)
   succ x ≤? zero = no λ ()
   succ x ≤? succ y = mapDec os op (x ≤? y)
 
@@ -92,15 +92,15 @@ module Lib.Thinning where
   o′ th ≤-comp os ph = o′ (th ≤-comp ph)
   th ≤-comp o′ ph = o′ (th ≤-comp ph)
 
-  comp-oe : ∀ {m n} (mn : m ≤ n) → mn ≤-comp oe ≡ mn
-  comp-oe {n = zero} mn = refl
-  comp-oe {n = succ n} (os mn) = cong os (comp-oe mn)
-  comp-oe {n = succ n} (o′ mn) = cong o′ (comp-oe mn)
+  comp-oi : ∀ {m n} (mn : m ≤ n) → mn ≤-comp oi ≡ mn
+  comp-oi {n = zero} mn = refl
+  comp-oi {n = succ n} (os mn) = cong os (comp-oi mn)
+  comp-oi {n = succ n} (o′ mn) = cong o′ (comp-oi mn)
 
-  oe-comp : ∀ {m n} (mn : m ≤ n) → oe ≤-comp mn ≡ mn
-  oe-comp oz = refl
-  oe-comp {m = .(succ _)} (os mn) = cong os (oe-comp mn)
-  oe-comp (o′ mn) = cong o′ (oe-comp mn)
+  oi-comp : ∀ {m n} (mn : m ≤ n) → oi ≤-comp mn ≡ mn
+  oi-comp oz = refl
+  oi-comp {m = .(succ _)} (os mn) = cong os (oi-comp mn)
+  oi-comp (o′ mn) = cong o′ (oi-comp mn)
 
   diff : ∀ {m n} → m ≤ n → Nat
   diff oz = zero
@@ -170,7 +170,7 @@ module Lib.Thinning where
   ≡⊆⇒≡ ozz = refl
   ≡⊆⇒≡ (oss sub) = cong os (≡⊆⇒≡ sub)
   ≡⊆⇒≡ (o′′ sub) = cong o′ (≡⊆⇒≡ sub)
-  ≡⊆⇒≡ (o′s sub) = Zero-elim (>⇒≰ oe (⊆⇒≤ sub))
+  ≡⊆⇒≡ (o′s sub) = Zero-elim (>⇒≰ oi (⊆⇒≤ sub))
 
   ⊆comp⇒⊆r : ∀ {m m′ n  o} {th : m ≤ o} (ph : m′ ≤ n) {ch : n ≤ o} →
              th ⊆ ph ≤-comp ch → th ⊆ ch
@@ -222,7 +222,7 @@ module Lib.Thinning where
   Fin n = 1 ≤ n
 
   zeroth : ∀ {n} → Fin (succ n)
-  zeroth = os (z≤ _)
+  zeroth = os (oe _)
 
   from-< : ∀ {m n} → m < n → Fin n
   from-< {m} {zero} ()
@@ -267,7 +267,7 @@ module Lib.Thinning where
   --
 
   punchOut : ∀ {n} {i j : Fin (succ n)} → i /= j → Fin n
-  punchOut {n} {os i} {os j} neq = Zero-elim (neq (cong os (z≤-unique i j)))
+  punchOut {n} {os i} {os j} neq = Zero-elim (neq (cong os (oe-unique i j)))
   punchOut {n} {os i} {o′ j} neq = j
   punchOut {zero} {o′ ()} {j} neq
   punchOut {succ n} {o′ i} {os j} neq = zeroth

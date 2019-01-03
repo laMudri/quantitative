@@ -34,7 +34,7 @@ module Quantitative.Syntax.Substitution {c} (Ty : Set c) where
 
   liftSubst : ∀ {m n} → Subst m n → Subst (succ m) (succ n)
   liftSubst vf (os i) = var zeroth
-  liftSubst vf (o′ i) = rename (o′ oe) (vf i)
+  liftSubst vf (o′ i) = rename (o′ oi) (vf i)
 
   liftSubstN : ∀ {m n} l → Subst m n → Subst (l +N m) (l +N n)
   liftSubstN zero vf = vf
