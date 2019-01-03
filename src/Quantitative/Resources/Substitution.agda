@@ -31,6 +31,7 @@ module Quantitative.Resources.Substitution
     (record { posemiring = R.posemiring })
   open import Lib.Matrix.Multiplication.Basis (record { semiring = R.semiring })
   open import Lib.Matrix.Poset (record { poset = R.poset })
+  open import Lib.Matrix.Scaling (record { semiring = R.semiring })
   open import Lib.Nat
   open import Lib.Product
   open import Lib.Sum
@@ -39,10 +40,75 @@ module Quantitative.Resources.Substitution
   open import Lib.Two
   open import Lib.Vec
   open import Lib.Vec.Thinning using (lookup′)
+  open import Lib.Zero
 
   RenRes : ∀ {m n} → m ≤ n → RCtx m → RCtx n → Set l′
   RenRes th Δm Δn = thin             th  oi $E Δn ≤M Δm
                   × thin (complement th) oi $E Δn ≤M [| R.e0 |]
+
+  free-RenRes : ∀ {m n} (th : m ≤ n) (Δm : RCtx m) → ∃ λ Δn → RenRes th Δm Δn
+  free-RenRes th Δm = Δn , thr
+    where
+    Δn = set′ th oi Δm $E [| R.e0 |]
+
+    thr : RenRes th Δm Δn
+    thr .fst (i , o′ ())
+    thr .fst (i , j@(os oz))
+      with i ≤-comp th ⊆? th | true→≡yes (i ≤-comp th ⊆? th) (comp-⊆ i th)
+    ... | ._ | el , refl rewrite ⊆-factor-trivial el = R.≤-refl
+    thr .snd (i , j)
+      with i ≤-comp complement th ⊆? th
+         | false→≡no (i ≤-comp complement th ⊆? th)
+                     (∈c⇒∉ (comp-⊆ i (complement th)))
+    ... | ._ | nel , refl = R.≤-refl
+
+  ren-split-0 : ∀ {m n th Δm Δn} → RenRes {m} {n} th Δm Δn →
+                Δm ≤M [| R.e0 |] → Δn ≤M [| R.e0 |]
+  ren-split-0 thr split (i , o′ ())
+  ren-split-0 {th = th} thr split (i , j@(os oz)) with i ∈? th
+  ren-split-0 {th = th} thr split (i , j@(os oz)) | inl el with ⊆-factor el
+  ...   | i′ , refl = R.≤-trans (thr .fst (i′ , j)) (split (i′ , j))
+  ren-split-0 {th = th} thr split (i , j@(os oz)) | inr elc with ⊆-factor elc
+  ...   | i′ , refl = thr .snd (i′ , j)
+
+  ren-split-+ : ∀ {m n th Δm Δn} → RenRes {m} {n} th Δm Δn →
+                ∀ {Δm0 Δm1} → Δm ≤M Δm0 +M Δm1 →
+                ∃ λ Δn0 → ∃ λ Δn1 → Δn ≤M Δn0 +M Δn1
+                                  × RenRes th Δm0 Δn0 × RenRes th Δm1 Δn1
+  ren-split-+ {m} {n} {th} {Δm} {Δn} thr {Δm0} {Δm1} split =
+    Δn0 , Δn1 , split′ , thr0 , thr1
+    where
+    f0 = free-RenRes th Δm0
+    f1 = free-RenRes th Δm1
+    Δn0 = f0 .fst ; thr0 = f0 .snd
+    Δn1 = f1 .fst ; thr1 = f1 .snd
+
+    split′ : Δn ≤M Δn0 +M Δn1
+    split′ (i , o′ ())
+    split′ (i , j@(os oz)) with i ⊆? th
+    split′ (i , j@(os oz)) | yes el with ⊆-factor el
+    ... | i′ , refl = (≤M-trans (thr .fst) split) (i′ , j)
+    split′ (i , j@(os oz)) | no nel with ⊆-factor (∉⇒∈c nel)
+    ... | i′ , refl =
+      (≤M-trans (thr .snd) (≤M-reflexive (symM (+M-identity .fst _)))) (i′ , j)
+
+  ren-split-** : ∀ {m n th Δm Δn} → RenRes {m} {n} th Δm Δn →
+                 ∀ {ρ Δm0} → Δm ≤M ρ ** Δm0 →
+                 ∃ λ Δn0 → Δn ≤M ρ ** Δn0 × RenRes th Δm0 Δn0
+  ren-split-** {th = th} {Δn = Δn} thr {ρ} {Δm0} split =
+    Δn0 , split′ , thr0
+    where
+    f0 = free-RenRes th Δm0
+    Δn0 = f0 .fst ; thr0 = f0 .snd
+
+    split′ : Δn ≤M ρ ** Δn0
+    split′ (i , (o′ ()))
+    split′ (i , j@(os oz)) with i ⊆? th
+    split′ (i , j@(os oz)) | yes el with ⊆-factor el
+    ... | i′ , refl = (≤M-trans (thr .fst) split) (i′ , j)
+    split′ (i , j@(os oz)) | no nel with ⊆-factor (∉⇒∈c nel)
+    ... | i′ , refl =
+      (≤M-trans (thr .snd) (≤M-reflexive (symM (**-annihil .fst ρ)))) (i′ , j)
 
   renameRes :
     ∀ {m n d Γm Γn S} {Δm : RCtx m} {Δn : RCtx n}
@@ -63,7 +129,9 @@ module Quantitative.Resources.Substitution
     ...       | a | b with dec-agree (⊆-comp-cong-r _) ⊆-comp-cancel-r a b
     ...         | inl <> = res
     ...         | inr <> = res
-  renameRes thr (app split er sr) = app {!thin-≤M ? ? split!} {!!} {!!}
+  renameRes {Δn = Δn} thr (app split er sr) with ren-split-+ {Δn = Δn} thr split
+  ... | Δne , Δns , split′ , thre , thrs =
+    app split′ (renameRes thre er) (renameRes thrs sr)
   renameRes thr (bm split er sr) = {!!}
   renameRes thr (del split er sr) = {!!}
   renameRes thr (pm split er sr) = {!!}
@@ -72,8 +140,9 @@ module Quantitative.Resources.Substitution
   renameRes thr (cse split er s0r s1r) = {!!}
   renameRes thr (the sr) = the (renameRes thr sr)
   renameRes thr (lam sr) = {!!}
-  renameRes thr (bang split sr) = {!!}
-  renameRes thr (unit split) = unit {!!}
+  renameRes {Δn = Δn} thr (bang split sr) with ren-split-** {Δn = Δn} thr split
+  ... | Δns , splitn , thrs = bang splitn (renameRes thrs sr)
+  renameRes thr (unit split) = unit (ren-split-0 thr split)
   renameRes thr (ten split s0r s1r) = {!!}
   renameRes thr eat = eat
   renameRes thr (wth s0r s1r) = wth (renameRes thr s0r) (renameRes thr s1r)
