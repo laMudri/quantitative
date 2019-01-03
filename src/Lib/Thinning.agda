@@ -127,12 +127,6 @@ module Lib.Thinning where
   os th ⊆? o′ ph = no (λ ())
   o′ th ⊆? o′ ph = mapDec o′′ (λ where (o′′ sub) → sub) (th ⊆? ph)
 
-  ⊆⇒≤ : ∀ {m m′ n} {th : m ≤ n} {ph : m′ ≤ n} → th ⊆ ph → m ≤ m′
-  ⊆⇒≤ ozz = oz
-  ⊆⇒≤ (oss sub) = os (⊆⇒≤ sub)
-  ⊆⇒≤ (o′′ sub) = ⊆⇒≤ sub
-  ⊆⇒≤ (o′s sub) = o′ (⊆⇒≤ sub)
-
   empty-⊆ : ∀ {m n} (e : 0 ≤ n) (th : m ≤ n) → e ⊆ th
   empty-⊆ oz oz = ozz
   empty-⊆ (o′ e) (os th) = o′s (empty-⊆ e th)
@@ -157,85 +151,6 @@ module Lib.Thinning where
   ⊆-antisym (oss thph) (oss phth) = cong os (⊆-antisym thph phth)
   ⊆-antisym (o′′ thph) (o′′ phth) = cong o′ (⊆-antisym thph phth)
   ⊆-antisym (o′s thph) ()
-
-  ≥⇒≡sub : ∀ {m n k} {th : m +N k ≤ n} {ph : m ≤ n} (sub sub′ : th ⊆ ph) →
-           sub ≡ sub′
-  ≥⇒≡sub ozz ozz = refl
-  ≥⇒≡sub (oss sub) (oss sub′) = cong oss (≥⇒≡sub sub sub′)
-  ≥⇒≡sub (o′′ sub) (o′′ sub′) = cong o′′ (≥⇒≡sub sub sub′)
-  ≥⇒≡sub {succ m} {succ n} {k} (o′s sub) (o′s sub′)
-    rewrite sym (+N-succ m k) = cong o′s (≥⇒≡sub sub sub′)
-
-  ≡⊆⇒≡ : ∀ {m n} {th ph : m ≤ n} → th ⊆ ph → th ≡ ph
-  ≡⊆⇒≡ ozz = refl
-  ≡⊆⇒≡ (oss sub) = cong os (≡⊆⇒≡ sub)
-  ≡⊆⇒≡ (o′′ sub) = cong o′ (≡⊆⇒≡ sub)
-  ≡⊆⇒≡ (o′s sub) = Zero-elim (>⇒≰ oi (⊆⇒≤ sub))
-
-  ⊆comp⇒⊆r : ∀ {m m′ n  o} {th : m ≤ o} (ph : m′ ≤ n) {ch : n ≤ o} →
-             th ⊆ ph ≤-comp ch → th ⊆ ch
-  ⊆comp⇒⊆r {th = oz} ph {ch} sub = empty-⊆ oz ch
-  ⊆comp⇒⊆r {th = os th} ph {o′ ch} ()
-  ⊆comp⇒⊆r {th = os th} (os ph) {os ch} (oss sub) = oss (⊆comp⇒⊆r ph sub)
-  ⊆comp⇒⊆r {th = os th} (o′ ph) {os ch} ()
-  ⊆comp⇒⊆r {th = o′ th} ph {o′ ch} (o′′ sub) = o′′ (⊆comp⇒⊆r ph sub)
-  ⊆comp⇒⊆r {th = o′ th} (os ph) {os ch} (o′s sub) = o′s (⊆comp⇒⊆r ph sub)
-  ⊆comp⇒⊆r {th = o′ th} (o′ ph) {os ch} (o′′ sub) = o′s (⊆comp⇒⊆r ph sub)
-
-  ⊆-factor : ∀ {m n o} {th : m ≤ o} {ch : n ≤ o} →
-             th ⊆ ch → ∃ λ (ph : m ≤ n) → th ≡ ph ≤-comp ch
-  ⊆-factor ozz = oz , refl
-  ⊆-factor (oss sub) with ⊆-factor sub
-  ... | ph , sub-comp = os ph , cong os sub-comp
-  ⊆-factor (o′′ sub) with ⊆-factor sub
-  ... | ph , sub-comp = ph , cong o′ sub-comp
-  ⊆-factor (o′s sub) with ⊆-factor sub
-  ... | ph , sub-comp = o′ ph , cong o′ sub-comp
-
-  ⊆-comp-cong-r : ∀ {m m′ n o} {th : m ≤ n} {ph : m′ ≤ n} (ch : n ≤ o) →
-                  th ⊆ ph → th ≤-comp ch ⊆ ph ≤-comp ch
-  ⊆-comp-cong-r {th = th} {ph} oz sub = sub
-  ⊆-comp-cong-r {th = th} {ph} (o′ ch) sub = o′′ (⊆-comp-cong-r ch sub)
-  ⊆-comp-cong-r {th = os th} {os ph} (os ch) (oss sub) =
-    oss (⊆-comp-cong-r ch sub)
-  ⊆-comp-cong-r {th = os th} {o′ ph} (os ch) ()
-  ⊆-comp-cong-r {th = o′ th} {os ph} (os ch) (o′s sub) =
-    o′s (⊆-comp-cong-r ch sub)
-  ⊆-comp-cong-r {th = o′ th} {o′ ph} (os ch) (o′′ sub) =
-    o′′ (⊆-comp-cong-r ch sub)
-
-  ⊆-comp-cancel-r : ∀ {m m′ n o} {th : m ≤ n} {ph : m′ ≤ n} {ch : n ≤ o} →
-                    th ≤-comp ch ⊆ ph ≤-comp ch → th ⊆ ph
-  ⊆-comp-cancel-r {th = th} {ph} {oz} sub = sub
-  ⊆-comp-cancel-r {th = th} {ph} {o′ ch} (o′′ sub) = ⊆-comp-cancel-r sub
-  ⊆-comp-cancel-r {th = os th} {os ph} {os ch} (oss sub) =
-    oss (⊆-comp-cancel-r sub)
-  ⊆-comp-cancel-r {th = os th} {o′ ph} {os ch} ()
-  ⊆-comp-cancel-r {th = o′ th} {os ph} {os ch} (o′s sub) =
-    o′s (⊆-comp-cancel-r sub)
-  ⊆-comp-cancel-r {th = o′ th} {o′ ph} {os ch} (o′′ sub) =
-    o′′ (⊆-comp-cancel-r sub)
-
-  --
-
-  Fin : Nat → Set
-  Fin n = 1 ≤ n
-
-  zeroth : ∀ {n} → Fin (succ n)
-  zeroth = os (oe _)
-
-  from-< : ∀ {m n} → m < n → Fin n
-  from-< {m} {zero} ()
-  from-< {zero} {succ n} th = zeroth
-  from-< {succ m} {succ n} th = o′ (from-< {m} {n} (op th))
-
-  infix 6 #th_
-  #th_ : ∀ {n} m {less : Auto (m <? n)} → Fin n
-  #th_ {n} m {less} = from-< (toWitness {X? = m <? n} less)
-
-  1≤ToNat : ∀ {m} → Fin m → Nat
-  1≤ToNat (os i) = zero
-  1≤ToNat (o′ i) = succ (1≤ToNat i)
 
   --
 
@@ -263,6 +178,101 @@ module Lib.Thinning where
   int-⊆ : ∀ {m m′ n} {th : m ≤ n} {ph : m′ ≤ n} →
           th ⊆ ph → (∀ {l} {ch : l ≤ n} → ch ⊆ th → ch ⊆ ph)
   int-⊆ sub ⊆th = ⊆-trans ⊆th sub
+
+  --
+
+  comp-⊆ : ∀ {m n o} (th : m ≤ n) (ph : n ≤ o) → th ≤-comp ph ⊆ ph
+  comp-⊆ th (o′ ph) = o′′ (comp-⊆ th ph)
+  comp-⊆ oz oz = ozz
+  comp-⊆ (os th) (os ph) = oss (comp-⊆ th ph)
+  comp-⊆ (o′ th) (os ph) = o′s (comp-⊆ th ph)
+
+  ⊆comp⇒⊆r : ∀ {m m′ n  o} {th : m ≤ o} (ph : m′ ≤ n) {ch : n ≤ o} →
+             th ⊆ ph ≤-comp ch → th ⊆ ch
+  ⊆comp⇒⊆r {th = th} ph {ch} sub = int-⊆ (comp-⊆ ph ch) sub
+
+  ⊆-factor : ∀ {m n o} {th : m ≤ o} {ch : n ≤ o} →
+             th ⊆ ch → ∃ λ (ph : m ≤ n) → th ≡ ph ≤-comp ch
+  ⊆-factor ozz = oz , refl
+  ⊆-factor (oss sub) with ⊆-factor sub
+  ... | ph , sub-comp = os ph , cong os sub-comp
+  ⊆-factor (o′′ sub) with ⊆-factor sub
+  ... | ph , sub-comp = ph , cong o′ sub-comp
+  ⊆-factor (o′s sub) with ⊆-factor sub
+  ... | ph , sub-comp = o′ ph , cong o′ sub-comp
+
+  ⊆⇒≤ : ∀ {m m′ n} {th : m ≤ n} {ph : m′ ≤ n} → th ⊆ ph → m ≤ m′
+  ⊆⇒≤ sub = ⊆-factor sub .fst
+
+  ⊆-factor-trivial : ∀ {m n o} {th : m ≤ n} {ch : n ≤ o} →
+                     (sub : th ≤-comp ch ⊆ ch) → ⊆⇒≤ sub ≡ th
+  ⊆-factor-trivial {th = .oz} {oz} ozz = refl
+  ⊆-factor-trivial {th = os th} {os ch} (oss sub) =
+    cong os (⊆-factor-trivial sub)
+  ⊆-factor-trivial {th = o′ th} {os ch} (o′s sub) =
+    cong o′ (⊆-factor-trivial sub)
+  ⊆-factor-trivial {th = th} {o′ ch} (o′′ sub) = ⊆-factor-trivial sub
+
+  ⊆-comp-cong-r : ∀ {m m′ n o} {th : m ≤ n} {ph : m′ ≤ n} (ch : n ≤ o) →
+                  th ⊆ ph → th ≤-comp ch ⊆ ph ≤-comp ch
+  ⊆-comp-cong-r {th = th} {ph} oz sub = sub
+  ⊆-comp-cong-r {th = th} {ph} (o′ ch) sub = o′′ (⊆-comp-cong-r ch sub)
+  ⊆-comp-cong-r {th = os th} {os ph} (os ch) (oss sub) =
+    oss (⊆-comp-cong-r ch sub)
+  ⊆-comp-cong-r {th = os th} {o′ ph} (os ch) ()
+  ⊆-comp-cong-r {th = o′ th} {os ph} (os ch) (o′s sub) =
+    o′s (⊆-comp-cong-r ch sub)
+  ⊆-comp-cong-r {th = o′ th} {o′ ph} (os ch) (o′′ sub) =
+    o′′ (⊆-comp-cong-r ch sub)
+
+  ⊆-comp-cancel-r : ∀ {m m′ n o} {th : m ≤ n} {ph : m′ ≤ n} {ch : n ≤ o} →
+                    th ≤-comp ch ⊆ ph ≤-comp ch → th ⊆ ph
+  ⊆-comp-cancel-r {th = th} {ph} {oz} sub = sub
+  ⊆-comp-cancel-r {th = th} {ph} {o′ ch} (o′′ sub) = ⊆-comp-cancel-r sub
+  ⊆-comp-cancel-r {th = os th} {os ph} {os ch} (oss sub) =
+    oss (⊆-comp-cancel-r sub)
+  ⊆-comp-cancel-r {th = os th} {o′ ph} {os ch} ()
+  ⊆-comp-cancel-r {th = o′ th} {os ph} {os ch} (o′s sub) =
+    o′s (⊆-comp-cancel-r sub)
+  ⊆-comp-cancel-r {th = o′ th} {o′ ph} {os ch} (o′′ sub) =
+    o′′ (⊆-comp-cancel-r sub)
+
+  --
+
+  ≥⇒≡sub : ∀ {m n k} {th : m +N k ≤ n} {ph : m ≤ n} (sub sub′ : th ⊆ ph) →
+           sub ≡ sub′
+  ≥⇒≡sub ozz ozz = refl
+  ≥⇒≡sub (oss sub) (oss sub′) = cong oss (≥⇒≡sub sub sub′)
+  ≥⇒≡sub (o′′ sub) (o′′ sub′) = cong o′′ (≥⇒≡sub sub sub′)
+  ≥⇒≡sub {succ m} {succ n} {k} (o′s sub) (o′s sub′)
+    rewrite sym (+N-succ m k) = cong o′s (≥⇒≡sub sub sub′)
+
+  ≡⊆⇒≡ : ∀ {m n} {th ph : m ≤ n} → th ⊆ ph → th ≡ ph
+  ≡⊆⇒≡ ozz = refl
+  ≡⊆⇒≡ (oss sub) = cong os (≡⊆⇒≡ sub)
+  ≡⊆⇒≡ (o′′ sub) = cong o′ (≡⊆⇒≡ sub)
+  ≡⊆⇒≡ (o′s sub) = Zero-elim (>⇒≰ oi (⊆⇒≤ sub))
+
+  --
+
+  Fin : Nat → Set
+  Fin n = 1 ≤ n
+
+  zeroth : ∀ {n} → Fin (succ n)
+  zeroth = os (oe _)
+
+  from-< : ∀ {m n} → m < n → Fin n
+  from-< {m} {zero} ()
+  from-< {zero} {succ n} th = zeroth
+  from-< {succ m} {succ n} th = o′ (from-< {m} {n} (op th))
+
+  infix 6 #th_
+  #th_ : ∀ {n} m {less : Auto (m <? n)} → Fin n
+  #th_ {n} m {less} = from-< (toWitness {X? = m <? n} less)
+
+  1≤ToNat : ∀ {m} → Fin m → Nat
+  1≤ToNat (os i) = zero
+  1≤ToNat (o′ i) = succ (1≤ToNat i)
 
   --
 
