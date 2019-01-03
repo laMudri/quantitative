@@ -43,3 +43,7 @@ module Lib.Matrix.Preorder {c l l′} (PreO : ΣPreorder c l l′) where
   (_+↓-mono_ {m} {m′} {n} MM NN) (i , j) with part m′ i
   ... | inl i′ = NN (i′ , j)
   ... | inr i′ = MM (i′ , j)
+
+  thin-≤M : ∀ {m n m′ n′} (mm : m′ ≤th m) (nn : n′ ≤th n) {M N : Mat (m , n)} →
+            M ≤M N → thin mm nn $E M ≤M thin mm nn $E N
+  thin-≤M mm nn MN ij = MN _

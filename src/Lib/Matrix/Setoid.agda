@@ -6,12 +6,15 @@ module Lib.Matrix.Setoid {c l} (A : Setoid c l) where
 
   open import Lib.Matrix C public
 
+  open import Lib.Dec
   open import Lib.Equality as ≡ using (_≡_)
   open import Lib.Function using (id)
   open import Lib.Level
   open import Lib.Nat
   open import Lib.Product
+  open import Lib.Sum
   open import Lib.Thinning
+  open import Lib.Two
 
   -- TODO: this could be abstracted out as a generic pointwise setoid
   -- (assuming propositional equality on the indices) at no intensional cost
@@ -51,3 +54,18 @@ module Lib.Matrix.Setoid {c l} (A : Setoid c l) where
   remove-row : ∀ {m n} → MatS (succ m , n) →E MatS (m , n)
   remove-row ._$E_ M (i , j) = M (o′ i , j)
   remove-row ._$E=_ MM _ = MM _
+
+  set : ∀ {m n m′ n′} → m ≤ m′ → n ≤ n′ →
+        (MatS (m , n) →E MatS (m , n)) → (MatS (m′ , n′) →E MatS (m′ , n′))
+  set mm nn f ._$E_ M (i , j) =
+    [ (λ where (imm , jnn) → let M′ = thin mm nn $E M in
+                             (f $E M′) (⊆⇒≤ imm , ⊆⇒≤ jnn))
+    , (λ _ → M (i , j))
+    ] (i ⊆? mm ×? j ⊆? nn)
+  set mm nn f ._$E=_ MM (i , j) with i ⊆? mm ×? j ⊆? nn
+  ... | yes _ = (f $E= (thin _ _ $E= MM)) _
+  ... | no _ = MM _
+
+  set′ : ∀ {m n m′ n′} → m ≤ m′ → n ≤ n′ →
+         Mat (m , n) → (MatS (m′ , n′) →E MatS (m′ , n′))
+  set′ mm nn N = set mm nn (constE $E N)

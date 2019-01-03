@@ -15,8 +15,8 @@ module Lib.Matrix {c} (C : Set c) where
 
   -- These two help size inference, and are nice visually
   -- Mnemonic: || for a (narrow) column; -- for a (flat) row
-  [|_|] : ∀ {n} → C → Mat (1 , n)
-  [| v |] = λ _ → v
+  [-_-] : ∀ {n} → C → Mat (1 , n)
+  [- v -] = λ _ → v
 
-  [-_-] : ∀ {m} → C → Mat (m , 1)
-  [- u -] = λ _ → u
+  [|_|] : ∀ {m} → C → Mat (m , 1)
+  [| v |] = λ _ → v
