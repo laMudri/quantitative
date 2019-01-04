@@ -156,20 +156,37 @@ module Quantitative.Resources.Substitution
   ... | Δne , Δns , split′ , thre , thrs =
     bm split′ (renameRes Δne thre er)
               (renameRes _ (+↓-RenRes Δns thrs [- ρ -]) sr)
-  renameRes Δn thr (del split er sr) = {!!}
-  renameRes Δn thr (pm split er sr) = {!!}
+  renameRes Δn thr (del split er sr) with ren-split-+ Δn thr split
+  ... | Δne , Δns , split′ , thre , thrs =
+    del split′ (renameRes Δne thre er) (renameRes Δns thrs sr)
+  renameRes Δn thr (pm split er sr) with ren-split-+ Δn thr split
+  ... | Δne , Δns , split′ , thre , thrs =
+    pm split′ (renameRes Δne thre er)
+              (renameRes _ (+↓-RenRes (Δns +↓ [- R.e1 -])
+                                      (+↓-RenRes Δns thrs [- R.e1 -])
+                                      [- R.e1 -])
+                           sr)
   renameRes Δn thr (proj er) = proj (renameRes Δn thr er)
-  renameRes Δn thr (exf split er) = {!!}
-  renameRes Δn thr (cse split er s0r s1r) = {!!}
+  renameRes Δn thr (exf split er) with ren-split-+ Δn thr split
+  ... | Δne , Δns , split′ , thre , thrs =
+    exf split′ (renameRes Δne thre er)
+  renameRes Δn thr (cse split er s0r s1r) with ren-split-+ Δn thr split
+  ... | Δne , Δns , split′ , thre , thrs =
+    cse split′ (renameRes Δne thre er)
+               (renameRes _ (+↓-RenRes Δns thrs [- R.e1 -]) s0r)
+               (renameRes _ (+↓-RenRes Δns thrs [- R.e1 -]) s1r)
   renameRes Δn thr (the sr) = the (renameRes Δn thr sr)
   renameRes Δn thr (lam sr) =
     lam (renameRes _ (+↓-RenRes Δn thr [- R.e1 -]) sr)
   renameRes Δn thr (bang split sr) with ren-split-** Δn thr split
   ... | Δns , splitn , thrs = bang splitn (renameRes Δns thrs sr)
   renameRes Δn thr (unit split) = unit (ren-split-0 Δn thr split)
-  renameRes Δn thr (ten split s0r s1r) = {!!}
+  renameRes Δn thr (ten split s0r s1r) with ren-split-+ Δn thr split
+  ... | Δn0 , Δn1 , split′ , thr0 , thr1 =
+    ten split′ (renameRes Δn0 thr0 s0r) (renameRes Δn1 thr1 s1r)
   renameRes Δn thr eat = eat
-  renameRes Δn thr (wth s0r s1r) = wth (renameRes Δn thr s0r) (renameRes Δn thr s1r)
+  renameRes Δn thr (wth s0r s1r) =
+    wth (renameRes Δn thr s0r) (renameRes Δn thr s1r)
   renameRes Δn thr (inj sr) = inj (renameRes Δn thr sr)
   renameRes Δn thr [ er ] = [ renameRes Δn thr er ]
 
