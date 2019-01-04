@@ -110,6 +110,26 @@ module Quantitative.Resources.Substitution
     ... | i′ , refl =
       (≤M-trans (thr .snd) (≤M-reflexive (symM (**-annihil .fst ρ)))) (i′ , j)
 
+  +↓-RenRes : ∀ {m n} {th : m ≤ n} {Δm Δn} → RenRes th Δm Δn →
+              ∀ {o} Δ → RenRes (oi {o} +≤+ th) (Δm +↓ Δ) (Δn +↓ Δ)
+  +↓-RenRes {th = th} thr {o} Δ .fst (i , j)
+    with ≤-+ (o) i | comp-+ i (oi {o}) th
+  ... | 0 , .1 , io , im , refl | iq
+    rewrite iq | comp-oi io | split-+≤+ io (im ≤-comp th) = thr .fst (im , j)
+  ... | 1 , .0 , io , im , refl | iq
+    rewrite iq | comp-oi io | split-+≤+ io (im ≤-comp th) | comp-oi j = R.≤-refl
+  ... | succ (succ _) , _ , io , im , () | iq
+  +↓-RenRes {th = th} {Δn = Δn} thr {o} Δ .snd (i , j)
+    with diff (oi {o} +≤+ th) | diff-+≤+ (oi {o}) th
+       | (oi {o} +≤+ th) ᶜ | complement-+≤+ (oi {o}) th
+  ... | ._ | refl | ._ | refl with diff (oi {o}) | diff-oi o | oi {o} ᶜ
+  ... | ._ | refl | oiᶜ with ≤-+ 0 i | comp-+ i oiᶜ (th ᶜ)
+  ... | 0 , .1 , io , im , refl | iq
+    rewrite iq | split-+≤+ (oz ≤-comp oiᶜ) (i ≤-comp th ᶜ) = thr .snd (i , j)
+  ... | 1 , .0 , io , im , refl | iq
+    rewrite iq | split-+≤+ (oz ≤-comp oiᶜ) (i ≤-comp th ᶜ) = thr .snd (i , j)
+  ... | (succ (succ _)) , 1m , io , im , () | iq
+
   renameRes :
     ∀ {m n d Γm Γn S} {Δm : RCtx m} {Δn : RCtx n}
     {t : Term m d} {tt : Γm ⊢t t :-: S} {th : m ≤ n} {tht : RenTy th Γm Γn} →
@@ -139,7 +159,8 @@ module Quantitative.Resources.Substitution
   renameRes thr (exf split er) = {!!}
   renameRes thr (cse split er s0r s1r) = {!!}
   renameRes thr (the sr) = the (renameRes thr sr)
-  renameRes thr (lam sr) = {!!}
+  renameRes {Δn = Δn} thr (lam sr) =
+    lam (renameRes (+↓-RenRes {Δn = Δn} thr [- R.e1 -]) sr)
   renameRes {Δn = Δn} thr (bang split sr) with ren-split-** {Δn = Δn} thr split
   ... | Δns , splitn , thrs = bang splitn (renameRes thrs sr)
   renameRes thr (unit split) = unit (ren-split-0 thr split)
