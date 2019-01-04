@@ -54,10 +54,10 @@ module Lib.Matrix.Multiplication.Basis {c l} (R : ΣSemiring c l) where
     open SetoidReasoning Carrier
 
     lemma : k ≤-comp os j ≡ zeroth
-    lemma rewrite oi-unique k zeroth | oe-unique (oz ≤-comp j) (oe n) = ≡.refl
+    lemma rewrite oi-unique k zeroth | oe-unique (oz ≤-comp j) oe = ≡.refl
 
     lemma2 : basis-col (os j) (zeroth , k) ≈ e1
-    lemma2 rewrite true→≡yes (oe n ⊆? j) (empty-⊆ (oe n) j) .snd
+    lemma2 rewrite true→≡yes (oe ⊆? j) (empty-⊆ oe j) .snd
                  | true→≡yes (k ⊆? zeroth)
                              (≡⇒refl _⊆_ ⊆-refl (oi-unique k zeroth))
                              .snd

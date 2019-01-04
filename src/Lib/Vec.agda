@@ -97,51 +97,51 @@ module Lib.Vec where
   lookup-+ (os i) (x :: xs) y zs ()
   lookup-+ (o′ i) (x :: xs) y zs eq = lookup-+ i xs y zs (succInj eq)
 
-  lookup-part-l :
-    ∀ {a A m n j} (i : Fin (m +N n)) (xs : Vec {a} A m) (ys : Vec A n) →
-    part m i ≡ inl j → lookup j xs ≡ lookup i (xs +V ys)
-  lookup-part-l i nil ys ()
-  lookup-part-l (os i) (x :: xs) ys refl = refl
-  lookup-part-l {m = succ m} (o′ i) (x :: xs) ys eq
-    with part m i | inspect (part m) i
-  lookup-part-l {m = succ m} (o′ i) (x :: xs) ys refl | inl j | ingraph eq =
-    lookup-part-l i xs ys eq
-  lookup-part-l {m = succ m} (o′ i) (x :: xs) ys () | inr _ | _
+  -- lookup-part-l :
+  --   ∀ {a A m n j} (i : Fin (m +N n)) (xs : Vec {a} A m) (ys : Vec A n) →
+  --   part m i ≡ inl j → lookup j xs ≡ lookup i (xs +V ys)
+  -- lookup-part-l i nil ys ()
+  -- lookup-part-l (os i) (x :: xs) ys refl = refl
+  -- lookup-part-l {m = succ m} (o′ i) (x :: xs) ys eq
+  --   with part m i | inspect (part m) i
+  -- lookup-part-l {m = succ m} (o′ i) (x :: xs) ys refl | inl j | ingraph eq =
+  --   lookup-part-l i xs ys eq
+  -- lookup-part-l {m = succ m} (o′ i) (x :: xs) ys () | inr _ | _
 
-  lookup-part-r :
-    ∀ {a A m n j} (i : Fin (m +N n)) (xs : Vec {a} A m) (ys : Vec A n) →
-    part m i ≡ inr j → lookup j ys ≡ lookup i (xs +V ys)
-  lookup-part-r i nil ys refl = refl
-  lookup-part-r (os i) (x :: xs) ys ()
-  lookup-part-r {m = succ m} (o′ i) (x :: xs) ys eq
-    with part m i | inspect (part m) i
-  lookup-part-r {m = succ m} (o′ i) (x :: xs) ys () | inl _ | _
-  lookup-part-r {m = succ m} (o′ i) (x :: xs) ys refl | inr j | ingraph eq =
-    lookup-part-r i xs ys eq
+  -- lookup-part-r :
+  --   ∀ {a A m n j} (i : Fin (m +N n)) (xs : Vec {a} A m) (ys : Vec A n) →
+  --   part m i ≡ inr j → lookup j ys ≡ lookup i (xs +V ys)
+  -- lookup-part-r i nil ys refl = refl
+  -- lookup-part-r (os i) (x :: xs) ys ()
+  -- lookup-part-r {m = succ m} (o′ i) (x :: xs) ys eq
+  --   with part m i | inspect (part m) i
+  -- lookup-part-r {m = succ m} (o′ i) (x :: xs) ys () | inl _ | _
+  -- lookup-part-r {m = succ m} (o′ i) (x :: xs) ys refl | inr j | ingraph eq =
+  --   lookup-part-r i xs ys eq
 
-  lookup-leftPart :
-    ∀ {a A m n} (i : Fin m) (xs : Vec {a} A m) (ys : Vec A n) →
-    lookup (leftPart n i) (xs +V ys) ≡ lookup i xs
-  lookup-leftPart (os i) (x :: xs) ys = refl
-  lookup-leftPart (o′ i) (x :: xs) ys = lookup-leftPart i xs ys
+  -- lookup-leftPart :
+  --   ∀ {a A m n} (i : Fin m) (xs : Vec {a} A m) (ys : Vec A n) →
+  --   lookup (leftPart n i) (xs +V ys) ≡ lookup i xs
+  -- lookup-leftPart (os i) (x :: xs) ys = refl
+  -- lookup-leftPart (o′ i) (x :: xs) ys = lookup-leftPart i xs ys
 
-  lookup-rightPart :
-    ∀ {a A m n} (i : Fin n) (xs : Vec {a} A m) (ys : Vec A n) →
-    lookup (rightPart m i) (xs +V ys) ≡ lookup i ys
-  lookup-rightPart i nil ys = refl
-  lookup-rightPart i (x :: xs) ys = lookup-rightPart i xs ys
+  -- lookup-rightPart :
+  --   ∀ {a A m n} (i : Fin n) (xs : Vec {a} A m) (ys : Vec A n) →
+  --   lookup (rightPart m i) (xs +V ys) ≡ lookup i ys
+  -- lookup-rightPart i nil ys = refl
+  -- lookup-rightPart i (x :: xs) ys = lookup-rightPart i xs ys
 
-  lookup-punchInNMany :
-    ∀ {a A m l n} (ls : Vec A l) (ns : Vec A n) (ms : Vec {a} A m) i →
-    lookup (punchInNMany l n i) (ls +V ns +V ms) ≡ lookup i (ls +V ms)
-  lookup-punchInNMany {l = l} {n} ls ns ms i
-    with part l i | inspect (part l) i
-  ... | inl j | ingraph eq = trans (lookup-leftPart j ls (ns +V ms))
-                                   (lookup-part-l i ls ms eq)
-  ... | inr j | ingraph eq =
-    trans (lookup-rightPart (rightPart n j) ls (ns +V ms))
-          (trans (lookup-rightPart j ns ms)
-                 (lookup-part-r i ls ms eq))
+  -- lookup-punchInNMany :
+  --   ∀ {a A m l n} (ls : Vec A l) (ns : Vec A n) (ms : Vec {a} A m) i →
+  --   lookup (punchInNMany l n i) (ls +V ns +V ms) ≡ lookup i (ls +V ms)
+  -- lookup-punchInNMany {l = l} {n} ls ns ms i
+  --   with part l i | inspect (part l) i
+  -- ... | inl j | ingraph eq = trans (lookup-leftPart j ls (ns +V ms))
+  --                                  (lookup-part-l i ls ms eq)
+  -- ... | inr j | ingraph eq =
+  --   trans (lookup-rightPart (rightPart n j) ls (ns +V ms))
+  --         (trans (lookup-rightPart j ns ms)
+  --                (lookup-part-r i ls ms eq))
 
   lookup-weakenFin :
     ∀ {a A m l} (ls : Vec A l) x (ms : Vec {a} A m) i →

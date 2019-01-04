@@ -23,9 +23,9 @@ module Lib.Thinning where
   oi : ∀ {m} → m ≤ m
   oi = ≤-refl _
 
-  oe : ∀ n → zero ≤ n
-  oe zero = oz
-  oe (succ x) = o′ (oe x)
+  oe : ∀ {n} → zero ≤ n
+  oe {zero} = oz
+  oe {succ n} = o′ (oe {n})
 
   _<_ : (x y : Nat) → Set
   x < y = succ x ≤ y
@@ -41,6 +41,17 @@ module Lib.Thinning where
   oe-unique : ∀ {n} (th th′ : zero ≤ n) → th ≡ th′
   oe-unique oz oz = refl
   oe-unique (o′ th) (o′ th′) = cong o′ (oe-unique th th′)
+
+  -- Disjoint union
+  infixr 6 _+≤+_
+  _+≤+_ : ∀ {m m′ n n′} → m ≤ m′ → n ≤ n′ → m +N n ≤ m′ +N n′
+  oz +≤+ ph = ph
+  os th +≤+ ph = os (th +≤+ ph)
+  o′ th +≤+ ph = o′ (th +≤+ ph)
+
+  oi+oi : ∀ m n → ≤-refl m +≤+ ≤-refl n ≡ oi
+  oi+oi zero n = refl
+  oi+oi (succ m) n = cong os (oi+oi m n)
 
   <s : ∀ n → n < succ n
   <s n = ≤-refl (succ n)
@@ -78,7 +89,7 @@ module Lib.Thinning where
   o′ th ≟th o′ th′ = mapDec (cong o′) o′Inj (th ≟th th′)
 
   _≤?_ : ∀ x y → Dec (x ≤ y)
-  zero ≤? y = yes (oe _)
+  zero ≤? y = yes oe
   succ x ≤? zero = no λ ()
   succ x ≤? succ y = mapDec os op (x ≤? y)
 
@@ -102,6 +113,32 @@ module Lib.Thinning where
   oi-comp {m = .(succ _)} (os mn) = cong os (oi-comp mn)
   oi-comp (o′ mn) = cong o′ (oi-comp mn)
 
+  ≤-+ : ∀ {m} n {o} → m ≤ n +N o →
+        ∃ λ mn → ∃ λ mo → mn ≤ n × mo ≤ o × m ≡ mn +N mo
+  ≤-+ {m} zero {o} th = 0 , m , oz , th , refl
+  ≤-+ {m} (succ n) {o} (o′ th) with ≤-+ n th
+  ... | mn , mo , thn , tho , mq = mn , mo , o′ thn , tho , mq
+  ≤-+ {succ m} (succ n) {o} (os th) with ≤-+ n th
+  ... | mn , mo , thn , tho , mq = succ mn , mo , os thn , tho , cong succ mq
+
+  comp-+ : ∀ {m n n′ o o′} (th : m ≤ n +N o) (ph : n ≤ n′) (ch : o ≤ o′) →
+           let mn , mo , thn , tho , mq = ≤-+ n th in
+           subst (_≤ _) mq (th ≤-comp ph +≤+ ch)
+            ≡ (thn ≤-comp ph) +≤+ (tho ≤-comp ch)
+  comp-+ th oz ch = refl
+  comp-+ {n = succ n} (os th) (os ph) ch with ≤-+ n th | comp-+ th ph ch
+  ... | mn , mo , thn , tho , refl | thq = cong os thq
+  comp-+ {n = succ n} (o′ th) (os ph) ch with ≤-+ n th | comp-+ th ph ch
+  ... | mn , mo , thn , tho , refl | thq = cong o′ thq
+  comp-+ {n = n} th (o′ ph) ch with ≤-+ n th | comp-+ th ph ch
+  ... | mn , mo , thn , tho , refl | thq = cong o′ thq
+
+  split-+≤+ : ∀ {m m′ n n′} (th : m ≤ m′) (ph : n ≤ n′) →
+              ≤-+ m′ (th +≤+ ph) ≡ (m , n , th , ph , refl)
+  split-+≤+ oz ph = refl
+  split-+≤+ (os th) ph rewrite split-+≤+ th ph = refl
+  split-+≤+ (o′ th) ph rewrite split-+≤+ th ph = refl
+
   diff : ∀ {m n} → m ≤ n → Nat
   diff oz = zero
   diff (os th) = diff th
@@ -111,6 +148,33 @@ module Lib.Thinning where
   complement oz = oz
   complement (os th) = o′ (complement th)
   complement (o′ th) = os (complement th)
+
+  infixl 8 _ᶜ
+  _ᶜ = complement
+
+  diff-oe : ∀ n → diff (oe {n}) ≡ n
+  diff-oe zero = refl
+  diff-oe (succ n) = cong succ (diff-oe n)
+
+  diff-oi : ∀ n → diff (oi {n}) ≡ 0
+  diff-oi zero = refl
+  diff-oi (succ n) = diff-oi n
+
+  diff-+≤+ : ∀ {m m′ n n′} (th : m ≤ m′) (ph : n ≤ n′) →
+             diff (th +≤+ ph) ≡ diff th +N diff ph
+  diff-+≤+ oz ph = refl
+  diff-+≤+ (os th) ph = diff-+≤+ th ph
+  diff-+≤+ (o′ th) ph = cong succ (diff-+≤+ th ph)
+
+  complement-+≤+ : ∀ {m m′ n n′} (th : m ≤ m′) (ph : n ≤ n′) →
+                   subst (_≤ _) (diff-+≤+ th ph) ((th +≤+ ph) ᶜ) ≡ th ᶜ +≤+ ph ᶜ
+  complement-+≤+ oz ph = refl
+  complement-+≤+ {succ m} {succ m′} {n} {n′} (os th) ph
+    with diff (th +≤+ ph) | diff-+≤+ th ph | (th +≤+ ph) ᶜ | complement-+≤+ th ph
+  ... | ._ | refl | _ | ih = cong o′ ih
+  complement-+≤+ {m} {succ m′} {n} {n′} (o′ th) ph
+    with diff (th +≤+ ph) | diff-+≤+ th ph | (th +≤+ ph) ᶜ | complement-+≤+ th ph
+  ... | ._ | refl | _ | ih = cong os ih
 
   infix 4 _⊆_ _⊆?_
 
@@ -259,7 +323,7 @@ module Lib.Thinning where
   Fin n = 1 ≤ n
 
   zeroth : ∀ {n} → Fin (succ n)
-  zeroth = os (oe _)
+  zeroth = os oe
 
   from-< : ∀ {m n} → m < n → Fin n
   from-< {m} {zero} ()
@@ -288,10 +352,16 @@ module Lib.Thinning where
   punchIn (o′ i) (os j) = zeroth
   punchIn (o′ i) (o′ j) = o′ (punchIn i j)
 
+  -- part : ∀ m {n} → Fin (m +N n) → Fin m ⊎ Fin n
+  -- part zero i = inr i
+  -- part (succ m) (os i) = inl zeroth
+  -- part (succ m) (o′ i) = map⊎ o′ id (part m i)
+
   part : ∀ m {n} → Fin (m +N n) → Fin m ⊎ Fin n
-  part zero i = inr i
-  part (succ m) (os i) = inl zeroth
-  part (succ m) (o′ i) = map⊎ o′ id (part m i)
+  part m i with ≤-+ m i
+  ... | 0 , .1 , thm , thn , refl = inr thn
+  ... | 1 , .0 , thm , thn , refl = inl thm
+  ... | succ (succ _) , _ , thm , thn , ()
 
   leftPart : ∀ {m} n → Fin m → Fin (m +N n)
   leftPart n (os i) = zeroth
@@ -305,17 +375,27 @@ module Lib.Thinning where
   join m (inl i) = leftPart _ i
   join m (inr i) = rightPart m i
 
+  toNat-oe+ : ∀ {m n} (i : Fin n) → 1≤ToNat (oe {m} +≤+ i) ≡ m +N 1≤ToNat i
+  toNat-oe+ {zero} i = refl
+  toNat-oe+ {succ m} i = cong succ (toNat-oe+ i)
+
+  toNat-+oe : ∀ {m n} (i : Fin m) → 1≤ToNat (i +≤+ oe {n}) ≡ 1≤ToNat i
+  toNat-+oe (os i) = refl
+  toNat-+oe (o′ i) = cong succ (toNat-+oe i)
+
   part-toNat :
     ∀ m {n} (i : Fin (m +N n)) →
-    case part m i of λ
-    { (inl jm) → 1≤ToNat i ≡ 1≤ToNat jm
-    ; (inr jn) → 1≤ToNat i ≡ m +N 1≤ToNat jn
-    }
-  part-toNat zero i = refl
-  part-toNat (succ m) (os i) = refl
-  part-toNat (succ m) (o′ i) with part m i | part-toNat m i
-  part-toNat (succ m) (o′ i) | inl _ | r = cong succ r
-  part-toNat (succ m) (o′ i) | inr _ | r = cong succ r
+    case part m i of λ where
+      (inl jm) → 1≤ToNat i ≡ 1≤ToNat jm
+      (inr jn) → 1≤ToNat i ≡ m +N 1≤ToNat jn
+  part-toNat m {n} i with ≤-+ m i | comp-+ i (oi {m}) oi
+  ... | 0 , .1 , thm , thn , refl | thq
+    rewrite comp-oi thm | comp-oi thn | oi+oi m n | comp-oi i
+          | oe-unique thm oe | thq = toNat-oe+ thn
+  ... | 1 , .0 , thm , thn , refl | thq
+    rewrite comp-oi thm | comp-oi thn | oi+oi m n | comp-oi i
+          | oe-unique thn oe | thq = toNat-+oe thm
+  ... | succ (succ _) , _ , thm , thn , () | thq
 
   punchOutN : ∀ m {n} (i : Fin (m +N succ n)) → 1≤ToNat i /= m → Fin (m +N n)
   punchOutN zero (os i) neq = Zero-elim (neq refl)
@@ -338,9 +418,9 @@ module Lib.Thinning where
   _∈_ = _⊆_
 
   -- A more constructive decision procedure than _⊆?_
-  _∈?_ : ∀ {m n} (i : Fin n) (th : m ≤ n) → i ∈ th ⊎ i ∈ complement th
+  _∈?_ : ∀ {m n} (i : Fin n) (th : m ≤ n) → i ∈ th ⊎ i ∈ th ᶜ
   (os e) ∈? (os th) = inl (oss (empty-⊆ e th))
-  (os e) ∈? (o′ th) = inr (oss (empty-⊆ e (complement th)))
+  (os e) ∈? (o′ th) = inr (oss (empty-⊆ e (th ᶜ)))
   (o′ i) ∈? (os th) = map⊎ o′s o′′ (i ∈? th)
   (o′ i) ∈? (o′ th) = map⊎ o′′ o′s (i ∈? th)
 
@@ -351,19 +431,19 @@ module Lib.Thinning where
   ∈?-agree-⊆? (o′ i) (os th) = map⊎R _ _ (∈?-agree-⊆? i th)
   ∈?-agree-⊆? (o′ i) (o′ th) = map⊎R _ _ (∈?-agree-⊆? i th)
 
-  ∉⇒∈c : ∀ {m n} {i : Fin n} {th : m ≤ n} → (i ∈ th → Zero) → i ∈ complement th
+  ∉⇒∈c : ∀ {m n} {i : Fin n} {th : m ≤ n} → (i ∈ th → Zero) → i ∈ th ᶜ
   ∉⇒∈c {i = i} {th} i∉th with i ∈? th | i ⊆? th | ∈?-agree-⊆? i th
   ... | inl i∈th | yes _ | inl _ = Zero-elim (i∉th i∈th)
   ... | inr i∈thᶜ | no _ | inr _ = i∈thᶜ
 
-  ∈c⇒∉ : ∀ {m n} {i : Fin n} {th : m ≤ n} → i ∈ complement th → (i ∈ th → Zero)
+  ∈c⇒∉ : ∀ {m n} {i : Fin n} {th : m ≤ n} → i ∈ th ᶜ → (i ∈ th → Zero)
   ∈c⇒∉ {i = os e} {os th} () (oss i∈th)
   ∈c⇒∉ {i = os e} {o′ th} (oss i∈thᶜ) ()
   ∈c⇒∉ {i = o′ i} {os th} (o′′ i∈thᶜ) (o′s i∈th) = ∈c⇒∉ i∈thᶜ i∈th
   ∈c⇒∉ {i = o′ i} {o′ th} (o′s i∈thᶜ) (o′′ i∈th) = ∈c⇒∉ i∈thᶜ i∈th
 
   ∈c-comp : ∀ {m n o} {i : Fin o} (th : m ≤ n) {ph : n ≤ o} →
-          i ∈ ph → i ∈ complement (th ≤-comp ph) → i ∈ complement th ≤-comp ph
+          i ∈ ph → i ∈ (th ≤-comp ph) ᶜ → i ∈ th ᶜ ≤-comp ph
   ∈c-comp {i = os e} (os th) {os ph} (oss ∈ph) ()
   ∈c-comp {i = os e} (o′ th) {os ph} (oss ∈ph) (oss ∈c) = oss (empty-⊆ e _)
   ∈c-comp {i = o′ i} th {o′ ph} (o′′ ∈ph) (o′s ∈c) = o′′ (∈c-comp th ∈ph ∈c)
