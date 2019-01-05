@@ -21,13 +21,15 @@ module Lib.Matrix.Scaling {c l} (R : ΣSemiring c l) where
     module Size (mn : Nat × Nat) where
       open import Lib.Module Carrier (MatS mn)
 
-      scaleM : Carrier →E MatS mn →S MatS mn
-      scaleM ._$E_ x ._$E_ M ij = x * M ij
-      scaleM ._$E_ x ._$E=_ MM ij = refl *-cong MM ij
-      scaleM ._$E=_ xx MM ij = xx *-cong MM ij
+      scaleMl : Carrier →E MatS mn →S MatS mn
+      scaleMl ._$E_ x ._$E_ M ij = x * M ij
+      scaleMl ._$E_ x ._$E=_ MM ij = refl *-cong MM ij
+      scaleMl ._$E=_ xx MM ij = xx *-cong MM ij
+
+      infixr 7 _*l_
 
       _*l_ : C → Mat mn → Mat mn
-      x *l M = scaleM $E x $E M
+      x *l M = scaleMl $E x $E M
 
       Mat-semimodule : Semimodule
       Mat-semimodule = record
@@ -60,7 +62,7 @@ module Lib.Matrix.Scaling {c l} (R : ΣSemiring c l) where
     module Size-implicit {mn : Nat × Nat} = Size mn
 
   open Size public using (Mat-semimodule)
-  open Size-implicit public using (scaleM; _*l_)
+  open Size-implicit public using (scaleMl; _*l_)
     renaming ( isSemimodule to isSemimoduleM; _*f-cong_ to _*l-cong_
              ; annihil to *l-annihil; distrib to *l-distrib; assoc to *l-assoc
              ; identity to *l-identity)

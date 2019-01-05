@@ -19,7 +19,7 @@ module Quantitative.Resources
   open import Lib.Matrix.Addition (record { commutativeMonoid = +-commutativeMonoid })
   open import Lib.Matrix.Multiplication (record { semiring = semiring })
   open import Lib.Matrix.Multiplication.Basis (record { semiring = semiring })
-  open import Lib.Matrix.Scaling (record { semiring = semiring })
+  open import Lib.Matrix.Scaling.Right (record { semiring = semiring })
 
   open import Lib.Level
   open import Lib.Two
@@ -81,7 +81,7 @@ module Quantitative.Resources
           →
           Δ ⊢r lam st
     bang : ∀ {Δs S ρ s} {st : Γ ⊢t S ∋ s}
-           (split : Δ ≤M ρ *l Δs)
+           (split : Δ ≤M Δs *r ρ)
            (sr : Δs ⊢r st)
            →
            Δ ⊢r bang {ρ = ρ} st

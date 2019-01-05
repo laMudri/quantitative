@@ -31,7 +31,7 @@ module Quantitative.Resources.Substitution
     (record { posemiring = R.posemiring })
   open import Lib.Matrix.Multiplication.Basis (record { semiring = R.semiring })
   open import Lib.Matrix.Poset (record { poset = R.poset })
-  open import Lib.Matrix.Scaling (record { semiring = R.semiring })
+  open import Lib.Matrix.Scaling.Right (record { semiring = R.semiring })
   open import Lib.Nat
   open import Lib.Product
   open import Lib.Sum
@@ -92,23 +92,23 @@ module Quantitative.Resources.Substitution
     ... | i′ , refl =
       (≤M-trans (thr .snd) (≤M-reflexive (symM (+M-identity .fst _)))) (i′ , j)
 
-  ren-split-*l : ∀ {m n th Δm} Δn → RenRes {m} {n} th Δm Δn →
-                 ∀ {ρ Δm0} → Δm ≤M ρ *l Δm0 →
-                 ∃ λ Δn0 → Δn ≤M ρ *l Δn0 × RenRes th Δm0 Δn0
-  ren-split-*l {th = th} Δn thr {ρ} {Δm0} split =
+  ren-split-*r : ∀ {m n th Δm} Δn → RenRes {m} {n} th Δm Δn →
+                 ∀ {ρ Δm0} → Δm ≤M Δm0 *r ρ →
+                 ∃ λ Δn0 → Δn ≤M Δn0 *r ρ × RenRes th Δm0 Δn0
+  ren-split-*r {th = th} Δn thr {ρ} {Δm0} split =
     Δn0 , split′ , thr0
     where
     f0 = free-RenRes th Δm0
     Δn0 = f0 .fst ; thr0 = f0 .snd
 
-    split′ : Δn ≤M ρ *l Δn0
+    split′ : Δn ≤M Δn0 *r ρ
     split′ (i , (o′ ()))
     split′ (i , j@(os oz)) with i ⊆? th
     split′ (i , j@(os oz)) | yes el with ⊆-factor el
     ... | i′ , refl = (≤M-trans (thr .fst) split) (i′ , j)
     split′ (i , j@(os oz)) | no nel with ⊆-factor (∉⇒∈c nel)
     ... | i′ , refl =
-      (≤M-trans (thr .snd) (≤M-reflexive (symM (*l-annihil .fst ρ)))) (i′ , j)
+      (≤M-trans (thr .snd) (≤M-reflexive (symM (*r-annihil .fst ρ)))) (i′ , j)
 
   +↓-RenRes : ∀ {m n th Δm} Δn → RenRes {m} {n} th Δm Δn →
               ∀ {o} Δ → RenRes (oi {o} +≤+ th) (Δm +↓ Δ) (Δn +↓ Δ)
@@ -178,7 +178,7 @@ module Quantitative.Resources.Substitution
   renameRes Δn thr (the sr) = the (renameRes Δn thr sr)
   renameRes Δn thr (lam sr) =
     lam (renameRes _ (+↓-RenRes Δn thr [- R.e1 -]) sr)
-  renameRes Δn thr (bang split sr) with ren-split-*l Δn thr split
+  renameRes Δn thr (bang split sr) with ren-split-*r Δn thr split
   ... | Δns , splitn , thrs = bang splitn (renameRes Δns thrs sr)
   renameRes Δn thr (unit split) = unit (ren-split-0 Δn thr split)
   renameRes Δn thr (ten split s0r s1r) with ren-split-+ Δn thr split
@@ -262,6 +262,11 @@ module Quantitative.Resources.Substitution
       let tr = weakenRes (≤M-reflexive (symM (choose-col k M))) (ur k) in
       renameRes (thin oi (o′ k) $E M′) (thr k) tr
 
+  resplit : ∀ {m n} {Δm Δm′ : RCtx m} {Δn Δn′ : RCtx n} {M : Mat (n , m)} →
+            Δn ≤M M *M Δm → Δm ≤M Δm′ → M *M Δm′ ≈M Δn′ → Δn ≤M Δn′
+  resplit sub split eq =
+    ≤M-trans sub (≤M-trans (≤M-refl *M-mono split) (≤M-reflexive eq))
+
   substituteRes :
     ∀ {m n d} {t : Term m d} {vf : Subst m n}
     {Γm Γn S} {tt : Γm ⊢t t :-: S} {vft : SubstTy {m} {n} vf Γm Γn}
@@ -271,10 +276,7 @@ module Quantitative.Resources.Substitution
   substituteRes (app {Δe = Δe} {Δs} split er sr) (M , sub , ur) =
     let er′ = substituteRes er (M , ≤M-refl , ur) in
     let sr′ = substituteRes sr (M , ≤M-refl , ur) in
-    app (≤M-trans sub
-         (≤M-trans (_*M-mono_ (≤M-refl) split)
-          (≤M-reflexive (distribM .fst M Δe Δs))))
-        er′ sr′
+    app (resplit sub split (distribM .fst M Δe Δs)) er′ sr′
   substituteRes (bm split er sr) (M , sub , ur) = {!!}
   substituteRes (del split er sr) (M , sub , ur) = {!!}
   substituteRes (pm split er sr) (M , sub , ur) = {!!}
@@ -284,8 +286,9 @@ module Quantitative.Resources.Substitution
   substituteRes (the sr) σr = the (substituteRes sr σr)
   substituteRes (lam sr) σr =
     lam (substituteRes sr (liftSubstRes R.e1 σr))
-  substituteRes (bang split sr) (M , sub , ur) =
-    bang (resplit sub split {!!}) (substituteRes sr (M , ≤M-refl , ur))
+  substituteRes (bang {Δs} {ρ = ρ} split sr) (M , sub , ur) =
+    bang (resplit sub split (*r-linear M Δs ρ))
+         (substituteRes sr (M , ≤M-refl , ur))
   substituteRes (unit split) (M , sub , ur) =
     unit (resplit sub split (annihilM .fst M))
   substituteRes (ten split s0r s1r) (M , sub , ur) = {!!}
