@@ -20,6 +20,15 @@ module Quantitative.Resources.Context
     open Posemiring POS public
     posemiring = POS
 
+  infixr 1 _≤[_]_
+  infixr 2 _≤-QED
+
+  _≤[_]_ : ∀ ρ {ρ′ ρ″} → ρ R.≤ ρ′ → ρ′ R.≤ ρ″ → ρ R.≤ ρ″
+  _≤[_]_ ρ {ρ′} {ρ″} xy yz = R.≤-trans {x = ρ} {y = ρ′} {z = ρ″} xy yz
+
+  _≤-QED : ∀ ρ → ρ R.≤ ρ
+  ρ ≤-QED = R.≤-refl
+
   open import Lib.Matrix.Setoid (≡-Setoid C)
   open import Lib.Matrix.Poset (record { poset = R.poset })
   open import Lib.Matrix.Addition

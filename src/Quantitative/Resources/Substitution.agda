@@ -217,6 +217,51 @@ module Quantitative.Resources.Substitution
       Δn ≤M M *M Δm
     × (∀ i → M *M basis-col i ⊢r vft i)
 
+  liftSubstRes :
+    ∀ {m n} {vf : Subst m n} {Γm Γn S} {vft : SubstTy vf Γm Γn}
+    {Δm Δn} ρ → SubstRes vft Δm Δn →
+    SubstRes (liftSubstTy S vft) (Δm +↓ [- ρ -]) (Δn +↓ [- ρ -])
+  liftSubstRes {m} {n} {S = S} {vft} {Δm = Δm} {Δn} ρ (M , sub , ur) =
+    M′ , sub′ , λ k → weakenRes (≤M-reflexive (choose-col k M′)) (ur′ k)
+    where
+    M′ : Mat (succ n , succ m)
+    M′ (os i , os j) = R.e1
+    M′ (os i , o′ j) = R.e0
+    M′ (o′ i , os j) = R.e0
+    M′ (o′ i , o′ j) = M (i , j)
+
+    sub′ : Δn +↓ [- ρ -] ≤M M′ *M (Δm +↓ [- ρ -])
+    sub′ (os i , k) = R.≤-reflexive (sym
+     (R.e1 R.* ρ R.+ (sum λ j → R.e0 R.* Δm (j , k))
+        =[ R.*-identity .fst ρ R.+-cong (sum-cong {m} λ j → R.annihil .snd _) ]=
+               ρ R.+ (sum {m} λ j → R.e0)  =[ refl R.+-cong sum-e0 m ]=
+               ρ R.+ R.e0                  =[ R.+-identity .snd ρ ]=
+               ρ                           QED))
+    sub′ (o′ i , k) = R.≤-trans (sub (i , k)) (R.≤-reflexive (sym
+     (R.e0 R.* ρ R.+ (M *M Δm) (i , k)  =[ R.annihil .snd ρ R.+-cong refl ]=
+      R.e0       R.+ (M *M Δm) (i , k)  =[ R.+-identity .fst _ ]=
+                     (M *M Δm) (i , k)  QED)))
+
+    thr : ∀ k → RenRes (o′ oi) (thin oi k $E M) (thin oi (o′ k) $E M′)
+    thr k .fst (i , j) rewrite comp-oi (i ≤-comp oi) | comp-oi j = R.≤-refl
+    thr k .snd (i , j) with diff (oi {n}) | diff-oi n | oi {n} ᶜ
+    thr k .snd (os i , j) | .0 | refl | oiᶜ = R.≤-refl
+    thr k .snd (o′ () , j) | .0 | refl | oiᶜ
+
+    ur′ : (k : Fin (succ m)) → thin oi k $E M′ ⊢r liftSubstTy S vft k
+    ur′ (os k) = var go
+      where
+      go : thin oi (os k) $E M′ ≤M basis-col zeroth
+      go (os i , os oz)
+        rewrite oe-unique i oe | true→≡yes (oe ⊆? oe {n}) (empty-⊆ oe oe) .snd
+        = R.≤-refl
+      go (o′ i , os oz) rewrite false→≡no (i ⊆? oe) (>⇒≰ oi o ⊆⇒≤) .snd
+        = R.≤-refl
+      go (i , o′ ())
+    ur′ (o′ k) =
+      let tr = weakenRes (≤M-reflexive (symM (choose-col k M))) (ur k) in
+      renameRes (thin oi (o′ k) $E M′) (thr k) tr
+
   substituteRes :
     ∀ {m n d} {t : Term m d} {vf : Subst m n}
     {Γm Γn S} {tt : Γm ⊢t t :-: S} {vft : SubstTy {m} {n} vf Γm Γn}
@@ -237,7 +282,8 @@ module Quantitative.Resources.Substitution
   substituteRes (exf split er) (M , sub , ur) = {!!}
   substituteRes (cse split er s0r s1r) (M , sub , ur) = {!!}
   substituteRes (the sr) σr = the (substituteRes sr σr)
-  substituteRes (lam sr) (M , sub , ur) = {!!}
+  substituteRes (lam sr) σr =
+    lam (substituteRes sr (liftSubstRes R.e1 σr))
   substituteRes (bang split sr) (M , sub , ur) = {!!}
   substituteRes (unit split) (M , sub , ur) =
     unit (≤M-trans  sub
