@@ -81,7 +81,7 @@ module Quantitative.Resources
           →
           Δ ⊢r lam st
     bang : ∀ {Δs S ρ s} {st : Γ ⊢t S ∋ s}
-           (split : Δ ≤M ρ ** Δs)
+           (split : Δ ≤M ρ *l Δs)
            (sr : Δs ⊢r st)
            →
            Δ ⊢r bang {ρ = ρ} st

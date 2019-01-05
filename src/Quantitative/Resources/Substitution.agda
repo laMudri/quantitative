@@ -92,23 +92,23 @@ module Quantitative.Resources.Substitution
     ... | i′ , refl =
       (≤M-trans (thr .snd) (≤M-reflexive (symM (+M-identity .fst _)))) (i′ , j)
 
-  ren-split-** : ∀ {m n th Δm} Δn → RenRes {m} {n} th Δm Δn →
-                 ∀ {ρ Δm0} → Δm ≤M ρ ** Δm0 →
-                 ∃ λ Δn0 → Δn ≤M ρ ** Δn0 × RenRes th Δm0 Δn0
-  ren-split-** {th = th} Δn thr {ρ} {Δm0} split =
+  ren-split-*l : ∀ {m n th Δm} Δn → RenRes {m} {n} th Δm Δn →
+                 ∀ {ρ Δm0} → Δm ≤M ρ *l Δm0 →
+                 ∃ λ Δn0 → Δn ≤M ρ *l Δn0 × RenRes th Δm0 Δn0
+  ren-split-*l {th = th} Δn thr {ρ} {Δm0} split =
     Δn0 , split′ , thr0
     where
     f0 = free-RenRes th Δm0
     Δn0 = f0 .fst ; thr0 = f0 .snd
 
-    split′ : Δn ≤M ρ ** Δn0
+    split′ : Δn ≤M ρ *l Δn0
     split′ (i , (o′ ()))
     split′ (i , j@(os oz)) with i ⊆? th
     split′ (i , j@(os oz)) | yes el with ⊆-factor el
     ... | i′ , refl = (≤M-trans (thr .fst) split) (i′ , j)
     split′ (i , j@(os oz)) | no nel with ⊆-factor (∉⇒∈c nel)
     ... | i′ , refl =
-      (≤M-trans (thr .snd) (≤M-reflexive (symM (**-annihil .fst ρ)))) (i′ , j)
+      (≤M-trans (thr .snd) (≤M-reflexive (symM (*l-annihil .fst ρ)))) (i′ , j)
 
   +↓-RenRes : ∀ {m n th Δm} Δn → RenRes {m} {n} th Δm Δn →
               ∀ {o} Δ → RenRes (oi {o} +≤+ th) (Δm +↓ Δ) (Δn +↓ Δ)
@@ -178,7 +178,7 @@ module Quantitative.Resources.Substitution
   renameRes Δn thr (the sr) = the (renameRes Δn thr sr)
   renameRes Δn thr (lam sr) =
     lam (renameRes _ (+↓-RenRes Δn thr [- R.e1 -]) sr)
-  renameRes Δn thr (bang split sr) with ren-split-** Δn thr split
+  renameRes Δn thr (bang split sr) with ren-split-*l Δn thr split
   ... | Δns , splitn , thrs = bang splitn (renameRes Δns thrs sr)
   renameRes Δn thr (unit split) = unit (ren-split-0 Δn thr split)
   renameRes Δn thr (ten split s0r s1r) with ren-split-+ Δn thr split

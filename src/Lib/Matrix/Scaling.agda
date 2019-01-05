@@ -11,6 +11,7 @@ module Lib.Matrix.Scaling {c l} (R : ΣSemiring c l) where
   open import Lib.Equality as ≡ using (_≡_)
   open import Lib.Level
   open import Lib.Matrix.Addition +-σCommutativeMonoid
+  open import Lib.Matrix.Multiplication R
   open import Lib.Nat
   open import Lib.Product using (Σ; _×_; fst; snd; _,_; uncurry)
   open import Lib.Setoid
@@ -25,8 +26,8 @@ module Lib.Matrix.Scaling {c l} (R : ΣSemiring c l) where
       scaleM ._$E_ x ._$E=_ MM ij = refl *-cong MM ij
       scaleM ._$E=_ xx MM ij = xx *-cong MM ij
 
-      _**_ : C → Mat mn → Mat mn
-      x ** M = scaleM $E x $E M
+      _*l_ : C → Mat mn → Mat mn
+      x *l M = scaleM $E x $E M
 
       Mat-semimodule : Semimodule
       Mat-semimodule = record
@@ -36,7 +37,7 @@ module Lib.Matrix.Scaling {c l} (R : ΣSemiring c l) where
         ; _*s_ = _*_
         ; 0f = 0M
         ; _+f_ = _+M_
-        ; _*f_ = _**_
+        ; _*f_ = _*l_
         ; isSemimodule = record
           { +*s-isSemiring = isSemiring
           ; +f-isCommutativeMonoid = isCommutativeMonoidM
@@ -59,7 +60,20 @@ module Lib.Matrix.Scaling {c l} (R : ΣSemiring c l) where
     module Size-implicit {mn : Nat × Nat} = Size mn
 
   open Size public using (Mat-semimodule)
-  open Size-implicit public using (scaleM; _**_)
-    renaming ( isSemimodule to isSemimoduleM; _*f-cong_ to _**-cong_
-             ; annihil to **-annihil; distrib to **-distrib; assoc to **-assoc
-             ; identity to **-identity)
+  open Size-implicit public using (scaleM; _*l_)
+    renaming ( isSemimodule to isSemimoduleM; _*f-cong_ to _*l-cong_
+             ; annihil to *l-annihil; distrib to *l-distrib; assoc to *l-assoc
+             ; identity to *l-identity)
+
+  open SetoidReasoning Carrier
+
+  *l-linear : ∀ {m n o} x (M : Mat (m , n)) (N : Mat (n , o)) →
+              (x *l M) *M N ≈M x *l (M *M N)
+  *l-linear {n = n} x M N (i , k) =
+    ((x *l M) *M N) (i , k)  ≈[ refl ]≈
+    (sum λ j → (x * M (i , j)) * N (j , k))
+                             ≈[ (sum-cong {n} λ j → *-assoc _ _ _) ]≈
+    (sum λ j → x * (M (i , j) * N (j , k)))
+                             ≈[ sym (*-sum x λ j → M (i , j) * N (j , k)) ]≈
+    x * (sum λ j → M (i , j) * N (j , k))  ≈[ refl ]≈
+    (x *l (M *M N)) (i , k)  QED
