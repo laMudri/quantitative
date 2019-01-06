@@ -274,15 +274,30 @@ module Quantitative.Resources.Substitution
   substituteRes (var {i} {.(lookup′ i _)} {eq = refl} sub′) (M , sub , ur) =
     weakenRes (≤M-trans sub (≤M-refl *M-mono sub′)) (ur i)
   substituteRes (app {Δe = Δe} {Δs} split er sr) (M , sub , ur) =
-    let er′ = substituteRes er (M , ≤M-refl , ur) in
-    let sr′ = substituteRes sr (M , ≤M-refl , ur) in
-    app (resplit sub split (distribM .fst M Δe Δs)) er′ sr′
-  substituteRes (bm split er sr) (M , sub , ur) = {!!}
-  substituteRes (del split er sr) (M , sub , ur) = {!!}
-  substituteRes (pm split er sr) (M , sub , ur) = {!!}
+    app (resplit sub split (distribM .fst M Δe Δs))
+        (substituteRes er (M , ≤M-refl , ur))
+        (substituteRes sr (M , ≤M-refl , ur))
+  substituteRes (bm {Δe = Δe} {Δs} {ρ = ρ} split er sr) (M , sub , ur) =
+    bm (resplit sub split (distribM .fst M Δe Δs))
+       (substituteRes er (M , ≤M-refl , ur))
+       (substituteRes sr (liftSubstRes ρ (M , ≤M-refl , ur)))
+  substituteRes (del {Δe = Δe} {Δs} split er sr) (M , sub , ur) =
+    del (resplit sub split (distribM .fst M Δe Δs))
+        (substituteRes er (M , ≤M-refl , ur))
+        (substituteRes sr (M , ≤M-refl , ur))
+  substituteRes (pm {Δe = Δe} {Δs} split er sr) (M , sub , ur) =
+    pm (resplit sub split (distribM .fst M Δe Δs))
+       (substituteRes er (M , ≤M-refl , ur))
+       (substituteRes sr {!!})
   substituteRes (proj er) σr = proj (substituteRes er σr)
-  substituteRes (exf split er) (M , sub , ur) = {!!}
-  substituteRes (cse split er s0r s1r) (M , sub , ur) = {!!}
+  substituteRes (exf {Δe = Δe} {Δs} split er) (M , sub , ur) =
+    exf (resplit sub split (distribM .fst M Δe Δs))
+        (substituteRes er (M , ≤M-refl , ur))
+  substituteRes (cse {Δe = Δe} {Δs} split er s0r s1r) (M , sub , ur) =
+    cse (resplit sub split (distribM .fst M Δe Δs))
+        (substituteRes er (M , ≤M-refl , ur))
+        (substituteRes s0r (liftSubstRes R.e1 (M , ≤M-refl , ur)))
+        (substituteRes s1r (liftSubstRes R.e1 (M , ≤M-refl , ur)))
   substituteRes (the sr) σr = the (substituteRes sr σr)
   substituteRes (lam sr) σr =
     lam (substituteRes sr (liftSubstRes R.e1 σr))
@@ -291,7 +306,10 @@ module Quantitative.Resources.Substitution
          (substituteRes sr (M , ≤M-refl , ur))
   substituteRes (unit split) (M , sub , ur) =
     unit (resplit sub split (annihilM .fst M))
-  substituteRes (ten split s0r s1r) (M , sub , ur) = {!!}
+  substituteRes (ten {Δs0 = Δs0} {Δs1} split s0r s1r) (M , sub , ur) =
+    ten (resplit sub split (distribM .fst M Δs0 Δs1))
+        (substituteRes s0r (M , ≤M-refl , ur))
+        (substituteRes s1r (M , ≤M-refl , ur))
   substituteRes eat σr = eat
   substituteRes (wth s0r s1r) σr =
     wth (substituteRes s0r σr) (substituteRes s1r σr)
