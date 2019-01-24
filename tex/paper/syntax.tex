@@ -1,0 +1,89 @@
+\subsection{Typing}
+\begin{mathpar}
+  \inferrule
+  {(x : T) \in \Gamma}
+  {\Gamma \vdash x \in T}
+
+  \and
+
+  \inferrule
+  {\Gamma \vdash e \in S \\ S <: T}
+  {\Gamma \vdash T \ni \emb{e}}
+  \and
+  \inferrule
+  {\Gamma \vdash S \ni s}
+  {\Gamma \vdash \ann{s}{S} \in S}
+
+  \and
+
+  \inferrule
+  {\Gamma, x : S \vdash T \ni t}
+  {\Gamma \vdash \fun{S}{T} \ni \lam{x}{t}}
+  \and
+  \inferrule
+  {\Gamma \vdash f \in \fun{S}{T} \\ \Gamma \vdash S \ni s}
+  {\Gamma \vdash \app{f}{s} \in T}
+
+  \inferrule
+  {\Gamma \vdash S \ni s}
+  {\Gamma \vdash \excl{\rho}{S} \ni \bang{s}}
+  \and
+  \inferrule
+  {\Gamma \vdash e \in \excl{\rho}{S} \\ \Gamma, x : S \vdash T \ni t}
+  {\Gamma \vdash T \ni \bm{T}{e}{x}{t}}
+
+  \and
+
+  \inferrule
+  { }
+  {\Gamma \vdash \tensorOne \ni \unit}
+  \and
+  \inferrule
+  {\Gamma \vdash e \in \tensorOne \\ \Gamma \vdash S \ni s}
+  {\Gamma \vdash \del{S}{e}{s} \in S}
+
+  \and
+
+  \inferrule
+  {\Gamma \vdash S \ni s \\ \Gamma \vdash T \ni t}
+  {\Gamma \vdash \tensor{S}{T} \ni \ten{s}{t}}
+  \and
+  \inferrule
+  {\Gamma \vdash e \in \tensor{S}{T} \\ \Gamma, x : S, y : T \vdash U \ni u}
+  {\Gamma \vdash \prm{U}{e}{x}{y}{u} \in U}
+
+  \and
+
+  \inferrule
+  { }
+  {\Gamma \vdash \withTOne \ni \eat}
+  \and
+  \text{(no $\withTOne$ elim)}
+
+  \and
+
+  \inferrule
+  {\Gamma \vdash S \ni s \\ \Gamma \vdash T \ni t}
+  {\Gamma \vdash \withT{S}{T} \ni \wth{s}{t}}
+  \and
+  \inferrule
+  {\Gamma \vdash e \in \withT{S_0}{S_1}}
+  {\Gamma \vdash \proj{i}{e} \in S_i}
+
+  \text{(no $\sumTZero$ intro)}
+  \and
+  \inferrule
+  {\Gamma \vdash e \in \sumTZero}
+  {\Gamma \vdash \exf{S}{e} \in S}
+
+  \inferrule
+  {\Gamma \vdash S_i \ni s}
+  {\Gamma \vdash \sumT{S_0}{S_1} \ni \inj{i}{s}}
+  \and
+  \inferrule
+  {\Gamma \vdash e \in \sumT{S}{T}
+    \\ \Gamma, x : S \vdash U \ni s \\ \Gamma, y : T \vdash U \ni t}
+  {\Gamma \vdash \cse{U}{e}{x}{s}{y}{t} \in U}
+\end{mathpar}
+
+\subsection{Resourcing}
