@@ -6,3 +6,15 @@
 *.out
 /paper/quantitative.pdf
 *~
+paper/auto
+presentation/auto
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.dvi
+*.nav
+*.pdf
+*.snm
+*.toc
+*.prv
