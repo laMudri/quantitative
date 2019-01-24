@@ -87,3 +87,96 @@
 \end{mathpar}
 
 \subsection{Resourcing}
+\begin{mathpar}
+  \inferrule
+  {\Delta \leq \underline 0, x^\rho, \underline 0}
+  {\Delta \vdash x}
+
+  \and
+
+  \inferrule
+  {\Delta \vdash \typed e}
+  {\Delta \vdash \emb{\typed e}}
+  \and
+  \inferrule
+  {\Delta \vdash \typed s}
+  {\Delta \vdash \ann{\typed s}{S}}
+
+  \and
+
+  \inferrule
+  {\Delta, x^1 \vdash \typed t}
+  {\Delta \vdash \lam{x}{\typed t}}
+  \and
+  \inferrule
+  {\Delta_f \vdash \typed f \\ \Delta_s \vdash \typed s
+    \\ \Delta \leq \Delta_f + \Delta_s}
+  {\Delta \vdash \app{\typed f}{\typed s}}
+
+  % TODO: annotate with types to show where \rho comes from
+  \inferrule
+  {\Delta_s \vdash \typed s \\ \Delta \leq \Delta_s * \rho}
+  {\Delta \vdash \bang{\typed s}}
+  \and
+  \inferrule
+  {\Delta_e \vdash \typed e \\ \Delta_t, x^\rho \vdash \typed t
+    \\ \Delta \leq \Delta_e + \Delta_t}
+  {\Delta \vdash \bm{T}{\typed e}{x}{\typed t}}
+
+  \and
+
+  \inferrule
+  {\Delta \leq \underline 0}
+  {\Delta \vdash \unit}
+  \and
+  \inferrule
+  {\Delta_e \vdash \typed e \\ \Delta_s \vdash \typed s
+    \\ \Delta \leq \Delta_e + \Delta_s}
+  {\Delta \vdash \del{S}{\typed e}{\typed s}}
+
+  \and
+
+  \inferrule
+  {\Delta_s \vdash \typed s \\ \Delta_t \vdash \typed t
+    \\ \Delta \leq \Delta_s + \Delta_t}
+  {\Delta \vdash \ten{\typed s}{\typed t}}
+  \and
+  \inferrule
+  {\Delta_e \vdash \typed e \\ \Delta_s, x^1, y^1 \vdash \typed u
+    \\ \Delta \leq \Delta_e + \Delta_s}
+  {\Delta \vdash \prm{U}{\typed e}{x}{y}{\typed u}}
+
+  \and
+
+  \inferrule
+  { }
+  {\Delta \vdash \eat}
+  \and
+  \text{(no $\withTOne$ elim)}
+
+  \and
+
+  \inferrule
+  {\Delta \vdash \typed s \\ \Delta \vdash \typed t}
+  {\Delta \vdash \wth{\typed s}{\typed t}}
+  \and
+  \inferrule
+  {\Delta \vdash \typed e}
+  {\Delta \vdash \proj{i}{\typed e}}
+
+  \text{(no $\sumTZero$ intro)}
+  \and
+  \inferrule
+  {\Delta_e \vdash \typed e \\ \Delta \leq \Delta_e + \Delta_{st}}
+  {\Delta \vdash \exf{S}{\typed e}}
+
+  \inferrule
+  {\Delta \vdash \typed s}
+  {\Delta \vdash \inj{i}{\typed s}}
+  \and
+  \inferrule
+  {\Delta_e \vdash \typed e
+    \\ \Delta_{st}, x^1 \vdash \typed s \\ \Delta_{st}, y : T \vdash \typed t
+    \\ \Delta \leq \Delta_e + \Delta_{st}}
+  {\Delta \vdash \cse{U}{\typed e}{x}{\typed s}{y}{t}}
+\end{mathpar}
