@@ -1,86 +1,86 @@
 \subsection{Typing}
 \begin{mathpar}
-  \inferrule
+  \inferrule*[right=var]
   {(x : T) \in \Gamma}
   {\Gamma \vdash x \in T}
 
   \and
 
-  \inferrule
+  \inferrule*[right=cod]
   {\Gamma \vdash e \in S \\ S <: T}
   {\Gamma \vdash T \ni \emb{e}}
   \and
-  \inferrule
+  \inferrule*[right=doc]
   {\Gamma \vdash S \ni s}
   {\Gamma \vdash \ann{s}{S} \in S}
 
   \and
 
-  \inferrule
+  \inferrule*[right=$\multimap$-I]
   {\Gamma, x : S \vdash T \ni t}
   {\Gamma \vdash \fun{S}{T} \ni \lam{x}{t}}
   \and
-  \inferrule
+  \inferrule*[right=$\multimap$-E]
   {\Gamma \vdash f \in \fun{S}{T} \\ \Gamma \vdash S \ni s}
   {\Gamma \vdash \app{f}{s} \in T}
 
-  \inferrule
+  \inferrule*[right=$\oc_\rho$-I]
   {\Gamma \vdash S \ni s}
   {\Gamma \vdash \excl{\rho}{S} \ni \bang{s}}
   \and
-  \inferrule
+  \inferrule*[right=$\oc_\rho$-E]
   {\Gamma \vdash e \in \excl{\rho}{S} \\ \Gamma, x : S \vdash T \ni t}
   {\Gamma \vdash T \ni \bm{T}{e}{x}{t}}
 
   \and
 
-  \inferrule
+  \inferrule*[right=$1$-I]
   { }
   {\Gamma \vdash \tensorOne \ni \unit}
   \and
-  \inferrule
+  \inferrule*[right=$1$-E]
   {\Gamma \vdash e \in \tensorOne \\ \Gamma \vdash S \ni s}
   {\Gamma \vdash \del{S}{e}{s} \in S}
 
   \and
 
-  \inferrule
+  \inferrule*[right=$\otimes$-I]
   {\Gamma \vdash S \ni s \\ \Gamma \vdash T \ni t}
   {\Gamma \vdash \tensor{S}{T} \ni \ten{s}{t}}
   \and
-  \inferrule
+  \inferrule*[right=$\otimes$-E]
   {\Gamma \vdash e \in \tensor{S}{T} \\ \Gamma, x : S, y : T \vdash U \ni u}
   {\Gamma \vdash \prm{U}{e}{x}{y}{u} \in U}
 
   \and
 
-  \inferrule
+  \inferrule*[right=$\top$-I]
   { }
   {\Gamma \vdash \withTOne \ni \eat}
   \and
-  \text{(no $\withTOne$ elim)}
+  \text{(no $\top$-E)}
 
   \and
 
-  \inferrule
+  \inferrule*[right=$\&$-I]
   {\Gamma \vdash S \ni s \\ \Gamma \vdash T \ni t}
   {\Gamma \vdash \withT{S}{T} \ni \wth{s}{t}}
   \and
-  \inferrule
+  \inferrule*[right=$\&$-E]
   {\Gamma \vdash e \in \withT{S_0}{S_1}}
   {\Gamma \vdash \proj{i}{e} \in S_i}
 
-  \text{(no $\sumTZero$ intro)}
+  \text{(no $0$-I)}
   \and
-  \inferrule
+  \inferrule*[right=$0$-E]
   {\Gamma \vdash e \in \sumTZero}
   {\Gamma \vdash \exf{S}{e} \in S}
 
-  \inferrule
+  \inferrule*[right=$\oplus$-I]
   {\Gamma \vdash S_i \ni s}
   {\Gamma \vdash \sumT{S_0}{S_1} \ni \inj{i}{s}}
   \and
-  \inferrule
+  \inferrule*[right=$\oplus$-E]
   {\Gamma \vdash e \in \sumT{S}{T}
     \\ \Gamma, x : S \vdash U \ni s \\ \Gamma, y : T \vdash U \ni t}
   {\Gamma \vdash \cse{U}{e}{x}{s}{y}{t} \in U}
@@ -88,95 +88,97 @@
 
 \subsection{Resourcing}
 \begin{mathpar}
-  \inferrule
+  \inferrule*[right=var]
   {\Delta \leq \underline 0, x^\rho, \underline 0}
   {\Delta \vdash x}
 
   \and
 
-  \inferrule
+  \inferrule*[right=cod]
   {\Delta \vdash \typed e}
   {\Delta \vdash \emb{\typed e}}
   \and
-  \inferrule
+  \inferrule*[right=doc]
   {\Delta \vdash \typed s}
   {\Delta \vdash \ann{\typed s}{S}}
 
   \and
 
-  \inferrule
+  \inferrule*[right=$\multimap$-I]
   {\Delta, x^1 \vdash \typed t}
   {\Delta \vdash \lam{x}{\typed t}}
   \and
-  \inferrule
+  \inferrule*[right=$\multimap$-E]
   {\Delta_f \vdash \typed f \\ \Delta_s \vdash \typed s
     \\ \Delta \leq \Delta_f + \Delta_s}
   {\Delta \vdash \app{\typed f}{\typed s}}
 
-  % TODO: annotate with types to show where \rho comes from
-  \inferrule
+  % NOTE: multiplication on the right
+  % This should change to multiplication on the left,
+  % at least here, and probably in the formalisation.
+  \inferrule*[right=$\oc_\rho$-I]
   {\Delta_s \vdash \typed s \\ \Delta \leq \Delta_s * \rho}
   {\Delta \vdash \bang{\typed s}}
   \and
-  \inferrule
+  \inferrule*[right=$\oc_\rho$-E]
   {\Delta_e \vdash \typed e \\ \Delta_t, x^\rho \vdash \typed t
     \\ \Delta \leq \Delta_e + \Delta_t}
   {\Delta \vdash \bm{T}{\typed e}{x}{\typed t}}
 
   \and
 
-  \inferrule
+  \inferrule*[right=$1$-I]
   {\Delta \leq \underline 0}
   {\Delta \vdash \unit}
   \and
-  \inferrule
+  \inferrule*[right=$1$-E]
   {\Delta_e \vdash \typed e \\ \Delta_s \vdash \typed s
     \\ \Delta \leq \Delta_e + \Delta_s}
   {\Delta \vdash \del{S}{\typed e}{\typed s}}
 
   \and
 
-  \inferrule
+  \inferrule*[right=$\otimes$-I]
   {\Delta_s \vdash \typed s \\ \Delta_t \vdash \typed t
     \\ \Delta \leq \Delta_s + \Delta_t}
   {\Delta \vdash \ten{\typed s}{\typed t}}
   \and
-  \inferrule
+  \inferrule*[right=$\otimes$-E]
   {\Delta_e \vdash \typed e \\ \Delta_s, x^1, y^1 \vdash \typed u
     \\ \Delta \leq \Delta_e + \Delta_s}
   {\Delta \vdash \prm{U}{\typed e}{x}{y}{\typed u}}
 
   \and
 
-  \inferrule
+  \inferrule*[right=$\top$-I]
   { }
   {\Delta \vdash \eat}
   \and
-  \text{(no $\withTOne$ elim)}
+  \text{(no $\top$-E)}
 
   \and
 
-  \inferrule
+  \inferrule*[right=$\&$-I]
   {\Delta \vdash \typed s \\ \Delta \vdash \typed t}
   {\Delta \vdash \wth{\typed s}{\typed t}}
   \and
-  \inferrule
+  \inferrule*[right=$\&$-E]
   {\Delta \vdash \typed e}
   {\Delta \vdash \proj{i}{\typed e}}
 
-  \text{(no $\sumTZero$ intro)}
+  \text{(no $0$-I)}
   \and
-  \inferrule
+  \inferrule*[right=$0$-E]
   {\Delta_e \vdash \typed e \\ \Delta \leq \Delta_e + \Delta_{st}}
   {\Delta \vdash \exf{S}{\typed e}}
 
-  \inferrule
+  \inferrule*[right=$\oplus$-I]
   {\Delta \vdash \typed s}
   {\Delta \vdash \inj{i}{\typed s}}
   \and
-  \inferrule
+  \inferrule*[right=$\oplus$-E]
   {\Delta_e \vdash \typed e
-    \\ \Delta_{st}, x^1 \vdash \typed s \\ \Delta_{st}, y : T \vdash \typed t
+    \\ \Delta_{st}, x^1 \vdash \typed s \\ \Delta_{st}, y^1 \vdash \typed t
     \\ \Delta \leq \Delta_e + \Delta_{st}}
   {\Delta \vdash \cse{U}{\typed e}{x}{\typed s}{y}{t}}
 \end{mathpar}
