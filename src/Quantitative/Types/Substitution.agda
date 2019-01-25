@@ -77,7 +77,7 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
   substituteTy (exf st) vft = exf (substituteTy st vft)
   substituteTy (cse et s0t s1t) vft =
     cse (substituteTy et vft) (substituteTy s0t (liftSubstTy _ vft))
-                                 (substituteTy s1t (liftSubstTy _ vft))
+                              (substituteTy s1t (liftSubstTy _ vft))
   substituteTy (the st) vft = the (substituteTy st vft)
   substituteTy (lam st) vft =
     lam (substituteTy st (liftSubstTy _ vft))

@@ -288,7 +288,8 @@ module Quantitative.Resources.Substitution
   substituteRes (pm {Δe = Δe} {Δs} split er sr) (M , sub , ur) =
     pm (resplit sub split (distribM .fst M Δe Δs))
        (substituteRes er (M , ≤M-refl , ur))
-       (substituteRes sr {!!})
+       (substituteRes sr (liftSubstRes {Δm = Δs +↓ [- R.e1 -]} _
+                                       (liftSubstRes _ (M , ≤M-refl , ur))))
   substituteRes (proj er) σr = proj (substituteRes er σr)
   substituteRes (exf {Δe = Δe} {Δs} split er) (M , sub , ur) =
     exf (resplit sub split (distribM .fst M Δe Δs))
