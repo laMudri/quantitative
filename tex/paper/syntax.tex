@@ -1,184 +1,103 @@
-\subsection{Typing}
+\subsection{Typing \& resourcing}
 \begin{mathpar}
   \inferrule*[right=var]
-  {(x : T) \in \Gamma}
-  {\Gamma \vdash x \in T}
-
-  \and
-
-  \inferrule*[right=cod]
-  {\Gamma \vdash e \in S \\ S <: T}
-  {\Gamma \vdash T \ni \emb{e}}
-  \and
-  \inferrule*[right=doc]
-  {\Gamma \vdash S \ni s}
-  {\Gamma \vdash \ann{s}{S} \in S}
+  {(x : B) \in \Gamma
+    \\ \rescomment{\mathcal R \leq \underline 0, x^1, \underline 0}
+  }
+  {\ctx{\Gamma}{\mathcal R} \vdash x : B}
 
   \and
 
   \inferrule*[right=$\multimap$-I]
-  {\Gamma, x : S \vdash T \ni t}
-  {\Gamma \vdash \fun{S}{T} \ni \lam{x}{t}}
+  {\ctx{\Gamma}{\mathcal R}, \ctxvar{x}{A}{1} \vdash M : B}
+  {\ctx{\Gamma}{\mathcal R} \vdash \lam{x}{M} : \fun{A}{B}}
   \and
   \inferrule*[right=$\multimap$-E]
-  {\Gamma \vdash f \in \fun{S}{T} \\ \Gamma \vdash S \ni s}
-  {\Gamma \vdash \app{f}{s} \in T}
+  {\ctx{\Gamma}{\mathcal P} \vdash M : \fun{A}{B}
+    \\ \ctx{\Gamma}{\mathcal Q} \vdash N : A
+    \\ \rescomment{\mathcal R \leq \mathcal P + \mathcal Q}
+  }
+  {\ctx{\Gamma}{\mathcal R} \vdash \app{M}{N} : B}
 
-  \inferrule*[right=$\oc_\rho$-I]
-  {\Gamma \vdash S \ni s}
-  {\Gamma \vdash \excl{\rho}{S} \ni \bang{s}}
+  \inferrule*[right=$\oc_{\rescomment\rho}$-I]
+  {\ctx{\Gamma}{\mathcal P} \vdash M : A
+    \\ \rescomment{\mathcal R \leq \rho * \mathcal P}
+  }
+  {\ctx{\Gamma}{\mathcal R} \vdash \bang{M} : \excl{\rho}{A}}
   \and
-  \inferrule*[right=$\oc_\rho$-E]
-  {\Gamma \vdash e \in \excl{\rho}{S} \\ \Gamma, x : S \vdash T \ni t}
-  {\Gamma \vdash T \ni \bm{T}{e}{x}{t}}
+  \inferrule*[right=$\oc_{\rescomment\rho}$-E]
+  {\ctx{\Gamma}{\mathcal P} \vdash M : \excl{\rho}{A}
+    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{x}{A}{\rho} \vdash N : B
+    \\ \rescomment{\mathcal R \leq \mathcal P + \mathcal Q}
+  }
+  {\ctx{\Gamma}{\mathcal R} \vdash \bm{B}{M}{x}{N} : B}
 
   \and
 
   \inferrule*[right=$1$-I]
-  { }
-  {\Gamma \vdash \tensorOne \ni \unit}
+  {\rescomment{\mathcal R \leq \underline 0}}
+  {\ctx{\Gamma}{\mathcal R} \vdash \unit : \tensorOne}
   \and
   \inferrule*[right=$1$-E]
-  {\Gamma \vdash e \in \tensorOne \\ \Gamma \vdash S \ni s}
-  {\Gamma \vdash \del{S}{e}{s} \in S}
+  {\ctx{\Gamma}{\mathcal P} \vdash M : \tensorOne
+    \\ \ctx{\Gamma}{\mathcal Q} \vdash N : A
+    \\ \rescomment{\mathcal R \leq \mathcal P + \mathcal Q}
+  }
+  {\ctx{\Gamma}{\mathcal R} \vdash \del{A}{M}{N} : A}
 
   \and
 
   \inferrule*[right=$\otimes$-I]
-  {\Gamma \vdash S \ni s \\ \Gamma \vdash T \ni t}
-  {\Gamma \vdash \tensor{S}{T} \ni \ten{s}{t}}
+  {\ctx{\Gamma}{\mathcal P} \vdash M : A
+    \\ \ctx{\Gamma}{\mathcal Q} \vdash N : B
+    \\ \rescomment{\mathcal R \leq \mathcal P + \mathcal Q}
+  }
+  {\ctx{\Gamma}{\mathcal R} \vdash \ten{M}{N} : \tensor{A}{B}}
   \and
   \inferrule*[right=$\otimes$-E]
-  {\Gamma \vdash e \in \tensor{S}{T} \\ \Gamma, x : S, y : T \vdash U \ni u}
-  {\Gamma \vdash \prm{U}{e}{x}{y}{u} \in U}
+  {\ctx{\Gamma}{\mathcal P} \vdash M : \tensor{A}{B}
+    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{x}{A}{1}, \ctxvar{y}{B}{1} \vdash N : C
+    \\ \rescomment{\mathcal R \leq \mathcal P + \mathcal Q}
+  }
+  {\ctx{\Gamma}{\mathcal R} \vdash \prm{C}{M}{x}{y}{N} : C}
 
   \and
 
   \inferrule*[right=$\top$-I]
   { }
-  {\Gamma \vdash \withTOne \ni \eat}
+  {\ctx{\Gamma}{\mathcal R} \vdash \eat : \withTOne}
   \and
   \text{(no $\top$-E)}
 
   \and
 
   \inferrule*[right=$\&$-I]
-  {\Gamma \vdash S \ni s \\ \Gamma \vdash T \ni t}
-  {\Gamma \vdash \withT{S}{T} \ni \wth{s}{t}}
+  {\ctx{\Gamma}{\mathcal R} \vdash M : A
+    \\ \ctx{\Gamma}{\mathcal R} \vdash N : B
+  }
+  {\ctx{\Gamma}{\mathcal R} \vdash \wth{M}{N} : \withT{A}{B}}
   \and
   \inferrule*[right=$\&$-E]
-  {\Gamma \vdash e \in \withT{S_0}{S_1}}
-  {\Gamma \vdash \proj{i}{e} \in S_i}
+  {\ctx{\Gamma}{\mathcal R} \vdash M : \withT{A_0}{A_1}}
+  {\ctx{\Gamma}{\mathcal R} \vdash \proj{i}{M} : A_i}
 
   \text{(no $0$-I)}
   \and
   \inferrule*[right=$0$-E]
-  {\Gamma \vdash e \in \sumTZero}
-  {\Gamma \vdash \exf{S}{e} \in S}
+  {\ctx{\Gamma}{\mathcal P} \vdash M : \sumTZero
+    \\ \rescomment{\mathcal R \leq \mathcal P + \mathcal Q}
+  }
+  {\ctx{\Gamma}{\mathcal R} \vdash \exf{A}{M} : A}
 
   \inferrule*[right=$\oplus$-I]
-  {\Gamma \vdash S_i \ni s}
-  {\Gamma \vdash \sumT{S_0}{S_1} \ni \inj{i}{s}}
+  {\ctx{\Gamma}{\mathcal R} \vdash M : A_i}
+  {\ctx{\Gamma}{\mathcal R} \vdash \inj{i}{M} : \sumT{A_0}{A_1}}
   \and
   \inferrule*[right=$\oplus$-E]
-  {\Gamma \vdash e \in \sumT{S}{T}
-    \\ \Gamma, x : S \vdash U \ni s \\ \Gamma, y : T \vdash U \ni t}
-  {\Gamma \vdash \cse{U}{e}{x}{s}{y}{t} \in U}
-\end{mathpar}
-
-\subsection{Resourcing}
-\begin{mathpar}
-  \inferrule*[right=var]
-  {\Delta \leq \underline 0, x^\rho, \underline 0}
-  {\Delta \vdash x}
-
-  \and
-
-  \inferrule*[right=cod]
-  {\Delta \vdash \typed e}
-  {\Delta \vdash \emb{\typed e}}
-  \and
-  \inferrule*[right=doc]
-  {\Delta \vdash \typed s}
-  {\Delta \vdash \ann{\typed s}{S}}
-
-  \and
-
-  \inferrule*[right=$\multimap$-I]
-  {\Delta, x^1 \vdash \typed t}
-  {\Delta \vdash \lam{x}{\typed t}}
-  \and
-  \inferrule*[right=$\multimap$-E]
-  {\Delta_f \vdash \typed f \\ \Delta_s \vdash \typed s
-    \\ \Delta \leq \Delta_f + \Delta_s}
-  {\Delta \vdash \app{\typed f}{\typed s}}
-
-  % NOTE: multiplication on the right
-  % This should change to multiplication on the left,
-  % at least here, and probably in the formalisation.
-  \inferrule*[right=$\oc_\rho$-I]
-  {\Delta_s \vdash \typed s \\ \Delta \leq \Delta_s * \rho}
-  {\Delta \vdash \bang{\typed s}}
-  \and
-  \inferrule*[right=$\oc_\rho$-E]
-  {\Delta_e \vdash \typed e \\ \Delta_t, x^\rho \vdash \typed t
-    \\ \Delta \leq \Delta_e + \Delta_t}
-  {\Delta \vdash \bm{T}{\typed e}{x}{\typed t}}
-
-  \and
-
-  \inferrule*[right=$1$-I]
-  {\Delta \leq \underline 0}
-  {\Delta \vdash \unit}
-  \and
-  \inferrule*[right=$1$-E]
-  {\Delta_e \vdash \typed e \\ \Delta_s \vdash \typed s
-    \\ \Delta \leq \Delta_e + \Delta_s}
-  {\Delta \vdash \del{S}{\typed e}{\typed s}}
-
-  \and
-
-  \inferrule*[right=$\otimes$-I]
-  {\Delta_s \vdash \typed s \\ \Delta_t \vdash \typed t
-    \\ \Delta \leq \Delta_s + \Delta_t}
-  {\Delta \vdash \ten{\typed s}{\typed t}}
-  \and
-  \inferrule*[right=$\otimes$-E]
-  {\Delta_e \vdash \typed e \\ \Delta_s, x^1, y^1 \vdash \typed u
-    \\ \Delta \leq \Delta_e + \Delta_s}
-  {\Delta \vdash \prm{U}{\typed e}{x}{y}{\typed u}}
-
-  \and
-
-  \inferrule*[right=$\top$-I]
-  { }
-  {\Delta \vdash \eat}
-  \and
-  \text{(no $\top$-E)}
-
-  \and
-
-  \inferrule*[right=$\&$-I]
-  {\Delta \vdash \typed s \\ \Delta \vdash \typed t}
-  {\Delta \vdash \wth{\typed s}{\typed t}}
-  \and
-  \inferrule*[right=$\&$-E]
-  {\Delta \vdash \typed e}
-  {\Delta \vdash \proj{i}{\typed e}}
-
-  \text{(no $0$-I)}
-  \and
-  \inferrule*[right=$0$-E]
-  {\Delta_e \vdash \typed e \\ \Delta \leq \Delta_e + \Delta_{s}}
-  {\Delta \vdash \exf{S}{\typed e}}
-
-  \inferrule*[right=$\oplus$-I]
-  {\Delta \vdash \typed s}
-  {\Delta \vdash \inj{i}{\typed s}}
-  \and
-  \inferrule*[right=$\oplus$-E]
-  {\Delta_e \vdash \typed e
-    \\ \Delta_{s}, x^1 \vdash \typed s \\ \Delta_{s}, y^1 \vdash \typed t
-    \\ \Delta \leq \Delta_e + \Delta_{s}}
-  {\Delta \vdash \cse{U}{\typed e}{x}{\typed s}{y}{\typed t}}
+  {\ctx{\Gamma}{\mathcal P} \vdash M : \sumT{A}{B}
+    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{x}{A}{1} \vdash N : C
+    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{y}{B}{1} \vdash O : C
+    \\ \rescomment{\mathcal R \leq \mathcal P + \mathcal Q}
+  }
+  {\ctx{\Gamma}{\mathcal R} \vdash \cse{C}{M}{x}{N}{y}{O} : C}
 \end{mathpar}

@@ -3,11 +3,11 @@
 \fi
 
 \newcommand{\bind}[2]{#2}
-%\newcommand{\ctx}[2]{{#1}^{\rescomment{#2}}}
-\newcommand{\ctx}[2]{{#2}^{#1}}
+\newcommand{\ctx}[2]{{#1}^{\rescomment{#2}}}
+%\newcommand{\ctx}[2]{{#2}^{#1}}
 \newcommand{\ctxvar}[3]{#1 \stackrel{\rescomment{#3}}: #2}
-%\newcommand{\rescomment}[1]{{\color{red}#1}}
-\newcommand{\rescomment}[1]{{#1}}
+\newcommand{\rescomment}[1]{{\color{red}#1}}
+%\newcommand{\rescomment}[1]{{#1}}
 
 
 \newcommand{\ann}[2]{#1 : #2}
@@ -19,12 +19,12 @@
 \newcommand{\lam}[2]{\lambda #1.~#2}
 \newcommand{\app}[2]{#1~#2}
 
-\newcommand{\excl}[2]{\oc_{#1} #2}
-\newcommand{\bang}[1]{\operatorname{bang} #1}
+\newcommand{\excl}[2]{\oc_{\rescomment{#1}} #2}
+\newcommand{\bang}[1]{[#1]}
 \newcommand{\bm}[4]{\if\newelims0%
 \operatorname{bm}_{#1}(#2, \bind{#3}{#4})%
 \else%
-\mathrm{let}~\bang{#3} = #2~\mathrm{in}~#4 : #1%
+\mathrm{let}~\bang{#3} = #2~\mathrm{in}~#4%
 \fi}
 
 \newcommand{\tensorOne}[0]{1}
@@ -32,7 +32,7 @@
 \newcommand{\del}[3]{\if\newelims0%
 \operatorname{del}_{#1}(#2, #3)%
 \else%
-\mathrm{let}~\unit = #2~\mathrm{in}~#3 : #1%
+\mathrm{let}~\unit = #2~\mathrm{in}~#3%
 \fi}
 
 \newcommand{\tensor}[2]{#1 \otimes #2}
@@ -40,7 +40,7 @@
 \newcommand{\prm}[5]{\if\newelims0%
 \operatorname{pm}_{#1}(#2, \bind{#3, #4}{#5})%
 \else%
-\mathrm{let}~\ten{#3}{#4} = #2~\mathrm{in}~#5 : #1%
+\mathrm{let}~\ten{#3}{#4} = #2~\mathrm{in}~#5%
 \fi}
 
 \newcommand{\withTOne}[0]{\top}
@@ -58,7 +58,7 @@
 \newcommand{\cse}[6]{\if\newelims0%
 \operatorname{case}_{#1}(#2, \bind{#3}{#4}, \bind{#5}{#6})%
 \else%
-\mathrm{case}_{#1}~#2~\mathrm{of}~\inj{0}{#3} \mapsto #4 ~;~ \inj{1}{#5} \mapsto #6%
+\mathrm{case}~#2~\mathrm{of}~\inj{0}{#3} \mapsto #4 ~;~ \inj{1}{#5} \mapsto #6%
 \fi}
 
 
