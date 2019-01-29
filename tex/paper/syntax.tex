@@ -169,7 +169,7 @@
   \text{(no $0$-I)}
   \and
   \inferrule*[right=$0$-E]
-  {\Delta_e \vdash \typed e \\ \Delta \leq \Delta_e + \Delta_{st}}
+  {\Delta_e \vdash \typed e \\ \Delta \leq \Delta_e + \Delta_{s}}
   {\Delta \vdash \exf{S}{\typed e}}
 
   \inferrule*[right=$\oplus$-I]
@@ -178,7 +178,7 @@
   \and
   \inferrule*[right=$\oplus$-E]
   {\Delta_e \vdash \typed e
-    \\ \Delta_{st}, x^1 \vdash \typed s \\ \Delta_{st}, y^1 \vdash \typed t
-    \\ \Delta \leq \Delta_e + \Delta_{st}}
+    \\ \Delta_{s}, x^1 \vdash \typed s \\ \Delta_{s}, y^1 \vdash \typed t
+    \\ \Delta \leq \Delta_e + \Delta_{s}}
   {\Delta \vdash \cse{U}{\typed e}{x}{\typed s}{y}{\typed t}}
 \end{mathpar}
