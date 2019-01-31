@@ -30,13 +30,14 @@ module Quantitative.Resources.Substitution
   open import Lib.Matrix.Multiplication.Order
     (record { posemiring = R.posemiring })
   open import Lib.Matrix.Multiplication.Basis (record { semiring = R.semiring })
+  open import Lib.Matrix.Multiplication.Block (record { semiring = R.semiring })
   open import Lib.Matrix.Poset (record { poset = R.poset })
   open import Lib.Matrix.Scaling.Right (record { semiring = R.semiring })
   open import Lib.Nat
   open import Lib.Product
   open import Lib.Sum
   open import Lib.Sum.Pointwise
-  open import Lib.Thinning
+  open import Lib.Thinning hiding (_∈_)
   open import Lib.Two
   open import Lib.Vec
   open import Lib.Vec.Thinning using (lookup′)
@@ -218,10 +219,10 @@ module Quantitative.Resources.Substitution
     × (∀ i → M *M basis-col i ⊢r vft i)
 
   liftSubstRes :
-    ∀ {m n} {vf : Subst m n} {Γm Γn S} {vft : SubstTy vf Γm Γn}
-    {Δm Δn} ρ → SubstRes vft Δm Δn →
-    SubstRes (liftSubstTy S vft) (Δm +↓ [- ρ -]) (Δn +↓ [- ρ -])
-  liftSubstRes {m} {n} {S = S} {vft} {Δm = Δm} {Δn} ρ (M , sub , ur) =
+    ∀ {m n} {vf : Subst m n} {Γm Γn T} {vft : SubstTy vf Γm Γn}
+    {Δm Δn ρ} → SubstRes vft Δm Δn →
+    SubstRes (liftSubstTy {T = T} vft) (Δm +↓ [- ρ -]) (Δn +↓ [- ρ -])
+  liftSubstRes {m} {n} {vft = vft} {Δm = Δm} {Δn} {ρ} (M , sub , ur) =
     M′ , sub′ , λ k → weakenRes (≤M-reflexive (choose-col k M′)) (ur′ k)
     where
     M′ : Mat (succ n , succ m)
@@ -248,7 +249,7 @@ module Quantitative.Resources.Substitution
     thr k .snd (os i , j) | .0 | refl | oiᶜ = R.≤-refl
     thr k .snd (o′ () , j) | .0 | refl | oiᶜ
 
-    ur′ : (k : Fin (succ m)) → thin oi k $E M′ ⊢r liftSubstTy S vft k
+    ur′ : (k : Fin (succ m)) → thin oi k $E M′ ⊢r liftSubstTy vft k
     ur′ (os k) = var go
       where
       go : thin oi (os k) $E M′ ≤M basis-col zeroth
@@ -270,49 +271,83 @@ module Quantitative.Resources.Substitution
   substituteRes :
     ∀ {m n d} {t : Term m d} {vf : Subst m n}
     {Γm Γn S} {tt : Γm ⊢t t :-: S} {vft : SubstTy {m} {n} vf Γm Γn}
-    {Δm Δn} → Δm ⊢r tt → SubstRes vft Δm Δn → Δn ⊢r substituteTy tt vft
-  substituteRes (var {i} {.(lookup′ i _)} {eq = refl} sub′) (M , sub , ur) =
+    {Δm Δn} → SubstRes vft Δm Δn → Δm ⊢r tt → Δn ⊢r substituteTy tt vft
+  substituteRes (M , sub , ur) (var {i} {.(lookup′ i _)} {eq = refl} sub′) =
     weakenRes (≤M-trans sub (≤M-refl *M-mono sub′)) (ur i)
-  substituteRes (app {Δe = Δe} {Δs} split er sr) (M , sub , ur) =
+  substituteRes (M , sub , ur) (app {Δe = Δe} {Δs} split er sr) =
     app (resplit sub split (distribM .fst M Δe Δs))
-        (substituteRes er (M , ≤M-refl , ur))
-        (substituteRes sr (M , ≤M-refl , ur))
-  substituteRes (bm {Δe = Δe} {Δs} {ρ = ρ} split er sr) (M , sub , ur) =
+        (substituteRes (M , ≤M-refl , ur) er)
+        (substituteRes (M , ≤M-refl , ur) sr)
+  substituteRes (M , sub , ur) (bm {Δe = Δe} {Δs} {ρ = ρ} split er sr) =
     bm (resplit sub split (distribM .fst M Δe Δs))
-       (substituteRes er (M , ≤M-refl , ur))
-       (substituteRes sr (liftSubstRes ρ (M , ≤M-refl , ur)))
-  substituteRes (del {Δe = Δe} {Δs} split er sr) (M , sub , ur) =
+       (substituteRes (M , ≤M-refl , ur) er)
+       (substituteRes (liftSubstRes (M , ≤M-refl , ur)) sr)
+  substituteRes (M , sub , ur) (del {Δe = Δe} {Δs} split er sr) =
     del (resplit sub split (distribM .fst M Δe Δs))
-        (substituteRes er (M , ≤M-refl , ur))
-        (substituteRes sr (M , ≤M-refl , ur))
-  substituteRes (pm {Δe = Δe} {Δs} split er sr) (M , sub , ur) =
+        (substituteRes (M , ≤M-refl , ur) er)
+        (substituteRes (M , ≤M-refl , ur) sr)
+  substituteRes (M , sub , ur) (pm {Δe = Δe} {Δs} split er sr) =
     pm (resplit sub split (distribM .fst M Δe Δs))
-       (substituteRes er (M , ≤M-refl , ur))
-       (substituteRes sr (liftSubstRes {Δm = Δs +↓ [- R.e1 -]} _
-                                       (liftSubstRes _ (M , ≤M-refl , ur))))
-  substituteRes (proj er) σr = proj (substituteRes er σr)
-  substituteRes (exf {Δe = Δe} {Δs} split er) (M , sub , ur) =
+       (substituteRes (M , ≤M-refl , ur) er)
+       (substituteRes (liftSubstRes {Δm = Δs +↓ [- R.e1 -]}
+                                    (liftSubstRes (M , ≤M-refl , ur)))
+                      sr)
+  substituteRes σr (proj er) = proj (substituteRes σr er)
+  substituteRes (M , sub , ur) (exf {Δe = Δe} {Δs} split er) =
     exf (resplit sub split (distribM .fst M Δe Δs))
-        (substituteRes er (M , ≤M-refl , ur))
-  substituteRes (cse {Δe = Δe} {Δs} split er s0r s1r) (M , sub , ur) =
+        (substituteRes (M , ≤M-refl , ur) er)
+  substituteRes (M , sub , ur) (cse {Δe = Δe} {Δs} split er s0r s1r) =
     cse (resplit sub split (distribM .fst M Δe Δs))
-        (substituteRes er (M , ≤M-refl , ur))
-        (substituteRes s0r (liftSubstRes R.e1 (M , ≤M-refl , ur)))
-        (substituteRes s1r (liftSubstRes R.e1 (M , ≤M-refl , ur)))
-  substituteRes (the sr) σr = the (substituteRes sr σr)
-  substituteRes (lam sr) σr =
-    lam (substituteRes sr (liftSubstRes R.e1 σr))
-  substituteRes (bang {Δs} {ρ = ρ} split sr) (M , sub , ur) =
+        (substituteRes (M , ≤M-refl , ur) er)
+        (substituteRes (liftSubstRes (M , ≤M-refl , ur)) s0r)
+        (substituteRes (liftSubstRes (M , ≤M-refl , ur)) s1r)
+  substituteRes σr (the sr) = the (substituteRes σr sr)
+  substituteRes σr (lam sr) =
+    lam (substituteRes (liftSubstRes σr) sr)
+  substituteRes (M , sub , ur) (bang {Δs} {ρ = ρ} split sr) =
     bang (resplit sub split (*r-linear M Δs ρ))
-         (substituteRes sr (M , ≤M-refl , ur))
-  substituteRes (unit split) (M , sub , ur) =
+         (substituteRes (M , ≤M-refl , ur) sr)
+  substituteRes (M , sub , ur) (unit split) =
     unit (resplit sub split (annihilM .fst M))
-  substituteRes (ten {Δs0 = Δs0} {Δs1} split s0r s1r) (M , sub , ur) =
+  substituteRes (M , sub , ur) (ten {Δs0 = Δs0} {Δs1} split s0r s1r) =
     ten (resplit sub split (distribM .fst M Δs0 Δs1))
-        (substituteRes s0r (M , ≤M-refl , ur))
-        (substituteRes s1r (M , ≤M-refl , ur))
-  substituteRes eat σr = eat
-  substituteRes (wth s0r s1r) σr =
-    wth (substituteRes s0r σr) (substituteRes s1r σr)
-  substituteRes (inj sr) σr = inj (substituteRes sr σr)
-  substituteRes [ er ] σr = [ substituteRes er σr ]
+        (substituteRes (M , ≤M-refl , ur) s0r)
+        (substituteRes (M , ≤M-refl , ur) s1r)
+  substituteRes σr eat = eat
+  substituteRes σr (wth s0r s1r) =
+    wth (substituteRes σr s0r) (substituteRes σr s1r)
+  substituteRes σr (inj sr) = inj (substituteRes σr sr)
+  substituteRes σr [ er ] = [ substituteRes σr er ]
+
+  -- Deriving single substitution
+
+  idSubstRes : ∀ {m Γ Δ} → SubstRes {m} {m} {var} {Γ} {Γ} (λ _ → var refl) Δ Δ
+  idSubstRes = 1M , ≤M-reflexive (symM (*M-identity .fst _))
+                  , λ _ → var (≤M-reflexive (*M-identity .fst _))
+
+  singleSubstRes : ∀ {m e Γ S} {et : Γ ⊢t e ∈ S}
+                   {Δ Δe Δ′ ρ} → Δe ⊢r et → Δ ≤M Δ′ +M Δe *M [- ρ -] →
+                   SubstRes (singleSubstTy {m} et) (Δ′ +↓ [- ρ -]) Δ
+  singleSubstRes {et = et} {Δe = Δe} {Δ′} {ρ} er split =
+    1M +→ Δe , ≤M-trans split (≤M-reflexive (symM Mq)) , ur
+    where
+    open SetoidReasoning (MatS _)
+    Mq : (1M +→ Δe) *M (Δ′ +↓ [- ρ -]) ≈M Δ′ +M Δe *M [- ρ -]
+    Mq =
+      (1M +→ Δe) *M (Δ′ +↓ [- ρ -])  ≈[ insert-blocks 1M Δe Δ′ [- ρ -] ]≈
+      1M *M Δ′ +M Δe *M [- ρ -]      ≈[ *M-identity .fst Δ′ +M-cong reflM ]≈
+            Δ′ +M Δe *M [- ρ -]      QED
+
+    ur : ∀ i → (1M +→ Δe) *M basis-col i ⊢r singleSubstTy et i
+    ur (os e) = weakenRes (≤M-reflexive eq) er
+      where
+      eq : (1M +→ Δe) *M basis-col (os e) ≈M Δe
+      eq (j , k@(os oz)) rewrite choose-col (os e) (1M +→ Δe) (j , k)
+                               | comp-oi j = ≡.refl
+      eq (j , o′ ())
+    ur (o′ i) = var (≤M-reflexive eq)
+      where
+      eq : (1M +→ Δe) *M basis-col (o′ i) ≈M basis-col i
+      eq (j , k@(os oz)) rewrite choose-col (o′ i) (1M +→ Δe) (j , k)
+                               | comp-oi j | oi-comp i = ≡.refl
+      eq (j , o′ ())

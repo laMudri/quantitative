@@ -40,28 +40,28 @@ module Quantitative.Syntax.Substitution {c} (Ty : Set c) where
   liftSubstN zero vf = vf
   liftSubstN {m} {n} (succ l) vf = liftSubst (liftSubstN l vf)
 
-  substitute : ∀ {m n d} → Term m d → Subst m n → Term n d
-  substitute (var th) vf = vf th
-  substitute (app e s) vf = app (substitute e vf) (substitute s vf)
-  substitute (bm S e s) vf =
-    bm S (substitute e vf) (substitute s (liftSubst vf))
-  substitute (del S e s) vf = del S (substitute e vf) (substitute s vf)
-  substitute (pm S e s) vf =
-    pm S (substitute e vf) (substitute s (liftSubstN 2 vf))
-  substitute (proj i e) vf = proj i (substitute e vf)
-  substitute (exf S e) vf = exf S (substitute e vf)
-  substitute (cse S e s0 s1) vf =
-    cse S (substitute e vf) (substitute s0 (liftSubst vf))
-                            (substitute s1 (liftSubst vf))
-  substitute (the S s) vf = the S (substitute s vf)
-  substitute (lam s) vf = lam (substitute s (liftSubst vf))
-  substitute (bang s) vf = bang (substitute s vf)
-  substitute unit vf = unit
-  substitute (ten s0 s1) vf = ten (substitute s0 vf) (substitute s1 vf)
-  substitute eat vf = eat
-  substitute (wth s0 s1) vf = wth (substitute s0 vf) (substitute s1 vf)
-  substitute (inj i s) vf = inj i (substitute s vf)
-  substitute [ e ] vf = [ substitute e vf ]
+  substitute : ∀ {m n d} → Subst m n → Term m d → Term n d
+  substitute vf (var th) = vf th
+  substitute vf (app e s) = app (substitute vf e) (substitute vf s)
+  substitute vf (bm S e s) =
+    bm S (substitute vf e) (substitute (liftSubst vf) s)
+  substitute vf (del S e s) = del S (substitute vf e) (substitute vf s)
+  substitute vf (pm S e s) =
+    pm S (substitute vf e) (substitute (liftSubstN 2 vf) s)
+  substitute vf (proj i e) = proj i (substitute vf e)
+  substitute vf (exf S e) = exf S (substitute vf e)
+  substitute vf (cse S e s0 s1) =
+    cse S (substitute vf e) (substitute (liftSubst vf) s0)
+                            (substitute (liftSubst vf) s1)
+  substitute vf (the S s) = the S (substitute vf s)
+  substitute vf (lam s) = lam (substitute (liftSubst vf) s)
+  substitute vf (bang s) = bang (substitute vf s)
+  substitute vf unit = unit
+  substitute vf (ten s0 s1) = ten (substitute vf s0) (substitute vf s1)
+  substitute vf eat = eat
+  substitute vf (wth s0 s1) = wth (substitute vf s0) (substitute vf s1)
+  substitute vf (inj i s) = inj i (substitute vf s)
+  substitute vf [ e ] = [ substitute vf e ]
 
   singleSubst : ∀ {m} → Term m syn → Subst (succ m) m
   singleSubst e (os th) = e

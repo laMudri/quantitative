@@ -17,9 +17,9 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
   RenTy : ∀ {m n} → m ≤ n → TCtx m → TCtx n → Set c
   RenTy {m} {n} th Γm Γn = VZip _≡_ (thin th Γn) Γm
 
-  renameTy : ∀ {m n d T} {t : Term m d} {Γm Γn} {th : m ≤ n} →
+  renameTy : ∀ {m n d T} {t : Term m d} {th : m ≤ n} {Γm Γn} →
              RenTy th Γm Γn → Γm ⊢t t :-: T → Γn ⊢t rename th t :-: T
-  renameTy {Γm = Γm} {Γn} {th} tht (var {th = i} refl) = var (sym q′)
+  renameTy {th = th} {Γm} {Γn} tht (var {th = i} refl) = var (sym q′)
     where
     q′ : lookup′ (i ≤-comp th) Γn ≡ lookup′ i Γm
     q′ = cong headVec (trans (VZip≡ (thin-comp i th Γn))
@@ -47,40 +47,40 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
   SubstTy : ∀ {m n} → Subst m n → TCtx m → TCtx n → Set c
   SubstTy {m} {n} vf Γm Γn = (th : Fin m) → Γn ⊢t vf th ∈ lookup′ th Γm
 
-  liftSubstTy : ∀ {m n Γm Γn} T {vf : Subst m n} →
+  liftSubstTy : ∀ {m n} {vf : Subst m n} {Γm Γn T} →
                 SubstTy vf Γm Γn → SubstTy (liftSubst vf) (T :: Γm) (T :: Γn)
-  liftSubstTy T vft (os th) = var refl
-  liftSubstTy T vft (o′ th) = renameTy (thin-oi _) (vft th)
+  liftSubstTy vft (os th) = var refl
+  liftSubstTy vft (o′ th) = renameTy (thin-oi _) (vft th)
 
-  liftSubstNTy : ∀ {m n l Γm Γn} (Γl : TCtx l) {vf : Subst m n} →
+  liftSubstNTy : ∀ {m n l} {vf : Subst m n} {Γm Γn} {Γl : TCtx l} →
                  SubstTy vf Γm Γn →
                  SubstTy (liftSubstN l vf) (Γl +V Γm) (Γl +V Γn)
-  liftSubstNTy nil vft = vft
-  liftSubstNTy (S :: Γl) vft = liftSubstTy S (liftSubstNTy Γl vft)
+  liftSubstNTy {Γl = nil} vft = vft
+  liftSubstNTy {Γl = S :: Γl} vft = liftSubstTy (liftSubstNTy vft)
 
   substituteTy :
-    ∀ {m n d T} {t : Term m d} {Γm : TCtx m} {Γn : TCtx n} →
-    Γm ⊢t t :-: T → {vf : Subst m n} → SubstTy vf Γm Γn →
-    Γn ⊢t substitute t vf :-: T
+    ∀ {m n d} {t : Term m d} {vf : Subst m n}
+    {Γm Γn T} → Γm ⊢t t :-: T → SubstTy vf Γm Γn →
+    Γn ⊢t substitute vf t :-: T
   substituteTy (var {th = th} refl) vft = vft th
   substituteTy (app et st) vft =
     app (substituteTy et vft) (substituteTy st vft)
   substituteTy (bm et st) vft =
     bm (substituteTy et vft)
-       (substituteTy st (liftSubstTy _ vft))
+       (substituteTy st (liftSubstTy vft))
   substituteTy (del et st) vft =
     del (substituteTy et vft) (substituteTy st vft)
   substituteTy (pm et st) vft =
     pm (substituteTy et vft)
-       (substituteTy st (liftSubstNTy (_ :: _ :: nil) vft))
+       (substituteTy st (liftSubstNTy vft))
   substituteTy (proj et) vft = proj (substituteTy et vft)
   substituteTy (exf st) vft = exf (substituteTy st vft)
   substituteTy (cse et s0t s1t) vft =
-    cse (substituteTy et vft) (substituteTy s0t (liftSubstTy _ vft))
-                              (substituteTy s1t (liftSubstTy _ vft))
+    cse (substituteTy et vft) (substituteTy s0t (liftSubstTy vft))
+                              (substituteTy s1t (liftSubstTy vft))
   substituteTy (the st) vft = the (substituteTy st vft)
   substituteTy (lam st) vft =
-    lam (substituteTy st (liftSubstTy _ vft))
+    lam (substituteTy st (liftSubstTy vft))
   substituteTy (bang st) vft =
     bang (substituteTy st vft)
   substituteTy unit vft = unit

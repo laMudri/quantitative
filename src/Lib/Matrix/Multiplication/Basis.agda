@@ -19,10 +19,6 @@ module Lib.Matrix.Multiplication.Basis {c l} (R : ΣSemiring c l) where
   open import Lib.Sum
   open import Lib.Thinning
 
-  basis-col : ∀ {n} → Fin n → Mat (n , 1)
-  basis-col k = set′ k oi (λ _ → e1) $E [| e0 |]
-  -- basis-col k (i , j) = indic (floor (k ≟th i))
-
   choose-col : ∀ {m n} (j : Fin n) (M : Mat (m , n)) →
                M *M basis-col j ≈M thin oi j $E M
   choose-col {m} {succ n} (os j) M (i , k) =
