@@ -40,6 +40,7 @@ module Quantitative.Semantics.Relational {r l}
     open import Lib.One
     open import Lib.Product
     open import Lib.Sum
+    open import Lib.Sum.Pointwise
     open import Lib.Thinning
     open import Lib.Two
     open import Lib.Vec

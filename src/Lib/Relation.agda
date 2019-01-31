@@ -10,6 +10,7 @@ module Lib.Relation where
   open import Lib.Product
   open import Lib.Setoid
   open import Lib.Sum
+  open import Lib.Sum.Pointwise
 
   module _ {a l} (A : Setoid a l) where
     open Setoid A
