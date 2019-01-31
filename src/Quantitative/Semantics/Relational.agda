@@ -551,12 +551,12 @@ module Quantitative.Semantics.Relational {r l}
       ... | .(yes _) | inl r | res = res
       ... | .(no _) | inr s | res = res
 
-    {-
     fundamental :
       ∀ {n d T Γ Δ} {t : Term n d} {tt : Γ ⊢t t :-: T} (tr : Δ ⊢r tt) →
       R⟦ Γ , Δ ⟧Δ [ ⟦ tt ⟧t ]⇒W R⟦ T ⟧T
     fundamental {Γ = Γ} (var {i} {T} {refl} sub) =
-      R⟦lookup⟧ i sub >>W′ fst (act-1 R⟦ T ⟧T)
+      R⟦lookup⟧ i (≤M-trans sub (≤M-reflexive (symM (*r-identity _))))
+      >>W′ fst (act-1 R⟦ T ⟧T)
     fundamental {Γ = Γ} (app {S = S} {T} {et = et} {st} split er sr) =
       RΔ-split-+ Γ split >>N ∧W.arr $E (fundamental er , fundamental sr)
                          >>N evalW ⟦ et ⟧t ⟦ st ⟧t R⟦ S ⟧T R⟦ T ⟧T
@@ -634,4 +634,3 @@ module Quantitative.Semantics.Relational {r l}
       ; square = λ _ → <>
       }
     fundamental (emb er) = fundamental er
-    -}
