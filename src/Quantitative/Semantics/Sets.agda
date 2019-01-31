@@ -12,6 +12,7 @@ module Quantitative.Semantics.Sets {c} (C : Set c) (Base : Set) where
   open import Lib.Thinning
   open import Lib.Two
   open import Lib.Vec
+  open import Lib.Vec.Thinning
   open import Lib.Zero
 
   ⟦_⟧T : Ty → Set
@@ -28,7 +29,7 @@ module Quantitative.Semantics.Sets {c} (C : Set c) (Base : Set) where
   ⟦_⟧Γ : ∀ {n} → TCtx n → Set
   ⟦ Γ ⟧Γ = Vec-rec One _×_ (vmap ⟦_⟧T Γ)
 
-  ⟦lookup⟧ : ∀ {n} i {Γ : TCtx n} → ⟦ Γ ⟧Γ → ⟦ lookup i Γ ⟧T
+  ⟦lookup⟧ : ∀ {n} i {Γ : TCtx n} → ⟦ Γ ⟧Γ → ⟦ lookup′ i Γ ⟧T
   ⟦lookup⟧ (os i) {T :: Γ} (t , η) = t
   ⟦lookup⟧ (o′ i) {T :: Γ} (t , η) = ⟦lookup⟧ i η
 
