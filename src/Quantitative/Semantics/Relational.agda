@@ -36,6 +36,18 @@ module Quantitative.Semantics.Relational {r l}
 
     open import Lib.Equality using (_≡_; refl; subst2)
     open import Lib.Function
+    open import Lib.Matrix.Setoid (≡-Setoid R)
+    open import Lib.Matrix.Addition
+      (record { commutativeMonoid = R.+-commutativeMonoid })
+    open import Lib.Matrix.Addition.Order
+      (record { commutativePomonoid = R.+-commutativePomonoid })
+    open import Lib.Matrix.Multiplication (record { semiring = R.semiring })
+    open import Lib.Matrix.Multiplication.Order
+      (record { posemiring = R.posemiring })
+    open import Lib.Matrix.Multiplication.Basis (record { semiring = R.semiring })
+    open import Lib.Matrix.Multiplication.Block (record { semiring = R.semiring })
+    open import Lib.Matrix.Poset (record { poset = R.poset })
+    open import Lib.Matrix.Scaling.Right (record { semiring = R.semiring })
     open import Lib.Nat
     open import Lib.One
     open import Lib.Product
@@ -44,6 +56,7 @@ module Quantitative.Semantics.Relational {r l}
     open import Lib.Thinning
     open import Lib.Two
     open import Lib.Vec
+    open import Lib.Vec.Thinning
     open import Lib.VZip
     open import Lib.Zero
 
@@ -407,8 +420,11 @@ module Quantitative.Semantics.Relational {r l}
   R⟦ T , ρ ⟧ρ = act ρ R⟦ T ⟧T
 
   R⟦_,_⟧Δ : ∀ {n} (Γ : TCtx n) (Δ : RCtx n) → WREL.Obj ⟦ Γ ⟧Γ
-  R⟦ nil , nil ⟧Δ = 1W
-  R⟦ T :: Γ , ρ :: Δ ⟧Δ = ×W.obj (R⟦ T , ρ ⟧ρ , R⟦ Γ , Δ ⟧Δ)
+  R⟦ nil , _ ⟧Δ = 1W
+  R⟦ T :: Γ , Δρ ⟧Δ =
+    let ρ = Δρ (zeroth , zeroth) in
+    let Δ = remove-row $E Δρ in
+    ×W.obj (R⟦ T , ρ ⟧ρ , R⟦ Γ , Δ ⟧Δ)
 
   record IsAct (act : {A : Set} → R → WREL.Obj A → WREL.Obj A)
                : Set (lsuc lzero ⊔ r ⊔ l) where
@@ -435,9 +451,13 @@ module Quantitative.Semantics.Relational {r l}
     Rρ-split-0 T {ρ} le = WREL._>>_ _ {R⟦ T , ρ ⟧ρ} {R⟦ T , R.e0 ⟧ρ} {⊤W}
                                     (Rρ-weaken T le) (act-0 R⟦ T ⟧T)
 
-    RΔ-split-0 : ∀ {n} Γ {Δ : RCtx n} → Δ Δ.≤ Δ.e0 → R⟦ Γ , Δ ⟧Δ ⇒W ⊤W
-    RΔ-split-0 nil nil = WREL.id _ 1W
-    RΔ-split-0 (S :: Γ) {ρ :: Δ} (le :: split) =
+    RΔ-split-0 : ∀ {n} Γ {Δ : RCtx n} → Δ ≤M 0M → R⟦ Γ , Δ ⟧Δ ⇒W ⊤W
+    RΔ-split-0 nil _ = WREL.id _ 1W
+    RΔ-split-0 (S :: Γ) {Δρ} split-le =
+      let ρ = Δρ (zeroth , zeroth) in
+      let Δ = remove-row $E Δρ in
+      let le = split-le (zeroth , zeroth) in
+      let split = λ where (i , j) → split-le (o′ i , j) in
       WREL._>>_ _ {×W.obj (R⟦ S , ρ ⟧ρ , R⟦ Γ , Δ ⟧Δ)} {×W.obj (⊤W , ⊤W)} {⊤W}
                 (×W.arr $E (Rρ-split-0 S le , RΔ-split-0 Γ split)) ⊤×⊤-⇒W-⊤
 
@@ -448,17 +468,18 @@ module Quantitative.Semantics.Relational {r l}
                   {∧W.obj (R⟦ T , ρx ⟧ρ , R⟦ T , ρy ⟧ρ)}
                 (Rρ-weaken T le) (act-+ ρx ρy R⟦ T ⟧T)
 
-    RΔ-split-+ : ∀ {n} Γ {Δ Δx Δy : RCtx n} → Δ Δ.≤ Δx Δ.+ Δy →
+    RΔ-split-+ : ∀ {n} Γ {Δ Δx Δy : RCtx n} → Δ ≤M Δx +M Δy →
                  R⟦ Γ , Δ ⟧Δ ⇒W ∧W.obj (R⟦ Γ , Δx ⟧Δ , R⟦ Γ , Δy ⟧Δ)
-    RΔ-split-+ nil {nil} {nil} {nil} nil = 1-⇒W-1∧1
-    RΔ-split-+ (S :: Γ) {ρ :: Δ} {ρx :: Δx} {ρy :: Δy} (le :: split) =
-      WREL._>>_ _ {×W.obj (R⟦ S , ρ ⟧ρ , R⟦ Γ , Δ ⟧Δ)}
-                  {×W.obj (∧W.obj (R⟦ S , ρx ⟧ρ , R⟦ S , ρy ⟧ρ)
-                          , ∧W.obj (R⟦ Γ , Δx ⟧Δ , R⟦ Γ , Δy ⟧Δ))}
-                  {∧W.obj (×W.obj (R⟦ S , ρx ⟧ρ , R⟦ Γ , Δx ⟧Δ)
-                          , ×W.obj (R⟦ S , ρy ⟧ρ , R⟦ Γ , Δy ⟧Δ))}
-                (×W.arr $E (Rρ-split-+ S le , RΔ-split-+ Γ split))
-                (∧×∧-⇒W-×∧× R⟦ S , ρx ⟧ρ R⟦ S , ρy ⟧ρ R⟦ Γ , Δx ⟧Δ R⟦ Γ , Δy ⟧Δ)
+    RΔ-split-+ = {!!}
+    -- RΔ-split-+ nil {nil} {nil} {nil} nil = 1-⇒W-1∧1
+    -- RΔ-split-+ (S :: Γ) {ρ :: Δ} {ρx :: Δx} {ρy :: Δy} (le :: split) =
+    --   WREL._>>_ _ {×W.obj (R⟦ S , ρ ⟧ρ , R⟦ Γ , Δ ⟧Δ)}
+    --               {×W.obj (∧W.obj (R⟦ S , ρx ⟧ρ , R⟦ S , ρy ⟧ρ)
+    --                       , ∧W.obj (R⟦ Γ , Δx ⟧Δ , R⟦ Γ , Δy ⟧Δ))}
+    --               {∧W.obj (×W.obj (R⟦ S , ρx ⟧ρ , R⟦ Γ , Δx ⟧Δ)
+    --                       , ×W.obj (R⟦ S , ρy ⟧ρ , R⟦ Γ , Δy ⟧Δ))}
+    --             (×W.arr $E (Rρ-split-+ S le , RΔ-split-+ Γ split))
+    --             (∧×∧-⇒W-×∧× R⟦ S , ρx ⟧ρ R⟦ S , ρy ⟧ρ R⟦ Γ , Δx ⟧Δ R⟦ Γ , Δy ⟧Δ)
 
 
     Rρ-split-1 : ∀ T {ρ} → ρ R.≤ R.e1 → act ρ R⟦ T ⟧T ⇒W R⟦ T ⟧T
@@ -466,34 +487,35 @@ module Quantitative.Semantics.Relational {r l}
       WREL._>>_ _ {act ρ R⟦ T ⟧T} {act R.e1 R⟦ T ⟧T} {R⟦ T ⟧T}
                 (Rρ-weaken T le) (fst (act-1 R⟦ T ⟧T))
 
-    --RΔ-split-1 : ∀ {n} Γ {Δ : RCtx n} → Δ Δ.≤ Δ.e1 → R⟦ Γ , Δ ⟧Δ ⇒W R⟦ Γ , Δ.e1 ⟧
-
     Rρ-split-* : ∀ T {ρ π πx} → π R.≤ ρ R.* πx →
                  R⟦ T , π ⟧ρ ⇒W act ρ R⟦ T , πx ⟧ρ
     Rρ-split-* T {ρ} {π} {πx} le =
       WREL._>>_ _ {R⟦ T , π ⟧ρ} {R⟦ T , ρ R.* πx ⟧ρ} {act ρ R⟦ T , πx ⟧ρ}
                 (Rρ-weaken T le) (act-* ρ πx R⟦ T ⟧T)
 
-    RΔ-split-* : ∀ {n} (Γ : TCtx n) {ρ Δ Δx} → Δ Δ.≤ ρ Δ.* Δx →
+    RΔ-split-* : ∀ {n} (Γ : TCtx n) {ρ Δ Δx} → Δ ≤M Δx *r ρ →
                  R⟦ Γ , Δ ⟧Δ ⇒W act ρ R⟦ Γ , Δx ⟧Δ
-    RΔ-split-* nil {ρ} {nil} {nil} nil = act-1W ρ
-    RΔ-split-* (S :: Γ) {ρ} {π :: Δ} {πx :: Δx} (le :: split) =
-      WREL._>>_ _ {×W.obj (R⟦ S , π ⟧ρ , R⟦ Γ , Δ ⟧Δ)}
-                  {×W.obj (act ρ R⟦ S , πx ⟧ρ , act ρ R⟦ Γ , Δx ⟧Δ)}
-                  {act ρ (×W.obj (R⟦ S , πx ⟧ρ , R⟦ Γ , Δx ⟧Δ))}
-                (×W.arr $E (Rρ-split-* S le , RΔ-split-* Γ split))
-                (act-×W ρ R⟦ S , πx ⟧ρ R⟦ Γ , Δx ⟧Δ)
+    RΔ-split-* = {!!}
+    -- RΔ-split-* nil {ρ} {nil} {nil} nil = act-1W ρ
+    -- RΔ-split-* (S :: Γ) {ρ} {π :: Δ} {πx :: Δx} (le :: split) =
+    --   WREL._>>_ _ {×W.obj (R⟦ S , π ⟧ρ , R⟦ Γ , Δ ⟧Δ)}
+    --               {×W.obj (act ρ R⟦ S , πx ⟧ρ , act ρ R⟦ Γ , Δx ⟧Δ)}
+    --               {act ρ (×W.obj (R⟦ S , πx ⟧ρ , R⟦ Γ , Δx ⟧Δ))}
+    --             (×W.arr $E (Rρ-split-* S le , RΔ-split-* Γ split))
+    --             (act-×W ρ R⟦ S , πx ⟧ρ R⟦ Γ , Δx ⟧Δ)
 
 
-    R⟦lookup⟧ : ∀ {n} {Γ : TCtx n} {Δ : RCtx n} {π} i → Δ Δ.≤ varRCtx i π →
-                R⟦ Γ , Δ ⟧Δ [ ⟦lookup⟧ i ]⇒W R⟦ lookup i Γ , π ⟧ρ
-    R⟦lookup⟧ {Γ = T :: Γ} {ρ :: Δ} {π} (os i) (le :: split) =
-      ×W.arr $E (Rρ-weaken T le , RΔ-split-0 Γ split >>N ⊤-⇒W-1 ⟦ Γ ⟧Γ)
-      >>W′ ×1-⇒W R⟦ T , π ⟧ρ
-    R⟦lookup⟧ {Γ = T :: Γ} {ρ :: Δ} {π} (o′ i) (le :: split) =
-      ×W.arr $E (Rρ-split-0 T le >>N ⊤-⇒W-1 ⟦ T ⟧T , R⟦lookup⟧ i split)
-      >>W′ 1×-⇒W R⟦ lookup i Γ , π ⟧ρ
+    R⟦lookup⟧ : ∀ {n} {Γ : TCtx n} {Δ : RCtx n} {π} i → Δ ≤M basis-col i *r π →
+                R⟦ Γ , Δ ⟧Δ [ ⟦lookup⟧ i ]⇒W R⟦ lookup′ i Γ , π ⟧ρ
+    R⟦lookup⟧ = {!!}
+    -- R⟦lookup⟧ {Γ = T :: Γ} {ρ :: Δ} {π} (os i) (le :: split) =
+    --   ×W.arr $E (Rρ-weaken T le , RΔ-split-0 Γ split >>N ⊤-⇒W-1 ⟦ Γ ⟧Γ)
+    --   >>W′ ×1-⇒W R⟦ T , π ⟧ρ
+    -- R⟦lookup⟧ {Γ = T :: Γ} {ρ :: Δ} {π} (o′ i) (le :: split) =
+    --   ×W.arr $E (Rρ-split-0 T le >>N ⊤-⇒W-1 ⟦ T ⟧T , R⟦lookup⟧ i split)
+    --   >>W′ 1×-⇒W R⟦ lookup i Γ , π ⟧ρ
 
+    {-
     fundamental :
       ∀ {n d T Γ Δ} {t : Term n d} {tt : Γ ⊢t t :-: T} (tr : Δ ⊢r tt) →
       R⟦ Γ , Δ ⟧Δ [ ⟦ tt ⟧t ]⇒W R⟦ T ⟧T
@@ -576,3 +598,4 @@ module Quantitative.Semantics.Relational {r l}
       ; square = λ _ → <>
       }
     fundamental (emb er) = fundamental er
+    -}

@@ -21,7 +21,6 @@ module Quantitative.Resources.Substitution
   open import Lib.Level
   open import Lib.One
   open import Lib.Matrix.Setoid (≡-Setoid C)
-  open import Lib.Matrix.VecCompat (≡-Setoid C)
   open import Lib.Matrix.Addition
     (record { commutativeMonoid = R.+-commutativeMonoid })
   open import Lib.Matrix.Addition.Order
