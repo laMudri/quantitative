@@ -2,22 +2,24 @@ open import Lib.Equality
 open import Lib.Setoid
 open import Lib.Structure
 
+import Quantitative.Types.Formers as Form
+
 module Quantitative.Resources.Substitution
-  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
+  {c k l′} (C : Set c) (open Form C) (Const : Set k) (constTy : Const → Ty)
+  (POS : Posemiring (≡-Setoid C) l′) where
 
   open import Quantitative.Syntax.Direction
-  open import Quantitative.Types.Formers C
-  open import Quantitative.Syntax Ty
-  open import Quantitative.Syntax.Substitution Ty
-  open import Quantitative.Types C
-  open import Quantitative.Types.Substitution C
-  open import Quantitative.Resources C POS
-  open import Quantitative.Resources.Context C POS
+  open import Quantitative.Syntax Ty Const
+  open import Quantitative.Syntax.Substitution Ty Const
+  open import Quantitative.Types C Const constTy
+  open import Quantitative.Types.Substitution C Const constTy
+  open import Quantitative.Resources C Const constTy POS
+  open import Quantitative.Resources.Context C Const POS
 
   open import Lib.Dec
   open import Lib.Dec.Properties
   open import Lib.Equality as ≡ using (_≡_; ≡⇒refl)
-  open import Lib.Function
+  open import Lib.Function hiding (const)
   open import Lib.Level
   open import Lib.One
   open import Lib.Matrix.Setoid (≡-Setoid C)
@@ -149,6 +151,7 @@ module Quantitative.Resources.Substitution
     ...       | a | b with dec-agree (⊆-comp-cong-r _) ⊆-comp-cancel-r a b
     ...         | inl <> = res
     ...         | inr <> = res
+  renameRes Δn thr (const split) = const (ren-split-0 Δn thr split)
   renameRes Δn thr (app split er sr) with ren-split-+ Δn thr split
   ... | Δne , Δns , split′ , thre , thrs =
     app split′ (renameRes Δne thre er) (renameRes Δns thrs sr)
@@ -193,6 +196,7 @@ module Quantitative.Resources.Substitution
   weakenRes : ∀ {n d Γ S Δ Δ′} {t : Term n d} {tt : Γ ⊢t t :-: S} →
               Δ′ ≤M Δ → Δ ⊢r tt → Δ′ ⊢r tt
   weakenRes sub (var sub′) = var (≤M-trans sub sub′)
+  weakenRes sub (const split) = const (≤M-trans sub split)
   weakenRes sub (app split er sr) = app (≤M-trans sub split) er sr
   weakenRes sub (bm split er sr) = bm (≤M-trans sub split) er sr
   weakenRes sub (del split er sr) = del (≤M-trans sub split) er sr
@@ -273,6 +277,8 @@ module Quantitative.Resources.Substitution
     {Δm Δn} → SubstRes vft Δm Δn → Δm ⊢r tt → Δn ⊢r substituteTy tt vft
   substituteRes (M , sub , ur) (var {i} {.(lookup′ i _)} {eq = refl} sub′) =
     weakenRes (≤M-trans sub (≤M-refl *M-mono sub′)) (ur i)
+  substituteRes (M , sub , ur) (const split) =
+    const (resplit sub split (annihilM .fst M))
   substituteRes (M , sub , ur) (app {Δe = Δe} {Δs} split er sr) =
     app (resplit sub split (distribM .fst M Δe Δs))
         (substituteRes (M , ≤M-refl , ur) er)

@@ -1,11 +1,13 @@
-module Quantitative.Types {c} (C : Set c) where
+import Quantitative.Types.Formers as Form
+
+module Quantitative.Types {c k} (C : Set c) (open Form C)
+                          (Const : Set k) (constTy : Const → Ty) where
 
   open import Quantitative.Syntax.Direction
-  open import Quantitative.Types.Formers C
-  open import Quantitative.Syntax Ty
+  open import Quantitative.Syntax Ty Const
 
   open import Lib.Equality
-  open import Lib.Function
+  open import Lib.Function hiding (const)
   open import Lib.Nat
   open import Lib.Product
   open import Lib.Two
@@ -16,16 +18,15 @@ module Quantitative.Types {c} (C : Set c) where
   infix 3 _⊢t_
 
   record Consequent {n d} (t : Term n d) (T : Ty) : Set c where
-    constructor consequent
 
   _∈_ : ∀ {n} (e : Term n syn) (T : Ty) → Consequent e T
-  e ∈ T = consequent
+  e ∈ T = _
 
   _∋_ : ∀ {n} (T : Ty) (s : Term n chk) → Consequent s T
-  T ∋ s = consequent
+  T ∋ s = _
 
   _:-:_ : ∀ {n d} (t : Term n d) (T : Ty) → Consequent t T
-  t :-: T = consequent
+  t :-: T = _
 
   TCtx : Nat → Set c
   TCtx = Vec Ty
@@ -37,6 +38,7 @@ module Quantitative.Types {c} (C : Set c) where
           T ≡ lookup′ th Γ
           →
           Γ ⊢t var th ∈ T
+    const : ∀ {l} → Γ ⊢t const l ∈ constTy l
     app : ∀ {e s S T}
           (et : Γ ⊢t e ∈ S ⊸ T) (st : Γ ⊢t S ∋ s)
           →

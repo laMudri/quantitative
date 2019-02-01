@@ -1,9 +1,10 @@
-module Quantitative.Syntax.Substitution {c} (Ty : Set c) where
+module Quantitative.Syntax.Substitution {c k} (Ty : Set c) (Const : Set k) where
 
   open import Quantitative.Syntax.Direction
-  open import Quantitative.Syntax Ty
+  open import Quantitative.Syntax Ty Const
 
-  open import Lib.Function
+  open import Lib.Function hiding (const)
+  open import Lib.Level
   open import Lib.Nat
   open import Lib.Thinning
   open import Lib.Two
@@ -11,6 +12,7 @@ module Quantitative.Syntax.Substitution {c} (Ty : Set c) where
 
   rename : ∀ {m n d} → m ≤ n → Term m d → Term n d
   rename th (var i) = var (i ≤-comp th)
+  rename th (const l) = const l
   rename th (app e s) = app (rename th e) (rename th s)
   rename th (bm S e s) = bm S (rename th e) (rename (os th) s)
   rename th (del S e s) = del S (rename th e) (rename th s)
@@ -29,7 +31,7 @@ module Quantitative.Syntax.Substitution {c} (Ty : Set c) where
   rename th (inj i s) = inj i (rename th s)
   rename th [ e ] = [ rename th e ]
 
-  Subst : Nat → Nat → Set c
+  Subst : Nat → Nat → Set (c ⊔ k)
   Subst m n = Fin m → Term n syn
 
   liftSubst : ∀ {m n} → Subst m n → Subst (succ m) (succ n)
@@ -42,6 +44,7 @@ module Quantitative.Syntax.Substitution {c} (Ty : Set c) where
 
   substitute : ∀ {m n d} → Subst m n → Term m d → Term n d
   substitute vf (var th) = vf th
+  substitute vf (const l) = const l
   substitute vf (app e s) = app (substitute vf e) (substitute vf s)
   substitute vf (bm S e s) =
     bm S (substitute vf e) (substitute (liftSubst vf) s)

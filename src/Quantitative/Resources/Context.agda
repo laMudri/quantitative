@@ -4,9 +4,9 @@ open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Resources.Context
-  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
+  {c k l′} (C : Set c) (Const : Set k) (POS : Posemiring (≡-Setoid C) l′) where
 
-  open import Quantitative.Syntax C
+  open import Quantitative.Syntax C Const
 
   open import Lib.Module
   open import Lib.Nat

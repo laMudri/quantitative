@@ -1,15 +1,17 @@
-module Quantitative.Syntax {c} (Ty : Set c) where
+module Quantitative.Syntax {c k} (Ty : Set c) (Const : Set k) where
 
   open import Quantitative.Syntax.Direction
 
   open import Lib.Dec
+  open import Lib.Level
   open import Lib.Nat
   open import Lib.Product
   open import Lib.Thinning
   open import Lib.Two
 
-  data Term (n : Nat) : Dir → Set c where
+  data Term (n : Nat) : Dir → Set (c ⊔ k) where
     var : (th : Fin n) → Term n syn
+    const : (l : Const) → Term n syn
     app : (e : Term n syn) (s : Term n chk) → Term n syn
     bm : (S : Ty) (e : Term n syn) (s : Term (succ n) chk) → Term n syn
     del : (S : Ty) (e : Term n syn) (s : Term n chk) → Term n syn

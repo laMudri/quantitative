@@ -1,13 +1,16 @@
-module Quantitative.Types.Substitution {c} (C : Set c) where
+import Quantitative.Types.Formers as Form
+
+module Quantitative.Types.Substitution
+       {c k} (C : Set c) (open Form C)
+       (Const : Set k) (constTy : Const → Ty) where
 
   open import Quantitative.Syntax.Direction
-  open import Quantitative.Types.Formers C
-  open import Quantitative.Syntax Ty
-  open import Quantitative.Syntax.Substitution Ty
-  open import Quantitative.Types C
+  open import Quantitative.Syntax Ty Const
+  open import Quantitative.Syntax.Substitution Ty Const
+  open import Quantitative.Types C Const constTy
 
   open import Lib.Equality
-  open import Lib.Function
+  open import Lib.Function hiding (const)
   open import Lib.Thinning hiding (_∈_)
   open import Lib.Two
   open import Lib.Vec
@@ -24,6 +27,7 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
     q′ : lookup′ (i ≤-comp th) Γn ≡ lookup′ i Γm
     q′ = cong headVec (trans (VZip≡ (thin-comp i th Γn))
                              (cong (thin i) (VZip≡ tht)))
+  renameTy tht const = const
   renameTy tht (app et st) = app (renameTy tht et) (renameTy tht st)
   renameTy tht (bm et st) = bm (renameTy tht et) (renameTy (refl :: tht) st)
   renameTy tht (del et st) = del (renameTy tht et) (renameTy tht st)
@@ -63,6 +67,7 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
     {Γm Γn T} → Γm ⊢t t :-: T → SubstTy vf Γm Γn →
     Γn ⊢t substitute vf t :-: T
   substituteTy (var {th = th} refl) vft = vft th
+  substituteTy const vft = const
   substituteTy (app et st) vft =
     app (substituteTy et vft) (substituteTy st vft)
   substituteTy (bm et st) vft =
@@ -93,7 +98,7 @@ module Quantitative.Types.Substitution {c} (C : Set c) where
     inj (substituteTy st vft)
   substituteTy [ et ] vft = [ substituteTy et vft ]
 
-  singleSubstTy : ∀ {m Γ e S} → Γ ⊢t e ∈ S →
+  singleSubstTy : ∀ {m e Γ S} → Γ ⊢t e ∈ S →
                   SubstTy (singleSubst {m} e) (S :: Γ) Γ
   singleSubstTy et (os th) = et
   singleSubstTy et (o′ th) = var refl

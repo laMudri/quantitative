@@ -3,15 +3,17 @@ open import Lib.Setoid
 open import Lib.Structure
 open import Lib.Structure.Sugar
 
+import Quantitative.Types.Formers as Form
+
 module Quantitative.Resources
-  {c l′} (C : Set c) (POS : Posemiring (≡-Setoid C) l′) where
+  {c k l′} (C : Set c) (open Form C) (Const : Set k) (constTy : Const → Ty)
+  (POS : Posemiring (≡-Setoid C) l′) where
 
   open Posemiring POS using (poset; semiring; +-commutativeMonoid)
 
-  open import Quantitative.Types.Formers C
-  open import Quantitative.Syntax Ty
-  open import Quantitative.Types C
-  open import Quantitative.Resources.Context C POS
+  open import Quantitative.Syntax Ty Const
+  open import Quantitative.Types C Const constTy
+  open import Quantitative.Resources.Context C Const POS
   open import Lib.Module
 
   open import Lib.Matrix.Setoid (≡-Setoid C)
@@ -34,6 +36,10 @@ module Quantitative.Resources
           (sub : Δ ≤M basis-col th)
           →
           Δ ⊢r var {th = th} eq
+    const : ∀ {l}
+            (split : Δ ≤M 0M)
+            →
+            Δ ⊢r const {l = l}
     app : ∀ {Δe Δs S T e s} {et : Γ ⊢t e ∈ S ⊸ T} {st : Γ ⊢t S ∋ s}
           (split : Δ ≤M Δe +M Δs)
           (er : Δe ⊢r et) (sr : Δs ⊢r st)
