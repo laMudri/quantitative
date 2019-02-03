@@ -1,0 +1,43 @@
+% Semantics
+
+Resources will provide a refinement of the semantics of typed programs.
+Thus, we begin with a standard semantics in $\mathrm{Set}$ of typed terms.
+
+\begin{displaymath}
+  \begin{array}{ll}
+    \sem{\base} = A_\base \\
+    \sem{\fun{S}{T}} = \sem{S} \rightarrow \sem{T} \\
+    \sem{\excl{\rho}{S}} = \sem{S} \\
+    \sem{\tensorOne} = \sem{\withTOne} = \{*\} \\
+    \sem{\tensor{S}{T}} = \sem{\withT{S}{T}} = \sem{S} \times \sem{T} \\
+    \sem{\sumTZero} = \{\} \\
+    \sem{\sumT{S}{T}} = \sem{S} \uplus \sem{T} \\
+  \end{array}
+\end{displaymath}
+
+The refinement resources provide on top of this is a Kripke-indexed logical
+relation $\sem{T}^R : \mathcal{W}^{op} \to \operatorname{Rel}\sem{T}$ for each type $T$.
+$\mathcal{W}$ is assumed to be a symmetric promonoidal category.
+
+\begin{displaymath}
+  \begin{array}{rlll}
+    \sem{\base}^R && &= R_\base \\
+    \sem{\fun{S}{T}}^R & w & (f,f') &= \forall x,y.~P(y,w)x \Rightarrow \forall
+    s,s'.~\sem{S}^R~y~(s,s') \Rightarrow \sem{T}^R~x~(f~s,f'~s') \\
+    \sem{\excl{\rho}{S}}^R & w & (s,s') &= \oc_\rho \sem{S}^R~w~(s,s') \\
+    \sem{\tensorOne}^R & w & (*,*) &= Jw \\
+    \sem{\tensor{S}{T}}^R & w & ((s,t),(s',t')) &= \exists x,y.~P(x,y)w \wedge
+    \sem{S}^R~x~(s,s') \wedge \sem{T}^R~y~(t,t') \\
+    \sem{\withTOne}^R & w & (*,*) &= \top \\
+    \sem{\withT{S}{T}}^R & w & ((s,t),(s',t')) &=
+    \sem{S}^R~w~(s,s') \wedge \sem{T}^R~w~(t,t') \\
+    \sem{\sumT{S}{T}}^R & w & (u,u') &=
+    \begin{cases}
+      \sem{S}^R~w~(s,s') & \text{if } (u,u') = (\operatorname{inl} s,
+                           \operatorname{inl} s') \\
+      \sem{T}^R~w~(t,t') & \text{if } (u,u') = (\operatorname{inr} t,
+                           \operatorname{inr} t') \\
+      \bot & \text{otherwise}
+    \end{cases}
+  \end{array}
+\end{displaymath}

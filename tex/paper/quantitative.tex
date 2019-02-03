@@ -73,7 +73,7 @@
 
 %% Title information
 \title%[Short Title]
-       {Context Constrained Computation} %% [Short Title] is optional;
+       {Context Constrained Computation (NSTC)} %% [Short Title] is optional;
                                         %% when present, will be used in
                                         %% header instead of Full Title.
 %\titlenote{Working title}             %% \titlenote is optional;
@@ -133,7 +133,8 @@
 %% Abstract
 %% Note: \begin{abstract}...\end{abstract} environment must come
 %% before \maketitle command
-% \begin{abstract}
+\begin{abstract}
+  Abstract...
 %   Coeffects are a way of describing the context in which computation
 %   takes place. Previous works on coeffect calculi have concentrated on
 %   the additional capabilities bestowed upon programs operating in
@@ -143,7 +144,7 @@
 %   contexts constrain the computations they an perform.
 
 %   FIXME: more detail. And edit it down.
-% \end{abstract}
+\end{abstract}
 
 
 %% 2012 ACM Computing Classification System (CSS) concepts
@@ -181,16 +182,23 @@
 
 \section{Introduction}
 \label{sec:introduction}
+\input{introduction}
 
-\section{Syntax and Typing}
+\section{Motivation}
+\label{sec:motivation}
+\input{motivation}
+
+\section{Syntax}
 \label{sec:syntax}
 \input{syntax}
 
 \section{Semantics}
 \label{sec:semantics}
+\input{semantics}
 
-\paragraph{Example Instantiations}
-%\label{sec:examples}
+\section{Future Work}
+\label{sec:future-work}
+\input{future-work}
 
 
 %% Acknowledgments
