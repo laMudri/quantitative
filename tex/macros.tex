@@ -19,7 +19,7 @@
 \newcommand{\lam}[2]{\lambda #1.~#2}
 \newcommand{\app}[2]{#1~#2}
 
-\newcommand{\excl}[2]{\oc_{\rescomment{#1}} #2}
+\newcommand{\excl}[2]{\oc_{#1} #2}
 \newcommand{\bang}[1]{[#1]}
 \newcommand{\bm}[4]{\if\newelims0%
 \operatorname{bm}_{#1}(#2, \bind{#3}{#4})%
@@ -71,3 +71,10 @@
 %\def\tobar{\mathrel{\mkern3mu  \vcenter{\hbox{$\scriptscriptstyle+$}}%
 %                    \mkern-12mu{\to}}}
 \newcommand\tobar{\mathrel{\ooalign{\hfil$\mapstochar\mkern5mu$\hfil\cr$\to$\cr}}}
+
+
+\newcommand{\subres}{\trianglelefteq}
+\newcommand{\subrctx}[2]{\rescomment{{#1} \subres {#2}}}
+
+
+\newcommand{\eqncols}{r@{\hspace{0.3em}}c@{\hspace{0.3em}}}

@@ -4,39 +4,47 @@ Resources will provide a refinement of the semantics of typed programs.
 Thus, we begin with a standard semantics in $\mathrm{Set}$ of typed terms.
 
 \begin{displaymath}
-  \begin{array}{ll}
-    \sem{\base} = A_\base \\
-    \sem{\fun{S}{T}} = \sem{S} \rightarrow \sem{T} \\
-    \sem{\excl{\rho}{S}} = \sem{S} \\
-    \sem{\tensorOne} = \sem{\withTOne} = \{*\} \\
-    \sem{\tensor{S}{T}} = \sem{\withT{S}{T}} = \sem{S} \times \sem{T} \\
-    \sem{\sumTZero} = \{\} \\
-    \sem{\sumT{S}{T}} = \sem{S} \uplus \sem{T} \\
+  \begin{array}{c@{\hspace{0.5in}}c}
+    \begin{array}{r@{\hspace{0.3em}}c@{\hspace{0.3em}}l}
+      \sem{\base} &=& S_\base \\
+      \sem{\excl{\rho}{A}} &=& \sem{A} \\
+      \sem{\tensorOne} &=& \{*\} \\
+      \sem{\withTOne} &=& \{*\} \\
+      \sem{\sumTZero} &=& \{\} \\
+    \end{array}
+    &
+    \begin{array}{r@{\hspace{0.3em}}c@{\hspace{0.3em}}l}
+      \\
+      \sem{\fun{A}{B}} &=& \sem{A} \rightarrow \sem{B} \\
+      \sem{\tensor{A}{B}} &=& \sem{A} \times \sem{B} \\
+      \sem{\withT{A}{B}} &=& \sem{A} \times \sem{B} \\
+      \sem{\sumT{A}{B}} &=& \sem{A} \uplus \sem{B} \\
+    \end{array}
   \end{array}
 \end{displaymath}
 
 The refinement resources provide on top of this is a Kripke-indexed logical
-relation $\sem{T}^R : \mathcal{W}^{op} \to \operatorname{Rel}\sem{T}$ for each type $T$.
+relation $\sem{A}^R : \mathcal{W}^{op} \to \operatorname{Rel}\sem{A}$ for each type $A$.
 $\mathcal{W}$ is assumed to be a symmetric promonoidal category.
 
 \begin{displaymath}
   \begin{array}{rlll}
     \sem{\base}^R && &= R_\base \\
-    \sem{\fun{S}{T}}^R & w & (f,f') &= \forall x,y.~P(y,w)x \Rightarrow \forall
-    s,s'.~\sem{S}^R~y~(s,s') \Rightarrow \sem{T}^R~x~(f~s,f'~s') \\
-    \sem{\excl{\rho}{S}}^R & w & (s,s') &= \oc_\rho \sem{S}^R~w~(s,s') \\
+    \sem{\fun{A}{B}}^R & w & (f,f') &= \forall x,y.~P(y,w)x \Rightarrow \forall
+    a,a'.~\sem{A}^R~y~(a,a') \Rightarrow \sem{B}^R~x~(f~a,f'~a') \\
+    \sem{\excl{\rho}{A}}^R & w & (a,a') &= \oc_\rho \sem{A}^R~w~(a,a') \\
     \sem{\tensorOne}^R & w & (*,*) &= Jw \\
-    \sem{\tensor{S}{T}}^R & w & ((s,t),(s',t')) &= \exists x,y.~P(x,y)w \wedge
-    \sem{S}^R~x~(s,s') \wedge \sem{T}^R~y~(t,t') \\
+    \sem{\tensor{A}{B}}^R & w & ((a,b),(a',b')) &= \exists x,y.~P(x,y)w \wedge
+    \sem{A}^R~x~(a,a') \wedge \sem{B}^R~y~(b,b') \\
     \sem{\withTOne}^R & w & (*,*) &= \top \\
-    \sem{\withT{S}{T}}^R & w & ((s,t),(s',t')) &=
-    \sem{S}^R~w~(s,s') \wedge \sem{T}^R~w~(t,t') \\
-    \sem{\sumT{S}{T}}^R & w & (u,u') &=
+    \sem{\withT{A}{B}}^R & w & ((a,b),(a',b')) &=
+    \sem{A}^R~w~(a,a') \wedge \sem{B}^R~w~(b,b') \\
+    \sem{\sumT{A}{B}}^R & w & (u,u') &=
     \begin{cases}
-      \sem{S}^R~w~(s,s') & \text{if } (u,u') = (\operatorname{inl} s,
-                           \operatorname{inl} s') \\
-      \sem{T}^R~w~(t,t') & \text{if } (u,u') = (\operatorname{inr} t,
-                           \operatorname{inr} t') \\
+      \sem{A}^R~w~(a,a') & \text{if } (u,u') = (\operatorname{inl} a,
+                           \operatorname{inl} a') \\
+      \sem{B}^R~w~(b,b') & \text{if } (u,u') = (\operatorname{inr} b,
+                           \operatorname{inr} b') \\
       \bot & \text{otherwise}
     \end{cases}
   \end{array}

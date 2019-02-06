@@ -1,3 +1,90 @@
+\subsection{Resource annotations}
+
+We assume a partially ordered semiring $(\mathscr{R}, \subres, 0, +, 1, *)$ of
+resource annotations.
+These will adorn free variables.
+$0$ represents non-usage, and $+$ the combination of separate usages.
+$(\mathscr{R}, 0, +)$ forms a commutative monoid.
+$1$ represents a single or plain usage, and $*$ applies a transformation upon
+the type of usage allowed.
+$(\mathscr{R}, 1, *)$ forms a monoid that is annihilated by and distributes over
+the additive structure.
+The order $\subres$ describes a sub-resourcing relation.
+We have $\rho \subres \pi$ if and only if annotation $\rho$ is at least as strict as
+annotation $\pi$.
+$(\mathscr{R}, \subres)$ forms a partial order, and addition and multiplication are
+monotonic with respect to $\subres$.
+
+\begin{example}[Linearity]
+  We approximate counting usages.
+  $0$ and $1$ represent exactly their respective number of usages.
+  $\omega$ represents unrestricted usage.
+  The effect of the bang ($\oc$) modality of linear logic is achieved by
+  multiplication by $\omega$, which makes everything available become
+  unrestricted.
+
+  \begin{center}
+  \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}}
+    +      & 0      & 1      & \omega \\
+    \hline
+    0      & 0      & 1      & \omega \\
+    1      & 1      & \omega & \omega \\
+    \omega & \omega & \omega & \omega \\
+  \end{tabular}%
+  \hspace{0.5in}%
+  \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}}
+    *      & 0      & 1      & \omega \\
+    \hline
+    0      & 0      & 0      & 0      \\
+    1      & 0      & 1      & \omega \\
+    \omega & 0      & \omega & \omega \\
+  \end{tabular}%
+  \hspace{0.5in}%
+  \(
+    \begin{tikzcd}[arrows=dash,row sep=0.5cm,column sep=0.5cm]
+      & \omega & \\
+      0 \arrow[ur] && 1 \arrow[ul]
+    \end{tikzcd}
+  \)
+  \end{center}
+\end{example}
+
+\begin{example}[Monotonicity]
+  Resource annotations track which ``way up'' we can use a free variable.
+  A variable can be used covariantly ($\uparrow$), contravariantly
+  ($\downarrow$), invariantly ($-$), or unrestrictedly ($?$).
+
+  \begin{center}
+  \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}>{$}l<{$}}
+    +          & -          & \uparrow & \downarrow & ? \\
+    \hline
+    -          & -          & \uparrow & \downarrow & ? \\
+    \uparrow   & \uparrow   & \uparrow & ?          & ? \\
+    \downarrow & \downarrow & ?        & \downarrow & ? \\
+    ?          & ?          & ?        & ?          & ? \\
+  \end{tabular}%
+  \hspace{0.5in}%
+  \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}>{$}l<{$}}
+    *          & - & \uparrow   & \downarrow & ? \\
+    \hline
+    -          & - & -          & -          & - \\
+    \uparrow   & - & \uparrow   & \downarrow & ? \\
+    \downarrow & - & \downarrow & \uparrow   & ? \\
+    ?          & - & ?          & ?          & ? \\
+  \end{tabular}%
+  \hspace{0.5in}%
+  \(
+    \begin{tikzcd}[arrows=dash,row sep=0.5cm,column sep=0.5cm]
+      & ? & \\
+      \uparrow \arrow[ur] && \downarrow \arrow[ul] \\
+      & - \arrow[ul]\arrow[ur] &
+    \end{tikzcd}
+  \)
+  \end{center}
+
+  Notice that $+$ is the join of the sub-resourcing order.
+\end{example}
+
 \subsection{Typing \& resourcing}
 
 Figure ??? shows our typing and resourcing system.
@@ -6,7 +93,7 @@ Figure ??? shows our typing and resourcing system.
 \begin{mathpar}
   \inferrule*[right=var]
   {(x : B) \in \Gamma
-    \\ \rescomment{\mathcal R \leq \underline 0, x^1, \underline 0}
+    \\ \subrctx{\underline 0, x^1, \underline 0}{\mathcal R}
   }
   {\ctx{\Gamma}{\mathcal R} \vdash x : B}
 
@@ -19,33 +106,33 @@ Figure ??? shows our typing and resourcing system.
   \inferrule*[right=$\multimap$-E]
   {\ctx{\Gamma}{\mathcal P} \vdash M : \fun{A}{B}
     \\ \ctx{\Gamma}{\mathcal Q} \vdash N : A
-    \\ \rescomment{\mathcal R \leq \mathcal P + \mathcal Q}
+    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
   }
   {\ctx{\Gamma}{\mathcal R} \vdash \app{M}{N} : B}
 
-  \inferrule*[right=$\oc_{\rescomment\rho}$-I]
+  \inferrule*[right=$\oc_{\rho}$-I]
   {\ctx{\Gamma}{\mathcal P} \vdash M : A
-    \\ \rescomment{\mathcal R \leq \rho * \mathcal P}
+    \\ \subrctx{{\color{black}\rho} * \mathcal P}{\mathcal R}
   }
   {\ctx{\Gamma}{\mathcal R} \vdash \bang{M} : \excl{\rho}{A}}
   \and
-  \inferrule*[right=$\oc_{\rescomment\rho}$-E]
+  \inferrule*[right=$\oc_{\rho}$-E]
   {\ctx{\Gamma}{\mathcal P} \vdash M : \excl{\rho}{A}
-    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{x}{A}{\rho} \vdash N : B
-    \\ \rescomment{\mathcal R \leq \mathcal P + \mathcal Q}
+    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{x}{A}{\color{black}\rho} \vdash N : B
+    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
   }
   {\ctx{\Gamma}{\mathcal R} \vdash \bm{B}{M}{x}{N} : B}
 
   \and
 
   \inferrule*[right=$1$-I]
-  {\rescomment{\mathcal R \leq \underline 0}}
+  {\subrctx{\underline 0}{\mathcal R}}
   {\ctx{\Gamma}{\mathcal R} \vdash \unit : \tensorOne}
   \and
   \inferrule*[right=$1$-E]
   {\ctx{\Gamma}{\mathcal P} \vdash M : \tensorOne
     \\ \ctx{\Gamma}{\mathcal Q} \vdash N : A
-    \\ \rescomment{\mathcal R \leq \mathcal P + \mathcal Q}
+    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
   }
   {\ctx{\Gamma}{\mathcal R} \vdash \del{A}{M}{N} : A}
 
@@ -54,14 +141,14 @@ Figure ??? shows our typing and resourcing system.
   \inferrule*[right=$\otimes$-I]
   {\ctx{\Gamma}{\mathcal P} \vdash M : A
     \\ \ctx{\Gamma}{\mathcal Q} \vdash N : B
-    \\ \rescomment{\mathcal R \leq \mathcal P + \mathcal Q}
+    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
   }
   {\ctx{\Gamma}{\mathcal R} \vdash \ten{M}{N} : \tensor{A}{B}}
   \and
   \inferrule*[right=$\otimes$-E]
   {\ctx{\Gamma}{\mathcal P} \vdash M : \tensor{A}{B}
     \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{x}{A}{1}, \ctxvar{y}{B}{1} \vdash N : C
-    \\ \rescomment{\mathcal R \leq \mathcal P + \mathcal Q}
+    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
   }
   {\ctx{\Gamma}{\mathcal R} \vdash \prm{C}{M}{x}{y}{N} : C}
 
@@ -89,7 +176,7 @@ Figure ??? shows our typing and resourcing system.
   \and
   \inferrule*[right=$0$-E]
   {\ctx{\Gamma}{\mathcal P} \vdash M : \sumTZero
-    \\ \rescomment{\mathcal R \leq \mathcal P + \mathcal Q}
+    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
   }
   {\ctx{\Gamma}{\mathcal R} \vdash \exf{A}{M} : A}
 
@@ -101,7 +188,9 @@ Figure ??? shows our typing and resourcing system.
   {\ctx{\Gamma}{\mathcal P} \vdash M : \sumT{A}{B}
     \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{x}{A}{1} \vdash N : C
     \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{y}{B}{1} \vdash O : C
-    \\ \rescomment{\mathcal R \leq \mathcal P + \mathcal Q}
+    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
   }
   {\ctx{\Gamma}{\mathcal R} \vdash \cse{C}{M}{x}{N}{y}{O} : C}
 \end{mathpar}
+
+\subsection{Renaming \& substitution}
