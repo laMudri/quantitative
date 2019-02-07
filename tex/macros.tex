@@ -77,4 +77,9 @@
 \newcommand{\subrctx}[2]{\rescomment{{#1} \subres {#2}}}
 
 
-\newcommand{\eqncols}{r@{\hspace{0.3em}}c@{\hspace{0.3em}}}
+\newenvironment{eqns}{\begin{array}{r@{\hspace{0.3em}}c@{\hspace{0.3em}}l}}{\end{array}}
+
+
+\newcommand{\mat}[1]{\mathbf{#1}}
+\newcommand{\vct}[1]{\mathbf{#1}}
+\newcommand{\basis}[1]{\vct e_{#1}}

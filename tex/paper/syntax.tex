@@ -15,6 +15,17 @@ annotation $\pi$.
 $(\mathscr{R}, \subres)$ forms a partial order, and addition and multiplication are
 monotonic with respect to $\subres$.
 
+In many cases of interest, $0$ and $+$ are respectively the bottom and join of
+the sub-resourcing order, turning it into a join semilattice.
+In these cases, with products ($\withT{A}{B}$) coincide with tensor products
+($\tensor{A}{B}$), and resource inference is significantly simplified.
+(rntz reference?)
+
+\begin{example}[Trivial]
+  The one-element partially ordered semiring provides no usage restrictions.
+  The calculus becomes equivalent to a simply typed $\lambda$-calculus.
+\end{example}
+
 \begin{example}[Linearity]
   We approximate counting usages.
   $0$ and $1$ represent exactly their respective number of usages.
@@ -87,18 +98,47 @@ monotonic with respect to $\subres$.
 
 \subsection{Typing \& resourcing}
 
-Figure ??? shows our typing and resourcing system.
-(Explain notation)
+We take typing contexts $\Gamma, \Delta$ to be vectors of types, and resourcing
+contexts $\mathcal P, \mathcal Q, \mathcal R$ to be vectors of resource
+annotations.
+Informally, we will index both of these by named variables $x, y, z$.
+Notation of the form $\Gamma^{\mathcal R}$ represents the combination of a
+typing context $\Gamma$ and a resourcing context $\mathcal R$ over the same set
+of variables.
+We will also sometimes write $\Gamma_n^{\mathcal R}$ for such a combination over
+$n$-many variables.
+% FIXME: ^ maybe later
+
+We write $\basis x$ for the $x$th basis vector $\vec 0, x^1, \vec 0$ -- that is,
+the resource context in which every variable is annotated with $0$ except for
+$x$, which is annotated with $1$.
+Such a context describes the restriction that semantically all variables except
+$x$ are unused, while $x$ is used plainly.
+This makes it the principle resourcing of the variable rule.
+
+\[
+\inferrule*[right=var]
+{(x : B) \in \Gamma
+  \\ \subrctx{\basis x}{\mathcal R}
+}
+{\ctx{\Gamma}{\mathcal R} \vdash x : B}
+\]
+
+Allowing $\basis x \subres \mathcal R$, rather than $\basis x = \mathcal R$,
+allows less restrictive resourcings.
+For example, we are free to use $x$ if its use is unrestricted, and similarly we
+are free to discard any variables with unrestricted use.
+
+The following are the rules for $\lambda$-abstractions and application.
+$\multimap$-I is standard, except for the restriction that we use the bound
+variable plainly.
+In $\multimap$-E, the condition $\mathcal P + \mathcal Q \subres \mathcal R$
+means that we must be able to share out the resources of $\mathcal R$ into
+those used to produce the function ($\mathcal P$) and those used to produce the
+argument ($\mathcal Q$).
+Weakening is allowed here TODO.
 
 \begin{mathpar}
-  \inferrule*[right=var]
-  {(x : B) \in \Gamma
-    \\ \subrctx{\underline 0, x^1, \underline 0}{\mathcal R}
-  }
-  {\ctx{\Gamma}{\mathcal R} \vdash x : B}
-
-  \and
-
   \inferrule*[right=$\multimap$-I]
   {\ctx{\Gamma}{\mathcal R}, \ctxvar{x}{A}{1} \vdash M : B}
   {\ctx{\Gamma}{\mathcal R} \vdash \lam{x}{M} : \fun{A}{B}}
@@ -109,7 +149,11 @@ Figure ??? shows our typing and resourcing system.
     \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
   }
   {\ctx{\Gamma}{\mathcal R} \vdash \app{M}{N} : B}
+\end{mathpar}
 
+Figure ??? shows our typing and resourcing system.
+
+\begin{mathpar}
   \inferrule*[right=$\oc_{\rho}$-I]
   {\ctx{\Gamma}{\mathcal P} \vdash M : A
     \\ \subrctx{{\color{black}\rho} * \mathcal P}{\mathcal R}
@@ -186,11 +230,24 @@ Figure ??? shows our typing and resourcing system.
   \and
   \inferrule*[right=$\oplus$-E]
   {\ctx{\Gamma}{\mathcal P} \vdash M : \sumT{A}{B}
-    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{x}{A}{1} \vdash N : C
-    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{y}{B}{1} \vdash O : C
+    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{x}{A}{1} \vdash N_0 : C
+    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{y}{B}{1} \vdash N_1 : C
     \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
   }
-  {\ctx{\Gamma}{\mathcal R} \vdash \cse{C}{M}{x}{N}{y}{O} : C}
+  {\ctx{\Gamma}{\mathcal R} \vdash \cse{C}{M}{x}{N_0}{y}{N_1} : C}
 \end{mathpar}
 
 \subsection{Renaming \& substitution}
+
+\begin{definition}[Well resourced substitution]
+  A substitution $\sigma$ from $\Gamma_m^{\mathcal P}$ to
+  $\Delta_n^{\mathcal Q}$ is a tuple with the following data.
+
+  \begin{itemize}
+  \item $\mat \Sigma : \mathscr R^{m \times n}$
+  \item $M : n \to \operatorname{Term}~m$
+  \item a proof that $\mat \Sigma \mathcal Q \subres \mathcal P$
+    \item a proof that $\forall (x:A) \in \Delta. \Gamma^{\mat \Sigma \basis x}
+      \vdash M~x : A$
+  \end{itemize}
+\end{definition}

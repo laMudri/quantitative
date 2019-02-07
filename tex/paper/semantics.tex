@@ -5,21 +5,21 @@ Thus, we begin with a standard semantics in $\mathrm{Set}$ of typed terms.
 
 \begin{displaymath}
   \begin{array}{c@{\hspace{0.5in}}c}
-    \begin{array}{r@{\hspace{0.3em}}c@{\hspace{0.3em}}l}
+    \begin{eqns}
       \sem{\base} &=& S_\base \\
       \sem{\excl{\rho}{A}} &=& \sem{A} \\
       \sem{\tensorOne} &=& \{*\} \\
       \sem{\withTOne} &=& \{*\} \\
       \sem{\sumTZero} &=& \{\} \\
-    \end{array}
+    \end{eqns}
     &
-    \begin{array}{r@{\hspace{0.3em}}c@{\hspace{0.3em}}l}
+    \begin{eqns}
       \\
       \sem{\fun{A}{B}} &=& \sem{A} \rightarrow \sem{B} \\
       \sem{\tensor{A}{B}} &=& \sem{A} \times \sem{B} \\
       \sem{\withT{A}{B}} &=& \sem{A} \times \sem{B} \\
       \sem{\sumT{A}{B}} &=& \sem{A} \uplus \sem{B} \\
-    \end{array}
+    \end{eqns}
   \end{array}
 \end{displaymath}
 
