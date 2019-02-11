@@ -105,13 +105,17 @@ Informally, we will index both of these by named variables $x, y, z$.
 Notation of the form $\Gamma^{\mathcal R}$ represents the combination of a
 typing context $\Gamma$ and a resourcing context $\mathcal R$ over the same set
 of variables.
-We will also sometimes write $\Gamma_n^{\mathcal R}$ for such a combination over
-$n$-many variables.
-% FIXME: ^ maybe later
 
-We write $\basis x$ for the $x$th basis vector $\vec 0, x^1, \vec 0$ -- that is,
-the resource context in which every variable is annotated with $0$ except for
-$x$, which is annotated with $1$.
+Typing judgements are of the form
+$\ctxvar{x_1}{A_1}{\rho_1}, \ldots, \ctxvar{x_n}{A_n}{\rho_n} \vdash M : A$.
+Each variable in the context carries a resource annotation, but the conclusion
+is taken to always have annotation $1$.
+Such a restriction is important to keep substitution admissible, as shown in
+\cite{quantitative-type-theory}.
+
+Let $\basis x$ be the $x$th basis vector $\vec 0, x^1, \vec 0$ --- that is, the
+resource context in which every variable is annotated with $0$ except for $x$,
+which is annotated with $1$.
 Such a context describes the restriction that semantically all variables except
 $x$ are unused, while $x$ is used plainly.
 This makes it the principle resourcing of the variable rule.
@@ -136,7 +140,7 @@ In $\multimap$-E, the condition $\mathcal P + \mathcal Q \subres \mathcal R$
 means that we must be able to share out the resources of $\mathcal R$ into
 those used to produce the function ($\mathcal P$) and those used to produce the
 argument ($\mathcal Q$).
-Weakening is allowed here TODO.
+Sub-resourcing is allowed here \fixme{why?}
 
 \begin{mathpar}
   \inferrule*[right=$\multimap$-I]
@@ -151,37 +155,19 @@ Weakening is allowed here TODO.
   {\ctx{\Gamma}{\mathcal R} \vdash \app{M}{N} : B}
 \end{mathpar}
 
-Figure ??? shows our typing and resourcing system.
+In general, we distinguish between positive products ($\otimes$, read
+``tensor'') and negative products ($\&$, read ``with'').
+
+\fixme{Maybe as a lemma after sub-resourcing has been clearly stated
+  $\rightarrow$}
+As mentioned above, the distinction collapses in the case where addition is the
+join of the sub-resourcing order.
+This fact can be seen clearly in the introduction rules, where the condition
+$\mathcal P + \mathcal Q \subres \mathcal R$ is equivalent to the conjunction of
+$\mathcal P \subres \mathcal R$ and $\mathcal Q \subres \mathcal R$.
+With these and the admissibility of sub-resourcing, we get the equivalence.
 
 \begin{mathpar}
-  \inferrule*[right=$\oc_{\rho}$-I]
-  {\ctx{\Gamma}{\mathcal P} \vdash M : A
-    \\ \subrctx{{\color{black}\rho} * \mathcal P}{\mathcal R}
-  }
-  {\ctx{\Gamma}{\mathcal R} \vdash \bang{M} : \excl{\rho}{A}}
-  \and
-  \inferrule*[right=$\oc_{\rho}$-E]
-  {\ctx{\Gamma}{\mathcal P} \vdash M : \excl{\rho}{A}
-    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{x}{A}{\color{black}\rho} \vdash N : B
-    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
-  }
-  {\ctx{\Gamma}{\mathcal R} \vdash \bm{B}{M}{x}{N} : B}
-
-  \and
-
-  \inferrule*[right=$1$-I]
-  {\subrctx{\underline 0}{\mathcal R}}
-  {\ctx{\Gamma}{\mathcal R} \vdash \unit : \tensorOne}
-  \and
-  \inferrule*[right=$1$-E]
-  {\ctx{\Gamma}{\mathcal P} \vdash M : \tensorOne
-    \\ \ctx{\Gamma}{\mathcal Q} \vdash N : A
-    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
-  }
-  {\ctx{\Gamma}{\mathcal R} \vdash \del{A}{M}{N} : A}
-
-  \and
-
   \inferrule*[right=$\otimes$-I]
   {\ctx{\Gamma}{\mathcal P} \vdash M : A
     \\ \ctx{\Gamma}{\mathcal Q} \vdash N : B
@@ -198,27 +184,50 @@ Figure ??? shows our typing and resourcing system.
 
   \and
 
-  \inferrule*[right=$\top$-I]
-  { }
-  {\ctx{\Gamma}{\mathcal R} \vdash \eat : \withTOne}
-  \and
-  \text{(no $\top$-E)}
-
-  \and
-
   \inferrule*[right=$\&$-I]
   {\ctx{\Gamma}{\mathcal R} \vdash M : A
     \\ \ctx{\Gamma}{\mathcal R} \vdash N : B
   }
   {\ctx{\Gamma}{\mathcal R} \vdash \wth{M}{N} : \withT{A}{B}}
   \and
-  \inferrule*[right=$\&$-E]
+  \inferrule*[right=$\&$-E$_i$]
   {\ctx{\Gamma}{\mathcal R} \vdash M : \withT{A_0}{A_1}}
   {\ctx{\Gamma}{\mathcal R} \vdash \proj{i}{M} : A_i}
+\end{mathpar}
 
+To derive the units for each of the products, we turn what was then binary into
+what is now nullary.
+
+\begin{mathpar}
+  \inferrule*[right=$1$-I]
+  {\subrctx{\vec 0}{\mathcal R}}
+  {\ctx{\Gamma}{\mathcal R} \vdash \unit : \tensorOne}
+  \and
+  \inferrule*[right=$1$-E]
+  {\ctx{\Gamma}{\mathcal P} \vdash M : \tensorOne
+    \\ \ctx{\Gamma}{\mathcal Q} \vdash N : A
+    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
+  }
+  {\ctx{\Gamma}{\mathcal R} \vdash \del{A}{M}{N} : A}
+
+  \and
+
+  \inferrule*[right=$\top$-I]
+  { }
+  {\ctx{\Gamma}{\mathcal R} \vdash \eat : \withTOne}
+  \and
+  \text{(no $\top$-E)}
+\end{mathpar}
+
+Sums are dual to with products.
+The behaviour of sums is familiar from intuitionistic type theory, except for
+the splitting of resources in the elimination rules between the term being
+eliminated and the continuation terms.
+
+\begin{mathpar}
   \text{(no $0$-I)}
   \and
-  \inferrule*[right=$0$-E]
+  \inferrule*[right=$0$-E$_i$]
   {\ctx{\Gamma}{\mathcal P} \vdash M : \sumTZero
     \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
   }
@@ -237,17 +246,172 @@ Figure ??? shows our typing and resourcing system.
   {\ctx{\Gamma}{\mathcal R} \vdash \cse{C}{M}{x}{N_0}{y}{N_1} : C}
 \end{mathpar}
 
-\subsection{Renaming \& substitution}
+Bang
+
+\begin{mathpar}
+  \inferrule*[right=$\oc_{\rho}$-I]
+  {\ctx{\Gamma}{\mathcal P} \vdash M : A
+    \\ \subrctx{{\color{black}\rho} * \mathcal P}{\mathcal R}
+  }
+  {\ctx{\Gamma}{\mathcal R} \vdash \bang{M} : \excl{\rho}{A}}
+  \and
+  \inferrule*[right=$\oc_{\rho}$-E]
+  {\ctx{\Gamma}{\mathcal P} \vdash M : \excl{\rho}{A}
+    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{x}{A}{\color{black}\rho} \vdash N : B
+    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
+  }
+  {\ctx{\Gamma}{\mathcal R} \vdash \bm{B}{M}{x}{N} : B}
+\end{mathpar}
+
+\fixme{Constants}
+
+\subsection{Example programs}
+
+\begin{example}[K]
+We can show that $\oc_\rho$ satisfies the modal logic axiom K
+(that is,
+$\fun{\tensor{\excl{\rho}{C}}{\excl{\rho}{D}}}{\excl{\rho}{(\tensor{C}{D})}}$)
+for any $\rho$.
+
+\[
+  \begin{eqns}
+    \lam{bcbd}{& \prm{ }{bcbd}{bc}{bd}{\\
+        & \bm{ }{bc}{c}{\\
+          & \bm{ }{bd}{d}{\\
+            & \bang{\ten{c}{d}}}}}}
+  \end{eqns}
+\]
+
+In the resourcing derivation, the interesting part is after all of the pattern
+matching has been done and we are ready to start building the result.
+
+\[
+  \inferrule*[right=$\oc_\rho$-I]{
+    \rho * bcbd^0, bc^0, bd^0, c^1, d^1
+    \subres bcbd^0, bc^0, bd^0, c^\rho, d^\rho
+    \\
+    \ctxvar{bcbd}{\tensor{\excl{\rho}{C}}{\excl{\rho}{D}}}{0},
+    \ctxvar{bc}{\excl{\rho}{C}}{0}, \ctxvar{bd}{\excl{\rho}{D}}{0},
+    \ctxvar{c}{C}{1}, \ctxvar{d}{D}{1}
+    \vdash \ten{c}{d} : \tensor{C}{D}
+  }
+  {
+    \ctxvar{bcbd}{\tensor{\excl{\rho}{C}}{\excl{\rho}{D}}}{0},
+    \ctxvar{bc}{\excl{\rho}{C}}{0}, \ctxvar{bd}{\excl{\rho}{D}}{0},
+    \ctxvar{c}{C}{\rho}, \ctxvar{d}{D}{\rho}
+    \vdash \bang{\ten{c}{d}} : \excl{\rho}{(\tensor{C}{D})}
+  }
+\]
+
+After this move, $c$ and $d$ become amenable to the var rule, which only applies
+to super-resources of $1$.
+
+The converse cannot be implemented in general because we get to a stage where we
+are essentially trying to prove $\ctxvar{cd}{\tensor{C}{D}}{\rho} \vdash
+\wn : \tensor{\excl{\rho}{C}}{\excl{\rho}{D}}$.
+At this point, we cannot use the variable $cd$ because we might not have
+$1 \subres \rho$, and so the condition of the var rule fails.
+We can do $\otimes$-I, but there is no satisfactory way to split $cd^\rho$
+between the two halves.
+\end{example}
+
+\begin{example}[Comonad]
+  We have the following two derivations.
+
+  \begin{mathpar}
+    \inferrule*[Right=$\multimap$-I]{
+      \inferrule*[Right=$\oc_1$-E]{
+        \inferrule*[right=var]{ }
+        {\ctxvar{ba}{\excl{1}{A}}{1} \vdash ba : \excl{1}{A}}
+        \\
+        \inferrule*[Right=var]{ }
+        {\ctxvar{ba}{\excl{1}{A}}{0}, \ctxvar{a}{A}{1} \vdash a : A}
+      }
+      {\ctxvar{ba}{\excl{1}{A}}{1} \vdash \bm{A}{ba}{a}{a} : A}
+    }
+    {\vdash \lam{ba}{\bm{A}{ba}{a}{a}} : \fun{\excl{1}{A}}{A}}
+
+    \and
+
+    \inferrule*[Right=$\multimap$-I]{
+      \inferrule*[Right=$\oc_{\pi * \rho}$-E]{
+        \inferrule*[right=var]{ }
+        {\ctxvar{ba}{\excl{\pi * \rho}{A}}{1} \vdash ba : \excl{\pi * \rho}}
+        \\
+        \inferrule*[Right=$\oc_\pi$-I]{
+          \inferrule*[Right=$\oc_\rho$-I]{
+            \inferrule*[Right=var]{ }
+            {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{1} \vdash
+              a : A}
+          }
+          {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{\rho} \vdash
+            \bang{a} : \excl{\rho}{A}}
+        }
+        {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{\pi * \rho} \vdash
+          \bang{\bang{a}} : \excl{\pi}{\excl{\rho}{A}}}
+      }
+      {\ctxvar{ba}{\excl{\pi * \rho}{A}}{1} \vdash
+        \bm{A}{ba}{a}{\bang{\bang{a}}} : \excl{\pi}{\excl{\rho}{A}}}
+    }
+    {\vdash \lam{ba}{\bm{A}{ba}{a}{\bang{\bang{a}}}}
+      : \fun{\excl{\pi * \rho}{A}}{\excl{\pi}{\excl{\rho}{A}}}}
+  \end{mathpar}
+
+  These are the counit and comultiplication required in showing that $\oc_{(-)}$ is a
+  graded comonad in our category of types and functions.
+\end{example}
+
+\fixme{exponentials turn additives into multiplicatives}
+
+\subsection{Admissible rules}
+
+\begin{lemma}[Sub-resourcing]
+  \[
+    \inferrule*[right=subres]{
+      \Gamma^{\mathcal Q} \vdash M : A
+      \\ \mathcal P \subres \mathcal Q
+    }
+    {
+      \Gamma^{\mathcal P} \vdash M : A
+    }
+  \]
+\end{lemma}
+\begin{proof}
+  By induction on the resourcing derivation until a rule with a sub-resourcing
+  precondition is encountered, in which cases the transitivity of sub-resourcing
+  is enough to be done.
+\end{proof}
+
+Let $|-|$ denote the set of free variables of a given context.
 
 \begin{definition}[Well resourced substitution]
-  A substitution $\sigma$ from $\Gamma_m^{\mathcal P}$ to
-  $\Delta_n^{\mathcal Q}$ is a tuple with the following data.
+  A substitution $\sigma$ from $\Gamma^{\mathcal P}$ to
+  $\Delta^{\mathcal Q}$ is a tuple with the following data.
 
   \begin{itemize}
-  \item $\mat \Sigma : \mathscr R^{m \times n}$
-  \item $M : n \to \operatorname{Term}~m$
+  \item a matrix $\mat \Sigma : \mathscr R^{|\mathcal P| \times |\mathcal Q|}$
+  \item a function $M : |\Delta| \to \operatorname{Term} |\Gamma|$
   \item a proof that $\mat \Sigma \mathcal Q \subres \mathcal P$
-    \item a proof that $\forall (x:A) \in \Delta. \Gamma^{\mat \Sigma \basis x}
+    \item a proof that $\forall (x:A) \in \Delta.~\Gamma^{\mat \Sigma \basis x}
       \vdash M~x : A$
   \end{itemize}
 \end{definition}
+
+\begin{lemma}[Substitution]
+  \[
+    \inferrule*[right=subst]{
+      \Delta^{\mathcal Q} \vdash N : A
+      \\ \sigma : \Gamma^{\mathcal P} \Rightarrow \Delta^{\mathcal Q}
+    }
+    {
+      \Gamma^{\mathcal P} \vdash N[\sigma] : A
+    }
+  \]
+\end{lemma}
+\renewcommand{\proofname}{Proof sketch}
+\begin{proof}
+  By induction on the resourcing derivation.
+  During the induction, the matrix $\mat \Sigma$ stays constant, and the proof
+  that $\mat \Sigma \mathcal Q \subres \mathcal P$ is updated by linearity of
+  matrix-vector multiplication.
+\end{proof}
