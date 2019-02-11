@@ -249,15 +249,15 @@ eliminated and the continuation terms.
 Bang
 
 \begin{mathpar}
-  \inferrule*[right=$\oc_{\rho}$-I]
+  \inferrule*[right=$\excl{\rho}{}$-I]
   {\ctx{\Gamma}{\mathcal P} \vdash M : A
-    \\ \subrctx{{\color{black}\rho} * \mathcal P}{\mathcal R}
+    \\ \subrctx{{\rho} * \mathcal P}{\mathcal R}
   }
   {\ctx{\Gamma}{\mathcal R} \vdash \bang{M} : \excl{\rho}{A}}
   \and
-  \inferrule*[right=$\oc_{\rho}$-E]
+  \inferrule*[right=$\excl{\rho}{}$-E]
   {\ctx{\Gamma}{\mathcal P} \vdash M : \excl{\rho}{A}
-    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{x}{A}{\color{black}\rho} \vdash N : B
+    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{x}{A}{\rho} \vdash N : B
     \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
   }
   {\ctx{\Gamma}{\mathcal R} \vdash \bm{B}{M}{x}{N} : B}
@@ -268,7 +268,7 @@ Bang
 \subsection{Example programs}
 
 \begin{example}[K]
-We can show that $\oc_\rho$ satisfies the modal logic axiom K
+We can show that $\excl{\rho}{}$ satisfies the modal logic axiom K
 (that is,
 $\fun{\tensor{\excl{\rho}{C}}{\excl{\rho}{D}}}{\excl{\rho}{(\tensor{C}{D})}}$)
 for any $\rho$.
@@ -286,7 +286,7 @@ In the resourcing derivation, the interesting part is after all of the pattern
 matching has been done and we are ready to start building the result.
 
 \[
-  \inferrule*[right=$\oc_\rho$-I]{
+  \inferrule*[right=$\excl{\rho}{}$-I]{
     \rho * bcbd^0, bc^0, bd^0, c^1, d^1
     \subres bcbd^0, bc^0, bd^0, c^\rho, d^\rho
     \\
@@ -315,12 +315,12 @@ We can do $\otimes$-I, but there is no satisfactory way to split $cd^\rho$
 between the two halves.
 \end{example}
 
-\begin{example}[Comonad]
+\begin{example}[Comonad operations]
   We have the following two derivations.
 
   \begin{mathpar}
     \inferrule*[Right=$\multimap$-I]{
-      \inferrule*[Right=$\oc_1$-E]{
+      \inferrule*[Right=$\excl{1}{}$-E]{
         \inferrule*[right=var]{ }
         {\ctxvar{ba}{\excl{1}{A}}{1} \vdash ba : \excl{1}{A}}
         \\
@@ -334,12 +334,12 @@ between the two halves.
     \and
 
     \inferrule*[Right=$\multimap$-I]{
-      \inferrule*[Right=$\oc_{\pi * \rho}$-E]{
+      \inferrule*[Right=$\excl{\pi * \rho}{}$-E]{
         \inferrule*[right=var]{ }
         {\ctxvar{ba}{\excl{\pi * \rho}{A}}{1} \vdash ba : \excl{\pi * \rho}}
         \\
-        \inferrule*[Right=$\oc_\pi$-I]{
-          \inferrule*[Right=$\oc_\rho$-I]{
+        \inferrule*[Right=$\excl{\pi}{}$-I]{
+          \inferrule*[Right=$\excl{\rho}{}$-I]{
             \inferrule*[Right=var]{ }
             {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{1} \vdash
               a : A}
@@ -357,7 +357,7 @@ between the two halves.
       : \fun{\excl{\pi * \rho}{A}}{\excl{\pi}{\excl{\rho}{A}}}}
   \end{mathpar}
 
-  These are the counit and comultiplication required in showing that $\oc_{(-)}$ is a
+  These are the counit and comultiplication required in showing that $\excl{(-)}{}$ is a
   graded comonad in our category of types and functions.
 \end{example}
 
@@ -382,6 +382,20 @@ between the two halves.
   is enough to be done.
 \end{proof}
 
+\begin{lemma}[Weakening]
+  We can add unmentioned free variables if those variables are annotated with a
+  weakenable annotation.
+  \[
+    \inferrule*[right=weak]{
+      \ctx{\Gamma}{\mathcal P}, \ctx{\Delta}{\mathcal Q} \vdash M : A
+      \\ \rescomment{\vct 0 \subres \mathcal Q}
+    }
+    {
+      \ctx{\Gamma}{\mathcal P} \vdash M : A
+    }
+  \]
+\end{lemma}
+
 Let $|-|$ denote the set of free variables of a given context.
 
 \begin{definition}[Well resourced substitution]
@@ -389,11 +403,13 @@ Let $|-|$ denote the set of free variables of a given context.
   $\Delta^{\mathcal Q}$ is a tuple with the following data.
 
   \begin{itemize}
-  \item a matrix $\mat \Sigma : \mathscr R^{|\mathcal P| \times |\mathcal Q|}$
+  \item a matrix $\mat \Sigma : \mathscr R^{|\mathcal Q| \times |\mathcal P|}$
   \item a function $M : |\Delta| \to \operatorname{Term} |\Gamma|$
-  \item a proof that $\mat \Sigma \mathcal Q \subres \mathcal P$
-    \item a proof that $\forall (x:A) \in \Delta.~\Gamma^{\mat \Sigma \basis x}
-      \vdash M~x : A$
+  \item a proof that $\forall (x:A) \in \Delta.~\Gamma^{\vct e_x \mat \Sigma}
+    \vdash M~x : A$, noting that $\vct e_x \mat \Sigma$ is the $x$th column of
+    $\mat \Sigma$ as a row vector
+  \item a proof that $\mathcal Q \mat \Sigma \subres \mathcal P$, where
+    $\mathcal Q$ and $\mathcal P$ are viewed as row vectors
   \end{itemize}
 \end{definition}
 
@@ -411,7 +427,40 @@ Let $|-|$ denote the set of free variables of a given context.
 \renewcommand{\proofname}{Proof sketch}
 \begin{proof}
   By induction on the resourcing derivation.
-  During the induction, the matrix $\mat \Sigma$ stays constant, and the proof
-  that $\mat \Sigma \mathcal Q \subres \mathcal P$ is updated by linearity of
-  matrix-vector multiplication.
+  Wherever a context is split, by any of $\vct 0 \subres \mathcal R$,
+  $\mathcal P + \mathcal Q \subres \mathcal R$, or
+  $\rho * \mathcal P \subres \mathcal R$, the linearity of vector-matrix
+  multiplication means that $\mat \Sigma$ can stay the same.
+  When going under a binder, the new substitution matrix will be constructed
+  from the given $\mat \Sigma$ as the following.
+  \newcommand*{\mathhuge}[1]{\mathlarger{\mathlarger{\mathlarger{\mathlarger{#1}}}}}
+  \[
+    \operatorname{extend}~\mat \Sigma \coloneqq
+    %\left( \begin{array}{cccc}
+    %  & & & 0 \\
+    %  & \mathhuge{\mat \Sigma} & & \vdots \\
+    %  & & & 0 \\
+    %  0 & \cdots & 0 & 1
+    %\end{array} \right)
+    \begin{pmatrix}
+      \mat \Sigma_{1,1} & \cdots & \mat \Sigma_{1,n} & 0 \\
+      \vdots & \ddots & \vdots & \vdots \\
+      \mat \Sigma_{m,1} & \cdots & \mat \Sigma_{m,n} & 0 \\
+      0 & \cdots & 0 & 1
+    \end{pmatrix}
+    %\begin{pmatrix}
+    %  \mathhuge{\mat \Sigma} & \begin{array}{c} 0 \\ \vdots \\ 0 \end{array} \\
+    %  \begin{array}{ccc} 0 & \cdots & 0 \end{array} & 1
+    %\end{pmatrix}
+    %\begin{pmatrix}
+    %  \multicolumn{3}{c}{\multirow{3}{*}{A}} & 0 \\
+    %  \multicolumn{3}{c}{} & \vdots \\
+    %  \multicolumn{3}{c}{} & 0 \\
+    %  0 & \cdots & 0 & 1
+    %\end{pmatrix}
+  \]
+  The new column says that to substitute the new variable by itself once, we
+  need $1$ use of it, and $0$ use of any other variable.
+  The new row says that the new variable will \emph{only} be used in this
+  substitution by itself, and nowhere else.
 \end{proof}
