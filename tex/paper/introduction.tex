@@ -1,1 +1,40 @@
-% Introduction
+In normal typed $\lambda$-calculi, variables may be used multiple
+times, in multiple contexts, for multiple reasons, as long as the
+types agree. The disciplines of linear types \cite{girard87linear} and
+coeffects \cite{PetricekOM14,BrunelGMZ14,GhicaS14} refine this by
+tracking variable usage. We might track how many times a variable is
+used, or if it is used co-, contra-, or invariantly. Such a discipline
+yields a general framework of ``context constrained computing'', where
+constraints on variables in the context tell us something interesting
+about the computation being performed.
+% Thus we put the
+% type information to work to tell us facts about programs that might
+% not otherwise be apparent.
+
+We will present work in progress on capturing the ``intensional''
+properties of programs via a family of Kripke indexed relational
+semantics that refines a simple set-theoretic semantics of
+programs. The value of our approach lies in its generality. We can
+accommodate the following examples:
+\begin{enumerate}
+\item Linear types that capture properties like ``all list
+  manipulating programs are permutations''. This example uses the
+  Kripke-indexing to track the collection of datums currently being
+  manipulated by the program.
+\item Monotonicity coeffects that track whether a program uses inputs
+  co-, contra-, or in-variantly (or not at all).
+\item Sensitivity typing, tracking the sensitivity of programs in
+  terms of input changes. This forms the core of systems for
+  differential privacy \cite{reed10distance}.
+\item Information flow typing, in the style of the Dependency Core
+  Calculus \cite{abadi99core}.
+\end{enumerate}
+Through discussion at the workshop, we hope to discover more
+applications of our framework. In future work, we plan to extend our
+framework with type dependency, and to explore the space of inductive
+data types and elimination principles possible in the presence of
+usage information.
+
+The syntax and semantics we present here have been formalised in Agda:
+\url{https://github.com/laMudri/quantitative/}. Formalisation of the
+examples is in progress.
