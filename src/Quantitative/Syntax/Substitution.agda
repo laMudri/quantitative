@@ -21,6 +21,8 @@ module Quantitative.Syntax.Substitution {c k} (Ty : Set c) (Const : Set k) where
   rename th (exf S e) = exf S (rename th e)
   rename th (cse S e s0 s1) =
     cse S (rename th e) (rename (os th) s0) (rename (os th) s1)
+  rename th (fold T e sn sc) =
+    fold T (rename th e) (rename th sn) (rename (os (os th)) sc)
   rename th (the S s) = the S (rename th s)
   rename th (lam s) = lam (rename (os th) s)
   rename th (bang s) = bang (rename th s)
@@ -29,6 +31,8 @@ module Quantitative.Syntax.Substitution {c k} (Ty : Set c) (Const : Set k) where
   rename th eat = eat
   rename th (wth s0 s1) = wth (rename th s0) (rename th s1)
   rename th (inj i s) = inj i (rename th s)
+  rename th nil = nil
+  rename th (cons s0 s1) = cons (rename th s0) (rename th s1)
   rename th [ e ] = [ rename th e ]
 
   Subst : Nat → Nat → Set (c ⊔ k)
@@ -56,6 +60,9 @@ module Quantitative.Syntax.Substitution {c k} (Ty : Set c) (Const : Set k) where
   substitute vf (cse S e s0 s1) =
     cse S (substitute vf e) (substitute (liftSubst vf) s0)
                             (substitute (liftSubst vf) s1)
+  substitute vf (fold T e sn sc) =
+    fold T (substitute vf e) (substitute vf sn)
+                             (substitute (liftSubstN 2 vf) sc)
   substitute vf (the S s) = the S (substitute vf s)
   substitute vf (lam s) = lam (substitute (liftSubst vf) s)
   substitute vf (bang s) = bang (substitute vf s)
@@ -64,6 +71,8 @@ module Quantitative.Syntax.Substitution {c k} (Ty : Set c) (Const : Set k) where
   substitute vf eat = eat
   substitute vf (wth s0 s1) = wth (substitute vf s0) (substitute vf s1)
   substitute vf (inj i s) = inj i (substitute vf s)
+  substitute vf nil = nil
+  substitute vf (cons s0 s1) = cons (substitute vf s0) (substitute vf s1)
   substitute vf [ e ] = [ substitute vf e ]
 
   singleSubst : ∀ {m} → Term m syn → Subst (succ m) m

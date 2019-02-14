@@ -38,6 +38,9 @@ module Quantitative.Types.Substitution
   renameTy tht (cse et s0t s1t) =
     cse (renameTy tht et) (renameTy (refl :: tht) s0t)
                           (renameTy (refl :: tht) s1t)
+  renameTy tht (fold et snt sct) =
+    fold (renameTy tht et) (renameTy tht snt)
+                           (renameTy (refl :: refl :: tht) sct)
   renameTy tht (the st) = the (renameTy tht st)
   renameTy tht (lam st) = lam (renameTy (refl :: tht) st)
   renameTy tht (bang st) = bang (renameTy tht st)
@@ -46,6 +49,8 @@ module Quantitative.Types.Substitution
   renameTy tht eat = eat
   renameTy tht (wth s0t s1t) = wth (renameTy tht s0t) (renameTy tht s1t)
   renameTy tht (inj st) = inj (renameTy tht st)
+  renameTy tht nil = nil
+  renameTy tht (cons s0t s1t) = cons (renameTy tht s0t) (renameTy tht s1t)
   renameTy tht [ et ] = [ renameTy tht et ]
 
   SubstTy : ∀ {m n} → Subst m n → TCtx m → TCtx n → Set c
@@ -83,6 +88,9 @@ module Quantitative.Types.Substitution
   substituteTy (cse et s0t s1t) vft =
     cse (substituteTy et vft) (substituteTy s0t (liftSubstTy vft))
                               (substituteTy s1t (liftSubstTy vft))
+  substituteTy (fold et snt sct) vft =
+    fold (substituteTy et vft) (substituteTy snt vft)
+                               (substituteTy sct (liftSubstNTy vft))
   substituteTy (the st) vft = the (substituteTy st vft)
   substituteTy (lam st) vft =
     lam (substituteTy st (liftSubstTy vft))
@@ -96,6 +104,9 @@ module Quantitative.Types.Substitution
     wth (substituteTy s0 vft) (substituteTy s1 vft)
   substituteTy (inj st) vft =
     inj (substituteTy st vft)
+  substituteTy nil vft = nil
+  substituteTy (cons s0t s1t) vft =
+    cons (substituteTy s0t vft) (substituteTy s1t vft)
   substituteTy [ et ] vft = [ substituteTy et vft ]
 
   singleSubstTy : ∀ {m e Γ S} → Γ ⊢t e ∈ S →

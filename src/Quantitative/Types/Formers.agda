@@ -12,3 +12,4 @@ module Quantitative.Types.Formers {c} (B : Set c) (C : Set c) where
     ⊗1 &1 ⊕0 : Ty
     _⊸_ _⊗_ _&_ _⊕_ : (S T : Ty) → Ty
     ! : (ρ : C) (S : Ty) → Ty
+    LIST : (S : Ty) → Ty

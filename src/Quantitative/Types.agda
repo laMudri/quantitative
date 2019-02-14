@@ -68,6 +68,11 @@ module Quantitative.Types {c k} (PrimTy : Set c) (C : Set c) (open Form PrimTy C
           (s0t : S0 :: Γ ⊢t T ∋ s0) (s1t : S1 :: Γ ⊢t T ∋ s1)
           →
           Γ ⊢t cse T e s0 s1 ∈ T
+    fold : ∀ {e sn sc S T}
+           (et : Γ ⊢t e ∈ LIST S)
+           (snt : Γ ⊢t T ∋ sn) (sct : S :: T :: Γ ⊢t T ∋ sc)
+           →
+           Γ ⊢t fold T e sn sc ∈ T
     the : ∀ {S s}
           (st : Γ ⊢t S ∋ s)
           →
@@ -95,6 +100,11 @@ module Quantitative.Types {c k} (PrimTy : Set c) (C : Set c) (open Form PrimTy C
           (st : Γ ⊢t Two-rec S0 S1 i ∋ s)
           →
           Γ ⊢t S0 ⊕ S1 ∋ inj i s
+    nil : ∀ {S} → Γ ⊢t LIST S ∋ nil
+    cons : ∀ {s0 s1 S}
+           (s0t : Γ ⊢t S ∋ s0) (s1t : Γ ⊢t LIST S ∋ s1)
+           →
+           Γ ⊢t LIST S ∋ cons s0 s1
     [_] : ∀ {e S}
           (et : Γ ⊢t e ∈ S)
           →
