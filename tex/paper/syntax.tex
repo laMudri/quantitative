@@ -1,3 +1,39 @@
+In this section, we present a simply typed calculus that is parametric in a set
+$\mathscr{R}$ of resources, under conditions detailed later in the section.
+
+\subsection{Types}
+
+Our grammar of types and contexts is given in \autoref{fig:syntax}.
+Throughout this section, the colour \fixme{choose} highlights resource annotations, which
+are generally the interesting things to watch in typing rules and the main point
+of departure between this system and a standard simply typed $\lambda$-calculus.
+
+\begin{figure}
+  \begin{mathpar}
+    \rescomment \rho, \rescomment \pi \in \mathscr R \and
+    A, B, C \Coloneqq \fun{A}{B} \mid \tensorOne \mid \tensor{A}{B} \mid
+    \withTOne \mid \withT{A}{B} \mid \sumTZero \mid \sumT{A}{B} \mid
+    \excl{\rho}{A} \\
+    \Gamma, \Delta \Coloneqq \cdot \mid \Gamma, x : A \and
+    \resctx P, \resctx Q, \resctx R \Coloneqq
+    \cdot \mid \resctx R, x^{\rescomment \rho} \and
+    \ctx{\Gamma}{R} \Coloneqq
+    \cdot \mid \ctx{\Gamma}{R}, \ctxvar{x}{A}{\rho}
+  \end{mathpar}
+  \caption{Basic syntax}
+  \label{fig:syntax}
+\end{figure}
+
+We have functions, two kinds of finite products, finite sums, and a graded
+modality $\excl{\rho}{}$.
+These will be explained further when their typing rules are introduced.
+
+Our contexts are combinations of a typing context $\Gamma$ and a resourcing
+context $\resctx R$, written $\ctx{\Gamma}{R}$.
+It will sometimes be useful to talk only about one part at a time.
+In particular, it is occasionally useful to think of resourcing contexts as row
+vectors, and to use standard linear algebra operations on them.
+
 \subsection{Resource annotations}
 
 We assume a partially ordered semiring $(\mathscr{R}, \subres, 0, +, 1, *)$ of
@@ -10,10 +46,11 @@ the type of usage allowed.
 $(\mathscr{R}, 1, *)$ forms a monoid that is annihilated by and distributes over
 the additive structure.
 The order $\subres$ describes a sub-resourcing relation.
-We have $\rho \subres \pi$ if and only if annotation $\rho$ is at least as strict as
-annotation $\pi$.
-$(\mathscr{R}, \subres)$ forms a partial order, and addition and multiplication are
-monotonic with respect to $\subres$.
+We have $\pi \subres \rho$ if and only if the annotation $\pi$ allows use in at
+most as many situations as the annotation $\rho$ allows.
+This acts a lot like a subtyping relation.
+$(\mathscr{R}, \subres)$ forms a partial order, and addition and multiplication
+are monotonic with respect to $\subres$.
 
 In many cases of interest, $0$ and $+$ are respectively the bottom and join of
 the sub-resourcing order, turning it into a join semilattice.
@@ -35,62 +72,72 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
   unrestricted.
 
   \begin{center}
-  \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}}
-    +      & 0      & 1      & \omega \\
-    \hline
-    0      & 0      & 1      & \omega \\
-    1      & 1      & \omega & \omega \\
-    \omega & \omega & \omega & \omega \\
-  \end{tabular}%
-  \hspace{0.5in}%
-  \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}}
-    *      & 0      & 1      & \omega \\
-    \hline
-    0      & 0      & 0      & 0      \\
-    1      & 0      & 1      & \omega \\
-    \omega & 0      & \omega & \omega \\
-  \end{tabular}%
-  \hspace{0.5in}%
-  \(
+    \begin{tabular}{>{$}c<{$}}
+      0 \coloneqq 0 \\
+      1 \coloneqq 1
+    \end{tabular}%
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}}
+      +      & 0      & 1      & \omega \\
+      \hline
+      0      & 0      & 1      & \omega \\
+      1      & 1      & \omega & \omega \\
+      \omega & \omega & \omega & \omega \\
+    \end{tabular}%
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}}
+      *      & 0      & 1      & \omega \\
+      \hline
+      0      & 0      & 0      & 0      \\
+      1      & 0      & 1      & \omega \\
+      \omega & 0      & \omega & \omega \\
+    \end{tabular}%
+    \hspace{0.5in}%
+    \(
     \begin{tikzcd}[arrows=dash,row sep=0.5cm,column sep=0.5cm]
       & \omega & \\
       0 \arrow[ur] && 1 \arrow[ul]
     \end{tikzcd}
-  \)
+    \)
   \end{center}
 \end{example}
 
 \begin{example}[Monotonicity]
   Resource annotations track which ``way up'' we can use a free variable.
   A variable can be used covariantly ($\uparrow$), contravariantly
-  ($\downarrow$), invariantly ($-$), or unrestrictedly ($?$).
+  ($\downarrow$), invariantly ($=$), or unrestrictedly ($?$).
 
   \begin{center}
-  \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}>{$}l<{$}}
-    +          & -          & \uparrow & \downarrow & ? \\
-    \hline
-    -          & -          & \uparrow & \downarrow & ? \\
-    \uparrow   & \uparrow   & \uparrow & ?          & ? \\
-    \downarrow & \downarrow & ?        & \downarrow & ? \\
-    ?          & ?          & ?        & ?          & ? \\
-  \end{tabular}%
-  \hspace{0.5in}%
-  \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}>{$}l<{$}}
-    *          & - & \uparrow   & \downarrow & ? \\
-    \hline
-    -          & - & -          & -          & - \\
-    \uparrow   & - & \uparrow   & \downarrow & ? \\
-    \downarrow & - & \downarrow & \uparrow   & ? \\
-    ?          & - & ?          & ?          & ? \\
-  \end{tabular}%
-  \hspace{0.5in}%
-  \(
+    \begin{tabular}{>{$}c<{$}}
+      0 \coloneqq {=} \\
+      1 \coloneqq {\uparrow}
+    \end{tabular}%
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}>{$}l<{$}}
+      +          & =          & \uparrow & \downarrow & ? \\
+      \hline
+      =          & =          & \uparrow & \downarrow & ? \\
+      \uparrow   & \uparrow   & \uparrow & ?          & ? \\
+      \downarrow & \downarrow & ?        & \downarrow & ? \\
+      ?          & ?          & ?        & ?          & ? \\
+    \end{tabular}%
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}>{$}l<{$}}
+      *          & = & \uparrow   & \downarrow & ? \\
+      \hline
+      =          & = & =          & =          & = \\
+      \uparrow   & = & \uparrow   & \downarrow & ? \\
+      \downarrow & = & \downarrow & \uparrow   & ? \\
+      ?          & = & ?          & ?          & ? \\
+    \end{tabular}%
+    \hspace{0.5in}%
+    \(
     \begin{tikzcd}[arrows=dash,row sep=0.5cm,column sep=0.5cm]
       & ? & \\
       \uparrow \arrow[ur] && \downarrow \arrow[ul] \\
-      & - \arrow[ul]\arrow[ur] &
+      & = \arrow[ul]\arrow[ur] &
     \end{tikzcd}
-  \)
+    \)
   \end{center}
 
   Notice that $+$ is the join of the sub-resourcing order.
@@ -99,11 +146,11 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
 \subsection{Typing \& resourcing}
 
 We take typing contexts $\Gamma, \Delta$ to be vectors of types, and resourcing
-contexts $\mathcal P, \mathcal Q, \mathcal R$ to be vectors of resource
+contexts $\resctx P, \resctx Q, \resctx R$ to be vectors of resource
 annotations.
 Informally, we will index both of these by named variables $x, y, z$.
-Notation of the form $\Gamma^{\mathcal R}$ represents the combination of a
-typing context $\Gamma$ and a resourcing context $\mathcal R$ over the same set
+Notation of the form $\Gamma^{\resctx R}$ represents the combination of a
+typing context $\Gamma$ and a resourcing context $\resctx R$ over the same set
 of variables.
 
 Typing judgements are of the form
@@ -123,12 +170,12 @@ This makes it the principle resourcing of the variable rule.
 \[
 \inferrule*[right=var]
 {(x : B) \in \Gamma
-  \\ \subrctx{\basis x}{\mathcal R}
+  \\ \subrctx{\basis x}{\resctx R}
 }
-{\ctx{\Gamma}{\mathcal R} \vdash x : B}
+{\ctx{\Gamma}{R} \vdash x : B}
 \]
 
-Allowing $\basis x \subres \mathcal R$, rather than $\basis x = \mathcal R$,
+Allowing $\basis x \subres \resctx R$, rather than $\basis x = \resctx R$,
 allows less restrictive resourcings.
 For example, we are free to use $x$ if its use is unrestricted, and similarly we
 are free to discard any variables with unrestricted use.
@@ -136,85 +183,97 @@ are free to discard any variables with unrestricted use.
 The following are the rules for $\lambda$-abstractions and application.
 $\multimap$-I is standard, except for the restriction that we use the bound
 variable plainly.
-In $\multimap$-E, the condition $\mathcal P + \mathcal Q \subres \mathcal R$
-means that we must be able to share out the resources of $\mathcal R$ into
-those used to produce the function ($\mathcal P$) and those used to produce the
-argument ($\mathcal Q$).
+In $\multimap$-E, the condition $\resctx P + \resctx Q \subres \resctx R$
+means that we must be able to distribute the resources of $\resctx R$ into
+those used to produce the function ($\resctx P$) and those used to produce the
+argument ($\resctx Q$).
 Sub-resourcing is allowed here \fixme{why?}
 
 \begin{mathpar}
   \inferrule*[right=$\multimap$-I]
-  {\ctx{\Gamma}{\mathcal R}, \ctxvar{x}{A}{1} \vdash M : B}
-  {\ctx{\Gamma}{\mathcal R} \vdash \lam{x}{M} : \fun{A}{B}}
+  {\ctx{\Gamma}{R}, \ctxvar{x}{A}{1} \vdash M : B}
+  {\ctx{\Gamma}{R} \vdash \lam{x}{M} : \fun{A}{B}}
   \and
   \inferrule*[right=$\multimap$-E]
-  {\ctx{\Gamma}{\mathcal P} \vdash M : \fun{A}{B}
-    \\ \ctx{\Gamma}{\mathcal Q} \vdash N : A
-    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
+  {\ctx{\Gamma}{P} \vdash M : \fun{A}{B}
+    \\ \ctx{\Gamma}{Q} \vdash N : A
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
   }
-  {\ctx{\Gamma}{\mathcal R} \vdash \app{M}{N} : B}
+  {\ctx{\Gamma}{R} \vdash \app{M}{N} : B}
 \end{mathpar}
 
-In general, we distinguish between positive products ($\otimes$, read
-``tensor'') and negative products ($\&$, read ``with'').
+In general, we distinguish between tensor products ($\otimes$) and with products
+($\&$).
 
 \fixme{Maybe as a lemma after sub-resourcing has been clearly stated
   $\rightarrow$}
 As mentioned above, the distinction collapses in the case where addition is the
 join of the sub-resourcing order.
 This fact can be seen clearly in the introduction rules, where the condition
-$\mathcal P + \mathcal Q \subres \mathcal R$ is equivalent to the conjunction of
-$\mathcal P \subres \mathcal R$ and $\mathcal Q \subres \mathcal R$.
+$\resctx P + \resctx Q \subres \resctx R$ is equivalent to the conjunction of
+$\resctx P \subres \resctx R$ and $\resctx Q \subres \resctx R$.
 With these and the admissibility of sub-resourcing, we get the equivalence.
 
 \begin{mathpar}
   \inferrule*[right=$\otimes$-I]
-  {\ctx{\Gamma}{\mathcal P} \vdash M : A
-    \\ \ctx{\Gamma}{\mathcal Q} \vdash N : B
-    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
+  {\ctx{\Gamma}{P} \vdash M : A
+    \\ \ctx{\Gamma}{Q} \vdash N : B
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
   }
-  {\ctx{\Gamma}{\mathcal R} \vdash \ten{M}{N} : \tensor{A}{B}}
+  {\ctx{\Gamma}{R} \vdash \ten{M}{N} : \tensor{A}{B}}
   \and
   \inferrule*[right=$\otimes$-E]
-  {\ctx{\Gamma}{\mathcal P} \vdash M : \tensor{A}{B}
-    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{x}{A}{1}, \ctxvar{y}{B}{1} \vdash N : C
-    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
+  {\ctx{\Gamma}{P} \vdash M : \tensor{A}{B}
+    \\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1}, \ctxvar{y}{B}{1} \vdash N : C
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
   }
-  {\ctx{\Gamma}{\mathcal R} \vdash \prm{C}{M}{x}{y}{N} : C}
+  {\ctx{\Gamma}{R} \vdash \prm{C}{M}{x}{y}{N} : C}
 
   \and
 
   \inferrule*[right=$\&$-I]
-  {\ctx{\Gamma}{\mathcal R} \vdash M : A
-    \\ \ctx{\Gamma}{\mathcal R} \vdash N : B
+  {\ctx{\Gamma}{R} \vdash M : A
+    \\ \ctx{\Gamma}{R} \vdash N : B
   }
-  {\ctx{\Gamma}{\mathcal R} \vdash \wth{M}{N} : \withT{A}{B}}
+  {\ctx{\Gamma}{R} \vdash \wth{M}{N} : \withT{A}{B}}
   \and
   \inferrule*[right=$\&$-E$_i$]
-  {\ctx{\Gamma}{\mathcal R} \vdash M : \withT{A_0}{A_1}}
-  {\ctx{\Gamma}{\mathcal R} \vdash \proj{i}{M} : A_i}
+  {\ctx{\Gamma}{R} \vdash M : \withT{A_0}{A_1}}
+  {\ctx{\Gamma}{R} \vdash \proj{i}{M} : A_i}
 \end{mathpar}
+
+A similar distinction between two types of product can be seen in various
+existing systems. \fixme{refs here}
+
+\begin{tabular}{c|c|c}
+  & $\tensorOne$, $\tensor{A}{B}$ & $\withTOne$, $\withT{A}{B}$ \\ \hline
+  name & tensor & with \\ \hline
+  Linear logic & multiplicative conjunction & additive conjunction \\
+  Type theory & eliminated by pattern matching & eliminated by projections \\
+  Call-by-push-value & value & computation \\
+  Monoidal category theory & monoidal product & cartesian product
+\end{tabular}
 
 To derive the units for each of the products, we turn what was then binary into
 what is now nullary.
 
 \begin{mathpar}
   \inferrule*[right=$1$-I]
-  {\subrctx{\vec 0}{\mathcal R}}
-  {\ctx{\Gamma}{\mathcal R} \vdash \unit : \tensorOne}
+  {\subrctx{\vec 0}{\resctx R}}
+  {\ctx{\Gamma}{R} \vdash \unit : \tensorOne}
   \and
   \inferrule*[right=$1$-E]
-  {\ctx{\Gamma}{\mathcal P} \vdash M : \tensorOne
-    \\ \ctx{\Gamma}{\mathcal Q} \vdash N : A
-    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
+  {\ctx{\Gamma}{P} \vdash M : \tensorOne
+    \\ \ctx{\Gamma}{Q} \vdash N : A
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
   }
-  {\ctx{\Gamma}{\mathcal R} \vdash \del{A}{M}{N} : A}
+  {\ctx{\Gamma}{R} \vdash \del{A}{M}{N} : A}
 
   \and
 
   \inferrule*[right=$\top$-I]
   { }
-  {\ctx{\Gamma}{\mathcal R} \vdash \eat : \withTOne}
+  {\ctx{\Gamma}{R} \vdash \eat : \withTOne}
   \and
   \text{(no $\top$-E)}
 \end{mathpar}
@@ -223,63 +282,66 @@ Sums are dual to with products.
 The behaviour of sums is familiar from intuitionistic type theory, except for
 the splitting of resources in the elimination rules between the term being
 eliminated and the continuation terms.
+Notice that this splitting also happens for $0$-E ($\exf{}{}$), even though the
+resourcing context $\resctx Q$ is not used in any premises.
+The addition of the extra $\resctx Q$ can be seen as saying that when we are in
+an impossible case (having created an expression of type $\sumTZero$), we can
+ignore the restrictions imposed by the presence of remaining free variables.
 
 \begin{mathpar}
   \text{(no $0$-I)}
   \and
   \inferrule*[right=$0$-E$_i$]
-  {\ctx{\Gamma}{\mathcal P} \vdash M : \sumTZero
-    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
+  {\ctx{\Gamma}{P} \vdash M : \sumTZero
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
   }
-  {\ctx{\Gamma}{\mathcal R} \vdash \exf{A}{M} : A}
+  {\ctx{\Gamma}{R} \vdash \exf{A}{M} : A}
 
   \inferrule*[right=$\oplus$-I]
-  {\ctx{\Gamma}{\mathcal R} \vdash M : A_i}
-  {\ctx{\Gamma}{\mathcal R} \vdash \inj{i}{M} : \sumT{A_0}{A_1}}
+  {\ctx{\Gamma}{R} \vdash M : A_i}
+  {\ctx{\Gamma}{R} \vdash \inj{i}{M} : \sumT{A_0}{A_1}}
   \and
   \inferrule*[right=$\oplus$-E]
-  {\ctx{\Gamma}{\mathcal P} \vdash M : \sumT{A}{B}
-    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{x}{A}{1} \vdash N_0 : C
-    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{y}{B}{1} \vdash N_1 : C
-    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
+  {\ctx{\Gamma}{P} \vdash M : \sumT{A}{B}
+    \\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1} \vdash N_0 : C
+    \\ \ctx{\Gamma}{Q}, \ctxvar{y}{B}{1} \vdash N_1 : C
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
   }
-  {\ctx{\Gamma}{\mathcal R} \vdash \cse{C}{M}{x}{N_0}{y}{N_1} : C}
+  {\ctx{\Gamma}{R} \vdash \cse{C}{M}{x}{N_0}{y}{N_1} : C}
 \end{mathpar}
 
 Bang
 
 \begin{mathpar}
   \inferrule*[right=$\excl{\rho}{}$-I]
-  {\ctx{\Gamma}{\mathcal P} \vdash M : A
-    \\ \subrctx{{\rho} * \mathcal P}{\mathcal R}
+  {\ctx{\Gamma}{P} \vdash M : A
+    \\ \subrctx{{\rho} * \resctx P}{\resctx R}
   }
-  {\ctx{\Gamma}{\mathcal R} \vdash \bang{M} : \excl{\rho}{A}}
+  {\ctx{\Gamma}{R} \vdash \bang{M} : \excl{\rho}{A}}
   \and
   \inferrule*[right=$\excl{\rho}{}$-E]
-  {\ctx{\Gamma}{\mathcal P} \vdash M : \excl{\rho}{A}
-    \\ \ctx{\Gamma}{\mathcal Q}, \ctxvar{x}{A}{\rho} \vdash N : B
-    \\ \subrctx{\mathcal P + \mathcal Q}{\mathcal R}
+  {\ctx{\Gamma}{P} \vdash M : \excl{\rho}{A}
+    \\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{\rho} \vdash N : B
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
   }
-  {\ctx{\Gamma}{\mathcal R} \vdash \bm{B}{M}{x}{N} : B}
+  {\ctx{\Gamma}{R} \vdash \bm{B}{M}{x}{N} : B}
 \end{mathpar}
 
 \fixme{Constants}
 
 \subsection{Example programs}
 
-\begin{example}[K]
-We can show that $\excl{\rho}{}$ satisfies the modal logic axiom K
-(that is,
-$\fun{\tensor{\excl{\rho}{C}}{\excl{\rho}{D}}}{\excl{\rho}{(\tensor{C}{D})}}$)
-for any $\rho$.
+\subsubsection{Monoidality}
+We can show that $\excl{\rho}{}$ preserves tensor products in one direction:
+$\fun{\tensor{\excl{\rho}{C}}{\excl{\rho}{D}}}{\excl{\rho}{(\tensor{C}{D})}}$.
 
 \[
-  \begin{eqns}
+  \begin{aligned}
     \lam{bcbd}{& \prm{ }{bcbd}{bc}{bd}{\\
         & \bm{ }{bc}{c}{\\
           & \bm{ }{bd}{d}{\\
             & \bang{\ten{c}{d}}}}}}
-  \end{eqns}
+  \end{aligned}
 \]
 
 In the resourcing derivation, the interesting part is after all of the pattern
@@ -313,123 +375,159 @@ At this point, we cannot use the variable $cd$ because we might not have
 $1 \subres \rho$, and so the condition of the var rule fails.
 We can do $\otimes$-I, but there is no satisfactory way to split $cd^\rho$
 between the two halves.
-\end{example}
+The interpretation of this non-derivability in linear logic is that
+$\excl{\omega}{(\tensor{C}{D})}$ promises an unlimited supply of $C$s and $D$s
+\emph{in lock step}, whereas $\tensor{\excl{\omega}{C}}{\excl{\omega}{C}}$
+promises both an unlimited supply of $C$s and an unlimited supply of $D$s with
+no relation between each other.
 
-\begin{example}[Comonad operations]
-  We have the following two derivations.
+\subsubsection{Comonad operations}
+We have the following two derivations.
 
-  \begin{mathpar}
-    \inferrule*[Right=$\multimap$-I]{
-      \inferrule*[Right=$\excl{1}{}$-E]{
-        \inferrule*[right=var]{ }
-        {\ctxvar{ba}{\excl{1}{A}}{1} \vdash ba : \excl{1}{A}}
-        \\
-        \inferrule*[Right=var]{ }
-        {\ctxvar{ba}{\excl{1}{A}}{0}, \ctxvar{a}{A}{1} \vdash a : A}
-      }
-      {\ctxvar{ba}{\excl{1}{A}}{1} \vdash \bm{A}{ba}{a}{a} : A}
+\begin{mathpar}
+  \inferrule*[Right=$\multimap$-I]{
+    \inferrule*[Right=$\excl{1}{}$-E]{
+      \inferrule*[right=var]{ }
+      {\ctxvar{ba}{\excl{1}{A}}{1} \vdash ba : \excl{1}{A}}
+      \\
+      \inferrule*[Right=var]{ }
+      {\ctxvar{ba}{\excl{1}{A}}{0}, \ctxvar{a}{A}{1} \vdash a : A}
     }
-    {\vdash \lam{ba}{\bm{A}{ba}{a}{a}} : \fun{\excl{1}{A}}{A}}
+    {\ctxvar{ba}{\excl{1}{A}}{1} \vdash \bm{A}{ba}{a}{a} : A}
+  }
+  {\vdash \lam{ba}{\bm{A}{ba}{a}{a}} : \fun{\excl{1}{A}}{A}}
 
-    \and
+  \and
 
-    \inferrule*[Right=$\multimap$-I]{
-      \inferrule*[Right=$\excl{\pi * \rho}{}$-E]{
-        \inferrule*[right=var]{ }
-        {\ctxvar{ba}{\excl{\pi * \rho}{A}}{1} \vdash ba : \excl{\pi * \rho}}
-        \\
-        \inferrule*[Right=$\excl{\pi}{}$-I]{
-          \inferrule*[Right=$\excl{\rho}{}$-I]{
-            \inferrule*[Right=var]{ }
-            {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{1} \vdash
-              a : A}
-          }
-          {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{\rho} \vdash
-            \bang{a} : \excl{\rho}{A}}
+  \inferrule*[Right=$\multimap$-I]{
+    \inferrule*[Right=$\excl{\pi * \rho}{}$-E]{
+      \inferrule*[right=var]{ }
+      {\ctxvar{ba}{\excl{\pi * \rho}{A}}{1} \vdash ba : \excl{\pi * \rho}}
+      \\
+      \inferrule*[Right=$\excl{\pi}{}$-I]{
+        \inferrule*[Right=$\excl{\rho}{}$-I]{
+          \inferrule*[Right=var]{ }
+          {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{1} \vdash
+            a : A}
         }
-        {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{\pi * \rho} \vdash
-          \bang{\bang{a}} : \excl{\pi}{\excl{\rho}{A}}}
+        {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{\rho} \vdash
+          \bang{a} : \excl{\rho}{A}}
       }
-      {\ctxvar{ba}{\excl{\pi * \rho}{A}}{1} \vdash
-        \bm{A}{ba}{a}{\bang{\bang{a}}} : \excl{\pi}{\excl{\rho}{A}}}
+      {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{\pi * \rho} \vdash
+        \bang{\bang{a}} : \excl{\pi}{\excl{\rho}{A}}}
     }
-    {\vdash \lam{ba}{\bm{A}{ba}{a}{\bang{\bang{a}}}}
-      : \fun{\excl{\pi * \rho}{A}}{\excl{\pi}{\excl{\rho}{A}}}}
-  \end{mathpar}
+    {\ctxvar{ba}{\excl{\pi * \rho}{A}}{1} \vdash
+      \bm{A}{ba}{a}{\bang{\bang{a}}} : \excl{\pi}{\excl{\rho}{A}}}
+  }
+  {\vdash \lam{ba}{\bm{A}{ba}{a}{\bang{\bang{a}}}}
+    : \fun{\excl{\pi * \rho}{A}}{\excl{\pi}{\excl{\rho}{A}}}}
+\end{mathpar}
 
-  These are the counit and comultiplication required in showing that $\excl{(-)}{}$ is a
-  graded comonad in our category of types and functions.
-\end{example}
+These are the counit and comultiplication required in showing that $\excl{(-)}{}$ is a
+graded comonad in our category of types and functions.
 
 \fixme{exponentials turn additives into multiplicatives}
 
 \subsection{Admissible rules}
 
+Recalling from \fixme{???}, $\pi \subres \rho$ says that
+$\rescomment \rho$ places more relaxed restrictions than $\rescomment \pi$.
+When lifted pointwise, $\resctx P \subres \resctx Q$ means that
+$\resctx Q$ is a more liberal context than $\resctx
+ P$, so any term well resourced in $\resctx P$ is also well
+resourced in $\resctx Q$.
+
 \begin{lemma}[Sub-resourcing]
   \[
     \inferrule*[right=subres]{
-      \Gamma^{\mathcal Q} \vdash M : A
-      \\ \mathcal P \subres \mathcal Q
+      \ctx{\Gamma}{P} \vdash M : A
+      \\ \resctx P \subres \resctx Q
     }
     {
-      \Gamma^{\mathcal P} \vdash M : A
+      \ctx{\Gamma}{Q} \vdash M : A
     }
   \]
 \end{lemma}
 \begin{proof}
-  By induction on the resourcing derivation until a rule with a sub-resourcing
-  precondition is encountered, in which cases the transitivity of sub-resourcing
-  is enough to be done.
+  By induction on the resourcing derivation until a rule with splitting is
+  encountered.
+  Here, we will just consider splitting by addition, but the other cases are
+  similar.
+  Suppose we are given a derivation of $\ctx{\Gamma}{P} \vdash M : A$,
+  from which one of the premises is
+  $\resctx P_0 + \resctx P_1 \subres \resctx P$.
+  Then, because $\resctx P \subres \resctx Q$, we also have
+  $\resctx P_0 + \resctx P_1 \subres \resctx P$.
+  Therefore, we can give a derivation for
+  $\ctx{\Gamma}{Q} \vdash M : A$ which is the same as the derivation we
+  were given, except with the updated splitting premise.
 \end{proof}
+
+Famously, linear logic does not allow unrestricted weakening.
+Our system retains this in spirit, but contains a restricted variant.
+Thinking of the $\{0,1,\omega\}$ instantiation, the following rule says that
+\emph{absent} and \emph{unrestricted} variables may be weakened, but linear
+variables may not be.
+In the monotonicity instantiation, all annotations are above $0$, so weakening
+can be applied to any variable.
 
 \begin{lemma}[Weakening]
   We can add unmentioned free variables if those variables are annotated with a
   weakenable annotation.
   \[
     \inferrule*[right=weak]{
-      \ctx{\Gamma}{\mathcal P}, \ctx{\Delta}{\mathcal Q} \vdash M : A
-      \\ \rescomment{\vct 0 \subres \mathcal Q}
+      \ctx{\Gamma}{P}, \ctx{\Delta}{Q} \vdash M : A
+      \\ \vct 0 \subres \resctx Q
     }
     {
-      \ctx{\Gamma}{\mathcal P} \vdash M : A
+      \ctx{\Gamma}{P} \vdash M : A
     }
   \]
 \end{lemma}
 
+Our main syntactic lemma is substitution.
+To state and prove substitution, the key insight is that semirings give rise to
+an important fragment of linear algebra.
+In particular, we can form vectors and matrices of semiring elements, and define
+addition, scaling, and multiplication.
+Addition and scaling were the two operators used in premises of typing rules.
+Multiplication will be used to apply a substitution to a context.
+
+\fixme{\ldots example of why na\"{i}ve substitution doesn't work}
+
 Let $|-|$ denote the set of free variables of a given context.
 
 \begin{definition}[Well resourced substitution]
-  A substitution $\sigma$ from $\Gamma^{\mathcal P}$ to
-  $\Delta^{\mathcal Q}$ is a tuple with the following data.
+  A substitution $\sigma$ from $\Gamma^{\resctx P}$ to
+  $\Delta^{\resctx Q}$ is a tuple with the following data.
 
   \begin{itemize}
-  \item a matrix $\mat \Sigma : \mathscr R^{|\mathcal Q| \times |\mathcal P|}$
-  \item a function $M : |\Delta| \to \operatorname{Term} |\Gamma|$
-  \item a proof that $\forall (x:A) \in \Delta.~\Gamma^{\vct e_x \mat \Sigma}
-    \vdash M~x : A$, noting that $\vct e_x \mat \Sigma$ is the $x$th column of
-    $\mat \Sigma$ as a row vector
-  \item a proof that $\mathcal Q \mat \Sigma \subres \mathcal P$, where
-    $\mathcal Q$ and $\mathcal P$ are viewed as row vectors
+  \item a matrix $\mat \Sigma : \mathscr R^{|\resctx Q| \times |\resctx P|}$
+  \item a proof that $\forall (x:A) \in \Delta.\exists M_x.~\Gamma^{\vct e_x \mat \Sigma}
+    \vdash M_x : A$ %, noting that $\vct e_x \mat \Sigma$ is the $x$th column of
+    %$\mat \Sigma$ as a row vector
+  \item a proof that $\resctx Q \mat \Sigma \subres \resctx P$, where
+    $\resctx Q$ and $\resctx P$ are viewed as row vectors
   \end{itemize}
 \end{definition}
 
 \begin{lemma}[Substitution]
   \[
     \inferrule*[right=subst]{
-      \Delta^{\mathcal Q} \vdash N : A
-      \\ \sigma : \Gamma^{\mathcal P} \Rightarrow \Delta^{\mathcal Q}
+      \ctx{\Delta}{Q} \vdash N : A
+      \\ \sigma : \ctx{\Gamma}{P} \Rightarrow \ctx{\Delta}{Q}
     }
     {
-      \Gamma^{\mathcal P} \vdash N[\sigma] : A
+      \ctx{\Gamma}{P} \vdash N[\sigma] : A
     }
   \]
 \end{lemma}
 \renewcommand{\proofname}{Proof sketch}
 \begin{proof}
   By induction on the resourcing derivation.
-  Wherever a context is split, by any of $\vct 0 \subres \mathcal R$,
-  $\mathcal P + \mathcal Q \subres \mathcal R$, or
-  $\rho * \mathcal P \subres \mathcal R$, the linearity of vector-matrix
+  Wherever a context is split, by any of $\vct 0 \subres \resctx R$,
+  $\resctx P + \resctx Q \subres \resctx R$, or
+  $\rho * \resctx P \subres \resctx R$, the linearity of vector-matrix
   multiplication means that $\mat \Sigma$ can stay the same.
   When going under a binder, the new substitution matrix will be constructed
   from the given $\mat \Sigma$ as the following.

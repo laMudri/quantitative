@@ -1,12 +1,27 @@
-% Semantics
-
 Resources will provide a refinement of the semantics of typed programs.
-Thus, we begin with a standard semantics in $\mathrm{Set}$ of typed terms.
+More precisely, we provide a standard semantics of merely well \emph{typed}
+terms into $\mathrm{Set}$, which allows us to interpret terms as programs.
+Then, our semantics of well \emph{resourced} terms is into indexed binary
+relations over elements of the $\mathrm{Set}$ semantics.
+
+In addition to the parametricity of the syntax over the choice of resource
+annotations, the semantics is parametrised over a monoidal category of worlds,
+which keep track of resources and restrictions we have accumulated.
+Also, the choice of how to interpret the base type and the bang modality is
+fairly liberal.
+
+\subsection{Semantics of typed terms}
+
+We begin with a standard semantics in $\mathrm{Set}$ of typed terms.
+We do not require terms to be well resourced at this stage, and consequently
+this semantics is entirely oblivious to the concerns of resourcing.
+In particular, $\excl{\rho}{}$ has no effect, and the two types of products are
+conflated.
 
 \begin{displaymath}
   \begin{array}{c@{\hspace{0.5in}}c}
     \begin{eqns}
-      \sem{\base} &=& S_\base \\
+      \sem{\base} &=& X_\base \\
       \sem{\excl{\rho}{A}} &=& \sem{A} \\
       \sem{\tensorOne} &=& \{*\} \\
       \sem{\withTOne} &=& \{*\} \\
@@ -23,82 +38,59 @@ Thus, we begin with a standard semantics in $\mathrm{Set}$ of typed terms.
   \end{array}
 \end{displaymath}
 
+Typing contexts $\Gamma$ are interpreted as cartesian products of their points.
+Each typing derivation $\Gamma \vdash M : A$ is interpreted as a function
+$\sem{M} : \sem{\Gamma} \to \sem{A}$ in the standard way, extended trivially for
+the $\excl{\rho}{}$ rules.
+
+\subsection{Semantics of resourced terms}
+
 The refinement resources provide on top of this is a Kripke-indexed logical
 relation $\sem{A}^R : \mathcal{W}^{op} \to \operatorname{Rel}\sem{A}$ for each type $A$.
 $\mathcal{W}$ is assumed to be a symmetric promonoidal category.
 
+Let $\left| X \right|$ be the proposition that $X$ is inhabited.
+
 \begin{displaymath}
-  \begin{array}{rlll}
-    \sem{\base}^R && &= R_\base \\
-    \sem{\fun{A}{B}}^R & w & (f,f') &= \forall x,y.~P(y,w)x \Rightarrow \forall
-    a,a'.~\sem{A}^R~y~(a,a') \Rightarrow \sem{B}^R~x~(f~a,f'~a') \\
-    \sem{\excl{\rho}{A}}^R & w & (a,a') &= \oc_\rho \sem{A}^R~w~(a,a') \\
-    \sem{\tensorOne}^R & w & (*,*) &= Jw \\
-    \sem{\tensor{A}{B}}^R & w & ((a,b),(a',b')) &= \exists x,y.~P(x,y)w \wedge
-    \sem{A}^R~x~(a,a') \wedge \sem{B}^R~y~(b,b') \\
-    \sem{\withTOne}^R & w & (*,*) &= \top \\
-    \sem{\withT{A}{B}}^R & w & ((a,b),(a',b')) &=
+  \begin{array}{rllcl}
+    \sem{\base}^R & w & (c,c') &\gets& R_\base~w~(c,c') \\
+    \sem{\fun{A}{B}}^R & w & (f,f')
+                               &\gets& \forall x,y.~
+                                 \left| \mathcal W(x, y \otimes w) \right|
+                                 \Rightarrow \\
+    &&&& \forall a,a'.~\sem{A}^R~y~(a,a')
+                                 \Rightarrow \sem{B}^R~x~(f~a,f'~a') \\
+    \sem{\excl{\rho}{A}}^R & w & (a,a') &\gets& \oc_\rho \sem{A}^R~w~(a,a') \\
+    \sem{\tensorOne}^R & w & (*,*) &\gets& \left|\mathcal W(w, I)\right| \\
+    \sem{\tensor{A}{B}}^R & w & ((a,b),(a',b'))
+                               &\gets& \exists x,y.~
+                                 \left| \mathcal W(w, x \otimes y) \right|
+                                 \wedge \sem{A}^R~x~(a,a')
+                                 \wedge \sem{B}^R~y~(b,b') \\
+    \sem{\withTOne}^R & w & (*,*) &\gets& \top \\
+    \sem{\withT{A}{B}}^R & w & ((a,b),(a',b')) &\gets&
     \sem{A}^R~w~(a,a') \wedge \sem{B}^R~w~(b,b') \\
-    \sem{\sumT{A}{B}}^R & w & (u,u') &=
-    \begin{cases}
-      \sem{A}^R~w~(a,a') & \text{if } (u,u') = (\operatorname{inl} a,
-                           \operatorname{inl} a') \\
-      \sem{B}^R~w~(b,b') & \text{if } (u,u') = (\operatorname{inr} b,
-                           \operatorname{inr} b') \\
-      \bot & \text{otherwise}
-    \end{cases}
+    \sem{\sumT{A}{B}}^R & w & (\operatorname{inl} a,\operatorname{inl} a')
+                               &\gets& \sem{A}^R~w~(a,a') \\
+    \sem{\sumT{A}{B}}^R & w & (\operatorname{inr} b,\operatorname{inr} b')
+                               &\gets& \sem{B}^R~w~(b,b') \\
   \end{array}
 \end{displaymath}
 
-\subsection{Example instantiations}
-The ingredients of our fundamental lemma are perhaps well known
-(relational interpretations, Kripke-indexing), but the value of our
-framework lies in the generality of being able to choose $\mathcal{W}$
-and its promonoidal structure, and the interpretion the $\oc_\rho$
-modality as a relation transformer. Examples include:
+Type-and-resourcing contexts $\ctx{\Gamma}{R}$ are interpreted as
+tensor products of banged points.
 
-\paragraph{Permutation Types} With the $\{0,1,\omega\}$ semiring, we
-take the category $\mathcal{W}$ to consist of lists of some type of
-keys, and permutations between them. The relation transformer is
-defined as: $\oc_0 R~l = \top$, where $\top$ is the total relation,
-$\oc_1 R~l = R~l$ and $R_\omega~R~l = (l = []) \land R~l$. With
-suitable types of keys and lists of keys, the fundamental lemma states
-that all programs are permutations. This result has already been
-formalised in a one-off type system at
-\url{https://github.com/bobatkey/sorting-types}.
+%\begin{displaymath}
+%  \begin{eqns}
+%    \sem{\ctx{\cdot}{\cdot}}^R~w~(*,*) &=& \mathcal W(w, I) \\
+%    \sem{\ctx{\Gamma}{R}, \ctxvar{x}{A}{\rho}}^R~w
+%    ~((\gamma,a), (\gamma',a')) &=& 
+%  \end{eqns}
+%%  \sem{\ctxvar{x_1}{A_1}{\rho_1}, \ldots \ctxvar{x_n}{A_n}{\rho_n}} \coloneqq
+%\end{displaymath}
 
-\paragraph{Monotonicity Types} With $R$ the partially ordered semiring
-with carrier $\{0,\uparrow,\downarrow,\equiv\}$ ordered
-${\equiv} \leq {\uparrow},{\downarrow}$ and ${\uparrow}, {\downarrow} \leq 0$,
-we take $\mathcal{W}$ to be the one-object, one-arrow category, and
-define the relation transformer $\oc$ to be:
-\begin{mathpar}
-  \oc_0~R = \top
+\subsection{Fundamental lemma}
 
-  \oc_\uparrow~R = R
-
-  \oc_\downarrow~R = R^{op}
-
-  \oc_\equiv~R = R \cap R^{op}
-\end{mathpar}
-If we let our base type be natural numbers with the relational
-interpretation $R_{\mathrm{nat}}(n,n') \Leftrightarrow n \leq n'$,
-then the fundamental lemma states that a program of type
-$\ctxvar{x}{\mathrm{nat}}{\uparrow} \vdash t : \mathrm{nat}$ is
-covariant (and similarly for contravariant and invariant).
-
-\paragraph{Sensitivity Analysis} With the
-$R = \mathbb{R} \cup \{\infty\}$ semiring, we let $\mathcal{W}$ be $R$
-as well. The relation transformer is given by scaling. With a base
-type of real numbers with relational intepretation
-$R_{\mathrm{real}}~k~(x,x') \Leftrightarrow |x-x'| \leq k$, then the
-fundamental lemma states that the usage annotations on the input
-variables tracks the extent to which the program is sensitive to
-changes in those variables.
-
-\paragraph{Information Flow} With the $R = \mathcal{P}(L)$ semiring,
-we again take $\mathcal{W} = R$, and let the relation transformer to
-be
-$\oc_l R~l' = \{\top~\textrm{when }l \geq l'; R~\textrm{otherwise}\}$.
-Then the fundamental lemma yields the same non-interference properties
-as stated by Abadi et al. for the DCC \cite{abadi99core}.
+\begin{displaymath}
+  \ctx{\Gamma}{R} \vdash t : T \implies \sem{\ctx{\Gamma}{R}}^R w~(\gamma, \gamma') \implies \sem{T}^R w~(\sem{t}\gamma, \sem{t}\gamma')
+\end{displaymath}

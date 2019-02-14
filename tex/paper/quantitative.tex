@@ -72,15 +72,18 @@
 \def\newelims{1}
 \input{../macros.tex}
 
-\newtheorem{example}{Example}
-\newtheorem{definition}{Definition}
-\newtheorem{lemma}{Lemma}
+%\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+%\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
 
 \begin{document}
 
 %% Title information
 \title%[Short Title]
-       {Context Constrained Computation (NSTC)} %% [Short Title] is optional;
+       {Terms with Good Grades (NSTC)} %% [Short Title] is optional;
                                         %% when present, will be used in
                                         %% header instead of Full Title.
 \titlenote{with title note}             %% \titlenote is optional;
@@ -193,6 +196,10 @@ Text of abstract \ldots.
 \section{Semantics}
 \label{sec:semantics}
 \input{semantics}
+
+\section{Instantiations}
+\label{sec:instantiations}
+\input{instantiations}
 
 \section{Conclusions}
 \label{sec:future-work}
