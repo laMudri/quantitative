@@ -40,6 +40,7 @@ module Quantitative.Semantics.WRel
 
     open import Lib.Equality using (_≡_; refl; subst2)
     open import Lib.Function
+    open import Lib.List as L
     open import Lib.Matrix.Setoid (≡-Setoid C)
     open import Lib.One
     open import Lib.Product
@@ -234,6 +235,52 @@ module Quantitative.Semantics.WRel
     }
   module ⊕W {A B} = Functor (⊕W {A} {B})
 
+  ListW : ∀ {A} → Functor (WREL A) (WREL (List A))
+  ListW {A} = record
+    { obj = R*
+    ; arr = λ {R} {S} → record
+      { _$E_ = λ α → record { η = arr α ; square = λ _ → <> }
+      ; _$E=_ = id
+      }
+    ; isFunctor = record { arr-id = λ _ _ → <> ; arr->> = λ _ → <> }
+    }
+    where
+    module Dummy (R : WREL.Obj A) where
+
+      data R*-obj (w : W.Obj) : Rel (List A) lzero
+      R* : WREL.Obj (List A)
+
+      data R*-obj w where
+        nil : Functor.obj 1W w <> <> → R*-obj w [] []
+        cons : ∀ {x y xs ys} →
+               Functor.obj (×W.obj (R , R*)) w (x , xs) (y , ys) →
+               R*-obj w (x ∷ xs) (y ∷ ys)
+
+      R*-arr : ∀ {u v} (vu : v W.=> u) (xs ys : List A)
+               (rs : R*-obj u xs ys) → R*-obj v xs ys
+      R*-arr vu [] [] (nil sp) = nil (J.arr $E (<> , vu) $E sp)
+      R*-arr vu (x ∷ xs) (y ∷ ys) (cons (a , b , abu , sp)) =
+        cons (a , b , P.arr $E (Category.id (W ×C W) (a , b) , vu) $E abu , sp)
+
+      R* = record
+        { obj = R*-obj
+        ; arr = →E-⊤ _ R*-arr
+        ; isFunctor = record
+          { arr-id = λ _ → <>
+          ; arr->> = <>
+          }
+        }
+    open Dummy using (R*; R*-obj)
+    open module Implicit {R} = Dummy R using (nil; cons)
+
+    arr : ∀ {R S : WREL.Obj A} (α : NatTrans R S) w xs ys →
+          R*-obj R w xs ys → R*-obj S w xs ys
+    arr α w [] [] (nil sp) = nil sp
+    arr α w (x ∷ xs) (y ∷ ys) (cons (a , b , abw , r , rs)) =
+      cons (a , b , abw , η a x y r , arr α b xs ys rs)
+      where open NatTrans α
+  module ListW {A} = Functor (ListW {A})
+
   ⊤×⊤-⇒W-⊤ : ∀ {A B} → ×W.obj {A} {B} (⊤W , ⊤W) ⇒W ⊤W
   ⊤×⊤-⇒W-⊤ = record
     { η = λ w → λ { (a , b) (a′ , b′) (x , y , xyw , Jx , Jy) →
@@ -387,6 +434,7 @@ module Quantitative.Semantics.WRel
   R⟦ S & T ⟧T = &W.obj (R⟦ S ⟧T , R⟦ T ⟧T)
   R⟦ S ⊕ T ⟧T = ⊕W.obj (R⟦ S ⟧T , R⟦ T ⟧T)
   R⟦ ! ρ S ⟧T = R⟦ S , ρ ⟧ρ
+  R⟦ LIST S ⟧T = ListW.obj R⟦ S ⟧T
 
   R⟦ T , ρ ⟧ρ = act ρ R⟦ T ⟧T
 
