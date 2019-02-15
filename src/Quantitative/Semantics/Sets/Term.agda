@@ -11,6 +11,7 @@ module Quantitative.Semantics.Sets.Term
 
   open import Lib.Equality
   open import Lib.Function as F hiding (const)
+  open import Lib.List as L
   open import Lib.One
   open import Lib.Product
   open import Lib.Sum
@@ -35,6 +36,8 @@ module Quantitative.Semantics.Sets.Term
   ⟦ cse et s0t s1t ⟧t η with ⟦ et ⟧t η
   ... | inl s0 = ⟦ s0t ⟧t (s0 , η)
   ... | inr s1 = ⟦ s1t ⟧t (s1 , η)
+  ⟦ fold et snt sct ⟧t η =
+    L.fold (⟦ et ⟧t η) _ (⟦ snt ⟧t η) λ h acc → ⟦ sct ⟧t (h , acc , η)
   ⟦ the st ⟧t = ⟦ st ⟧t
   ⟦ lam st ⟧t η = λ s → ⟦ st ⟧t (s , η)
   ⟦ bang st ⟧t = ⟦ st ⟧t
@@ -44,4 +47,6 @@ module Quantitative.Semantics.Sets.Term
   ⟦ wth s0t s1t ⟧t = F.const _,_ <s> ⟦ s0t ⟧t <s> ⟦ s1t ⟧t
   ⟦ inj {i = ttt} st ⟧t = inl o ⟦ st ⟧t
   ⟦ inj {i = fff} st ⟧t = inr o ⟦ st ⟧t
+  ⟦ nil ⟧t = λ _ → []
+  ⟦ cons s0t s1t ⟧t = F.const _∷_ <s> ⟦ s0t ⟧t <s> ⟦ s1t ⟧t
   ⟦ [ et ] ⟧t = ⟦ et ⟧t
