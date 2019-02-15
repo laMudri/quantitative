@@ -8,6 +8,7 @@ module Quantitative.Semantics.Sets
   open import Quantitative.Types PrimTy C Const constTy
 
   open import Lib.Equality
+  open import Lib.List
   open import Lib.One
   open import Lib.Product
   open import Lib.Sum
@@ -27,6 +28,7 @@ module Quantitative.Semantics.Sets
   ⟦ S & T ⟧T = ⟦ S ⟧T × ⟦ T ⟧T
   ⟦ S ⊕ T ⟧T = ⟦ S ⟧T ⊎ ⟦ T ⟧T
   ⟦ ! ρ S ⟧T = ⟦ S ⟧T
+  ⟦ LIST S ⟧T = List ⟦ S ⟧T
 
   ⟦_⟧Γ : ∀ {n} → TCtx n → Set
   ⟦ Γ ⟧Γ = Vec-rec One _×_ (vmap ⟦_⟧T Γ)
