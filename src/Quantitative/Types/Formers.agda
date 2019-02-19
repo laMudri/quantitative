@@ -1,6 +1,6 @@
 open import Lib.Nat
 
-module Quantitative.Types.Formers {c} (C : Set c) where
+module Quantitative.Types.Formers {c} (B : Set c) (C : Set c) where
 
   open import Lib.Vec
 
@@ -8,6 +8,7 @@ module Quantitative.Types.Formers {c} (C : Set c) where
   infixr 40 _⊕_
   infixr 50 _⊗_ _&_
   data Ty : Set c where
-    BASE ⊗1 &1 ⊕0 : Ty
+    BASE : B -> Ty
+    ⊗1 &1 ⊕0 : Ty
     _⊸_ _⊗_ _&_ _⊕_ : (S T : Ty) → Ty
     ! : (ρ : C) (S : Ty) → Ty

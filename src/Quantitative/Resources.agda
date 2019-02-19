@@ -6,13 +6,14 @@ open import Lib.Structure.Sugar
 import Quantitative.Types.Formers as Form
 
 module Quantitative.Resources
-  {c k l′} (C : Set c) (open Form C) (Const : Set k) (constTy : Const → Ty)
+  {c k l′} (PrimTy : Set c) (C : Set c) (open Form PrimTy C)
+  (Const : Set k) (constTy : Const → Ty)
   (POS : Posemiring (≡-Setoid C) l′) where
 
   open Posemiring POS using (poset; semiring; +-commutativeMonoid)
 
   open import Quantitative.Syntax Ty Const
-  open import Quantitative.Types C Const constTy
+  open import Quantitative.Types PrimTy C Const constTy
   open import Quantitative.Resources.Context C Const POS
   open import Lib.Module
 

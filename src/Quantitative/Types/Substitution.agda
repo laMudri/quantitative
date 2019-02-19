@@ -1,13 +1,13 @@
 import Quantitative.Types.Formers as Form
 
 module Quantitative.Types.Substitution
-       {c k} (C : Set c) (open Form C)
+       {c k} (PrimTy : Set c) (C : Set c) (open Form PrimTy C)
        (Const : Set k) (constTy : Const → Ty) where
 
   open import Quantitative.Syntax.Direction
   open import Quantitative.Syntax Ty Const
   open import Quantitative.Syntax.Substitution Ty Const
-  open import Quantitative.Types C Const constTy
+  open import Quantitative.Types PrimTy C Const constTy
 
   open import Lib.Equality
   open import Lib.Function hiding (const)

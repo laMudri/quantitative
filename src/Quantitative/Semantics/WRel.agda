@@ -8,7 +8,7 @@ open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Semantics.WRel
-  {c k l} (C : Set c) (open Form C)
+  {c k l} (PrimTy : Set c) (C : Set c) (open Form PrimTy C)
   (Const : Set k) (constTy : Const → Ty)
   (posemiring : Posemiring (≡-Setoid C) l)
   (W : Category lzero lzero lzero)
@@ -16,14 +16,13 @@ module Quantitative.Semantics.WRel
   (isSymmetricPromonoidal : IsSymmetricPromonoidal _ J P)
   (let WREL = λ (A : Set) → FUNCTOR (OP W) (REL (≡-Setoid A) lzero))
   (let module WREL A = Category (WREL A))
-  (Base : Set) (BaseR : WREL.Obj Base)
+  (Base : PrimTy -> Set) (BaseR : (b : PrimTy) -> WREL.Obj (Base b))
   (actF : ∀ {A} → C → EndoFunctor (WREL A)) where
 
   private
     module W = Category W
     module Wᵒᵖ = Category (OP W)
     module J = Functor J ; module P = Functor P
-    module BaseR = Functor BaseR
     open IsSymmetricPromonoidal isSymmetricPromonoidal
 
     module actF {A} ρ = Functor (actF {A} ρ)
@@ -32,11 +31,11 @@ module Quantitative.Semantics.WRel
     module act {A} ρ S = Functor (act {A} ρ S)
 
     open import Quantitative.Syntax Ty Const renaming ([_] to emb)
-    open import Quantitative.Types C Const constTy renaming ([_] to emb)
-    open import Quantitative.Resources C Const constTy posemiring
+    open import Quantitative.Types PrimTy C Const constTy renaming ([_] to emb)
+    open import Quantitative.Resources PrimTy C Const constTy posemiring
                                                    renaming ([_] to emb)
     open import Quantitative.Resources.Context C Const posemiring
-    open import Quantitative.Semantics.Sets C Const constTy Base
+    open import Quantitative.Semantics.Sets PrimTy C Const constTy Base
 
     open import Lib.Equality using (_≡_; refl; subst2)
     open import Lib.Function
@@ -374,7 +373,7 @@ module Quantitative.Semantics.WRel
   R⟦_⟧T : (T : Ty) → WREL.Obj ⟦ T ⟧T
   R⟦_,_⟧ρ : ∀ T ρ → WREL.Obj ⟦ T ⟧T
 
-  R⟦ BASE ⟧T = BaseR
+  R⟦ BASE b ⟧T = BaseR b
   R⟦ ⊗1 ⟧T = 1W
   R⟦ &1 ⟧T = &1W
   R⟦ ⊕0 ⟧T = record
