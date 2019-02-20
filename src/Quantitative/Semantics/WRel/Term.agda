@@ -71,6 +71,12 @@ module Quantitative.Semantics.WRel.Term
   Rρ-weaken : ∀ T {π ρ} → ρ R.≤ π → R⟦ T , ρ ⟧ρ ⇒W R⟦ T , π ⟧ρ
   Rρ-weaken T le = act-≤ le R⟦ T ⟧T
 
+  RΔ-weaken : ∀ {n} Γ {Δ Δ′ : RCtx n} → Δ ≤M Δ′ → R⟦ Γ , Δ ⟧Δ ⇒W R⟦ Γ , Δ′ ⟧Δ
+  RΔ-weaken nil sub = idN 1W
+  RΔ-weaken (T :: Γ) sub =
+    ×W.arr $E (Rρ-weaken T (sub (zeroth , zeroth))
+              , RΔ-weaken Γ (λ x → let i , j = x in sub (o′ i , j)))
+
 
   Rρ-split-0 : ∀ T {ρ} → ρ R.≤ R.e0 → R⟦ T , ρ ⟧ρ ⇒W ⊤W
   Rρ-split-0 T {ρ} le = WREL._>>_ _ {R⟦ T , ρ ⟧ρ} {R⟦ T , R.e0 ⟧ρ} {⊤W}
@@ -255,6 +261,20 @@ module Quantitative.Semantics.WRel.Term
   fundamental (inj {i = fff} sr) =
     let ih = fundamental sr in record
     { η = λ w γ γ′ δδ → inr (ih .η w γ γ′ δδ)
+    ; square = λ _ → <>
+    }
+  fundamental {Γ = Γ} (nil split) =
+    RΔ-split-0 Γ split >>N record
+    { η = λ w γ γ′ δδ → nil δδ
+    ; square = λ _ → <>
+    }
+  fundamental {Γ = Γ} (cons split s0r s1r) =
+    let ih0 = fundamental s0r ; ih1 = fundamental s1r in
+    RΔ-split-+ Γ split >>N record
+    { η = λ
+      where w γ γ′ (a , b , abw , δδ0 , δδ1) →
+              cons a b abw (ih0 .η a γ γ′ δδ0)
+                           (ih1 .η b γ γ′ δδ1)
     ; square = λ _ → <>
     }
   fundamental (emb er) = fundamental er
