@@ -68,10 +68,9 @@ module Quantitative.Semantics.WRel
 
   mapW-func : ∀ {A B R S} (f : A → B) → R ⇒W S → mapW f R ⇒W mapW f S
   mapW-func f rs = record
-    { η = λ w a b fr → η w (f a) (f b) fr
+    { η = λ w a b fr → rs .η w (f a) (f b) fr
     ; square = λ _ → <>
     }
-    where open NatTrans rs
 
   mapW-subst : ∀ {A B} R {f g : A → B} → f ≡E g → mapW f R ⇒W mapW g R
   mapW-subst R fg = record
@@ -122,10 +121,9 @@ module Quantitative.Semantics.WRel
       ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
       } }
     ; arr = record
-      { _$E_ = λ { (ηr , ηs) →
-        let module ηr = NatTrans ηr ; module ηs = NatTrans ηs in record
+      { _$E_ = λ { (ηr , ηs) → record
         { η = λ { w (a , b) (a′ , b′) (x , y , p , r , s) →
-                  x , y , p , ηr.η x a a′ r , ηs.η y b b′ s }
+                  x , y , p , ηr .η x a a′ r , ηs .η y b b′ s }
         ; square = λ _ → <>
         } }
       ; _$E=_ = λ _ _ → <>
@@ -146,7 +144,7 @@ module Quantitative.Semantics.WRel
     { obj = λ R → R >>F diag {A = ≡-Setoid A}
     ; arr = record
       { _$E_ = λ r → record
-        { η = λ w a b ab → NatTrans.η r w (a , a) (b , b) ab
+        { η = λ w a b ab → r .η w (a , a) (b , b) ab
         ; square = λ _ → <>
         }
       ; _$E=_ = λ _ _ → <>
@@ -170,10 +168,9 @@ module Quantitative.Semantics.WRel
       ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
       } }
     ; arr = record
-      { _$E_ = λ { (ηr , ηs) →
-        let module ηr = NatTrans ηr ; module ηs = NatTrans ηs in record
+      { _$E_ = λ { (ηr , ηs) → record
         { η = λ w f f′ s x y p a a′ r →
-                ηs.η x (f a) (f′ a′) (s x y p a a′ (ηr.η y a a′ r))
+                ηs .η x (f a) (f′ a′) (s x y p a a′ (ηr .η y a a′ r))
         ; square = λ _ → <>
         } }
       ; _$E=_ = λ _ _ → <>
@@ -199,9 +196,8 @@ module Quantitative.Semantics.WRel
       ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
       } }
     ; arr = record
-      { _$E_ = λ { (α , β) →
-        let module α = NatTrans α ; module β = NatTrans β in record
-        { η = λ { w (a , b) (a′ , b′) (r , s) → α.η w a a′ r , β.η w b b′ s }
+      { _$E_ = λ { (α , β) → record
+        { η = λ { w (a , b) (a′ , b′) (r , s) → α .η w a a′ r , β .η w b b′ s }
         ; square = λ _ → <>
         } }
       ; _$E=_ = λ _ _ → <>
@@ -222,10 +218,9 @@ module Quantitative.Semantics.WRel
       ; isFunctor = record { arr-id = λ _ → <> ; arr->> = <> }
       } }
     ; arr = record
-      { _$E_ = λ { (α , β) →
-        let module α = NatTrans α ; module β = NatTrans β in record
-        { η = λ { w (inl a) (inl a′) (inl r) → inl (α.η w a a′ r)
-                ; w (inr b) (inr b′) (inr s) → inr (β.η w b b′ s)
+      { _$E_ = λ { (α , β) → record
+        { η = λ { w (inl a) (inl a′) (inl r) → inl (α .η w a a′ r)
+                ; w (inr b) (inr b′) (inr s) → inr (β .η w b b′ s)
                 }
         ; square = λ _ → <>
         } }
@@ -234,6 +229,31 @@ module Quantitative.Semantics.WRel
     ; isFunctor = record { arr-id = λ _ _ → <> ; arr->> = λ _ → <> }
     }
   module ⊕W {A B} = Functor (⊕W {A} {B})
+
+  module ListW-Data {A} (R : WREL.Obj A) where
+
+    data R*-obj (w : W.Obj) : Rel (List A) lzero where
+      nil : Setoid.C (J.obj (<> , w)) → R*-obj w [] []
+      cons : ∀ {x y xs ys} a b → Setoid.C (P.obj ((a , b) , w)) →
+             Functor.obj R a x y → R*-obj b xs ys →
+             R*-obj w (x ∷ xs) (y ∷ ys)
+
+    R*-arr : ∀ {u v} (vu : v W.=> u) (xs ys : List A)
+             (rs : R*-obj u xs ys) → R*-obj v xs ys
+    R*-arr vu [] [] (nil sp) = nil (J.arr $E (<> , vu) $E sp)
+    R*-arr vu (x ∷ xs) (y ∷ ys) (cons a b abw r rs) =
+      cons a b (P.arr $E (Category.id (W ×C W) (a , b) , vu) $E abw) r rs
+
+    R* : WREL.Obj (List A)
+    R* = record
+      { obj = R*-obj
+      ; arr = →E-⊤ _ R*-arr
+      ; isFunctor = record
+        { arr-id = λ _ → <>
+        ; arr->> = <>
+        }
+      }
+  open module Implicit {A} {R} = ListW-Data {A} R using (nil; cons) public
 
   ListW : ∀ {A} → Functor (WREL A) (WREL (List A))
   ListW {A} = record
@@ -245,40 +265,13 @@ module Quantitative.Semantics.WRel
     ; isFunctor = record { arr-id = λ _ _ → <> ; arr->> = λ _ → <> }
     }
     where
-    module Dummy (R : WREL.Obj A) where
-
-      data R*-obj (w : W.Obj) : Rel (List A) lzero
-      R* : WREL.Obj (List A)
-
-      data R*-obj w where
-        nil : Functor.obj 1W w <> <> → R*-obj w [] []
-        cons : ∀ {x y xs ys} →
-               Functor.obj (×W.obj (R , R*)) w (x , xs) (y , ys) →
-               R*-obj w (x ∷ xs) (y ∷ ys)
-
-      R*-arr : ∀ {u v} (vu : v W.=> u) (xs ys : List A)
-               (rs : R*-obj u xs ys) → R*-obj v xs ys
-      R*-arr vu [] [] (nil sp) = nil (J.arr $E (<> , vu) $E sp)
-      R*-arr vu (x ∷ xs) (y ∷ ys) (cons (a , b , abu , sp)) =
-        cons (a , b , P.arr $E (Category.id (W ×C W) (a , b) , vu) $E abu , sp)
-
-      R* = record
-        { obj = R*-obj
-        ; arr = →E-⊤ _ R*-arr
-        ; isFunctor = record
-          { arr-id = λ _ → <>
-          ; arr->> = <>
-          }
-        }
-    open Dummy using (R*; R*-obj)
-    open module Implicit {R} = Dummy R using (nil; cons)
+    open ListW-Data using (R*; R*-obj)
 
     arr : ∀ {R S : WREL.Obj A} (α : NatTrans R S) w xs ys →
           R*-obj R w xs ys → R*-obj S w xs ys
     arr α w [] [] (nil sp) = nil sp
-    arr α w (x ∷ xs) (y ∷ ys) (cons (a , b , abw , r , rs)) =
-      cons (a , b , abw , η a x y r , arr α b xs ys rs)
-      where open NatTrans α
+    arr α w (x ∷ xs) (y ∷ ys) (cons a b abw r rs) =
+      cons a b abw (α .η a x y r) (arr α b xs ys rs)
   module ListW {A} = Functor (ListW {A})
 
   ⊤×⊤-⇒W-⊤ : ∀ {A B} → ×W.obj {A} {B} (⊤W , ⊤W) ⇒W ⊤W
@@ -330,10 +323,9 @@ module Quantitative.Semantics.WRel
            ×W.obj (R , S) [ uncurry f ]⇒W T → R [ f ]⇒W →W.obj (S , T)
   curryW R S T f α = record
     { η = λ x g g′ r  w y xyw a a′ s →
-          η w (g , a) (g′ , a′) (x , y , xyw , r , s)
+          α .η w (g , a) (g′ , a′) (x , y , xyw , r , s)
     ; square = λ _ → <>
     }
-    where open NatTrans α
 
   ⊤-⇒W-1 : ∀ A → ⊤W {A} [ (λ _ → <>) ]⇒W 1W
   ⊤-⇒W-1 A = record
@@ -385,12 +377,11 @@ module Quantitative.Semantics.WRel
           (f : A → C) (g : B → C) →
           R [ f ]⇒W T → S [ g ]⇒W T → ⊕W.obj (R , S) [ [ f , g ] ]⇒W T
   caseW R S T f g rt st = record
-    { η = λ { w (inl a) (inl a′) (inl r) → α.η w a a′ r
-            ; w (inr b) (inr b′) (inr s) → β.η w b b′ s
+    { η = λ { w (inl a) (inl a′) (inl r) → rt .η w a a′ r
+            ; w (inr b) (inr b′) (inr s) → st .η w b b′ s
             }
     ; square = λ _ → <>
     }
-    where module α = NatTrans rt ; module β = NatTrans st
 
   projW : ∀ {A B C} (f : A → B × C) (R : WREL.Obj B) (S : WREL.Obj C) i →
           mapW f (&W.obj (R , S)) ⇒W Two-rec (mapW (f >> fst) R)

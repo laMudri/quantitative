@@ -6,6 +6,7 @@ import Quantitative.Resources.Context as RCtx
 open import Lib.Category
 open import Lib.Category.Examples
 open import Lib.Level
+open import Lib.List as L hiding (fold)
 open import Lib.Relation.Propositional
 open import Lib.Setoid
 open import Lib.Structure
@@ -33,6 +34,7 @@ module Quantitative.Semantics.WRel.Term
   private
     open IsSymmetricPromonoidal isSymmetricPromonoidal
     open IsAct isAct
+    module J = Functor J ; module P = Functor P
 
     act : {A : Set} → C → WREL.Obj A → WREL.Obj A
     act = actF.obj
@@ -47,7 +49,7 @@ module Quantitative.Semantics.WRel.Term
     open import Lib.Dec
     open import Lib.Dec.Properties
     open import Lib.Equality using (_≡_; refl; subst2)
-    open import Lib.Function
+    open import Lib.Function renaming (_o_ to _∘_)
     open import Lib.Matrix.Addition
       (record { commutativeMonoid = R.+-commutativeMonoid })
     open import Lib.Matrix.Multiplication (record { semiring = R.semiring })
@@ -152,7 +154,7 @@ module Quantitative.Semantics.WRel.Term
 
     split : ∀ ij → let i , j = ij in Δρ (o′ i , j) R.≤ R.e0
     split (i , j)
-      with i ⊆? e | false→≡no (i ⊆? e) ((λ ()) o ⊆⇒≤) | split-le (o′ i , j)
+      with i ⊆? e | false→≡no (i ⊆? e) ((λ ()) ∘ ⊆⇒≤) | split-le (o′ i , j)
     ... | .(no _) | _ , refl | res =
       R.≤-trans res (R.≤-reflexive (R.annihil .snd π))
   R⟦lookup⟧ {Γ = T :: Γ} {Δρ} {π} (o′ i) split-le =
@@ -241,17 +243,17 @@ module Quantitative.Semantics.WRel.Term
   fundamental eat = record { η = λ _ _ _ _ → <> ; square = λ _ → <> }
   fundamental (wth s0r s1r) =
     let ih0 = fundamental s0r ; ih1 = fundamental s1r in record
-    { η = λ w γ γ′ δδ → NatTrans.η ih0 w γ γ′ δδ , NatTrans.η ih1 w γ γ′ δδ
+    { η = λ w γ γ′ δδ → ih0 .η w γ γ′ δδ , ih1 .η w γ γ′ δδ
     ; square = λ _ → <>
     }
   fundamental (inj {i = ttt} sr) =
     let ih = fundamental sr in record
-    { η = λ w γ γ′ δδ → inl (NatTrans.η ih w γ γ′ δδ)
+    { η = λ w γ γ′ δδ → inl (ih .η w γ γ′ δδ)
     ; square = λ _ → <>
     }
   fundamental (inj {i = fff} sr) =
     let ih = fundamental sr in record
-    { η = λ w γ γ′ δδ → inr (NatTrans.η ih w γ γ′ δδ)
+    { η = λ w γ γ′ δδ → inr (ih .η w γ γ′ δδ)
     ; square = λ _ → <>
     }
   fundamental (emb er) = fundamental er

@@ -360,11 +360,12 @@ module Lib.Category where
       field
         η : ∀ X → F.obj X => G.obj X
         square : ∀ {X Y} f → F.arr $E f >> η Y ≈ η X >> G.arr $E f
+    open NatTrans public
 
     record NatIso (F G : Functor C D) : Set (oc ⊔ od ⊔ ac ⊔ ad ⊔ ec ⊔ ed) where
       field
         natTrans : NatTrans F G
-        isos : let open NatTrans natTrans in ∀ X → IsIso (η X)
+        isos : ∀ X → IsIso (natTrans .η X)
       open NatTrans natTrans public
 
     NatTransS : (F G : Functor C D) → Setoid (oc ⊔ od ⊔ ac ⊔ ad ⊔ ec ⊔ ed)
