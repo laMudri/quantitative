@@ -4,15 +4,16 @@ $\mathscr{R}$ of resources, under conditions detailed later in the section.
 \subsection{Types}
 
 Our grammar of types and contexts is given in \autoref{fig:syntax}.
-Throughout this section, the colour \fixme{choose} highlights resource annotations, which
-are generally the interesting things to watch in typing rules and the main point
-of departure between this system and a standard simply typed $\lambda$-calculus.
+Throughout this section, the colour \rescomment{green} highlights resource
+annotations, which are generally the interesting things to watch in typing rules
+and the main point of departure between this system and a standard simply typed
+$\lambda$-calculus.
 
 \begin{figure}
   \begin{mathpar}
     \rescomment \rho, \rescomment \pi \in \mathscr R \and
-    A, B, C \Coloneqq \fun{A}{B} \mid \tensorOne \mid \tensor{A}{B} \mid
-    \withTOne \mid \withT{A}{B} \mid \sumTZero \mid \sumT{A}{B} \mid
+    A, B, C \Coloneqq \base \mid \fun{A}{B} \mid \tensorOne \mid \tensor{A}{B}
+    \mid \withTOne \mid \withT{A}{B} \mid \sumTZero \mid \sumT{A}{B} \mid
     \excl{\rho}{A} \\
     \Gamma, \Delta \Coloneqq \cdot \mid \Gamma, x : A \and
     \resctx P, \resctx Q, \resctx R \Coloneqq
@@ -24,8 +25,8 @@ of departure between this system and a standard simply typed $\lambda$-calculus.
   \label{fig:syntax}
 \end{figure}
 
-We have functions, two kinds of finite products, finite sums, and a graded
-modality $\excl{\rho}{}$.
+We have an uninterpreted base type, functions, two kinds of finite products,
+finite sums, and a graded modality $\excl{\rho}{}$.
 These will be explained further when their typing rules are introduced.
 
 Our contexts are combinations of a typing context $\Gamma$ and a resourcing
@@ -145,20 +146,42 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
 
 \subsection{Typing \& resourcing}
 
-We take typing contexts $\Gamma, \Delta$ to be vectors of types, and resourcing
-contexts $\resctx P, \resctx Q, \resctx R$ to be vectors of resource
-annotations.
-Informally, we will index both of these by named variables $x, y, z$.
-Notation of the form $\Gamma^{\resctx R}$ represents the combination of a
-typing context $\Gamma$ and a resourcing context $\resctx R$ over the same set
-of variables.
+\begin{figure}
+  \begin{displaymath}
+    \begin{array}{rl}
+      \textrm{Constants} & c \\
+      \textrm{Variables} & x \\
+      \textrm{Terms} & M, N
+                       \begin{array}[t]{rlcl}
+                         \Coloneqq & c & \mid & x \\
+                         \mid & \lam{x}{A} & \mid & \app{M}{N} \\
+                         \mid & \unit & \mid & \del{C}{M}{N} \\
+                         \mid & \ten{M}{N} & \mid & \prm{C}{M}{x}{y}{N} \\
+                         \mid & \eat & & \\
+                         \mid & \wth{M}{N} & \mid & \proj{i}{M} \\
+                                   & & \mid & \exf{C}{M} \\ 
+                         \mid & \inj{i}{M} & \mid & \cse{C}{M}{x}{N_0}{y}{N_1} \\
+                         \mid & \bang{M} & \mid & \bm{C}{M}{x}{N}
+                       \end{array}
+    \end{array}
+  \end{displaymath}
+  \caption{Term syntax}
+  \label{fig:terms}
+\end{figure}
 
-Typing judgements are of the form
+Typing judgements are of the form $\ctx{\Gamma}{R} \vdash M : A$, which, when
+the contexts are explicitly expanded, look like
 $\ctxvar{x_1}{A_1}{\rho_1}, \ldots, \ctxvar{x_n}{A_n}{\rho_n} \vdash M : A$.
 Each variable in the context carries a resource annotation, but the conclusion
 is taken to always have annotation $1$.
 Such a restriction is important to keep substitution admissible, as shown in
 \cite{quantitative-type-theory}.
+
+A summary of the term syntax is given in \autoref{fig:terms}.
+As well as variables, and constructors and destructors for each type former, we
+have a set of constants.
+Constants are intended to give a way of producing and manipulating values of the
+base type $\base$.
 
 Let $\basis x$ be the $x$th basis vector $\vec 0, x^1, \vec 0$ --- that is, the
 resource context in which every variable is annotated with $0$ except for $x$,
@@ -168,17 +191,28 @@ $x$ are unused, while $x$ is used plainly.
 This makes it the principle resourcing of the variable rule.
 
 \[
-\inferrule*[right=var]
-{(x : B) \in \Gamma
-  \\ \subrctx{\basis x}{\resctx R}
-}
-{\ctx{\Gamma}{R} \vdash x : B}
+  \inferrule*[right=var]
+  {(x : A) \in \Gamma
+    \\ \subrctx{\basis x}{\resctx R}
+  }
+  {\ctx{\Gamma}{R} \vdash x : A}
 \]
 
 Allowing $\basis x \subres \resctx R$, rather than $\basis x = \resctx R$,
 allows less restrictive resourcings.
 For example, we are free to use $x$ if its use is unrestricted, and similarly we
 are free to discard any variables with unrestricted use.
+
+Constants $c$ can have arbitrary type $A_c$, but not arbitrary resourcing.
+Constants should have a global character, and not be able to depend on the
+context in which they are used, so it makes sense to say that they are well
+resourced only in a context where all variables can be discarded.
+
+\[
+  \inferrule*[right=const]
+  {\subrctx{\vct 0}{\resctx R}}
+  {\ctx{\Gamma}{R} \vdash c : A_c}
+\]
 
 The following are the rules for $\lambda$-abstractions and application.
 $\multimap$-I is standard, except for the restriction that we use the bound
@@ -204,15 +238,10 @@ Sub-resourcing is allowed here \fixme{why?}
 
 In general, we distinguish between tensor products ($\otimes$) and with products
 ($\&$).
-
-\fixme{Maybe as a lemma after sub-resourcing has been clearly stated
-  $\rightarrow$}
-As mentioned above, the distinction collapses in the case where addition is the
-join of the sub-resourcing order.
-This fact can be seen clearly in the introduction rules, where the condition
-$\resctx P + \resctx Q \subres \resctx R$ is equivalent to the conjunction of
-$\resctx P \subres \resctx R$ and $\resctx Q \subres \resctx R$.
-With these and the admissibility of sub-resourcing, we get the equivalence.
+A similar distinction between two types of product can be seen in various
+existing systems: our tensor and with products are respectively products
+eliminated by pattern matching and projection, or equivalently positive and
+negative formulations of products \fixme{refs here}.
 
 \begin{mathpar}
   \inferrule*[right=$\otimes$-I]
@@ -241,18 +270,6 @@ With these and the admissibility of sub-resourcing, we get the equivalence.
   {\ctx{\Gamma}{R} \vdash M : \withT{A_0}{A_1}}
   {\ctx{\Gamma}{R} \vdash \proj{i}{M} : A_i}
 \end{mathpar}
-
-A similar distinction between two types of product can be seen in various
-existing systems. \fixme{refs here}
-
-\begin{tabular}{c|c|c}
-  & $\tensorOne$, $\tensor{A}{B}$ & $\withTOne$, $\withT{A}{B}$ \\ \hline
-  name & tensor & with \\ \hline
-  Linear logic & multiplicative conjunction & additive conjunction \\
-  Type theory & eliminated by pattern matching & eliminated by projections \\
-  Call-by-push-value & value & computation \\
-  Monoidal category theory & monoidal product & cartesian product
-\end{tabular}
 
 To derive the units for each of the products, we turn what was then binary into
 what is now nullary.
@@ -310,12 +327,16 @@ ignore the restrictions imposed by the presence of remaining free variables.
   {\ctx{\Gamma}{R} \vdash \cse{C}{M}{x}{N_0}{y}{N_1} : C}
 \end{mathpar}
 
-Bang
+All of the previous rules have only allowed us to bind variables with usage
+annotation $1$.
+In order to abstract over variables with different resource annotations, we
+introduce a bang type former, with $\excl{\rho}{A}$ bundling up a value of type
+$A$ used in accordance with $\rescomment \rho$.
 
 \begin{mathpar}
   \inferrule*[right=$\excl{\rho}{}$-I]
   {\ctx{\Gamma}{P} \vdash M : A
-    \\ \subrctx{{\rho} * \resctx P}{\resctx R}
+    \\ \subrctx{\rescomment \rho * \resctx P}{\resctx R}
   }
   {\ctx{\Gamma}{R} \vdash \bang{M} : \excl{\rho}{A}}
   \and
@@ -326,8 +347,6 @@ Bang
   }
   {\ctx{\Gamma}{R} \vdash \bm{B}{M}{x}{N} : B}
 \end{mathpar}
-
-\fixme{Constants}
 
 \subsection{Example programs}
 
@@ -430,7 +449,7 @@ graded comonad in our category of types and functions.
 
 \subsection{Admissible rules}
 
-Recalling from \fixme{???}, $\pi \subres \rho$ says that
+Recalling from \fixme{???}, $\rescomment \pi \subres \rescomment \rho$ says that
 $\rescomment \rho$ places more relaxed restrictions than $\rescomment \pi$.
 When lifted pointwise, $\resctx P \subres \resctx Q$ means that
 $\resctx Q$ is a more liberal context than $\resctx
@@ -457,11 +476,18 @@ resourced in $\resctx Q$.
   from which one of the premises is
   $\resctx P_0 + \resctx P_1 \subres \resctx P$.
   Then, because $\resctx P \subres \resctx Q$, we also have
-  $\resctx P_0 + \resctx P_1 \subres \resctx P$.
+  $\resctx P_0 + \resctx P_1 \subres \resctx Q$.
   Therefore, we can give a derivation for
   $\ctx{\Gamma}{Q} \vdash M : A$ which is the same as the derivation we
   were given, except with the updated splitting premise.
 \end{proof}
+
+If addition is the join of the sub-resourcing order, then the distinction
+between tensor and with products collapses.
+This fact can be seen clearly in the introduction rules, where the condition
+$\resctx P + \resctx Q \subres \resctx R$ is equivalent to the conjunction of
+$\resctx P \subres \resctx R$ and $\resctx Q \subres \resctx R$.
+With these and the admissibility of sub-resourcing, we get the equivalence.
 
 Famously, linear logic does not allow unrestricted weakening.
 Our system retains this in spirit, but contains a restricted variant.
@@ -476,14 +502,17 @@ can be applied to any variable.
   weakenable annotation.
   \[
     \inferrule*[right=weak]{
-      \ctx{\Gamma}{P}, \ctx{\Delta}{Q} \vdash M : A
+      \ctx{\Gamma}{P} \vdash M : A
       \\ \vct 0 \subres \resctx Q
     }
     {
-      \ctx{\Gamma}{P} \vdash M : A
+      \ctx{\Gamma}{P}, \ctx{\Delta}{Q} \vdash M : A
     }
   \]
 \end{lemma}
+
+When $0$ is the bottom element of the subresourcing order, the condition $\vct 0
+\subres \resctx Q$ is trivial, so arbitrary weakening is allowed.
 
 Our main syntactic lemma is substitution.
 To state and prove substitution, the key insight is that semirings give rise to
@@ -495,21 +524,27 @@ Multiplication will be used to apply a substitution to a context.
 
 \fixme{\ldots example of why na\"{i}ve substitution doesn't work}
 
-Let $|-|$ denote the set of free variables of a given context.
+Let $|-|$ denote the number of free variables of a given context.
+In the following definition, resource contexts ($\resctx P$ and $\resctx Q$) and
+basis vectors are understood to be row vectors, and juxtaposition of vectors and
+matrices denotes multiplication.
 
 \begin{definition}[Well resourced substitution]
   A substitution $\sigma$ from $\Gamma^{\resctx P}$ to
   $\Delta^{\resctx Q}$ is a tuple with the following data.
 
   \begin{itemize}
-  \item a matrix $\mat \Sigma : \mathscr R^{|\resctx Q| \times |\resctx P|}$
-  \item a proof that $\forall (x:A) \in \Delta.\exists M_x.~\Gamma^{\vct e_x \mat \Sigma}
-    \vdash M_x : A$ %, noting that $\vct e_x \mat \Sigma$ is the $x$th column of
-    %$\mat \Sigma$ as a row vector
-  \item a proof that $\resctx Q \mat \Sigma \subres \resctx P$, where
-    $\resctx Q$ and $\resctx P$ are viewed as row vectors
+  \item a $|\resctx Q| \times |\resctx P|$ matrix of resource annotations $\mat
+    \Sigma$ such that $\resctx Q \mat \Sigma \subres \resctx P$
+  \item for each $(x:A) \in \Delta$, a term $M_x$ such that
+    $\Gamma^{\vct e_x \mat \Sigma} \vdash M_x : A$
   \end{itemize}
 \end{definition}
+
+The idea is that each term $M_x$ is well resourced at row $x$ of $\mat \Sigma$.
+The element $\resctx Q_x$ tells us how many ``copies'' of $M_x$ we need, so the
+requirements for the whole simultaneous substitution are a sum of the rows of
+$\mat \Sigma$ weighted by $\resctx Q$.
 
 \begin{lemma}[Substitution]
   \[
@@ -527,7 +562,7 @@ Let $|-|$ denote the set of free variables of a given context.
   By induction on the resourcing derivation.
   Wherever a context is split, by any of $\vct 0 \subres \resctx R$,
   $\resctx P + \resctx Q \subres \resctx R$, or
-  $\rho * \resctx P \subres \resctx R$, the linearity of vector-matrix
+  $\rescomment \rho * \resctx P \subres \resctx R$, the linearity of vector-matrix
   multiplication means that $\mat \Sigma$ can stay the same.
   When going under a binder, the new substitution matrix will be constructed
   from the given $\mat \Sigma$ as the following.
@@ -559,6 +594,6 @@ Let $|-|$ denote the set of free variables of a given context.
   \]
   The new column says that to substitute the new variable by itself once, we
   need $1$ use of it, and $0$ use of any other variable.
-  The new row says that the new variable will \emph{only} be used in this
-  substitution by itself, and nowhere else.
+  The new row says that the new variable will \emph{only} be used as a
+  substitute for itself, and nowhere else.
 \end{proof}
