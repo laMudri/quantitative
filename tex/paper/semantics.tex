@@ -40,40 +40,69 @@ conflated.
 
 Typing contexts $\Gamma$ are interpreted as cartesian products of their points.
 Each typing derivation $\Gamma \vdash M : A$ is interpreted as a function
-$\sem{M} : \sem{\Gamma} \to \sem{A}$ in the standard way, extended trivially for
-the $\excl{\rho}{}$ rules.
+$\sem{M} : \sem{\Gamma} \to \sem{A}$ in the standard way, plus the following
+clauses for the bang rules.
+
+\begin{displaymath}
+  \begin{eqns}
+    \sem{\bang{M}}~\gamma &=& \sem{M}~\gamma \\
+    \sem{\bm{C}{M}{x}{N}}~\gamma &=& \sem{N}~(\gamma, \sem{M}~\gamma)
+  \end{eqns}
+\end{displaymath}
+
+Each constant $c$ must be given a semantics independent of context.
 
 \subsection{Semantics of resourced terms}
 
 The refinement resources provide on top of this is a Kripke-indexed logical
 relation $\sem{A}^R : \mathcal{W}^{op} \to \operatorname{Rel}\sem{A}$ for each type $A$.
-$\mathcal{W}$ is assumed to be a symmetric promonoidal category.
+$\mathcal{W}$ is assumed to be a symmetric monoidal category.
 
-Let $\left| X \right|$ be the proposition that $X$ is inhabited.
+\subsubsection{Worlds}
+
+Inspired by modal logic \fixme{ref}, our relational semantics assumes a category
+of worlds $\mathcal W$.
+The world keeps track of what resources we have allocated to which parts of the
+program.
+To this end, we need some way of dividing a world into finitely many parts.
+The stipulation that $\mathcal W$ is a \emph{symmetric monoidal}
+category provides us with this.
+
+This gives a semantic counterpart to tensor products.
+
+\fixme{examples}
+
+\subsubsection{Relation transformer}
+
+\fixme{semantic bang}
+
+\subsubsection{The semantics}
+
+Let $\left| X \right|$ be the proposition that the set $X$ is inhabited.
 
 \begin{displaymath}
   \begin{array}{rllcl}
-    \sem{\base}^R & w & (c,c') &\gets& R_\base~w~(c,c') \\
+    \sem{\base}^R & w & (c,c') &\iff& R_\base~w~(c,c') \\
     \sem{\fun{A}{B}}^R & w & (f,f')
-                               &\gets& \forall x,y.~
+                               &\iff& \forall x,y.~
                                  \left| \mathcal W(x, y \otimes w) \right|
                                  \Rightarrow \\
     &&&& \forall a,a'.~\sem{A}^R~y~(a,a')
                                  \Rightarrow \sem{B}^R~x~(f~a,f'~a') \\
-    \sem{\excl{\rho}{A}}^R & w & (a,a') &\gets& \oc_\rho \sem{A}^R~w~(a,a') \\
-    \sem{\tensorOne}^R & w & (*,*) &\gets& \left|\mathcal W(w, I)\right| \\
+    \sem{\excl{\rho}{A}}^R & w & (a,a') &\iff& \oc_\rho \sem{A}^R~w~(a,a') \\
+    \sem{\tensorOne}^R & w & (*,*) &\iff& \left|\mathcal W(w, I)\right| \\
     \sem{\tensor{A}{B}}^R & w & ((a,b),(a',b'))
-                               &\gets& \exists x,y.~
+                               &\iff& \exists x,y.~
                                  \left| \mathcal W(w, x \otimes y) \right|
                                  \wedge \sem{A}^R~x~(a,a')
                                  \wedge \sem{B}^R~y~(b,b') \\
-    \sem{\withTOne}^R & w & (*,*) &\gets& \top \\
-    \sem{\withT{A}{B}}^R & w & ((a,b),(a',b')) &\gets&
+    \sem{\withTOne}^R & w & (*,*) &\iff& \top \\
+    \sem{\withT{A}{B}}^R & w & ((a,b),(a',b')) &\iff&
     \sem{A}^R~w~(a,a') \wedge \sem{B}^R~w~(b,b') \\
     \sem{\sumT{A}{B}}^R & w & (\operatorname{inl} a,\operatorname{inl} a')
-                               &\gets& \sem{A}^R~w~(a,a') \\
+                               &\iff& \sem{A}^R~w~(a,a') \\
     \sem{\sumT{A}{B}}^R & w & (\operatorname{inr} b,\operatorname{inr} b')
-                               &\gets& \sem{B}^R~w~(b,b') \\
+                               &\iff& \sem{B}^R~w~(b,b') \\
   \end{array}
 \end{displaymath}
 
@@ -89,7 +118,7 @@ tensor products of banged points.
 %%  \sem{\ctxvar{x_1}{A_1}{\rho_1}, \ldots \ctxvar{x_n}{A_n}{\rho_n}} \coloneqq
 %\end{displaymath}
 
-\subsection{Fundamental lemma}
+\subsubsection{Fundamental lemma}
 
 \begin{displaymath}
   \ctx{\Gamma}{R} \vdash t : T \implies \sem{\ctx{\Gamma}{R}}^R w~(\gamma, \gamma') \implies \sem{T}^R w~(\sem{t}\gamma, \sem{t}\gamma')
