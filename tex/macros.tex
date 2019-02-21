@@ -64,6 +64,11 @@
 \mathrm{case}~#2~\mathrm{of}~\inj{0}{#3} \mapsto #4 ~;~ \inj{1}{#5} \mapsto #6%
 \fi}
 
+\newcommand{\listT}[1]{\operatorname{List} #1}
+\newcommand{\nil}[0]{[]}
+\newcommand{\cons}[2]{#1 :: #2}
+\newcommand{\fold}[5]{\operatorname{fold} #1~#2~(#3,#4.~#5)}
+
 
 \newcommand{\typed}[1]{\mathit{#1t}}
 \newcommand{\resourced}[1]{\mathit{#1r}}

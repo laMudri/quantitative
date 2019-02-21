@@ -14,7 +14,7 @@ $\lambda$-calculus.
     \rescomment \rho, \rescomment \pi \in \mathscr R \and
     A, B, C \Coloneqq \base \mid \fun{A}{B} \mid \tensorOne \mid \tensor{A}{B}
     \mid \withTOne \mid \withT{A}{B} \mid \sumTZero \mid \sumT{A}{B} \mid
-    \excl{\rho}{A} \\
+    \excl{\rho}{A} \mid \listT{A} \\
     \Gamma, \Delta \Coloneqq \cdot \mid \Gamma, x : A \and
     \resctx P, \resctx Q, \resctx R \Coloneqq
     \cdot \mid \resctx R, x^{\rescomment \rho} \and
@@ -26,7 +26,7 @@ $\lambda$-calculus.
 \end{figure}
 
 We have an uninterpreted base type, functions, two kinds of finite products,
-finite sums, and a graded modality $\excl{\rho}{}$.
+finite sums, a graded modality $\excl{\rho}{}$, and polymorphic lists.
 These will be explained further when their typing rules are introduced.
 
 Our contexts are combinations of a typing context $\Gamma$ and a resourcing
@@ -58,7 +58,7 @@ In many cases of interest, $0$ and $+$ are respectively the bottom and join of
 the sub-resourcing order, turning it into a join semilattice.
 In these cases, with products ($\withT{A}{B}$) coincide with tensor products
 ($\tensor{A}{B}$), and resource inference is significantly simplified.
-(rntz reference?)
+\fixme{rntz reference?}
 
 \begin{example}[Trivial]
   The one-element partially ordered semiring provides no usage restrictions.
@@ -162,7 +162,8 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
                          \mid & \wth{M}{N} & \mid & \proj{i}{M} \\
                                    & & \mid & \exf{C}{M} \\ 
                          \mid & \inj{i}{M} & \mid & \cse{C}{M}{x}{N_0}{y}{N_1} \\
-                         \mid & \bang{M} & \mid & \bm{C}{M}{x}{N}
+                         \mid & \bang{M} & \mid & \bm{C}{M}{x}{N} \\
+                         \mid & \nil \mid \cons{M}{N} & \mid & \fold{M}{N_n}{x}{y}{N_c}
                        \end{array}
     \end{array}
   \end{displaymath}
@@ -278,7 +279,7 @@ what is now nullary.
 
 \begin{mathpar}
   \inferrule*[right=$1$-I]
-  {\subrctx{\vec 0}{\resctx R}}
+  {\subrctx{\vct 0}{\resctx R}}
   {\ctx{\Gamma}{R} \vdash \unit : \tensorOne}
   \and
   \inferrule*[right=$1$-E]
@@ -348,6 +349,39 @@ $A$ used in accordance with $\rescomment \rho$.
     \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
   }
   {\ctx{\Gamma}{R} \vdash \bm{B}{M}{x}{N} : B}
+\end{mathpar}
+
+Finally, we include a polymorphic type of lists.
+Resource-wise, lists are a tensoring together of their elements, meaning that
+$\nil$ requires its context to be discarded and $\cons{-}{-}$ requires the
+context to be split between the head and the tail.
+To eliminate a list, we split the context as in other pattern matching
+eliminators, but also require that both continuations use only discardable
+and duplicable variables.
+This ensures that, for example, the continuation that deals with $\cons{-}{-}$
+can be invoked as many times as necessary.
+
+\begin{mathpar}
+  \inferrule*[right=$\listT{}$-Inil]
+  {\subrctx{\vct 0}{\resctx R}}
+  {\ctx{\Gamma}{R} \vdash \nil : \listT A}
+  \and
+  \inferrule*[right=$\listT{}$-Icons]
+  {\ctx{\Gamma}{P} \vdash M : A
+    \\ \ctx{\Gamma}{Q} \vdash N : \listT A
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+  }
+  {\ctx{\Gamma}{R} \vdash \cons{M}{N} : \listT A}
+  \and
+  \inferrule*[right=$\listT{}$-E]
+  {\ctx{\Gamma}{P} \vdash M : \listT A
+    \\ \ctx{\Gamma}{Q} \vdash N_n : C
+    \\ \ctx{\Gamma}{Q}, \ctxvar{h}{A}{1}, \ctxvar{r}{\listT A}{1} \vdash N_c : C
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+    \\ \subrctx{\vct 0}{\resctx Q}
+    \\ \subrctx{\resctx Q + \resctx Q}{\resctx Q}
+  }
+  {\ctx{\Gamma}{R} \vdash \fold{M}{N_n}{h}{r}{N_c} : C}
 \end{mathpar}
 
 \subsection{Example programs}
