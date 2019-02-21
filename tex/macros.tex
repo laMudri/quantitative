@@ -5,7 +5,7 @@
 \newcommand{\fixme}[1]{{\color{red}\underline{\em{#1}}}}
 
 \newcommand{\bind}[2]{#2}
-\newcommand{\ctx}[2]{{#1}^{\resctx{#2}}}
+\newcommand{\ctx}[2]{#1^{\resctx{#2}}}
 %\newcommand{\ctx}[2]{{#2}^{#1}}
 \newcommand{\ctxvar}[3]{#1 \stackrel{\rescomment{#3}}: #2}
 \definecolor{res}{HTML}{008000}
@@ -23,7 +23,7 @@
 \newcommand{\app}[2]{#1~#2}
 
 \newcommand{\excl}[2]{\oc_{\rescomment{#1}} #2}
-\newcommand{\bang}[1]{[#1]}
+\newcommand{\bang}[1]{\left[#1\right]}
 \newcommand{\bm}[4]{\if\newelims0%
 \operatorname{bm}_{#1}(#2, \bind{#3}{#4})%
 \else%
@@ -54,7 +54,7 @@
 \newcommand{\proj}[2]{\operatorname{proj}_{#1} #2}
 
 \newcommand{\sumTZero}[0]{0}
-\newcommand{\exf}[2]{\operatorname{ex-falso}_{#1}(#2)}
+\newcommand{\exf}[2]{\operatorname{ex-falso} #2}
 
 \newcommand{\sumT}[2]{#1 \oplus #2}
 \newcommand{\inj}[2]{\operatorname{inj}_{#1} #2}
@@ -86,3 +86,6 @@
 \newcommand{\mat}[1]{\mathbf{#1}}
 \newcommand{\vct}[1]{\mathbf{#1}}
 \newcommand{\basis}[1]{\vct e_{#1}}
+
+
+\newcommand{\name}{\ensuremath{\lambda \resctx R}}

@@ -36,6 +36,7 @@ In particular, it is occasionally useful to think of resourcing contexts as row
 vectors, and to use standard linear algebra operations on them.
 
 \subsection{Resource annotations}
+\label{sec:annotations}
 
 We assume a partially ordered semiring $(\mathscr{R}, \subres, 0, +, 1, *)$ of
 resource annotations.
@@ -221,7 +222,8 @@ In $\multimap$-E, the condition $\resctx P + \resctx Q \subres \resctx R$
 means that we must be able to distribute the resources of $\resctx R$ into
 those used to produce the function ($\resctx P$) and those used to produce the
 argument ($\resctx Q$).
-Sub-resourcing is allowed here \fixme{why?}
+Sub-resourcing is allowed here to maintain the admissibility of sub-resourcing
+as a general rule, stated in \autoref{sec:admissible}.
 
 \begin{mathpar}
   \inferrule*[right=$\multimap$-I]
@@ -356,9 +358,9 @@ $\fun{\tensor{\excl{\rho}{C}}{\excl{\rho}{D}}}{\excl{\rho}{(\tensor{C}{D})}}$.
 
 \[
   \begin{aligned}
-    \lam{bcbd}{& \prm{ }{bcbd}{bc}{bd}{\\
-        & \bm{ }{bc}{c}{\\
-          & \bm{ }{bd}{d}{\\
+    \lam{x_{bcbd}}{& \prm{ }{x_{bcbd}}{b_c}{b_d}{\\
+        & \bm{ }{b_c}{c}{\\
+          & \bm{ }{b_d}{d}{\\
             & \bang{\ten{c}{d}}}}}}
   \end{aligned}
 \]
@@ -368,17 +370,17 @@ matching has been done and we are ready to start building the result.
 
 \[
   \inferrule*[right=$\excl{\rho}{}$-I]{
-    \rho * bcbd^0, bc^0, bd^0, c^1, d^1
-    \subres bcbd^0, bc^0, bd^0, c^\rho, d^\rho
+    \rho * x_{bcbd}^0, b_c^0, b_d^0, c^1, d^1
+    \subres x_{bcbd}^0, b_c^0, b_d^0, c^\rho, d^\rho
     \\
-    \ctxvar{bcbd}{\tensor{\excl{\rho}{C}}{\excl{\rho}{D}}}{0},
-    \ctxvar{bc}{\excl{\rho}{C}}{0}, \ctxvar{bd}{\excl{\rho}{D}}{0},
+    \ctxvar{x_{bcbd}}{\tensor{\excl{\rho}{C}}{\excl{\rho}{D}}}{0},
+    \ctxvar{b_c}{\excl{\rho}{C}}{0}, \ctxvar{b_d}{\excl{\rho}{D}}{0},
     \ctxvar{c}{C}{1}, \ctxvar{d}{D}{1}
     \vdash \ten{c}{d} : \tensor{C}{D}
   }
   {
-    \ctxvar{bcbd}{\tensor{\excl{\rho}{C}}{\excl{\rho}{D}}}{0},
-    \ctxvar{bc}{\excl{\rho}{C}}{0}, \ctxvar{bd}{\excl{\rho}{D}}{0},
+    \ctxvar{x_{bcbd}}{\tensor{\excl{\rho}{C}}{\excl{\rho}{D}}}{0},
+    \ctxvar{b_c}{\excl{\rho}{C}}{0}, \ctxvar{b_d}{\excl{\rho}{D}}{0},
     \ctxvar{c}{C}{\rho}, \ctxvar{d}{D}{\rho}
     \vdash \bang{\ten{c}{d}} : \excl{\rho}{(\tensor{C}{D})}
   }
@@ -388,11 +390,11 @@ After this move, $c$ and $d$ become amenable to the var rule, which only applies
 to super-resources of $1$.
 
 The converse cannot be implemented in general because we get to a stage where we
-are essentially trying to prove $\ctxvar{cd}{\tensor{C}{D}}{\rho} \vdash
+are essentially trying to prove $\ctxvar{x_{cd}}{\tensor{C}{D}}{\rho} \vdash
 \wn : \tensor{\excl{\rho}{C}}{\excl{\rho}{D}}$.
-At this point, we cannot use the variable $cd$ because we might not have
+At this point, we cannot use the variable $x_{cd}$ because we might not have
 $1 \subres \rho$, and so the condition of the var rule fails.
-We can do $\otimes$-I, but there is no satisfactory way to split $cd^\rho$
+We can do $\otimes$-I, but there is no satisfactory way to split $x_{cd}^\rho$
 between the two halves.
 The interpretation of this non-derivability in linear logic is that
 $\excl{\omega}{(\tensor{C}{D})}$ promises an unlimited supply of $C$s and $D$s
@@ -401,46 +403,55 @@ promises both an unlimited supply of $C$s and an unlimited supply of $D$s with
 no relation between each other.
 
 \subsubsection{Comonad operations}
-We have the following two derivations.
+The following two terms are well typed and well resourced.
 
-\begin{mathpar}
-  \inferrule*[Right=$\multimap$-I]{
-    \inferrule*[Right=$\excl{1}{}$-E]{
-      \inferrule*[right=var]{ }
-      {\ctxvar{ba}{\excl{1}{A}}{1} \vdash ba : \excl{1}{A}}
-      \\
-      \inferrule*[Right=var]{ }
-      {\ctxvar{ba}{\excl{1}{A}}{0}, \ctxvar{a}{A}{1} \vdash a : A}
-    }
-    {\ctxvar{ba}{\excl{1}{A}}{1} \vdash \bm{A}{ba}{a}{a} : A}
-  }
-  {\vdash \lam{ba}{\bm{A}{ba}{a}{a}} : \fun{\excl{1}{A}}{A}}
-
-  \and
-
-  \inferrule*[Right=$\multimap$-I]{
-    \inferrule*[Right=$\excl{\pi * \rho}{}$-E]{
-      \inferrule*[right=var]{ }
-      {\ctxvar{ba}{\excl{\pi * \rho}{A}}{1} \vdash ba : \excl{\pi * \rho}}
-      \\
-      \inferrule*[Right=$\excl{\pi}{}$-I]{
-        \inferrule*[Right=$\excl{\rho}{}$-I]{
-          \inferrule*[Right=var]{ }
-          {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{1} \vdash
-            a : A}
-        }
-        {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{\rho} \vdash
-          \bang{a} : \excl{\rho}{A}}
-      }
-      {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{\pi * \rho} \vdash
-        \bang{\bang{a}} : \excl{\pi}{\excl{\rho}{A}}}
-    }
-    {\ctxvar{ba}{\excl{\pi * \rho}{A}}{1} \vdash
-      \bm{A}{ba}{a}{\bang{\bang{a}}} : \excl{\pi}{\excl{\rho}{A}}}
-  }
-  {\vdash \lam{ba}{\bm{A}{ba}{a}{\bang{\bang{a}}}}
-    : \fun{\excl{\pi * \rho}{A}}{\excl{\pi}{\excl{\rho}{A}}}}
-\end{mathpar}
+\begin{displaymath}
+  \begin{eqns}
+    \lam{b_a}{\bm{A}{b_a}{a}{a}} &:& \fun{\excl{1}{A}}{A} \\
+    \lam{b_a}{\bm{A}{b_a}{a}{\bang{\bang{a}}}}
+    &:& \fun{\excl{\pi * \rho}{A}}{\excl{\pi}{\excl{\rho}{A}}}
+  \end{eqns}
+\end{displaymath}
+%We have the following two derivations.
+%
+%\begin{mathpar}
+%  \inferrule*[Right=$\multimap$-I]{
+%    \inferrule*[Right=$\excl{1}{}$-E]{
+%      \inferrule*[right=var]{ }
+%      {\ctxvar{ba}{\excl{1}{A}}{1} \vdash ba : \excl{1}{A}}
+%      \\
+%      \inferrule*[Right=var]{ }
+%      {\ctxvar{ba}{\excl{1}{A}}{0}, \ctxvar{a}{A}{1} \vdash a : A}
+%    }
+%    {\ctxvar{ba}{\excl{1}{A}}{1} \vdash \bm{A}{ba}{a}{a} : A}
+%  }
+%  {\vdash \lam{ba}{\bm{A}{ba}{a}{a}} : \fun{\excl{1}{A}}{A}}
+%
+%  \and
+%
+%  \inferrule*[Right=$\multimap$-I]{
+%    \inferrule*[Right=$\excl{\pi * \rho}{}$-E]{
+%      \inferrule*[right=var]{ }
+%      {\ctxvar{ba}{\excl{\pi * \rho}{A}}{1} \vdash ba : \excl{\pi * \rho}}
+%      \\
+%      \inferrule*[Right=$\excl{\pi}{}$-I]{
+%        \inferrule*[Right=$\excl{\rho}{}$-I]{
+%          \inferrule*[Right=var]{ }
+%          {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{1} \vdash
+%            a : A}
+%        }
+%        {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{\rho} \vdash
+%          \bang{a} : \excl{\rho}{A}}
+%      }
+%      {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{\pi * \rho} \vdash
+%        \bang{\bang{a}} : \excl{\pi}{\excl{\rho}{A}}}
+%    }
+%    {\ctxvar{ba}{\excl{\pi * \rho}{A}}{1} \vdash
+%      \bm{A}{ba}{a}{\bang{\bang{a}}} : \excl{\pi}{\excl{\rho}{A}}}
+%  }
+%  {\vdash \lam{ba}{\bm{A}{ba}{a}{\bang{\bang{a}}}}
+%    : \fun{\excl{\pi * \rho}{A}}{\excl{\pi}{\excl{\rho}{A}}}}
+%\end{mathpar}
 
 These are the counit and comultiplication required in showing that $\excl{(-)}{}$ is a
 graded comonad in our category of types and functions.
@@ -448,9 +459,11 @@ graded comonad in our category of types and functions.
 \fixme{exponentials turn additives into multiplicatives}
 
 \subsection{Admissible rules}
+\label{sec:admissible}
 
-Recalling from \fixme{???}, $\rescomment \pi \subres \rescomment \rho$ says that
-$\rescomment \rho$ places more relaxed restrictions than $\rescomment \pi$.
+Recalling from \autoref{sec:annotations}, $\rescomment \pi \subres \rescomment
+\rho$ says that $\rescomment \rho$ places more relaxed restrictions than
+$\rescomment \pi$.
 When lifted pointwise, $\resctx P \subres \resctx Q$ means that
 $\resctx Q$ is a more liberal context than $\resctx
  P$, so any term well resourced in $\resctx P$ is also well
@@ -596,4 +609,127 @@ $\mat \Sigma$ weighted by $\resctx Q$.
   need $1$ use of it, and $0$ use of any other variable.
   The new row says that the new variable will \emph{only} be used as a
   substitute for itself, and nowhere else.
+\end{proof}
+\renewcommand{\proofname}{Proof}
+
+\subsection{Equivalence to DILL}
+
+Dual Intuitionistic Linear Logic is a particular formulation of intuitionistic
+linear logic described in \cite{Barber 1996}.
+Its key feature, which simplifies the metatheory of linear logic, is the use of
+separate contexts for linear and intuitionistic free variables.
+Here we show that DILL is a fragment of the instantiation of \name{} at the
+linearity semiring $\{0,1,\omega\}$.
+
+The types of DILL are the same as the types of \name, except for the
+restriction of $\excl{\rho}{}$ to just $\excl{\omega}{}$.
+We will write the latter simply as $\oc$ when it appears in DILL.
+We add sums and with products to the calculus of \cite{Barber1996}, with the
+obvious rules.
+These additive type formers present no additional difficulty to the translation.
+
+%\begin{figure}
+%  \begin{displaymath}
+%    \begin{eqns}
+%      \mathrm{DILL} &\hookrightarrow& \name \\
+%      Y &\mapsto& \base_Y \\
+%      I &\mapsto& \tensorOne \\
+%      A \multimap B &\mapsto& \fun{A}{B} \\
+%      A \otimes B &\mapsto& \tensor{A}{B} \\
+%      \oc A &\mapsto& \excl{\omega}{A}
+%    \end{eqns}
+%  \end{displaymath}
+%  \label{fig:dill}
+%  \caption{Embedding of DILL types into \name}
+%\end{figure}
+
+\begin{proposition}[DILL $\to$ \name]
+  Given a DILL derivation of \[
+    \Gamma; \Delta \vdash t : A,
+  \] we can produce a $\name_{01\omega}$ derivation of \[
+    \ctx{\Gamma}{\vct \omega}, \ctx{\Delta}{\vct 1} \vdash
+    M_t : A
+  \] for some term $M_t$.
+\end{proposition}
+\begin{proof}
+  By induction on the derivation.
+  We have $0 \subres \omega$, which allows us to discard intuitionistic
+  variables at the var rules, and both $1 \subres 1$ and $1 \subres \omega$,
+  which allow us to use both linear and intuitionistic variables.
+
+  Weakening is used when splitting linear variables between two premises.
+  For example, \TirName{$\otimes$-I} is as follows.
+  \[
+    \inferrule*[right=$\otimes$-I]
+    {\Gamma; \Delta_t \vdash t : A \\ \Gamma; \Delta_u \vdash u : B}
+    {\Gamma; \Delta_t, \Delta_u \vdash t \otimes u : A \otimes B}
+  \]
+  From this, our new derivation is as follows.
+  \[
+    \inferrule*[right=$\tensor{}{}$-I]
+    {
+      \inferrule*[right=weak]
+      {\mathit{ih}_t \\\\
+        \ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 1} \vdash M_t : A}
+      {\ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 1}, \ctx{\Delta_u}{\vct 0}
+        \vdash M_t : A}
+      \\
+      \inferrule*[right=weak]
+      {\mathit{ih}_u \\\\
+        \ctx{\Gamma}{\vct \omega}, \ctx{\Delta_u}{\vct 1} \vdash M_u : A}
+      {\ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 0}, \ctx{\Delta_u}{\vct 1}
+        \vdash M_u : A}
+    }
+    {\ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 1}, \ctx{\Delta_u}{\vct 1}
+      \vdash \ten{M_t}{M_u} : \tensor{A}{B}}
+  \]
+\end{proof}
+
+\begin{proposition}[\name $\to$ DILL]
+  Given a $\name_{01\omega}$ derivation of \[
+    \ctx{\Gamma}{\vct \omega}, \ctx{\Delta}{\vct 1}, \ctx{\Theta}{\vct 0} \vdash
+    M_t : A,
+  \] which contains only types expressible in DILL, we can produce a DILL
+  derivation of \[
+    \Gamma; \Delta \vdash t_M : A
+  \] for some term $t_M$.
+\end{proposition}
+\begin{proof}
+  By induction on the derivation.
+
+  In the case of \TirName{var}, all of the unused variables have annotation
+  greater than $0$, i.e., $0$ or $\omega$.
+  Those annotated $0$ are absent from the DILL derivation, and those annotated
+  $\omega$ are in the intuitionistic context.
+  The used variable is annotated either $1$ or $\omega$.
+  In the first case, we use \TirName{Lin-Ax}, and in the second case,
+  \TirName{Int-Ax}.
+
+  All binding of variables in \name{} maps directly onto DILL.
+
+  For the \TirName{$\excl{\omega}{}$-I} rule, we are required to prove that the
+  following is admissible in DILL.
+  \[
+    \inferrule*
+    {\Gamma; \Delta \vdash t_M : A}
+    {\Gamma, \Delta; \cdot \vdash \oc t_M : \oc A}
+  \]
+  This follows from the Environment Weakening property from Lemma 3.1 of
+  \cite{Barber1996} applied to $\Delta$, followed by \TirName{$\oc$-I}.
+
+  Splitting of contexts is more involved.
+  We shall again take \TirName{$\tensor{}{}$-I} as our example.
+  We are trying to prove admissible \[
+    \inferrule*
+    {\Gamma_A; \Delta_A \vdash t_M : A \\ \Gamma_B; \Delta_B \vdash t_N}
+    {\Gamma; \Delta \vdash t_M \otimes t_N : A \otimes B}
+  \] given also that $\Delta$ consists of only (but not necessarily all)
+  variables that occur exactly once in $\Delta_A, \Delta_B$ and not at all in
+  $\Gamma_A, \Gamma_B$, and that $\Gamma$ consists of all of the other variables
+  from the premises.
+  To prove this rule admissible, on both premises we apply Environment Weakening
+  to all variables in $\Delta_A$ or $\Delta_B$ that are also in $\Gamma$.
+  This gives us $\Gamma; \Delta_A' \vdash t_M : A$ and $\Gamma; \Delta_B' \vdash
+  t_N : B$, with $\Delta_A', \Delta_B' = \Delta$.
+  At this point, we can apply \TirName{$\otimes$-I} and be done.
 \end{proof}
