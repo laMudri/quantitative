@@ -2,12 +2,12 @@ import Quantitative.Types.Formers as Form
 import Quantitative.Semantics.Sets as Sem
 
 module Quantitative.Semantics.Sets.Term
-  {c k} (C : Set c) (open Form C)
-  (Const : Set k) (constTy : Const → Ty) (Base : Set)
-  (open Sem C Const constTy Base) (⟦const⟧ : ∀ l → ⟦ constTy l ⟧T) where
+  {c k} (PrimTy : Set c) (C : Set c) (open Form PrimTy C)
+  (Const : Set k) (constTy : Const → Ty) (Base : PrimTy → Set)
+  (open Sem PrimTy C Const constTy Base) (⟦const⟧ : ∀ l → ⟦ constTy l ⟧T) where
 
   open import Quantitative.Syntax Ty Const
-  open import Quantitative.Types C Const constTy
+  open import Quantitative.Types PrimTy C Const constTy
 
   open import Lib.Equality
   open import Lib.Function as F hiding (const)

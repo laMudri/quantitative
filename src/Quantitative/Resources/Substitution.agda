@@ -5,15 +5,16 @@ open import Lib.Structure
 import Quantitative.Types.Formers as Form
 
 module Quantitative.Resources.Substitution
-  {c k l′} (C : Set c) (open Form C) (Const : Set k) (constTy : Const → Ty)
+  {c k l′} (PrimTy : Set c) (C : Set c) (open Form PrimTy C)
+  (Const : Set k) (constTy : Const → Ty)
   (POS : Posemiring (≡-Setoid C) l′) where
 
   open import Quantitative.Syntax.Direction
   open import Quantitative.Syntax Ty Const
   open import Quantitative.Syntax.Substitution Ty Const
-  open import Quantitative.Types C Const constTy
-  open import Quantitative.Types.Substitution C Const constTy
-  open import Quantitative.Resources C Const constTy POS
+  open import Quantitative.Types PrimTy C Const constTy
+  open import Quantitative.Types.Substitution PrimTy C Const constTy
+  open import Quantitative.Resources PrimTy C Const constTy POS
   open import Quantitative.Resources.Context C Const POS
 
   open import Lib.Dec

@@ -1,6 +1,6 @@
 import Quantitative.Types.Formers as Form
 
-module Quantitative.Types {c k} (C : Set c) (open Form C)
+module Quantitative.Types {c k} (PrimTy : Set c) (C : Set c) (open Form PrimTy C)
                           (Const : Set k) (constTy : Const → Ty) where
 
   open import Quantitative.Syntax.Direction

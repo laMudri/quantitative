@@ -11,7 +11,7 @@ open import Lib.Setoid
 open import Lib.Structure
 
 module Quantitative.Semantics.WRel.Term
-  {c k l} (C : Set c) (open Form C)
+  {c k l} (PrimTy : Set c) (C : Set c) (open Form PrimTy C)
   (Const : Set k) (constTy : Const → Ty)
   (posemiring : Posemiring (≡-Setoid C) l)
   (W : Category lzero lzero lzero)
@@ -19,10 +19,11 @@ module Quantitative.Semantics.WRel.Term
   (isSymmetricPromonoidal : IsSymmetricPromonoidal _ J P)
   (let WREL = λ (A : Set) → FUNCTOR (OP W) (REL (≡-Setoid A) lzero))
   (let module WREL A = Category (WREL A))
-  (Base : Set) (open Sem C Const constTy Base) (⟦const⟧ : ∀ l → ⟦ constTy l ⟧T)
-  (BaseR : WREL.Obj Base)
+  (Base : PrimTy → Set)
+  (open Sem PrimTy C Const constTy Base) (⟦const⟧ : ∀ l → ⟦ constTy l ⟧T)
+  (BaseR : (b : PrimTy) → WREL.Obj (Base b))
   (actF : ∀ {A} → C → EndoFunctor (WREL A))
-  (open SemR C Const constTy posemiring W J P isSymmetricPromonoidal
+  (open SemR PrimTy C Const constTy posemiring W J P isSymmetricPromonoidal
              Base BaseR actF)
   (let module actF {A} ρ = Functor (actF {A} ρ))
   (isAct : IsAct actF.obj) (open RCtx C Const posemiring)
@@ -39,10 +40,10 @@ module Quantitative.Semantics.WRel.Term
     module act {A} ρ S = Functor (act {A} ρ S)
 
     open import Quantitative.Syntax Ty Const renaming ([_] to emb)
-    open import Quantitative.Types C Const constTy renaming ([_] to emb)
-    open import Quantitative.Resources C Const constTy posemiring
+    open import Quantitative.Types PrimTy C Const constTy renaming ([_] to emb)
+    open import Quantitative.Resources PrimTy C Const constTy posemiring
                                                    renaming ([_] to emb)
-    open import Quantitative.Semantics.Sets.Term C Const constTy Base ⟦const⟧
+    open import Quantitative.Semantics.Sets.Term PrimTy C Const constTy Base ⟦const⟧
 
     open import Lib.Dec
     open import Lib.Dec.Properties
