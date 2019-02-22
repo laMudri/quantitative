@@ -4,10 +4,12 @@ $\mathscr{R}$ of resources, under conditions detailed later in the section.
 \subsection{Types}
 
 Our grammar of types and contexts is given in \autoref{fig:syntax}.
-Throughout this section, the colour \rescomment{green} highlights resource
+Throughout this section\fixmeBA{Throughout the paper?}, the colour \rescomment{green} highlights resource
 annotations, which are generally the interesting things to watch in typing rules
 and the main point of departure between this system and a standard simply typed
-$\lambda$-calculus.
+$\lambda$-calculus.\fixmeBA{and normal linear systems}\fixmeBA{say where we will compare this system to others}
+
+\fixmeBA{mention that we really think of the resource annotations as ``refining'' the underlying types and terms}
 
 \begin{figure}
   \begin{mathpar}
@@ -25,21 +27,24 @@ $\lambda$-calculus.
   \label{fig:syntax}
 \end{figure}
 
-We have an uninterpreted base type, functions, two kinds of finite products,
+We have an uninterpreted base type \fixmeBA{base types?}, functions, two kinds of finite products,
 finite sums, a graded modality $\excl{\rho}{}$, and polymorphic lists.
-These will be explained further when their typing rules are introduced.
+These will be explained further when their typing rules are introduced.\fixmeBA{Give the symbols next to the words for each of the type formers}
 
+\fixmeBA{explain resourcing contexts on their own first?}
 Our contexts are combinations of a typing context $\Gamma$ and a resourcing
 context $\resctx R$, written $\ctx{\Gamma}{R}$.
 It will sometimes be useful to talk only about one part at a time.
 In particular, it is occasionally useful to think of resourcing contexts as row
-vectors, and to use standard linear algebra operations on them.
+vectors, and to use standard linear algebra operations on them.\fixmeBA{Be more assertive: ``It will be useful...'' and forward reference the bits where this is used.}
 
 \subsection{Resource annotations}
 \label{sec:annotations}
 
+\fixmeBA{In general, I don't like starting sentences with numbers or symbols...}
+
 We assume a partially ordered semiring $(\mathscr{R}, \subres, 0, +, 1, *)$ of
-resource annotations.
+resource annotations.\fixmeBA{Already assumed $\mathscr{R}$, so we are \emph{further} assuming here that it is a po-semiring.}
 These will adorn free variables.
 $0$ represents non-usage, and $+$ the combination of separate usages.
 $(\mathscr{R}, 0, +)$ forms a commutative monoid.
@@ -50,7 +55,7 @@ the additive structure.
 The order $\subres$ describes a sub-resourcing relation.
 We have $\pi \subres \rho$ if and only if the annotation $\pi$ allows use in at
 most as many situations as the annotation $\rho$ allows.
-This acts a lot like a subtyping relation.
+This acts a lot like a subtyping relation.\fixmeBA{In what way? It induces one?}
 $(\mathscr{R}, \subres)$ forms a partial order, and addition and multiplication
 are monotonic with respect to $\subres$.
 
@@ -58,7 +63,9 @@ In many cases of interest, $0$ and $+$ are respectively the bottom and join of
 the sub-resourcing order, turning it into a join semilattice.
 In these cases, with products ($\withT{A}{B}$) coincide with tensor products
 ($\tensor{A}{B}$), and resource inference is significantly simplified.
-\fixme{rntz reference?}
+\fixme{rntz reference?} \fixmeBA{Don't mention inference here if we aren't going to do it in detail}
+
+\fixmeBA{this should all have fwd references to where they are used.}
 
 \begin{example}[Trivial]
   The one-element partially ordered semiring provides no usage restrictions.
@@ -104,6 +111,8 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
   \end{center}
 \end{example}
 
+\fixmeBA{Natural number semiring for precise usage counts?}
+
 \begin{example}[Monotonicity]
   Resource annotations track which ``way up'' we can use a free variable.
   A variable can be used covariantly ($\uparrow$), contravariantly
@@ -145,6 +154,10 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
   Notice that $+$ is the join of the sub-resourcing order.
 \end{example}
 
+\fixmeBA{also: lattices of security levels}
+
+\fixmeBA{also: the $\mathbb{R}^{\geq 0}$ semiring}
+
 \subsection{Typing \& resourcing}
 
 \begin{figure}
@@ -177,7 +190,7 @@ $\ctxvar{x_1}{A_1}{\rho_1}, \ldots, \ctxvar{x_n}{A_n}{\rho_n} \vdash M : A$.
 Each variable in the context carries a resource annotation, but the conclusion
 is taken to always have annotation $1$.
 Such a restriction is important to keep substitution admissible, as shown in
-\cite{quantitative-type-theory}.
+\cite{quantitative-type-theory}. \fixmeBA{probably drop the reference here (but keep it later on)}
 
 A summary of the term syntax is given in \autoref{fig:terms}.
 As well as variables, and constructors and destructors for each type former, we
@@ -203,12 +216,12 @@ This makes it the principle resourcing of the variable rule.
 Allowing $\basis x \subres \resctx R$, rather than $\basis x = \resctx R$,
 allows less restrictive resourcings.
 For example, we are free to use $x$ if its use is unrestricted, and similarly we
-are free to discard any variables with unrestricted use.
+are free to discard any variables with unrestricted use. \fixmeBA{fwd ref to the subresourcing lemma}
 
 Constants $c$ can have arbitrary type $A_c$, but not arbitrary resourcing.
 Constants should have a global character, and not be able to depend on the
 context in which they are used, so it makes sense to say that they are well
-resourced only in a context where all variables can be discarded.
+resourced only in a context where all variables can be discarded. \fixmeBA{maybe an example?}
 
 \[
   \inferrule*[right=const]
@@ -224,7 +237,7 @@ means that we must be able to distribute the resources of $\resctx R$ into
 those used to produce the function ($\resctx P$) and those used to produce the
 argument ($\resctx Q$).
 Sub-resourcing is allowed here to maintain the admissibility of sub-resourcing
-as a general rule, stated in \autoref{sec:admissible}.
+as a general rule, stated in \autoref{sec:admissible}. \fixmeBA{comment about subresourcing is valid throughout? and: reference the specific lemma}
 
 \begin{mathpar}
   \inferrule*[right=$\multimap$-I]
@@ -239,12 +252,12 @@ as a general rule, stated in \autoref{sec:admissible}.
   {\ctx{\Gamma}{R} \vdash \app{M}{N} : B}
 \end{mathpar}
 
-In general, we distinguish between tensor products ($\otimes$) and with products
+In general\fixmeBA{``In the presence of resources''}, we distinguish between tensor products ($\otimes$) and with products
 ($\&$).
 A similar distinction between two types of product can be seen in various
 existing systems: our tensor and with products are respectively products
 eliminated by pattern matching and projection, or equivalently positive and
-negative formulations of products \fixme{refs here}.
+negative formulations of products \fixme{refs here}. \fixmeBA{This needs rewording: mention sharing vs not sharing resources; and forward ref to collapse lemma in next subsection}
 
 \begin{mathpar}
   \inferrule*[right=$\otimes$-I]
@@ -298,15 +311,15 @@ what is now nullary.
   \text{(no $\top$-E)}
 \end{mathpar}
 
-Sums are dual to with products.
-The behaviour of sums is familiar from intuitionistic type theory, except for
+Sums are dual to with products.\fixmeBA{either quote ``with'', or replace with symbol. Makes grammar weird.}
+The behaviour of sums is familiar from intuitionistic type theory\fixmeBA{prefer: ``standard''}, except for
 the splitting of resources in the elimination rules between the term being
 eliminated and the continuation terms.
 Notice that this splitting also happens for $0$-E ($\exf{}{}$), even though the
 resourcing context $\resctx Q$ is not used in any premises.
 The addition of the extra $\resctx Q$ can be seen as saying that when we are in
 an impossible case (having created an expression of type $\sumTZero$), we can
-ignore the restrictions imposed by the presence of remaining free variables.
+ignore the restrictions imposed by the presence of remaining free variables.\fixme{Maybe needs a demonstration in the next section}
 
 \begin{mathpar}
   \text{(no $0$-I)}
@@ -334,7 +347,7 @@ All of the previous rules have only allowed us to bind variables with usage
 annotation $1$.
 In order to abstract over variables with different resource annotations, we
 introduce a bang type former, with $\excl{\rho}{A}$ bundling up a value of type
-$A$ used in accordance with $\rescomment \rho$.
+$A$ used in accordance with $\rescomment \rho$.\fixmeBA{Forward ref to a demonstration of this}
 
 \begin{mathpar}
   \inferrule*[right=$\excl{\rho}{}$-I]
@@ -384,7 +397,13 @@ can be invoked as many times as necessary.
   {\ctx{\Gamma}{R} \vdash \fold{M}{N_n}{h}{r}{N_c} : C}
 \end{mathpar}
 
+\fixmeBA{Could have separate $\resctx Q$ and $\resctx Q'$ for the nil and cons cases, and let the condition be $\subrctx{\resctx Q + \resctx Q'}{\resctx Q'}$?}
+
 \subsection{Example programs}
+
+\fixmeBA{For each program should say why it is interesting: the three properties below because they correspond to the properties of a graded (lax-)monoidal comonoid comonad.}
+
+\fixmeBA{Maybe start more slowly with a simple example of typing a function that uses its argument more than once, showing how to idiomatically use $\multimap$ and $\excl{\rho}$ together. This will be useful for writing examples in the various applications settings. Could also provide a bit of syntactic sugar for this situation?}
 
 \subsubsection{Monoidality}
 We can show that $\excl{\rho}{}$ preserves tensor products in one direction:
@@ -492,8 +511,12 @@ graded comonad in our category of types and functions.
 
 \fixme{exponentials turn additives into multiplicatives}
 
+\fixmeBA{Perhaps say what happens in ``extreme''/''interesting'' cases: e.g. $\mathcal{R} = 1$, and the paragraph from next subsection about collapsing of tensor and with}
+
 \subsection{Admissible rules}
 \label{sec:admissible}
+
+\fixmeBA{An introductory sentence to summarise this section.}
 
 Recalling from \autoref{sec:annotations}, $\rescomment \pi \subres \rescomment
 \rho$ says that $\rescomment \rho$ places more relaxed restrictions than
@@ -535,6 +558,7 @@ This fact can be seen clearly in the introduction rules, where the condition
 $\resctx P + \resctx Q \subres \resctx R$ is equivalent to the conjunction of
 $\resctx P \subres \resctx R$ and $\resctx Q \subres \resctx R$.
 With these and the admissibility of sub-resourcing, we get the equivalence.
+\fixmeBA{Can this be turned into a proposition? E.g., there are terms translating back and forth between both types of product? This observation might make more sense in the previous subsection. Also, it extends to the units too?}
 
 Famously, linear logic does not allow unrestricted weakening.
 Our system retains this in spirit, but contains a restricted variant.
@@ -648,19 +672,31 @@ $\mat \Sigma$ weighted by $\resctx Q$.
 
 \subsection{Equivalence to DILL}
 
+\fixmeBA{Would better say ``Translating from DILL to \name{} and
+  back'': we don't really say in what sense we mean ``equivalent'';
+  Barber's thesis
+  (\url{https://www.era.lib.ed.ac.uk/bitstream/handle/1842/392/ECS-LFCS-97-371.pdf},
+  page 51) proves a round trip property using the equational theories
+  of the respective calculi, but we haven't written out an equational
+  theory for \name{} yet}
+
+\fixmeBA{Should say why we are interested in such a translation}
+
 Dual Intuitionistic Linear Logic is a particular formulation of intuitionistic
-linear logic described in \cite{Barber 1996}.
+linear logic described in \cite{Barber1996}.
 Its key feature, which simplifies the metatheory of linear logic, is the use of
 separate contexts for linear and intuitionistic free variables.
 Here we show that DILL is a fragment of the instantiation of \name{} at the
-linearity semiring $\{0,1,\omega\}$.
+linearity semiring $\{0,1,\omega\}$.\fixmeBA{also the fragment without lists}
 
 The types of DILL are the same as the types of \name, except for the
 restriction of $\excl{\rho}{}$ to just $\excl{\omega}{}$.
 We will write the latter simply as $\oc$ when it appears in DILL.
 We add sums and with products to the calculus of \cite{Barber1996}, with the
-obvious rules.
+obvious rules.\fixmeBA{should put the rules for the precise variant of DILL we are using in an appendix}
 These additive type formers present no additional difficulty to the translation.
+
+\fixmeBA{Should give the translation on terms}
 
 %\begin{figure}
 %  \begin{displaymath}
