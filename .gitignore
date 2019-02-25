@@ -1,6 +1,6 @@
 *.agdai
 .#*
-/paper/comment.cut
+comment.cut
 *.aux
 *.log
 *.out
