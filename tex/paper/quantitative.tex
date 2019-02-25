@@ -72,13 +72,17 @@
 \def\newelims{1}
 \input{../macros.tex}
 
-%\theoremstyle{plain}
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{proposition}[theorem]{Proposition}
-%\theoremstyle{definition}
-\newtheorem{definition}[theorem]{Definition}
-\newtheorem{example}[theorem]{Example}
+\def\sectionautorefname{Section}
+\def\subsectionautorefname{Section}
+\def\subsubsectionautorefname{Section}
+
+\newcommand{\lemref}[1]{\hyperref[#1]{Lemma \ref*{#1}}}
+\newcommand{\exref}[1]{\hyperref[#1]{Example \ref*{#1}}}
+\newcommand{\judgeref}[1]{\hyperref[#1]{Judgement \ref*{#1}}}
+\newcommand{\propref}[1]{\hyperref[#1]{Proposition \ref*{#1}}}
+\newcommand{\diagref}[1]{\hyperref[#1]{Diagram \ref*{#1}}}
+\newcommand{\thmref}[1]{\hyperref[#1]{Theorem \ref*{#1}}}
+\newcommand{\defref}[1]{\hyperref[#1]{Definition \ref*{#1}}}
 
 \begin{document}
 

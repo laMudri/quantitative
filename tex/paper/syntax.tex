@@ -1,20 +1,23 @@
-In this section, we present a simply typed calculus that is parametric in a set
-$\mathscr{R}$ of resources, under conditions detailed later in the section.
+In this section, we present a simply typed calculus \name{} that is parametric
+in a set $\mathscr{R}$ of resources, under conditions detailed in
+\autoref{sec:annotations}.
 
 \subsection{Types}
 
 Our grammar of types and contexts is given in \autoref{fig:syntax}.
-Throughout this section\fixmeBA{Throughout the paper?}, the colour \rescomment{green} highlights resource
+Throughout this paper, the colour \rescomment{green} highlights resource
 annotations, which are generally the interesting things to watch in typing rules
-and the main point of departure between this system and a standard simply typed
-$\lambda$-calculus.\fixmeBA{and normal linear systems}\fixmeBA{say where we will compare this system to others}
+and are the main point of departure between this system and a standard simply
+typed $\lambda$-calculus.
+As we show in \autoref{sec:dill}, these annotations allow us to subsume also
+normal linear type systems. \fixme{and other coeffect systems}
 
 \fixmeBA{mention that we really think of the resource annotations as ``refining'' the underlying types and terms}
 
 \begin{figure}
   \begin{mathpar}
     \rescomment \rho, \rescomment \pi \in \mathscr R \and
-    A, B, C \Coloneqq \base \mid \fun{A}{B} \mid \tensorOne \mid \tensor{A}{B}
+    A, B, C \Coloneqq \base_k \mid \fun{A}{B} \mid \tensorOne \mid \tensor{A}{B}
     \mid \withTOne \mid \withT{A}{B} \mid \sumTZero \mid \sumT{A}{B} \mid
     \excl{\rho}{A} \mid \listT{A} \\
     \Gamma, \Delta \Coloneqq \cdot \mid \Gamma, x : A \and
@@ -27,25 +30,29 @@ $\lambda$-calculus.\fixmeBA{and normal linear systems}\fixmeBA{say where we will
   \label{fig:syntax}
 \end{figure}
 
-We have an uninterpreted base type \fixmeBA{base types?}, functions, two kinds of finite products,
-finite sums, a graded modality $\excl{\rho}{}$, and polymorphic lists.
-These will be explained further when their typing rules are introduced.\fixmeBA{Give the symbols next to the words for each of the type formers}
+We have a set of uninterpreted base types $\base_k$; functions $\fun{}{}$; two
+kinds of finite products $\tensorOne$/$\tensor{}{}$ and
+$\withTOne$/$\withT{}{}$; finite sums $\sumTZero$/$\sumT{}{}$; a graded modality
+$\excl{\rho}{}$; and polymorphic lists.
+These will be explained further when their typing rules are introduced in
+\autoref{sec:rules}.
 
 \fixmeBA{explain resourcing contexts on their own first?}
 Our contexts are combinations of a typing context $\Gamma$ and a resourcing
 context $\resctx R$, written $\ctx{\Gamma}{R}$.
 It will sometimes be useful to talk only about one part at a time.
-In particular, it is occasionally useful to think of resourcing contexts as row
-vectors, and to use standard linear algebra operations on them.\fixmeBA{Be more assertive: ``It will be useful...'' and forward reference the bits where this is used.}
+In particular, it will be useful to think of resourcing contexts as row
+vectors, and to use standard linear algebra operations on them, when stating and
+proving simultaneous substitution in \autoref{sec:admissible}.
 
 \subsection{Resource annotations}
 \label{sec:annotations}
 
 \fixmeBA{In general, I don't like starting sentences with numbers or symbols...}
 
-We assume a partially ordered semiring $(\mathscr{R}, \subres, 0, +, 1, *)$ of
-resource annotations.\fixmeBA{Already assumed $\mathscr{R}$, so we are \emph{further} assuming here that it is a po-semiring.}
-These will adorn free variables.
+We assume that our set of annotations $\mathscr R$ forms a partially ordered
+semiring $(\mathscr{R}, \subres, 0, +, 1, *)$.
+These annotations adorn free variables.
 $0$ represents non-usage, and $+$ the combination of separate usages.
 $(\mathscr{R}, 0, +)$ forms a commutative monoid.
 $1$ represents a single or plain usage, and $*$ applies a transformation upon
@@ -73,6 +80,7 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
 \end{example}
 
 \begin{example}[Linearity]
+  \label{ex:annotations-linearity}
   We approximate counting usages.
   $0$ and $1$ represent exactly their respective number of usages.
   $\omega$ represents unrestricted usage.
@@ -111,7 +119,28 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
   \end{center}
 \end{example}
 
-\fixmeBA{Natural number semiring for precise usage counts?}
+\begin{example}[Precise usage counting]
+  Resource annotations track exactly how many times a free variable is used.
+  There is no annotation for unrestricted use, though an $\omega$ could be added
+  analogously to how it is done in \exref{ex:annotations-linearity}, above all
+  of the precise elements.
+
+  \begin{center}
+    \(\mathscr R \coloneqq \mathbb N\)
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}c<{$}}
+      0 \coloneqq 0 \\
+      1 \coloneqq 1
+    \end{tabular}%
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}c<{$}}
+      {+} \coloneqq {+} \\
+      {*} \coloneqq {\times}
+    \end{tabular}%
+    \hspace{0.5in}%
+    \(m \subres n \iff m = n\)
+  \end{center}
+\end{example}
 
 \begin{example}[Monotonicity]
   Resource annotations track which ``way up'' we can use a free variable.
@@ -154,11 +183,59 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
   Notice that $+$ is the join of the sub-resourcing order.
 \end{example}
 
-\fixmeBA{also: lattices of security levels}
+\begin{example}[Security levels]
+  Similar to \cite{abadi99core}, our annotations can be security levels
+  constraining where a variable can be seen.
+  We assume a security lattice $\mathcal L$, and make the following choices.
 
-\fixmeBA{also: the $\mathbb{R}^{\geq 0}$ semiring}
+  \begin{center}
+    \(\mathscr R \coloneqq \mathcal L\)
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}c<{$}}
+      0 \coloneqq \bot \\
+      1 \coloneqq \top
+    \end{tabular}%
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}c<{$}}
+      {+} \coloneqq {\vee} \\
+      {*} \coloneqq {\wedge}
+    \end{tabular}%
+    \hspace{0.5in}%
+    \(x \subres y \iff x \leq y\)
+  \end{center}
+\end{example}
+
+\begin{example}[Sensitivity analysis]
+  Following \cite{reed10distance}, we can put an upper bound on the size of
+  change observed in a term after a perturbation of a free variable by
+  annotating with distances. 
+  The distance tells us how much the output may vary by when the variable varies
+  by a distance of $1$.
+
+  \begin{center}
+    \(\mathscr R \coloneqq \{x \in \mathbb R \mid x \geq 0\} \cup \{\infty\}\)
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}c<{$}}
+      0 \coloneqq 0 \\
+      1 \coloneqq 1
+    \end{tabular}%
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}c<{$}}
+      {+} \coloneqq {+} \\
+      {*} \coloneqq {\times}
+    \end{tabular}%
+    \hspace{0.5in}%
+    \(x \subres y \iff x \leq y\)
+  \end{center}
+
+  An annotation $0$ on a variable $x$ says that no matter how much $x$
+  changes, the result will vary by $0$.
+  Conversely, an annotation $\infty$ says that as soon as the variable changes
+  by a positive amount, the result may vary arbitrarily.
+\end{example}
 
 \subsection{Typing \& resourcing}
+\label{sec:rules}
 
 \begin{figure}
   \begin{displaymath}
@@ -405,7 +482,7 @@ can be invoked as many times as necessary.
 
 \fixmeBA{Maybe start more slowly with a simple example of typing a function that uses its argument more than once, showing how to idiomatically use $\multimap$ and $\excl{\rho}$ together. This will be useful for writing examples in the various applications settings. Could also provide a bit of syntactic sugar for this situation?}
 
-\subsubsection{Monoidality}
+\begin{example}[Monoidality]
 We can show that $\excl{\rho}{}$ preserves tensor products in one direction:
 $\fun{\tensor{\excl{\rho}{C}}{\excl{\rho}{D}}}{\excl{\rho}{(\tensor{C}{D})}}$.
 
@@ -454,8 +531,9 @@ $\excl{\omega}{(\tensor{C}{D})}$ promises an unlimited supply of $C$s and $D$s
 \emph{in lock step}, whereas $\tensor{\excl{\omega}{C}}{\excl{\omega}{C}}$
 promises both an unlimited supply of $C$s and an unlimited supply of $D$s with
 no relation between each other.
+\end{example}
 
-\subsubsection{Comonad operations}
+\begin{example}[Comonad operations]
 The following two terms are well typed and well resourced.
 
 \begin{displaymath}
@@ -508,6 +586,7 @@ The following two terms are well typed and well resourced.
 
 These are the counit and comultiplication required in showing that $\excl{(-)}{}$ is a
 graded comonad in our category of types and functions.
+\end{example}
 
 \fixme{exponentials turn additives into multiplicatives}
 
@@ -671,6 +750,7 @@ $\mat \Sigma$ weighted by $\resctx Q$.
 \renewcommand{\proofname}{Proof}
 
 \subsection{Equivalence to DILL}
+\label{sec:dill}
 
 \fixmeBA{Would better say ``Translating from DILL to \name{} and
   back'': we don't really say in what sense we mean ``equivalent'';
