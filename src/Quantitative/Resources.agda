@@ -78,11 +78,10 @@ module Quantitative.Resources
                           (s1r : Δs +↓ [- R.e1 -] ⊢r s1t)
           →
           Δ ⊢r cse et s0t s1t
-    fold : ∀ {Δe Δs S T e sn sc} {et : Γ ⊢t e ∈ LIST S}
+    fold : ∀ {S T e sn sc} {et : Γ ⊢t e ∈ LIST S}
            {snt : Γ ⊢t T ∋ sn} {sct : S :: T :: Γ ⊢t T ∋ sc}
-           (split : Δ ≤M Δe +M Δs) (splits : Δs ≤M 0M)
-           (er : Δe ⊢r et) (snr : Δs ⊢r snt)
-                           (scr : Δs +↓ [- R.e1 -] +↓ [- R.e1 -] ⊢r sct)
+           (er : Δ ⊢r et) (snr : 0M ⊢r snt)
+                          (scr : 0M +↓ [- R.e1 -] +↓ [- R.e1 -] ⊢r sct)
            →
            Δ ⊢r fold et snt sct
     the : ∀ {S s} {st : Γ ⊢t S ∋ s}

@@ -50,7 +50,7 @@ module Quantitative.Semantics.WRel.Term
     open import Lib.Dec
     open import Lib.Dec.Properties
     open import Lib.Equality using (_≡_; refl; subst2)
-    open import Lib.Function renaming (_o_ to _∘_)
+    open import Lib.Function as F hiding (id) renaming (_o_ to _∘_)
     open import Lib.Matrix.Addition
       (record { commutativeMonoid = R.+-commutativeMonoid })
     open import Lib.Matrix.Multiplication (record { semiring = R.semiring })
@@ -175,7 +175,7 @@ module Quantitative.Semantics.WRel.Term
     split : ∀ (ij : _ × _) → let i′ , j = ij in Δρ (o′ i′ , j) R.≤ (basis-col i *r π) (i′ , j)
     split (i′ , o′ ())
     split (i′ , j@(os oz))
-      with i′ ⊆? i | map⊎-rel {B′ = Not (i′ ⊆ i)} o′′ id (i′ ⊆? i)
+      with i′ ⊆? i | map⊎-rel {B′ = Not (i′ ⊆ i)} o′′ F.id (i′ ⊆? i)
          | split-le (o′ i′ , j)
     ... | .(yes _) | inl r | res = res
     ... | .(no _) | inr s | res = res
@@ -219,8 +219,8 @@ module Quantitative.Semantics.WRel.Term
     let ihs1 = ×W.arr $E (snd (act-1 R⟦ S1 ⟧T) , WREL.id _ R⟦ Γ , Δs ⟧Δ)
            >>N fundamental s1r in
     RΔ-split-+ Γ split >>N ∧W.arr $E (ihe , WREL.id _ R⟦ Γ , Δs ⟧Δ)
-      >>N ∧-⇒W-× ⟦ et ⟧t id (⊕W.obj (R⟦ S0 ⟧T , R⟦ S1 ⟧T)) R⟦ Γ , Δs ⟧Δ
-      >>N mapW-func < ⟦ et ⟧t , id >
+      >>N ∧-⇒W-× ⟦ et ⟧t F.id (⊕W.obj (R⟦ S0 ⟧T , R⟦ S1 ⟧T)) R⟦ Γ , Δs ⟧Δ
+      >>N mapW-func < ⟦ et ⟧t , F.id >
         (×-⊕W-distrib-l R⟦ S0 ⟧T R⟦ S1 ⟧T R⟦ Γ , Δs ⟧Δ
          >>N mapW-func ×-⊎-distrib-l
            (caseW (×W.obj (R⟦ S0 ⟧T , R⟦ Γ , Δs ⟧Δ))
