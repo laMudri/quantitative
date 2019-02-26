@@ -178,14 +178,16 @@ module Quantitative.Resources.Substitution
     cse split′ (renameRes Δne thre er)
                (renameRes _ (+↓-RenRes Δns thrs [- R.e1 -]) s0r)
                (renameRes _ (+↓-RenRes Δns thrs [- R.e1 -]) s1r)
-  renameRes Δn thr (fold split splits er snr scr) with ren-split-+ Δn thr split
-  ... | Δne , Δns , split′ , thre , thrs =
-    fold split′ (ren-split-0 Δns thrs splits)
-         (renameRes Δne thre er) (renameRes Δns thrs snr)
-         (renameRes _ (+↓-RenRes (Δns +↓ [- R.e1 -])
-                                 (+↓-RenRes Δns thrs [- R.e1 -])
-                                 [- R.e1 -])
-                      scr)
+  renameRes {m = m} {n} {th = th} Δn thr (fold er snr scr) =
+    fold (renameRes Δn thr er)
+         (renameRes 0M 0-RenRes snr)
+         (renameRes _ (+↓-RenRes (0M +↓ [- R.e1 -])
+                                 (+↓-RenRes 0M 0-RenRes [- R.e1 -]) [- R.e1 -])
+                    scr)
+    where
+    0-RenRes : RenRes {m} {n} th 0M 0M
+    0-RenRes .fst _ = R.≤-refl
+    0-RenRes .snd _ = R.≤-refl
   renameRes Δn thr (the sr) = the (renameRes Δn thr sr)
   renameRes Δn thr (lam sr) =
     lam (renameRes _ (+↓-RenRes Δn thr [- R.e1 -]) sr)
@@ -216,8 +218,8 @@ module Quantitative.Resources.Substitution
   weakenRes sub (proj er) = proj (weakenRes sub er)
   weakenRes sub (exf split er) = exf (≤M-trans sub split) er
   weakenRes sub (cse split er s0r s1r) = cse (≤M-trans sub split) er s0r s1r
-  weakenRes sub (fold split splits er snr scr) =
-    fold (≤M-trans sub split) splits er snr scr
+  weakenRes sub (fold er snr scr) =
+    fold (weakenRes sub er) (weakenRes ≤M-refl snr) (weakenRes ≤M-refl scr)
   weakenRes sub (the sr) = the (weakenRes sub sr)
   weakenRes sub (lam sr) = lam (weakenRes (sub +↓-mono ≤M-refl) sr)
   weakenRes sub (bang split sr) = bang (≤M-trans sub split) sr
@@ -322,14 +324,15 @@ module Quantitative.Resources.Substitution
         (substituteRes (M , ≤M-refl , ur) er)
         (substituteRes (liftSubstRes (M , ≤M-refl , ur)) s0r)
         (substituteRes (liftSubstRes (M , ≤M-refl , ur)) s1r)
-  substituteRes (M , sub , ur) (fold {Δe = Δe} {Δs} split splits er snr scr) =
-    fold (resplit sub split (distribM .fst M Δe Δs))
-         (resplit ≤M-refl splits (annihilM .fst M))
-         (substituteRes (M , ≤M-refl , ur) er)
-         (substituteRes (M , ≤M-refl , ur) snr)
-         (substituteRes (liftSubstRes {Δm = Δs +↓ [- R.e1 -]}
-                                      (liftSubstRes (M , ≤M-refl , ur)))
+  substituteRes σr@(M , sub , ur) (fold er snr scr) =
+    fold (substituteRes σr er)
+         (substituteRes (M , sub′ , ur) snr)
+         (substituteRes (liftSubstRes {Δm = 0M +↓ [- R.e1 -]}
+                                      (liftSubstRes (M , sub′ , ur)))
                         scr)
+    where
+    sub′ : 0M ≤M M *M 0M
+    sub′ = ≤M-reflexive (symM (annihilM .fst M))
   substituteRes σr (the sr) = the (substituteRes σr sr)
   substituteRes σr (lam sr) =
     lam (substituteRes (liftSubstRes σr) sr)
