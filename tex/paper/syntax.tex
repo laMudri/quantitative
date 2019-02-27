@@ -314,7 +314,8 @@ means that we must be able to distribute the resources of $\resctx R$ into
 those used to produce the function ($\resctx P$) and those used to produce the
 argument ($\resctx Q$).
 Sub-resourcing is allowed here to maintain the admissibility of sub-resourcing
-as a general rule, stated in \autoref{sec:admissible}. \fixmeBA{comment about subresourcing is valid throughout? and: reference the specific lemma}
+as a general rule, stated in \autoref{sec:admissible}, \lemref{lem:subres}.
+\fixmeBA{comment about subresourcing is valid throughout?}
 
 \begin{mathpar}
   \inferrule*[right=$\multimap$-I]
@@ -388,9 +389,10 @@ what is now nullary.
   \text{(no $\top$-E)}
 \end{mathpar}
 
-Sums are dual to with products.\fixmeBA{either quote ``with'', or replace with symbol. Makes grammar weird.}
-The behaviour of sums is familiar from intuitionistic type theory\fixmeBA{prefer: ``standard''}, except for
-the splitting of resources in the elimination rules between the term being
+Sums are dual to $\withT{}{}$-products.
+\fixmeBA{either quote ``with'', or replace with symbol. Makes grammar weird.}
+The behaviour of sums is familiar from standard type theory, except for the
+splitting of resources in the elimination rules between the term being
 eliminated and the continuation terms.
 Notice that this splitting also happens for $0$-E ($\exf{}{}$), even though the
 resourcing context $\resctx Q$ is not used in any premises.
@@ -478,13 +480,79 @@ can be invoked as many times as necessary.
 
 \subsection{Example programs}
 
-\fixmeBA{For each program should say why it is interesting: the three properties below because they correspond to the properties of a graded (lax-)monoidal comonoid comonad.}
+\begin{example}
+  To start, we assume that we have instantiated $\mathscr R$ to be
+  $\{0,1,\omega\}$, with operations as defined in \autoref{sec:annotations}.
+  We also assume a single base type $\base$, and no constants.
+  In this case, the annotation $1$ corresponds to linear usage, and $\omega$
+  corresponds to unrestricted usage.
+  This means that there is no term of type
+  $\ctxvar{x}{\base}{1} \vdash \tensor{\base}{\base}$, but we do have the
+  following.
 
-\fixmeBA{Maybe start more slowly with a simple example of typing a function that uses its argument more than once, showing how to idiomatically use $\multimap$ and $\excl{\rho}$ together. This will be useful for writing examples in the various applications settings. Could also provide a bit of syntactic sugar for this situation?}
+  \[
+    \inferrule*[Right=$\tensor{}{}$-I]
+    {
+      \inferrule*[Right=var]
+      {\rescomment{1 \subres \omega}}
+      {\ctxvar{x}{\base}{\omega} \vdash x : \base}
+      \\
+      \inferrule*[Right=var]
+      {\rescomment{1 \subres \omega}}
+      {\ctxvar{x}{\base}{\omega} \vdash x : \base}
+      \\ \rescomment{\omega + \omega \subres \omega}
+    }
+    {\ctxvar{x}{\base}{\omega} \vdash \ten{x}{x} : \tensor{\base}{\base}}
+  \]
+
+  We can abstract over this derivation by giving a closed term proving
+  $\vdash \fun{\excl{\omega}{\base}}{\tensor{\base}{\base}}$.
+  The new derivation extends the previous derivation by following the types.
+
+  \[
+    \inferrule*[Right=$\fun{}{}$-I]
+    {
+      \inferrule*[Right=$\excl{}{}$-E]
+      {
+        \inferrule*[Right=var]
+        {\rescomment{1 \subres 1}}
+        {\ctxvar{b_x}{\excl{\omega}{\base}}{1} \vdash b_x
+          : \excl{\omega}{\base}}
+        \\ \inferrule*{}
+        {\nabla \\\\
+          \ctxvar{b_x}{\excl{\omega}{\base}}{0}, \ctxvar{x}{\base}{\omega}
+          \vdash \ten{x}{x} : \tensor{\base}{\base}}
+        \\ \rescomment{1 + 0 \subres 1}
+      }
+      {\ctxvar{b_x}{\excl{\omega}{\base}}{1} \vdash \bm{}{b_x}{x}{\ten{x}{x}}
+        : \tensor{\base}{\base}}
+    }
+    {\vdash \lam{b_x}{\bm{}{b_x}{x}{\ten{x}{x}}}
+      : \fun{\excl{\omega}{\base}}{\tensor{\base}{\base}}}
+  \]
+
+  For $\nabla$, we have the previous derivation, but weakened by the addition of
+  the assumption $\ctxvar{b_x}{\excl{\omega}{\base}}{0}$.
+  In this case, it is easy to see that this weakening is permissible, because
+  when it appears in the variable rule, we don't use $b_x$, so we need to show
+  that it is discardable, which it is.
+  In \lemref{lem:weak}, we will prove that such a weakening is generally
+  admissible.
+
+  That $b_x$ plays no role and places no restrictions on the continuation term
+  suggests that we are justified to use pattern matching syntax colloquially.
+  In this instance, we may write $\lam{\bang x}{M}$ to abbreviate
+  $\lam{b_x}{\bm{b_x}{b_x}{x}{M}}$.
+\end{example}
+
+\fixmeBA{For each program should say why it is interesting: the three properties below because they correspond to the properties of a graded (lax-)monoidal comonoid comonad.}
 
 \begin{example}[Monoidality]
 We can show that $\excl{\rho}{}$ preserves tensor products in one direction:
 $\fun{\tensor{\excl{\rho}{C}}{\excl{\rho}{D}}}{\excl{\rho}{(\tensor{C}{D})}}$.
+Colloquially, we have the term
+$\lam{\ten{\bang c}{\bang d}}{\bang{\ten{c}{d}}}$, which expands out to the
+following formal term.
 
 \[
   \begin{aligned}
@@ -538,8 +606,8 @@ The following two terms are well typed and well resourced.
 
 \begin{displaymath}
   \begin{eqns}
-    \lam{b_a}{\bm{A}{b_a}{a}{a}} &:& \fun{\excl{1}{A}}{A} \\
-    \lam{b_a}{\bm{A}{b_a}{a}{\bang{\bang{a}}}}
+    \lam{\bang a}{a} &:& \fun{\excl{1}{A}}{A} \\
+    \lam{\bang a}{\bang{\bang{a}}}
     &:& \fun{\excl{\pi * \rho}{A}}{\excl{\pi}{\excl{\rho}{A}}}
   \end{eqns}
 \end{displaymath}
@@ -606,6 +674,7 @@ $\resctx Q$ is a more liberal context than $\resctx
 resourced in $\resctx Q$.
 
 \begin{lemma}[Sub-resourcing]
+  \label{lem:subres}
   \[
     \inferrule*[right=subres]{
       \ctx{\Gamma}{P} \vdash M : A
@@ -648,6 +717,7 @@ In the monotonicity instantiation, all annotations are above $0$, so weakening
 can be applied to any variable.
 
 \begin{lemma}[Weakening]
+  \label{lem:weak}
   We can add unmentioned free variables if those variables are annotated with a
   weakenable annotation.
   \[
