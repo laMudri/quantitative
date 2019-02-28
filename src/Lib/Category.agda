@@ -43,16 +43,49 @@ module Lib.Category where
     open IsCategory isCategory public
 
     -- Definitions which make sense within a category:
-    record IsIso {X Y} (to : X => Y) : Set (o ⊔ a ⊔ e) where
+
+    module _ {X Y} (to : X => Y) where
+
+      IsEpi : Set _
+      IsEpi = ∀ {Z} {f g : Y => Z} → to >> f ≈ to >> g → f ≈ g
+
+      record IsIso : Set (o ⊔ a ⊔ e) where
+        field
+          from : Y => X
+          to>>from : to >> from ≈ id X
+          from>>to : from >> to ≈ id Y
+
+        isEpi : IsEpi
+        isEpi {f = f} {g} q =
+          trans  (sym (id->> f))
+          (trans (sym from>>to >>-cong refl)
+          (trans (>>->> from to f)
+          (trans (refl >>-cong q)
+          (trans (sym (>>->> from to g))
+          (trans (from>>to >>-cong refl)
+                 (id->> g))))))
+
+      open IsIso public using (from; to>>from; from>>to)
+
+    record Epi (X Y : Obj) : Set (o ⊔ a ⊔ e) where
       field
-        from : Y => X
-        to>>from : to >> from ≈ id X
-        from>>to : from >> to ≈ id Y
+        f : X => Y
+        isEpi : IsEpi f
+    open Epi public
 
     record Iso (X Y : Obj) : Set (o ⊔ a ⊔ e) where
       field
         to : X => Y
         isIso : IsIso to
+
+      epi : Epi X Y
+      epi .f = to
+      epi .isEpi = IsIso.isEpi isIso
+
+      open IsIso isIso public
+
+    open Iso public using (to; isIso)
+
 
   ONE : Category _ _ _
   ONE = record
@@ -119,6 +152,7 @@ module Lib.Category where
         arr : ∀ {A B} → C.Arr A B →E D.Arr (obj A) (obj B)
         isFunctor : IsFunctor obj arr
       open IsFunctor isFunctor public
+    open Functor public
 
   EndoFunctor : ∀ {o a e} (C : Category o a e) → Set (o ⊔ a ⊔ e)
   EndoFunctor C = Functor C C
@@ -160,35 +194,35 @@ module Lib.Category where
       sym : ∀ {F G} → F ≈F G → G ≈F F
       sym {F} {G} FG = record
         { obj = λ X → Eq.sym (FG.obj X)
-        ; arr = λ {A} {B} f → arr (FG.obj A) (FG.obj B) (FG.arr f)
+        ; arr = λ {A} {B} f → arrq (FG.obj A) (FG.obj B) (FG.arr f)
         }
         where
         module FG = _≈F_ FG
         module F = Functor F ; module G = Functor G
 
-        arr :
+        arrq :
           ∀ {FA GA FB GB Ff Gf} (fgaa : FA ≡ GA) (fgbb : FB ≡ GB) →
           subst2 D._=>_ fgaa fgbb Ff ≈ Gf →
           subst2 D._=>_ (Eq.sym fgaa) (Eq.sym fgbb) Gf ≈ Ff
-        arr Eq.refl Eq.refl fg = D.sym fg
+        arrq Eq.refl Eq.refl fg = D.sym fg
 
       trans : ∀ {F G H} → F ≈F G → G ≈F H → F ≈F H
       trans {F} {G} {H} FG GH = record
         { obj = λ X → Eq.trans (FG.obj X) (GH.obj X)
-        ; arr = λ {A} {B} f → arr (FG.obj A) (FG.obj B) (GH.obj A) (GH.obj B)
-                                  (FG.arr f) (GH.arr f)
+        ; arr = λ {A} {B} f → arrq (FG.obj A) (FG.obj B) (GH.obj A) (GH.obj B)
+                                   (FG.arr f) (GH.arr f)
         }
         where
         module FG = _≈F_ FG ; module GH = _≈F_ GH
         module F = Functor F ; module G = Functor G ; module H = Functor H
 
-        arr :
+        arrq :
           ∀ {FA GA HA FB GB HB Ff Gf Hf}
           (fgaa : FA ≡ GA) (fgbb : FB ≡ GB) (ghaa : GA ≡ HA) (ghbb : GB ≡ HB) →
           subst2 D._=>_ fgaa fgbb Ff ≈ Gf →
           subst2 D._=>_ ghaa ghbb Gf ≈ Hf →
           subst2 D._=>_ (Eq.trans fgaa ghaa) (Eq.trans fgbb ghbb) Ff ≈ Hf
-        arr Eq.refl Eq.refl Eq.refl Eq.refl fg gh = D.trans fg gh
+        arrq Eq.refl Eq.refl Eq.refl Eq.refl fg gh = D.trans fg gh
 
     infixr 2 _×C_
     _×C_ : Category (oc ⊔ od) (ac ⊔ ad) (ec ⊔ ed)
@@ -364,9 +398,31 @@ module Lib.Category where
 
     record NatIso (F G : Functor C D) : Set (oc ⊔ od ⊔ ac ⊔ ad ⊔ ec ⊔ ed) where
       field
-        natTrans : NatTrans F G
-        isos : ∀ X → IsIso (natTrans .η X)
-      open NatTrans natTrans public
+        toNT : NatTrans F G
+        to-iso : ∀ X → IsIso (toNT .η X)
+
+      -- module to = NatTrans to
+
+      private
+        module to-iso X = IsIso (to-iso X)
+
+      inv : NatIso G F
+      inv .toNT .η X = to-iso X .from
+      inv .toNT .square {X} {Y} f = to-iso.isEpi X
+        (trans (sym (>>->> (toNT .η X) (G .arr $E f) (to-iso Y .from)))
+        (trans (sym (toNT .square f >>-cong refl))
+        (trans (>>->> (F .arr $E f) (toNT .η Y) (to-iso Y .from))
+        (trans (refl >>-cong to-iso.to>>from Y)
+        (trans (>>-id (F .arr $E f))
+        (trans (sym (id->> (F .arr $E f)))
+        (trans (sym (to-iso.to>>from X) >>-cong refl)
+               (>>->> (toNT .η X) (to-iso X .from) (F .arr $E f)))))))))
+      inv .to-iso X .from = toNT .η X
+      inv .to-iso X .to>>from = to-iso.from>>to X
+      inv .to-iso X .from>>to = to-iso.to>>from X
+
+      -- open NatIso inv public renaming (to to from; to-iso to from-iso)
+    open NatIso public using (to-iso) renaming (toNT to to)
 
     NatTransS : (F G : Functor C D) → Setoid (oc ⊔ od ⊔ ac ⊔ ad ⊔ ec ⊔ ed)
                                              (ed ⊔ oc)
@@ -393,10 +449,9 @@ module Lib.Category where
 
     idN : (F : Functor C D) → NatTrans F F
     idN F = record
-      { η = λ X → id (obj X)
-      ; square = λ f → trans (>>-id (arr $E f)) (sym (id->> (arr $E f)))
+      { η = λ X → id (F .obj X)
+      ; square = λ f → trans (>>-id (F .arr $E f)) (sym (id->> (F .arr $E f)))
       }
-      where open Functor F
 
     module _ {F G H : Functor C D} (α : NatTrans F G) (β : NatTrans G H) where
       private
@@ -591,14 +646,12 @@ module Lib.Category where
            (F : Functor (OP D) C) where
     private
       module C = Category C ; module Dᵒᵖ = Category (OP D)
-      module F = Functor F
-    open F
     open C
 
     record IsCone (cobj : C.Obj) : Set (od ⊔ ac ⊔ ad ⊔ ec) where
       field
-        carr : ∀ d → cobj => obj d
-        commute : ∀ {d d′} (f : d Dᵒᵖ.=> d′) → carr d >> arr $E f ≈ carr d′
+        carr : ∀ d → cobj => F .obj d
+        commute : ∀ {d d′} (f : d Dᵒᵖ.=> d′) → carr d >> F .arr $E f ≈ carr d′
 
     record Limit : Set (oc ⊔ od ⊔ ac ⊔ ad ⊔ ec) where
       field
@@ -612,15 +665,14 @@ module Lib.Category where
            (F : Functor (OP C ×C C) X) where
     private
       module C = Category C ; module X = Category X
-    open Functor F
     open X
 
     record IsWedge (wobj : Obj) : Set (oc ⊔ ac ⊔ ax ⊔ ex) where
       field
-        warr : ∀ c → wobj => obj (c , c)
+        warr : ∀ c → wobj => F .obj (c , c)
         commutes : ∀ {c c′} (f : c C.=> c′) →
-                   warr c >> arr $E (C.id c , f)
-                     ≈ warr c′ >> arr $E (f , C.id c′)
+                   warr c >> F .arr $E (C.id c , f)
+                     ≈ warr c′ >> F .arr $E (f , C.id c′)
 
     record End : Set (oc ⊔ ox ⊔ ac ⊔ ax ⊔ ex) where
       field
@@ -633,10 +685,10 @@ module Lib.Category where
 
     record IsCowedge (wobj : Obj) : Set (oc ⊔ ac ⊔ ax ⊔ ex) where
       field
-        warr : ∀ c → obj (c , c) => wobj
+        warr : ∀ c → F .obj (c , c) => wobj
         commutes : ∀ {c c′} (f : c′ C.=> c) →
-                   arr $E (C.id c , f) >> warr c
-                     ≈ arr $E (f , C.id c′) >> warr c′
+                   F .arr $E (C.id c , f) >> warr c
+                     ≈ F .arr $E (f , C.id c′) >> warr c′
 
     record Coend : Set (oc ⊔ ox ⊔ ac ⊔ ax ⊔ ex) where
       field
@@ -800,12 +852,32 @@ module Lib.Category where
       module I⊗ = NatIso I⊗ ; module ⊗I = NatIso ⊗I ; module ⊗⊗ = NatIso ⊗⊗
       field
         triangle : ∀ x y →
-          ⊗⊗.η (x , I , y) >> ⊗.arr $E (id x , I⊗.η y)
-            ≈ ⊗.arr $E (⊗I.η x , id y)
+          ⊗⊗ .to .η (x , I , y) >> ⊗.arr $E (id x , I⊗ .to .η y)
+            ≈ ⊗.arr $E (⊗I .to .η x , id y)
         pentagon : ∀ w x y z →
-          ⊗.arr $E (⊗⊗.η (w , x , y) , id z) >> ⊗⊗.η (w , ⊗.obj (x , y) , z)
-              >> ⊗.arr $E (id w , ⊗⊗.η (x , y , z))
-            ≈ ⊗⊗.η (⊗.obj (w , x) , y , z) >> ⊗⊗.η (w , x , ⊗.obj (y , z))
+          ⊗.arr $E (⊗⊗ .to .η (w , x , y) , id z)
+              >> ⊗⊗ .to .η (w , ⊗.obj (x , y) , z)
+              >> ⊗.arr $E (id w , ⊗⊗ .to .η (x , y , z))
+            ≈ ⊗⊗ .to .η (⊗.obj (w , x) , y , z)
+              >> ⊗⊗ .to .η (w , x , ⊗.obj (y , z))
+
+    record IsSymmetricMonoidal (I : Obj) (⊗ : Functor (C ×C C) C)
+                               : Set (o ⊔ a ⊔ e) where
+      open NatIso using (inv)
+      field
+        isMonoidal : IsMonoidal I ⊗
+      open IsMonoidal isMonoidal public
+      field
+        braid : NatIso (swapF >>F ⊗) ⊗
+        braid-braid : ∀ {x y} →
+                      braid .to .η (x , y) >> braid .to .η (y , x) ≈ id _
+        hexagon : ∀ {x y z} →
+                  _≈_ {⊗ .obj (⊗ .obj (x , y) , z)}
+                      {⊗ .obj (y , ⊗ .obj (z , x))}
+                  (⊗⊗ .to .η _ >> braid .to .η _ >> ⊗⊗ .to .η _)
+                  (⊗ .arr $E (braid .to .η _ , id _)
+                    >> ⊗⊗ .to .η _
+                    >> ⊗ .arr $E (id _ , braid .to .η _))
 
     idPF : Profunctor C C
     idPF = swapF >>F homF C
@@ -839,6 +911,21 @@ module Lib.Category where
     module ⊗ = Functor ⊗
     open IsMonoidal isMonoidal public
 
+  record SymmetricMonoidalCategory o a e : Set (lsuc (o ⊔ a ⊔ e)) where
+    field
+      C : Category o a e
+    open Category C public
+    field
+      I : Obj
+      ⊗ : Functor (C ×C C) C
+      isSymmetricMonoidal : IsSymmetricMonoidal C I ⊗
+    module ⊗ = Functor ⊗
+    open IsSymmetricMonoidal isSymmetricMonoidal public
+
+    monoidalCategory : MonoidalCategory o a e
+    monoidalCategory =
+      record { C = C ; I = I ; ⊗ = ⊗ ; isMonoidal = isMonoidal }
+
   module _ {o oh ah eh : Level} (V : MonoidalCategory oh ah eh) where
     private module V = MonoidalCategory V
 
@@ -849,12 +936,12 @@ module Lib.Category where
         >> : ∀ {A B C} → V.⊗.obj (Arr A B , Arr B C) V.=> Arr A C
 
         id->> : ∀ {A B : Obj} →
-                V.⊗.arr $E (id A , V.id (Arr A B)) V.>> >> V.≈ V.I⊗.η (Arr A B)
+                V.⊗.arr $E (id A , V.id (Arr A B)) V.>> >> V.≈ V.I⊗ .to .η (Arr A B)
         >>-id : ∀ {A B : Obj} →
-                V.⊗.arr $E (V.id (Arr A B) , id B) V.>> >> V.≈ V.⊗I.η (Arr A B)
+                V.⊗.arr $E (V.id (Arr A B) , id B) V.>> >> V.≈ V.⊗I .to .η (Arr A B)
         >>->> : ∀ {A B C D : Obj} →
                 V.⊗.arr $E (>> , V.id (Arr C D)) V.>> >>
-                  V.≈ V.⊗⊗.η (Arr A B , Arr B C , Arr C D)
+                  V.≈ V.⊗⊗ .to .η (Arr A B , Arr B C , Arr C D)
                       V.>> V.⊗.arr $E ((V.id (Arr A B)) , >>) V.>> >>
 
   record EnrichedCategory o {oh ah eh} (V : MonoidalCategory oh ah eh)
