@@ -152,7 +152,8 @@ module Lib.Category where
         arr : ∀ {A B} → C.Arr A B →E D.Arr (obj A) (obj B)
         isFunctor : IsFunctor obj arr
       open IsFunctor isFunctor public
-    open Functor public
+    open IsFunctor public
+    open Functor public using (obj; arr; isFunctor)
 
   EndoFunctor : ∀ {o a e} (C : Category o a e) → Set (o ⊔ a ⊔ e)
   EndoFunctor C = Functor C C
@@ -285,6 +286,16 @@ module Lib.Category where
         ; arr->> = E.trans (G.arr $E= F.arr->>) G.arr->>
         }
       }
+
+  module _ {oc od ac ad ec ed}
+           {C : Category oc ac ec} {D : Category od ad ed} where
+    open Category D
+
+    constF : Obj → Functor C D
+    constF d .obj = Fun.const d
+    constF d .arr = constE $E (id d)
+    constF d .isFunctor .arr-id _ = refl
+    constF d .isFunctor .arr->> = sym (id->> (id d))
 
   --CAT : ∀ o a e → Category (lsuc (o ⊔ a ⊔ e)) (o ⊔ a ⊔ e) (o ⊔ a ⊔ e)
   --CAT o a e = record
