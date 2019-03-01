@@ -29,7 +29,7 @@ module Quantitative.Semantics.WRel
     open import Quantitative.Semantics.Sets PrimTy C Const constTy Base
 
     open import Lib.Equality as ≡ using (_≡_; subst2)
-    open import Lib.Function as F using (_on_)
+    open import Lib.Function as F using (_on_; _<s>_)
     open import Lib.List as L
     open import Lib.Matrix.Setoid (≡-Setoid C)
     open import Lib.One
@@ -244,24 +244,18 @@ module Quantitative.Semantics.WRel
     , (w↗ , w↘ , id _ , s , u)
   ∧⊗∧-⇒W-⊗∧⊗ R S T U .square _ = <>
 
-  {-
   evalW : ∀ {A B C} (f : A → B → C) (g : A → B)
           (R : WREL.Obj B) (S : WREL.Obj C) →
-          ∧W.obj (mapW f (→W.obj (R , S)) , mapW g R) ⇒W mapW (f <s> g) S
-  evalW f g R S = record
-    { η = λ w a b → λ { (x , y , xyw , rs , r) → rs w y xyw (g a) (g b) r }
-    ; square = λ _ → <>
-    }
+          ∧W .obj (mapW f (→W .obj (R , S)) , mapW g R) ⇒W mapW (f <s> g) S
+  evalW f g R S .η w a b (x , y , wxy , rs , r) = rs w y wxy (g a) (g b) r
+  evalW f g R S .square _ = <>
 
   curryW : ∀ {A B C} (R : WREL.Obj A) (S : WREL.Obj B) (T : WREL.Obj C)
            (f : A → B → C) →
-           ⊗W.obj (R , S) [ uncurry f ]⇒W T → R [ f ]⇒W →W.obj (S , T)
-  curryW R S T f α = record
-    { η = λ x g g′ r  w y xyw a a′ s →
-          α .η w (g , a) (g′ , a′) (x , y , xyw , r , s)
-    ; square = λ _ → <>
-    }
-  -}
+           ⊗W .obj (R , S) [ uncurry f ]⇒W T → R [ f ]⇒W →W .obj (S , T)
+  curryW R S T f α .η x g g′ r w y wxy a a′ s =
+    α .η w (g , a) (g′ , a′) (x , y , wxy , r , s)
+  curryW R S T f α .square _ = <>
 
   ⊤-⇒W-1 : ∀ A → ⊤W {A} [ (λ _ → <>) ]⇒W 1W
   ⊤-⇒W-1 A .η w a a′ wI = wI
@@ -277,67 +271,56 @@ module Quantitative.Semantics.WRel
     (R .arr $E (wxy >> ⊗ .arr $E (id x , yI) >> ⊗I .to .η x)) a a′ aa
   ⊗1-⇒W R .square _ = <>
 
-  {-
-  ××-⇒W : ∀ {A B C} (R : WREL.Obj A) (S : WREL.Obj B) (T : WREL.Obj C) →
-          ⊗W.obj (⊗W.obj (R , S) , T) [ unassoc ]⇒W ⊗W.obj (R , ⊗W.obj (S , T))
-  ××-⇒W R S T = record
-    { η = λ w → λ { ((a , b) , c) ((a′ , b′) , c′)
-                    (x , y , xyw , (xx , xy , xxxyx , r , s) , t) →
-                    let xy+y , xy+y= , xx+[xy+y]=w =
-                         _↔E_.to PP $E (x , xxxyx , xyw) in
-                    xx , xy+y , xx+[xy+y]=w , r , xy , y , xy+y= , s , t }
-    ; square = λ _ → <>
-    }
-    where open Functor (⊗W.obj (R , ⊗W.obj (S , T)))
+  ⊗⊗-⇒W : ∀ {A B C} (R : WREL.Obj A) (S : WREL.Obj B) (T : WREL.Obj C) →
+          ⊗W .obj (⊗W .obj (R , S) , T)
+          [ unassoc ]⇒W ⊗W .obj (R , ⊗W .obj (S , T))
+  ⊗⊗-⇒W R S T .η w ((a , b) , c) ((a′ , b′) , c′)
+    (x , y , wxy , (xx , xy , xxxxy , r , s) , t) =
+    xx , ⊗ .obj (xy , y) , wxy >> ⊗ .arr $E (xxxxy , id y) >> ⊗⊗ .to .η _ , r
+    , (xy , y , id _ , s , t)
+  ⊗⊗-⇒W R S T .square _ = <>
 
   ⊗W-swap : ∀ {A B} (R : WREL.Obj A) (S : WREL.Obj B) →
-            ⊗W.obj (R , S) [ swap ]⇒W ⊗W.obj (S , R)
-  ⊗W-swap R S = record
-    { η = λ { w (a , b) (a′ , b′) (x , y , xyw , r , s) →
-              y , x , comm $E xyw , s , r }
-    ; square = λ _ → <>
-    }
+            ⊗W .obj (R , S) [ swap ]⇒W ⊗W .obj (S , R)
+  ⊗W-swap R S .η w (a , b) (a′ , b′) (x , y , wxy , r , s) =
+    y , x , wxy >> braid .to .η _ , s , r
+  ⊗W-swap R S .square _ = <>
 
-  ∧-⇒W-× : ∀ {A B C} (f : A → B) (g : A → C) (R : WREL.Obj B) (S : WREL.Obj C) →
-           ∧W.obj (mapW f R , mapW g S) [ < f , g > ]⇒W ⊗W.obj (R , S)
-  ∧-⇒W-× f g R S = idN (∧W.obj (mapW f R , mapW g S))
+  ∧-⇒W-⊗ : ∀ {A B C} (f : A → B) (g : A → C) (R : WREL.Obj B) (S : WREL.Obj C) →
+           ∧W .obj (mapW f R , mapW g S) [ < f , g > ]⇒W ⊗W .obj (R , S)
+  ∧-⇒W-⊗ f g R S = idN (∧W .obj (mapW f R , mapW g S))
 
   caseW : ∀ {A B C} (R : WREL.Obj A) (S : WREL.Obj B) (T : WREL.Obj C)
           (f : A → C) (g : B → C) →
-          R [ f ]⇒W T → S [ g ]⇒W T → ⊕W.obj (R , S) [ [ f , g ] ]⇒W T
-  caseW R S T f g rt st = record
-    { η = λ { w (inl a) (inl a′) (inl r) → rt .η w a a′ r
-            ; w (inr b) (inr b′) (inr s) → st .η w b b′ s
-            }
-    ; square = λ _ → <>
-    }
+          R [ f ]⇒W T → S [ g ]⇒W T → ⊕W .obj (R , S) [ [ f , g ] ]⇒W T
+  caseW R S T f g ρ σ .η w (inl a) (inl a′) (inl r) = ρ .η w a a′ r
+  caseW R S T f g ρ σ .η w (inr b) (inr b′) (inr s) = σ .η w b b′ s
+  caseW R S T f g ρ σ .square _ = <>
 
   projW : ∀ {A B C} (f : A → B × C) (R : WREL.Obj B) (S : WREL.Obj C) i →
-          mapW f (&W.obj (R , S)) ⇒W Two-rec (mapW (f >> fst) R)
-                                             (mapW (f >> snd) S)
-                                             i
+          mapW f (&W .obj (R , S)) ⇒W Two-rec (mapW (f F.>> fst) R)
+                                              (mapW (f F.>> snd) S)
+                                              i
   projW f R S ttt = record { η = λ w a b → fst ; square = λ _ → <> }
   projW f R S fff = record { η = λ w a b → snd ; square = λ _ → <> }
 
+  -- TODO: move to Lib
   ×-⊎-distrib-l : ∀ {a b c} {A : Set a} {B : Set b} {C : Set c} →
                   (A ⊎ B) × C → (A × C) ⊎ (B × C)
   ×-⊎-distrib-l (inl a , c) = inl (a , c)
   ×-⊎-distrib-l (inr b , c) = inr (b , c)
 
-  ×-⊕W-distrib-l :
+  ⊗-⊕W-distrib-l :
     ∀ {A B C} (R : WREL.Obj A) (S : WREL.Obj B) (T : WREL.Obj C) →
-    ⊗W.obj (⊕W.obj (R , S) , T) [ ×-⊎-distrib-l ]⇒W
-      ⊕W.obj (⊗W.obj (R , T) , ⊗W.obj (S , T))
-  ×-⊕W-distrib-l R S T = record
-    { η = λ { w (a , b) (a′ , b′) (x , y , xyw , inl r , t) →
-              inl (x , y , xyw , r , t)
-            ; w (a , b) (a′ , b′) (x , y , xyw , inr s , t) →
-              inr (x , y , xyw , s , t)
-            }
-    ; square = λ _ → <>
-    }
-  -}
+    ⊗W .obj (⊕W .obj (R , S) , T) [ ×-⊎-distrib-l ]⇒W
+      ⊕W .obj (⊗W .obj (R , T) , ⊗W .obj (S , T))
+  ⊗-⊕W-distrib-l R S T .η w (a , b) (a′ , b′) (x , y , wxy , inl r , t) =
+    inl (x , y , wxy , r , t)
+  ⊗-⊕W-distrib-l R S T .η w (a , b) (a′ , b′) (x , y , wxy , inr s , t) =
+    inr (x , y , wxy , s , t)
+  ⊗-⊕W-distrib-l R S T .square _ = <>
 
+  -- Semantics of types
 
   R⟦_⟧T : (T : Ty) → WREL.Obj ⟦ T ⟧T
   R⟦_,_⟧ρ : ∀ T ρ → WREL.Obj ⟦ T ⟧T

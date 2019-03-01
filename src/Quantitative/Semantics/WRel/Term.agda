@@ -22,10 +22,9 @@ module Quantitative.Semantics.WRel.Term
   (Base : PrimTy → Set)
   (open Sem PrimTy C Const constTy Base) (⟦const⟧ : ∀ l → ⟦ constTy l ⟧T)
   (BaseR : (b : PrimTy) → WREL.Obj (Base b))
-  (actF : ∀ {A} → C → EndoFunctor (WREL A))
-  (open SemR C Const constTy posemiring symMonCat Base BaseR actF)
-  (let module actF {A} ρ = Functor (actF {A} ρ))
-  (isAct : IsAct actF.obj) (open RCtx C Const posemiring)
+  (!W : ∀ {A} → C → EndoFunctor (WREL A))
+  (open SemR PrimTy C Const constTy posemiring symMonCat Base BaseR !W)
+  (isAct : IsAct (λ ρ → !W ρ .obj)) (open RCtx C Const posemiring)
   (R⟦const⟧ : ∀ {n} Γ {Δ : RCtx n} l →
               R⟦ Γ , Δ ⟧Δ [ (λ _ → ⟦const⟧ l) ]⇒W R⟦ constTy l ⟧T)
   where
@@ -34,7 +33,7 @@ module Quantitative.Semantics.WRel.Term
     open IsAct isAct
 
     act : {A : Set} → C → WREL.Obj A → WREL.Obj A
-    act = actF.obj
+    act ρ = !W ρ .obj
     module act {A} ρ S = Functor (act {A} ρ S)
 
     open import Quantitative.Syntax Ty Const renaming ([_] to emb)
@@ -45,8 +44,8 @@ module Quantitative.Semantics.WRel.Term
 
     open import Lib.Dec
     open import Lib.Dec.Properties
-    open import Lib.Equality using (_≡_; refl; subst2)
-    open import Lib.Function as F hiding (id) renaming (_o_ to _∘_)
+    open import Lib.Equality as ≡ using (_≡_; subst2)
+    open import Lib.Function as F hiding (id; _>>_) renaming (_o_ to _∘_)
     open import Lib.Matrix.Addition
       (record { commutativeMonoid = R.+-commutativeMonoid })
     open import Lib.Matrix.Multiplication (record { semiring = R.semiring })
@@ -158,7 +157,7 @@ module Quantitative.Semantics.WRel.Term
     split : ∀ ij → let i , j = ij in Δρ (o′ i , j) R.≤ R.e0
     split (i , j)
       with i ⊆? e | false→≡no (i ⊆? e) ((λ ()) ∘ ⊆⇒≤) | split-le (o′ i , j)
-    ... | .(no _) | _ , refl | res =
+    ... | .(no _) | _ , ≡.refl | res =
       R.≤-trans res (R.≤-reflexive (R.annihil .snd π))
   R⟦lookup⟧ {Γ = T :: Γ} {Δρ} {π} (o′ i) split-le =
     ⊗W .arr $E (Rρ-split-0 T le >>N ⊤-⇒W-1 ⟦ T ⟧T , R⟦lookup⟧ i split)
@@ -176,11 +175,10 @@ module Quantitative.Semantics.WRel.Term
     ... | .(yes _) | inl r | res = res
     ... | .(no _) | inr s | res = res
 
-  {-
   fundamental :
     ∀ {n d T Γ Δ} {t : Term n d} {tt : Γ ⊢t t :-: T} (tr : Δ ⊢r tt) →
     R⟦ Γ , Δ ⟧Δ [ ⟦ tt ⟧t ]⇒W R⟦ T ⟧T
-  fundamental {Γ = Γ} (var {i} {T} {refl} sub) =
+  fundamental {Γ = Γ} (var {i} {T} {≡.refl} sub) =
     R⟦lookup⟧ i (≤M-trans sub (≤M-reflexive (symM (*r-identity _))))
     >>W′ fst (act-1 R⟦ T ⟧T)
   fundamental {Γ = Γ} (const {l = l} split) = R⟦const⟧ Γ l
@@ -193,13 +191,13 @@ module Quantitative.Semantics.WRel.Term
   fundamental {Γ = Γ} (del {Δe = Δe} {Δs} {T = T} split er sr) =
     let ihe = fundamental er ; ihs = fundamental sr in
     RΔ-split-+ Γ split >>N ∧W .arr $E (ihe , WREL.id _ R⟦ Γ , Δs ⟧Δ)
-                       >>W′ 1×-⇒W R⟦ Γ , Δs ⟧Δ >>W′ ihs
+                       >>W′ 1⊗-⇒W R⟦ Γ , Δs ⟧Δ >>W′ ihs
   fundamental {Γ = Γ} (pm {Δe = Δe} {Δs} {S0} {S1} split er sr) =
     let ihe = fundamental er ; ihs = fundamental sr in
     let ihe′ = ihe >>W′ ⊗W .arr $E (snd (act-1 R⟦ S0 ⟧T)
                                   , snd (act-1 R⟦ S1 ⟧T)) in
     RΔ-split-+ Γ split >>N ∧W .arr $E (ihe′ , WREL.id _ R⟦ Γ , Δs ⟧Δ)
-                       >>W′ ××-⇒W R⟦ S0 , R.e1 ⟧ρ R⟦ S1 , R.e1 ⟧ρ R⟦ Γ , Δs ⟧Δ
+                       >>W′ ⊗⊗-⇒W R⟦ S0 , R.e1 ⟧ρ R⟦ S1 , R.e1 ⟧ρ R⟦ Γ , Δs ⟧Δ
                        >>W′ ihs
   fundamental (proj {i = ttt} {S0} {S1} {et = et} er) =
     fundamental er >>N projW ⟦ et ⟧t R⟦ S0 ⟧T R⟦ S1 ⟧T ttt
@@ -216,64 +214,65 @@ module Quantitative.Semantics.WRel.Term
     let ihs1 = ⊗W .arr $E (snd (act-1 R⟦ S1 ⟧T) , WREL.id _ R⟦ Γ , Δs ⟧Δ)
            >>N fundamental s1r in
     RΔ-split-+ Γ split >>N ∧W .arr $E (ihe , WREL.id _ R⟦ Γ , Δs ⟧Δ)
-      >>N ∧-⇒W-× ⟦ et ⟧t F.id (⊕W .obj (R⟦ S0 ⟧T , R⟦ S1 ⟧T)) R⟦ Γ , Δs ⟧Δ
+      >>N ∧-⇒W-⊗ ⟦ et ⟧t F.id (⊕W .obj (R⟦ S0 ⟧T , R⟦ S1 ⟧T)) R⟦ Γ , Δs ⟧Δ
       >>N mapW-func < ⟦ et ⟧t , F.id >
-        (×-⊕W-distrib-l R⟦ S0 ⟧T R⟦ S1 ⟧T R⟦ Γ , Δs ⟧Δ
+        (⊗-⊕W-distrib-l R⟦ S0 ⟧T R⟦ S1 ⟧T R⟦ Γ , Δs ⟧Δ
          >>N mapW-func ×-⊎-distrib-l
            (caseW (⊗W .obj (R⟦ S0 ⟧T , R⟦ Γ , Δs ⟧Δ))
                           (⊗W .obj (R⟦ S1 ⟧T , R⟦ Γ , Δs ⟧Δ))
                           R⟦ T ⟧T ⟦ s0t ⟧t ⟦ s1t ⟧t ihs0 ihs1))
       >>N mapW-subst R⟦ T ⟧T lemma
     where
-    lemma : < ⟦ et ⟧t , F.id > >> ×-⊎-distrib-l >> [ ⟦ s0t ⟧t , ⟦ s1t ⟧t ]
+    lemma : < ⟦ et ⟧t , F.id > F.>> ×-⊎-distrib-l F.>> [ ⟦ s0t ⟧t , ⟦ s1t ⟧t ]
               ≡E ⟦ cse et s0t s1t ⟧t
-    lemma {γ} refl with ⟦ et ⟧t γ
-    ... | inl e0 = refl
-    ... | inr e1 = refl
+    lemma {γ} ≡.refl with ⟦ et ⟧t γ
+    ... | inl e0 = ≡.refl
+    ... | inr e1 = ≡.refl
   fundamental {Γ = Γ} {Δ = Δ} (fold {S = S} {T} {snt = snt} {sct} er snr scr) =
-    factory Δ
-    >>N ∧W .arr $E (factory Δ , idN R⟦ Γ , 0M ⟧Δ)
-    >>N ∧W .arr {_} {_ , R⟦ Γ , 0M ⟧Δ} {_ , mapW (λ γ → ⟦ sct ⟧t ({!!} , {!!} , γ)) R⟦ T ⟧T} $E (∧W .arr $E (ihe , ihsn) , {!ihsc!})  -- idN (mapW ⟦ snt ⟧t R⟦ T ⟧T)
-    >>N {!ihsc!}
-    where
-    ihe = fundamental er ; ihsn = fundamental snr ; ihsc = fundamental scr
-    open Category
-    open Functor
-    open _↔E_
+    {!!}
+    -- factory Δ
+    -- >>N ∧W .arr $E (factory Δ , idN R⟦ Γ , 0M ⟧Δ)
+    -- >>N ∧W .arr {_} {_ , R⟦ Γ , 0M ⟧Δ} {_ , mapW (λ γ → ⟦ sct ⟧t ({!!} , {!!} , γ)) R⟦ T ⟧T} $E (∧W .arr $E (ihe , ihsn) , {!ihsc!})  -- idN (mapW ⟦ snt ⟧t R⟦ T ⟧T)
+    -- >>N {!ihsc!}
+    -- where
+    -- ihe = fundamental er ; ihsn = fundamental snr ; ihsc = fundamental scr
+    -- open Category
+    -- open Functor
+    -- open _↔E_
 
-    factory : ∀ Δ → R⟦ Γ , Δ ⟧Δ ⇒W ∧W .obj (R⟦ Γ , Δ ⟧Δ , R⟦ Γ , 0M ⟧Δ)
-    factory Δ = RΔ-split-+ Γ (≤M-reflexive (symM (+M-identity .snd Δ)))
+    -- factory : ∀ Δ → R⟦ Γ , Δ ⟧Δ ⇒W ∧W .obj (R⟦ Γ , Δ ⟧Δ , R⟦ Γ , 0M ⟧Δ)
+    -- factory Δ = RΔ-split-+ Γ (≤M-reflexive (symM (+M-identity .snd Δ)))
 
-    rec′ : ⊗W .obj (R⟦ LIST S ⟧T , R⟦ Γ , 0M ⟧Δ) [ (λ x → let es , γ = x in L.fold es _ (⟦ snt ⟧t γ) (λ h r → ⟦ sct ⟧t (h , r , γ))) ]⇒W R⟦ T ⟧T
-    rec′ .η w ([] , γ0) ([] , γ1) (u , v , uvw , nil Ju , 00v) =
-      let wv = JP .to $E (u , Ju , uvw) in
-      ihsn .η w γ0 γ1 ((R⟦ Γ , 0M ⟧Δ .arr $E wv) _ _ 00v)
-    rec′ .η w (s0 ∷ ss0 , γ0) (s1 ∷ ss1 , γ1) (u , v , uvw , cons a b abu ss ssss , 00v) =
-      let Jv = RΔ-split-0 Γ (λ _ → R.≤-refl) .η v γ0 γ1 00v in
-      let wu = PJ .to $E (v , Jv , uvw) in
-      let abw = (P.arr $E ((W ×C W) .id _ , wu)) $E abu in
-      let v′ , Jv′ , bv′b = PJ .from $E W .id b in
-      let v′v = {!!} in
-      let 00v′ = (R⟦ Γ , 0M ⟧Δ .arr $E v′v) _ _ 00v in
-      let ih = rec′ .η b (ss0 , γ0) (ss1 , γ1) (b , v′ , bv′b , ssss , 00v′) in
+    -- rec′ : ⊗W .obj (R⟦ LIST S ⟧T , R⟦ Γ , 0M ⟧Δ) [ (λ x → let es , γ = x in L.fold es _ (⟦ snt ⟧t γ) (λ h r → ⟦ sct ⟧t (h , r , γ))) ]⇒W R⟦ T ⟧T
+    -- rec′ .η w ([] , γ0) ([] , γ1) (u , v , uvw , nil Ju , 00v) =
+    --   let wv = JP .to $E (u , Ju , uvw) in
+    --   ihsn .η w γ0 γ1 ((R⟦ Γ , 0M ⟧Δ .arr $E wv) _ _ 00v)
+    -- rec′ .η w (s0 ∷ ss0 , γ0) (s1 ∷ ss1 , γ1) (u , v , uvw , cons a b abu ss ssss , 00v) =
+    --   let Jv = RΔ-split-0 Γ (λ _ → R.≤-refl) .η v γ0 γ1 00v in
+    --   let wu = PJ .to $E (v , Jv , uvw) in
+    --   let abw = (P.arr $E ((W ×C W) .id _ , wu)) $E abu in
+    --   let v′ , Jv′ , bv′b = PJ .from $E W .id b in
+    --   let v′v = {!!} in
+    --   let 00v′ = (R⟦ Γ , 0M ⟧Δ .arr $E v′v) _ _ 00v in
+    --   let ih = rec′ .η b (ss0 , γ0) (ss1 , γ1) (b , v′ , bv′b , ssss , 00v′) in
 
-      let b′ , bvb′ , ab′w = PP .to $E (u , abu , uvw) in
-      let b′b = PJ .to $E (v , Jv , bvb′) in
-      let ih′ = rec′ .η b′ (ss0 , γ0) (ss1 , γ1) (b , v , bvb′ , ssss , 00v) in
-      let b′vb′ = P.arr $E (({!b′b!} , W .id _) , W .id _) $E bvb′ in
-      ihsc .η w (_ , _ , γ0) (_ , _ , γ1)
-           (a , b′ , ab′w , act-1 R⟦ S ⟧T .snd .η _ _ _ ss
-           -- , b , v′ , bv′b , act-1 R⟦ T ⟧T .snd .η _ _ _ ih , {!00v′!})
-           , b′ , v , b′vb′ , act-1 R⟦ T ⟧T .snd .η _ _ _ ih′ , 00v)
-    rec′ .square _ = <>
+    --   let b′ , bvb′ , ab′w = PP .to $E (u , abu , uvw) in
+    --   let b′b = PJ .to $E (v , Jv , bvb′) in
+    --   let ih′ = rec′ .η b′ (ss0 , γ0) (ss1 , γ1) (b , v , bvb′ , ssss , 00v) in
+    --   let b′vb′ = P.arr $E (({!b′b!} , W .id _) , W .id _) $E bvb′ in
+    --   ihsc .η w (_ , _ , γ0) (_ , _ , γ1)
+    --        (a , b′ , ab′w , act-1 R⟦ S ⟧T .snd .η _ _ _ ss
+    --        -- , b , v′ , bv′b , act-1 R⟦ T ⟧T .snd .η _ _ _ ih , {!00v′!})
+    --        , b′ , v , b′vb′ , act-1 R⟦ T ⟧T .snd .η _ _ _ ih′ , 00v)
+    -- rec′ .square _ = <>
 
-    rec : ⊗W .obj (R⟦ LIST S ⟧T , R⟦ Γ , 0M ⟧Δ) [ (λ x → let es , γ = x in L.fold es _ (⟦ snt ⟧t γ) (λ h r → ⟦ sct ⟧t (h , r , γ)) , γ) ]⇒W ⊗W .obj (R⟦ T ⟧T , R⟦ Γ , 0M ⟧Δ)
-    rec .η w (.[] , snd) (.[] , snd₁) (u , v , uvw , nil Ju , 00v) = {!ihsn!}
-    rec .η w (s0 ∷ ss0 , γ0) (s1 ∷ ss1 , γ1) (u , v , uvw , cons a b abu ss δδ , 00v) =
-      let w′ , bvw′ , aw′w = PP .to $E (u , abu , uvw) in
-      let ih = rec .η w′ (ss0 , γ0) (ss1 , γ1) {!!} in
-      w , {!!} , {!!} , ihsc .η w {!!} {!!} {!!} , {!00v!}
-    rec .square _ = <>
+    -- rec : ⊗W .obj (R⟦ LIST S ⟧T , R⟦ Γ , 0M ⟧Δ) [ (λ x → let es , γ = x in L.fold es _ (⟦ snt ⟧t γ) (λ h r → ⟦ sct ⟧t (h , r , γ)) , γ) ]⇒W ⊗W .obj (R⟦ T ⟧T , R⟦ Γ , 0M ⟧Δ)
+    -- rec .η w (.[] , snd) (.[] , snd₁) (u , v , uvw , nil Ju , 00v) = {!ihsn!}
+    -- rec .η w (s0 ∷ ss0 , γ0) (s1 ∷ ss1 , γ1) (u , v , uvw , cons a b abu ss δδ , 00v) =
+    --   let w′ , bvw′ , aw′w = PP .to $E (u , abu , uvw) in
+    --   let ih = rec .η w′ (ss0 , γ0) (ss1 , γ1) {!!} in
+    --   w , {!!} , {!!} , ihsc .η w {!!} {!!} {!!} , {!00v!}
+    -- rec .square _ = <>
   fundamental (the sr) = fundamental sr
   fundamental {Γ = Γ} {Δ} (lam {S = S} {T} {st = st} sr) =
     let ih = fundamental sr in
@@ -283,7 +282,7 @@ module Quantitative.Semantics.WRel.Term
     curryW R⟦ Γ , Δ ⟧Δ R⟦ S ⟧T R⟦ T ⟧T _ ih′
   fundamental {Γ = Γ} (bang {ρ = ρ} split sr) =
     let ih = fundamental sr in
-    RΔ-split-* Γ split >>N actF.arr ρ $E ih >>N act-mapW ρ _ _
+    RΔ-split-* Γ split >>N !W ρ .arr $E ih >>N act-mapW ρ _ _
   fundamental {Γ = Γ} (unit split) =
     RΔ-split-0 Γ split
   fundamental {Γ = Γ} (ten split s0r s1r) =
@@ -319,4 +318,3 @@ module Quantitative.Semantics.WRel.Term
     ; square = λ _ → <>
     }
   fundamental (emb er) = fundamental er
-  -}
