@@ -20,8 +20,6 @@ module Quantitative.Semantics.WRel
 
   private
     module W = Category W
-    module Wᵒᵖ = Category (OP W)
-    module BaseR = Functor BaseR
 
     open import Quantitative.Syntax Ty Const renaming ([_] to emb)
     open import Quantitative.Types PrimTy C Const constTy renaming ([_] to emb)
@@ -215,43 +213,38 @@ module Quantitative.Semantics.WRel
   ListW .isFunctor .arr-id _ _ = <>
   ListW .isFunctor .arr->> _ = <>
 
-  {-
-  ⊤×⊤-⇒W-⊤ : ∀ {A B} → ⊗W.obj {A} {B} (⊤W , ⊤W) ⇒W ⊤W
-  ⊤×⊤-⇒W-⊤ = record
-    { η = λ w → λ { (a , b) (a′ , b′) (x , y , xyw , Jx , Jy) →
-                    J.arr $E (<> , _↔E_.to JP $E (x , Jx , xyw)) $E Jy }
-    ; square = λ _ → <>
-    }
+  -- Lemmas
 
-  ∧×∧-⇒W-×∧× : ∀ {A B} R S T U →
-               ⊗W.obj {A} {B} (∧W.obj (R , S) , ∧W.obj (T , U)) ⇒W
-                       ∧W.obj (⊗W.obj (R , T) , ⊗W.obj (S , U))
-  ∧×∧-⇒W-×∧× R S T U = record
-    { η = λ x → λ { (a , b) (a′ , b′) (x1 , x2 , x1+x2=x
-                                      , (x11 , x12 , x11+x12=x1 , r , s)
-                                      , (x21 , x22 , x21+x22=x2 , t , u)) →
-      let x′ , x12+x2=x′ , x11+x′=x = _↔E_.to PP $E (x1 , x11+x12=x1 , x1+x2=x) in
-      let x22+x21=x2 = comm $E x21+x22=x2 in
-      let y2 , x12+x22=y2 , y2+x21=x′ = _↔E_.from PP $E (x2 , x22+x21=x2 , x12+x2=x′) in
-      let x21+y2=x′ = comm $E y2+x21=x′ in
-      let y1 , x11+x21=y1 , y1+y2=x = _↔E_.from PP $E (x′ , x21+y2=x′ , x11+x′=x) in
-      y1 , y2 , y1+y2=x
-      , (x11 , x21 , x11+x21=y1 , r , t)
-      , (x12 , x22 , x12+x22=y2 , s , u)
-      }
-    ; square = λ _ → <>
-    }
+  ⊤×⊤-⇒W-⊤ : ∀ {A B} → ⊗W {A} {B} .obj (⊤W , ⊤W) ⇒W ⊤W
+  ⊤×⊤-⇒W-⊤ .η w (a , b) (a′ , b′) (x , y , wxy , xI , yI) =
+    wxy >> ⊗ .arr $E (xI , yI) >> I⊗ .to .η I
+  ⊤×⊤-⇒W-⊤ .square _ = <>
 
-  R-⇒W-⊤∧R : ∀ {A} (R : WREL.Obj A) → R ⇒W ∧W.obj (⊤W , R)
-  R-⇒W-⊤∧R R = record
-    { η = λ w a b r → let x , Jx , xww = _↔E_.from JP $E W.id w in
-                      x , w , xww , Jx , r
-    ; square = λ _ → <>
-    }
+  R-⇒W-⊤∧R : ∀ {A} (R : WREL.Obj A) → R ⇒W ∧W .obj (⊤W , R)
+  R-⇒W-⊤∧R R .η w a b r = I , w , I⊗ .to-iso w .from , id I , r
+  R-⇒W-⊤∧R R .square _ = <>
 
-  1-⇒W-1∧1 : 1W ⇒W ∧W.obj (1W , 1W)
+  1-⇒W-1∧1 : 1W ⇒W ∧W .obj (1W , 1W)
   1-⇒W-1∧1 = R-⇒W-⊤∧R 1W
 
+  ∧⊗∧-⇒W-⊗∧⊗ : ∀ {A B} R S T U →
+               ⊗W {A} {B} .obj (∧W .obj (R , S) , ∧W .obj (T , U)) ⇒W
+                       ∧W .obj (⊗W .obj (R , T) , ⊗W .obj (S , U))
+  ∧⊗∧-⇒W-⊗∧⊗ R S T U .η w (a , b) (a′ , b′) (w↑ , w↓ , w↕
+                                            , (w↖ , w↗ , w↑↔ , r , s)
+                                            , (w↙ , w↘ , w↓↔ , t , u)) =
+    ⊗ .obj (w↖ , w↙) , ⊗ .obj (w↗ , w↘)
+    , w↕ >> ⊗ .arr $E (w↑↔ , w↓↔)
+         >> ⊗⊗ .to .η _
+         >> ⊗ .arr $E (id _ , ⊗⊗ .to-iso _ .from)
+         >> ⊗ .arr $E (id _ , ⊗ .arr $E (braid .to .η _ , id _))
+         >> ⊗ .arr $E (id _ , ⊗⊗ .to .η _)
+         >> ⊗⊗ .to-iso _ .from
+    , (w↖ , w↙ , id _ , r , t)
+    , (w↗ , w↘ , id _ , s , u)
+  ∧⊗∧-⇒W-⊗∧⊗ R S T U .square _ = <>
+
+  {-
   evalW : ∀ {A B C} (f : A → B → C) (g : A → B)
           (R : WREL.Obj B) (S : WREL.Obj C) →
           ∧W.obj (mapW f (→W.obj (R , S)) , mapW g R) ⇒W mapW (f <s> g) S
@@ -268,29 +261,23 @@ module Quantitative.Semantics.WRel
           α .η w (g , a) (g′ , a′) (x , y , xyw , r , s)
     ; square = λ _ → <>
     }
+  -}
 
   ⊤-⇒W-1 : ∀ A → ⊤W {A} [ (λ _ → <>) ]⇒W 1W
-  ⊤-⇒W-1 A = record
-    { η = λ w a a′ Jw → Jw
-    ; square = λ _ → <>
-    }
+  ⊤-⇒W-1 A .η w a a′ wI = wI
+  ⊤-⇒W-1 A .square _ = <>
 
-  1×-⇒W : ∀ {B} (S : WREL.Obj B) → ⊗W.obj (1W , S) [ snd ]⇒W S
-  1×-⇒W S = record
-    { η = λ w → λ { (<> , b) (<> , b′) (x , y , xyw , Jx , bb) →
-                    (arr $E (_↔E_.to JP $E (x , Jx , xyw))) b b′ bb }
-    ; square = λ _ → <>
-    }
-    where open Functor S
+  1⊗-⇒W : ∀ {B} (S : WREL.Obj B) → ⊗W .obj (1W , S) [ snd ]⇒W S
+  1⊗-⇒W S .η w (<> , b) (<> , b′) (x , y , wxy , xI , bb) =
+    (S .arr $E (wxy >> ⊗ .arr $E (xI , id y) >> I⊗ .to .η y)) b b′ bb
+  1⊗-⇒W S .square _ = <>
 
-  ×1-⇒W : ∀ {A} (R : WREL.Obj A) → ⊗W.obj (R , 1W) [ fst ]⇒W R
-  ×1-⇒W R = record
-    { η = λ w → λ { (a , <>) (a′ , <>) (x , y , xyw , aa , Jy) →
-                    (arr $E (_↔E_.to PJ $E (y , Jy , xyw))) a a′ aa }
-    ; square = λ _ → <>
-    }
-    where open Functor R
+  ⊗1-⇒W : ∀ {A} (R : WREL.Obj A) → ⊗W .obj (R , 1W) [ fst ]⇒W R
+  ⊗1-⇒W R .η w (a , <>) (a′ , <>) (x , y , wxy , aa , yI) =
+    (R .arr $E (wxy >> ⊗ .arr $E (id x , yI) >> ⊗I .to .η x)) a a′ aa
+  ⊗1-⇒W R .square _ = <>
 
+  {-
   ××-⇒W : ∀ {A B C} (R : WREL.Obj A) (S : WREL.Obj B) (T : WREL.Obj C) →
           ⊗W.obj (⊗W.obj (R , S) , T) [ unassoc ]⇒W ⊗W.obj (R , ⊗W.obj (S , T))
   ××-⇒W R S T = record
