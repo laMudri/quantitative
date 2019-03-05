@@ -38,3 +38,7 @@ module Lib.Function where
   _on_ : ∀ {a b c} {A : Set a} {B : Set b} {C : (x y : A) → Set c} →
          ((x y : A) → C x y) → (f : B → A) → ((x y : B) → C (f x) (f y))
   (f on g) x y = f (g x) (g y)
+
+  infixl 0 _:∋_
+  _:∋_ : ∀ {a} (A : Set a) → A → A
+  A :∋ x = x
