@@ -320,6 +320,15 @@ module Quantitative.Semantics.WRel
     inr (x , y , wxy , s , t)
   ⊗-⊕W-distrib-l R S T .square _ = <>
 
+  foldW : ∀ {A B} (R : WREL.Obj A) (S : WREL.Obj B)
+          (fn : B) (fc : A → B → B) →
+          1W [ F.const fn ]⇒W S → ⊗W .obj (R , S) [ uncurry fc ]⇒W S →
+          ListW .obj R [ (λ xs → L.fold xs _ fn fc) ]⇒W S
+  foldW R S fn fc σn σc .η w [] [] (nil wI) = σn .η w <> <> wI
+  foldW R S fn fc σn σc .η w (x ∷ xs) (y ∷ ys) (cons a b wab r rs) =
+    σc .η w _ _ (a , b , wab , r , foldW R S fn fc σn σc .η b xs ys rs)
+  foldW R S fn fc σn σc .square _ = <>
+
   -- Semantics of types
 
   R⟦_⟧T : (T : Ty) → WREL.Obj ⟦ T ⟧T
