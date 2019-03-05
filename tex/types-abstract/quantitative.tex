@@ -1,0 +1,249 @@
+\documentclass[a4paper]{easychair}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{cmll}
+\usepackage{mathpartir}
+\usepackage{mathrsfs}
+\usepackage{xcolor}
+
+\def\newelims{1}
+\input{../macros.tex}
+
+\begin{document}
+
+\title{Linear metatheory via linear algebra}
+
+\author{
+  Robert Atkey\inst{1}
+  \and
+  James Wood\inst{1}\thanks{James Wood is supported by an EPSRC Studentship.}
+}
+
+\institute{
+  University of Strathclyde,
+  Glasgow, United Kingdom \\
+  \email{\{robert.atkey,james.wood.100\}@strath.ac.uk}
+}
+
+\titlerunning{Linear metatheory via linear algebra}
+\authorrunning{Wood and Atkey}
+
+\maketitle
+
+\paragraph{Introduction.}
+
+We introduce a simply typed calculus \name{} that allows the use of variables to
+be constrained by usage annotations in the context which binds them.
+\name{} is a generalisation of existing core type theories for sensitivity analysis
+\cite{reed10distance}, dependency and confidentiality \cite{abadi99core},
+linearity \cite{Barber1996}, and modal validity \cite{judgmental}.
+It is related to quantitative type theory \cite{quantitative-type-theory}, and
+various coeffect calculi \cite{PetricekOM14,BrunelGMZ14,GhicaS14}.
+
+One of our insights is that because our usage annotations form a semiring, we
+have just enough structure to talk about vectors and matrices.
+We find useful some constructs of linear algebra, culminating in substitution
+phrased as application of a linear map.
+
+An earlier version of this work was presented at TyDe 2018
+\cite{context-constrained}.
+The syntax and semantics are formalised in Agda, with the code at
+\url{https://github.com/laMudri/quantitative/}.
+
+\paragraph{Syntax.}
+
+Our syntax is that of a simply typed $\lambda$-calculus modified to let us
+reason about how variables are used.
+We assume a partially ordered semiring (posemiring) $(\mathscr R, \subres, 0,
++, 1, *)$ of usage annotations, with elements coloured in green for emphasis.
+The types are base types ($\base_k$), functions ($\fun{}{}$), tensor products
+($\tensorOne$, $\tensor{}{}$), with products ($\withTOne$, $\withT{}{}$), sums
+($\sumTZero$, $\sumT{}{}$), and graded bangs ($\excl{\rho}{}$).
+A context $\ctx{\Gamma}{R}$ is a combination of a typing context $\Gamma$ and a
+usage context $\resctx R$.
+
+\begin{mathpar}
+  \rescomment \rho, \rescomment \pi \in \mathscr R \and
+  A, B, C \Coloneqq \base_k \mid \fun{A}{B} \mid \tensorOne \mid \tensor{A}{B}
+  \mid \withTOne \mid \withT{A}{B} \mid \sumTZero \mid \sumT{A}{B} \mid
+  \excl{\rho}{A} \\
+  \Gamma, \Delta \Coloneqq \cdot \mid \Gamma, x : A \and
+  \resctx P, \resctx Q, \resctx R \Coloneqq
+  \cdot \mid \resctx R, x^{\rescomment \rho} \and
+  \ctx{\Gamma}{R} \Coloneqq
+  \cdot \mid \ctx{\Gamma}{R}, \ctxvar{x}{A}{\rho}
+\end{mathpar}
+
+Tensor products are eliminated by pattern matching (each side bound with
+annotation $1$), whereas with products are eliminated by projections.
+The difference is correspondingly seen in the introduction rules, where the two
+halves of a tensor product have separate usage, and the two halves of a with
+product have shared usage (illustrated below).
+
+The rule \TirName{$\otimes$-I} is the archetypal use of $+$.
+The constraint $\subrctx{\resctx P + \resctx Q}{\resctx R}$ says that $\resctx
+R$ must be at least as permissive as the accumulation of usages in $\resctx P$
+and $\resctx Q$.
+If the addition of the semiring is a join of the order (as in the modality
+example below), these two types of product are equivalent.
+
+\begin{mathpar}
+  \inferrule*[right=$\otimes$-I]
+  {\ctx{\Gamma}{P} \vdash M : A
+    \\ \ctx{\Gamma}{Q} \vdash N : B
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+  }
+  {\ctx{\Gamma}{R} \vdash \ten{M}{N} : \tensor{A}{B}}
+
+  \and
+
+  \inferrule*[right=$\&$-I]
+  {\ctx{\Gamma}{R} \vdash M : A
+    \\ \ctx{\Gamma}{R} \vdash N : B
+  }
+  {\ctx{\Gamma}{R} \vdash \wth{M}{N} : \withT{A}{B}}
+\end{mathpar}
+
+With the graded bang, we see use of $*$ from the annotation posemiring.
+We read $\rescomment \rho * \rescomment \pi$ as applying the action $\rescomment
+\rho$ to $\rescomment \pi$.
+Introduction can be seen as scaling usage.
+Elimination is by pattern matching, where we bind a new variable with whatever
+usage annotation the type gave us.
+
+\begin{mathpar}
+  \inferrule*[right=$\excl{\rho}{}$-I]
+  {\ctx{\Gamma}{P} \vdash M : A
+    \\ \subrctx{\rescomment \rho * \resctx P}{\resctx R}
+  }
+  {\ctx{\Gamma}{R} \vdash \bang{M} : \excl{\rho}{A}}
+  \and
+  \inferrule*[right=$\excl{\rho}{}$-E]
+  {\ctx{\Gamma}{P} \vdash M : \excl{\rho}{A}
+    \\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{\rho} \vdash N : B
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+  }
+  {\ctx{\Gamma}{R} \vdash \bm{B}{M}{x}{N} : B}
+\end{mathpar}
+
+The \TirName{var} rule at $x$ can only be used in a usage context $\resctx R$
+when $x$ has a usage annotation as permissive as $1$, and all other variables
+have annotation as permissive as $0$.
+In other words, $x$ can be used plainly, and all other variables can be
+discarded.
+This can be succinctly stated as the constraint $\vct e_x \subres \resctx R$,
+where $\vct e_x$ is the $x$th basis vector.
+
+\paragraph{Substitution.}
+
+We have two admissible rules leading up to the substitution lemma --- subusaging
+(\TirName{subuse}) and weakening (\TirName{weak}) --- stated below.
+In the language of linear algebra, weakening is embedding into a space of higher
+dimension.
+
+Let $|-|$ denote the length of a context.
+Usage contexts are taken to be row vectors.
+A \emph{substitution} $\sigma$ from $\ctx{\Gamma}{P}$ to $\ctx{\Delta}{Q}$
+comprises a $|\resctx Q| \times |\resctx P|$ matrix $\mat \Sigma$ such that
+$\resctx Q \mat \Sigma \subres \resctx P$, and for each $(x:A) \in \Delta$, a
+term $M_x$ such that $\Gamma^{\vct e_x \mat \Sigma} \vdash M_x : A$.
+Then, the simultaneous substitution lemma is proven via the linearity of
+vector-matrix multiplication.
+
+\begin{mathpar}
+  \inferrule*[lab=subuse]{
+    \ctx{\Gamma}{P} \vdash M : A
+    \\ \resctx P \subres \resctx Q
+  }
+  {
+    \ctx{\Gamma}{Q} \vdash M : A
+  }
+
+  \and
+
+  \inferrule*[lab=weak]{
+    \ctx{\Gamma}{P} \vdash M : A
+  }
+  {
+    \ctx{\Gamma}{P}, \Delta^{\vct 0} \vdash M : A
+  }
+
+  \and
+
+  \inferrule*[right=subst]{
+    \ctx{\Delta}{Q} \vdash N : A
+    \\\\ \sigma : \ctx{\Gamma}{P} \Rightarrow \ctx{\Delta}{Q}
+  }
+  {
+    \ctx{\Gamma}{P} \vdash N[\sigma] : A
+  }
+\end{mathpar}
+
+The identity substitution, where each variable $x$ is substituted by the term
+$x$, is witnessed by the identity matrix.
+
+\paragraph{Specialisations.}
+\label{sec:specialisations}
+
+To demonstrate the applicability of \name{}, and give examples of usage
+posemirings, we show that it can be specialised to DILL \cite{Barber1996} and
+the modal type theory of Pfenning and Davies \cite{judgmental}.
+
+DILL is a linear type theory where contexts are split between unrestricted and
+linear variables.
+To model linearity, we introduce the $\{\zero, \linear, \unrestricted\}$
+posemiring.
+Annotation $\zero$ denotes non-use, $\linear$ linear use, and
+$\unrestricted$ unrestricted use.
+Addition and multiplication are like the corresponding natural number
+operations, with $\unrestricted$ acting as an infinite element and $\linear +
+\linear = \unrestricted$ in lieu of a $2$ element.
+The order is generated by $\zero \subres \unrestricted$ and $\linear \subres
+\unrestricted$, with no relation between $\zero$ and $\linear$.
+This says that unrestricted variables can be both discarded and used.
+We translate a DILL derivation of $\Gamma; \Delta \vdash t : A$ into a \name{}
+derivation of $\ctx{\Gamma}{\vct \unrestricted}, \ctx{\Delta}{\vct \linear}
+\vdash M_t : A$.
+We translate DILL's unannotated $\oc$ into $\excl{\unrestricted}{}$.
+In the translation, we make use of \TirName{weak} to ignore $\zero$-use
+variables introduced by usage separation.
+When translating the other way, we require that $\excl{\zero}{}$ and
+$\excl{\linear}{}$ do not occur in the derivation we are translating.
+We translate a \name{} derivation of $\ctx{\Gamma}{\vct \unrestricted},
+\ctx{\Delta}{\vct \linear}, \ctx{\Theta}{\vct \zero} \vdash M : A$ into a DILL
+derivation of $\Gamma; \Delta \vdash t_M : A$.
+This makes use of DILL's Environment Weakening lemma to correct cases where a
+\name{} subderivation was too precise about usage.
+
+Pfenning and Davies' modal type theory is already stated in the form of usage
+annotations.
+A variable is annotated either $\true$ or $\valid$.
+Furthermore, conclusions are only ever of $\true$ things.
+This suggests that $\true$ is the $1$ of the posemiring, and we introduce an
+$\unused$ annotation to be the $0$.
+The PD variable rule says that both $\true$ and $\valid$ assumptions are
+$\true$, so we have $\true \subres \valid$.
+Furthermore, all assumptions can be discarded, so $\unused$ is the bottom of the
+order.
+Addition is the join of this order.
+The modality $\square$ is translated to $\excl{\valid}{}$, which tells us that
+$\valid * \pi = \valid$ for $\pi \neq \unused$. 
+$\unused$ and $\true$ are the annihilator and unit of $*$, respectively.
+Having these definitions in place, the translations are similar to those for
+DILL.
+
+\paragraph{Semantics.}
+We also have a semantics that captures the intensional properties of programs
+via families of Kripke indexed relations that refine a simple set-theoretic
+semantics.
+This allows us to reconstruct the semantic properties of calculi in prior work
+for sensitivity analyis \cite{reed10distance}, and dependency and
+confidentiality \cite{abadi99core}, as well as a new calculus for monotonicity
+analysis.
+
+\bibliographystyle{alpha}
+\bibliography{../paper/quantitative}
+
+\end{document}
