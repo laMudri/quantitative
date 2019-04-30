@@ -370,8 +370,8 @@ module Lib.Setoid where
 
   -- Propositions and logic
 
-  Prop : ∀ l → Setoid (lsuc l) l
-  Prop l = record
+  PropS : ∀ l → Setoid (lsuc l) l
+  PropS l = record
     { C = Set l
     ; setoidOver = record
       { _≈_ = λ A B → (A → B) × (B → A)
@@ -383,13 +383,13 @@ module Lib.Setoid where
       }
     }
 
-  ∨S : ∀ {l m} → Prop l ×S Prop m →E Prop (l ⊔ m)
+  ∨S : ∀ {l m} → PropS l ×S PropS m →E PropS (l ⊔ m)
   ∨S = record
     { _$E_ = uncurry _⊎_
     ; _$E=_ = uncurry λ xx yy → map⊎ (fst xx) (fst yy) , map⊎ (snd xx) (snd yy)
     }
 
-  ∧S : ∀ {l m} → Prop l ×S Prop m →E Prop (l ⊔ m)
+  ∧S : ∀ {l m} → PropS l ×S PropS m →E PropS (l ⊔ m)
   ∧S = record
     { _$E_ = uncurry _×_
     ; _$E=_ = uncurry λ xx yy → map× (fst xx) (fst yy) , map× (snd xx) (snd yy)
