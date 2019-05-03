@@ -290,6 +290,10 @@ module Quantitative.Semantics.WRel
            ∧W .obj (mapW f R , mapW g S) [ < f , g > ]⇒W ⊗W .obj (R , S)
   ∧-⇒W-⊗ f g R S = idN (∧W .obj (mapW f R , mapW g S))
 
+  -- ⊗-⇒W-∧ : ∀ {A B C} (f : C → A × B) (g : A × B → C) (R : WREL.Obj A) (S : WREL.Obj B) →
+  --          ⊗W .obj (R , S) [ g ]⇒W ∧W .obj (mapW (f F.>> fst) R , mapW (f F.>> snd) S)
+  -- ⊗-⇒W-∧ f g R S = {!mapW->>!}
+
   caseW : ∀ {A B C} (R : WREL.Obj A) (S : WREL.Obj B) (T : WREL.Obj C)
           (f : A → C) (g : B → C) →
           R [ f ]⇒W T → S [ g ]⇒W T → ⊕W .obj (R , S) [ [ f , g ] ]⇒W T

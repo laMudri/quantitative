@@ -228,8 +228,40 @@ module Quantitative.Semantics.WRel.Term
     lemma {γ} ≡.refl with ⟦ et ⟧t γ
     ... | inl e0 = ≡.refl
     ... | inr e1 = ≡.refl
-  fundamental {Γ = Γ} {Δ = Δ} (fold {S = S} {T} {snt = snt} {sct} er snr scr) =
-    {!!}
+  fundamental {Γ = Γ} {Δ = Δ} (fold {S = S} {T} {et = et} {snt} {sct} er snr scr) =
+    RΔ-split-+ Γ {Δ} {0M} {Δ} {!mapW-id!} >>N ∧W .arr $E (idN (mapW F.id R⟦ Γ , 0M ⟧Δ) , ihe) >>N ∧-⇒W-⊗ F.id ⟦ et ⟧t R⟦ Γ , 0M ⟧Δ (ListW .obj R⟦ S ⟧T) >>N {!lemma1!}
+    -- ∧-⇒W-⊗ F.id F.id R⟦ Γ , Δ ⟧Δ R⟦ Γ , 0M ⟧Δ >>N {!mapW-func!}
+    -- factory Δ >>N ∧W .arr $E (fundamental er , idN R⟦ Γ , 0M ⟧Δ) >>N {!!} >>W′ foldW R⟦ S ⟧T (→W .obj (R⟦ Γ , 0M ⟧Δ , R⟦ T ⟧T)) ⟦ snt ⟧t (λ s t γ → ⟦ sct ⟧t (s , t γ , γ)) (curryW 1W R⟦ Γ , 0M ⟧Δ R⟦ T ⟧T _ (1⊗-⇒W _ >>W′ fundamental snr)) (curryW _ _ R⟦ T ⟧T _ ((⊗W .arr $E (R-⇒W-⊤∧R _ , factory 0M) >>N ∧⊗∧-⇒W-⊗∧⊗ _ _ _ _ >>N ∧W .arr $E ({!!} , ⊗⊗-⇒W R⟦ S ⟧T _ R⟦ Γ , 0M ⟧Δ) >>W′ (∧W .obj (R⟦ Γ , 0M ⟧Δ , {!!}) [ _ ]⇒W _ :∋ {!!})) >>W′ fundamental scr)) >>N {!fundamental scr!}
+    where
+    factory : ∀ Δ → R⟦ Γ , Δ ⟧Δ ⇒W ∧W .obj (R⟦ Γ , Δ ⟧Δ , R⟦ Γ , 0M ⟧Δ)
+    factory Δ = RΔ-split-+ Γ (≤M-reflexive (symM (+M-identity .snd Δ)))
+
+    ihe : R⟦ Γ , Δ ⟧Δ [ ⟦ et ⟧t ]⇒W ListW .obj R⟦ S ⟧T
+    ihe = fundamental er
+
+    ihsn : R⟦ Γ , 0M ⟧Δ [ ⟦ snt ⟧t ]⇒W R⟦ T ⟧T
+    ihsn = fundamental snr
+
+    ihsc : ⊗W .obj (R⟦ S ⟧T , ⊗W .obj (R⟦ T ⟧T , R⟦ Γ , 0M ⟧Δ))
+           [ ⟦ sct ⟧t ]⇒W R⟦ T ⟧T
+    ihsc = ⊗W .arr $E (act-1 R⟦ S ⟧T .snd
+         , ⊗W .arr $E (act-1 R⟦ T ⟧T .snd
+                     , idN R⟦ Γ , 0M ⟧Δ))
+         >>N fundamental scr
+
+    lemma0 : ListW .obj R⟦ S ⟧T [ (λ xs → L.fold xs (⟦ Γ ⟧Γ → ⟦ T ⟧T) ⟦ snt ⟧t (λ s t γ → ⟦ sct ⟧t (s , t γ , γ))) ]⇒W →W .obj (R⟦ Γ , 0M ⟧Δ , R⟦ T ⟧T)
+    lemma0 = foldW R⟦ S ⟧T (→W .obj (R⟦ Γ , 0M ⟧Δ , R⟦ T ⟧T)) ⟦ snt ⟧t (λ s t γ → ⟦ sct ⟧t (s , t γ , γ)) (curryW 1W R⟦ Γ , 0M ⟧Δ R⟦ T ⟧T _ (1⊗-⇒W R⟦ Γ , 0M ⟧Δ >>N mapW-func snd ihsn >>N mapW-subst R⟦ T ⟧T λ where ≡.refl → ≡.refl)) (curryW _ R⟦ Γ , 0M ⟧Δ R⟦ T ⟧T _ (⊗⊗-⇒W R⟦ S ⟧T (→W .obj (R⟦ Γ , 0M ⟧Δ , R⟦ T ⟧T)) R⟦ Γ , 0M ⟧Δ >>N {!⊗W .arr $E (idN R⟦ S ⟧T , evalW {A = ?} ? ? R⟦ Γ , 0M ⟧Δ R⟦ T ⟧T)!}))
+
+    lemma1 : ⊗W .obj (R⟦ Γ , 0M ⟧Δ , ListW .obj R⟦ S ⟧T) [ (λ stuff → let γ , xs = stuff in L.fold xs ⟦ T ⟧T (⟦ snt ⟧t γ) (λ s t → ⟦ sct ⟧t (s , t , γ))) ]⇒W R⟦ T ⟧T
+    lemma1 .η w (γ , []) (γ′ , []) (u , v , wuv , γγ , nil vI) =
+      let wu = wuv >> ⊗ .arr $E (id u , vI) >> ⊗I .to .η u in
+      ihsn .η w γ γ′ ((R⟦ Γ , _ ⟧Δ .arr $E wu) _ _ γγ)
+    lemma1 .η w (γ , x ∷ xs) (γ′ , x′ ∷ xs′) (u , v , wuv , γγ , cons a b vab xx xsxs) =
+      let ua , ub , uuaub , γγa , γγb = RΔ-split-+ Γ {0M} {0M} {0M} (≤M-reflexive (symM (+M-identity .fst 0M))) .η _ _ _ γγ in
+      ihsc .η w (x , L.fold xs _ _ _ , γ) (x′ , L.fold xs′ _ _ _ , γ′) (a , ⊗ .obj (u , b) , wuv >> ⊗ .arr $E (id u , vab) >> NatIso.inv ⊗⊗ .to .η _ >> ⊗ .arr $E (braid .to .η _ , id b) >> ⊗⊗ .to .η _ , xx , ⊗ .obj (ua , b) , ub , ⊗ .arr $E (uuaub , id b) >> ⊗⊗ .to .η _ >> ⊗ .arr $E (id ua , braid .to .η _) >> NatIso.inv ⊗⊗ .to .η _ , lemma1 .η _ (γ , xs) (γ′ , xs′) (ua , b , id _ , γγa , xsxs) , γγb)
+    lemma1 .square _ = <>
+
+    -- {!!} >>W′ foldW R⟦ S ⟧T R⟦ T ⟧T (⟦ snt ⟧t {!!}) (λ h acc → ⟦ sct ⟧t (h , acc , {!!})) {!fundamental snr!} {!fundamental scr!}
     -- factory Δ
     -- >>N ∧W .arr $E (factory Δ , idN R⟦ Γ , 0M ⟧Δ)
     -- >>N ∧W .arr {_} {_ , R⟦ Γ , 0M ⟧Δ} {_ , mapW (λ γ → ⟦ sct ⟧t ({!!} , {!!} , γ)) R⟦ T ⟧T} $E (∧W .arr $E (ihe , ihsn) , {!ihsc!})  -- idN (mapW ⟦ snt ⟧t R⟦ T ⟧T)
