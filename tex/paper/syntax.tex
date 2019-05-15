@@ -1,18 +1,18 @@
 In this section, we present a simply typed calculus \name{} that is parametric
-in a set $\mathscr{R}$ of resources, under conditions detailed in
+in a set $\mathscr{R}$ of usage annotations, under conditions detailed in
 \autoref{sec:annotations}.
 
 \subsection{Types}
 
 Our grammar of types and contexts is given in \autoref{fig:syntax}.
-Throughout this paper, the colour \rescomment{green} highlights resource
+Throughout this paper, the colour \rescomment{green} highlights usage
 annotations, which are generally the interesting things to watch in typing rules
 and are the main point of departure between this system and a standard simply
 typed $\lambda$-calculus.
 As we show in \autoref{sec:dill}, these annotations allow us to subsume also
 normal linear type systems. \fixme{and other coeffect systems}
 
-\fixmeBA{mention that we really think of the resource annotations as ``refining'' the underlying types and terms}
+\fixmeBA{mention that we really think of the usage annotations as ``refining'' the underlying types and terms}
 
 \begin{figure}
   \begin{mathpar}
@@ -37,15 +37,15 @@ $\excl{\rho}{}$; and polymorphic lists.
 These will be explained further when their typing rules are introduced in
 \autoref{sec:rules}.
 
-\fixmeBA{explain resourcing contexts on their own first?}
-Our contexts are combinations of a typing context $\Gamma$ and a resourcing
+\fixmeBA{explain usage contexts on their own first?}
+Our contexts are combinations of a typing context $\Gamma$ and a usage
 context $\resctx R$, written $\ctx{\Gamma}{R}$.
 It will sometimes be useful to talk only about one part at a time.
-In particular, it will be useful to think of resourcing contexts as row
+In particular, it will be useful to think of usage contexts as row
 vectors, and to use standard linear algebra operations on them, when stating and
 proving simultaneous substitution in \autoref{sec:admissible}.
 
-\subsection{Resource annotations}
+\subsection{Usage annotations}
 \label{sec:annotations}
 
 \fixmeBA{In general, I don't like starting sentences with numbers or symbols...}
@@ -59,7 +59,7 @@ $1$ represents a single or plain usage, and $*$ applies a transformation upon
 the type of usage allowed.
 $(\mathscr{R}, 1, *)$ forms a monoid that is annihilated by and distributes over
 the additive structure.
-The order $\subres$ describes a sub-resourcing relation.
+The order $\subres$ describes a sub-usaging relation.
 We have $\pi \subres \rho$ if and only if the annotation $\pi$ allows use in at
 most as many situations as the annotation $\rho$ allows.
 This acts a lot like a subtyping relation.\fixmeBA{In what way? It induces one?}
@@ -67,9 +67,9 @@ $(\mathscr{R}, \subres)$ forms a partial order, and addition and multiplication
 are monotonic with respect to $\subres$.
 
 In many cases of interest, $0$ and $+$ are respectively the bottom and join of
-the sub-resourcing order, turning it into a join semilattice.
+the sub-usaging order, turning it into a join semilattice.
 In these cases, with products ($\withT{A}{B}$) coincide with tensor products
-($\tensor{A}{B}$), and resource inference is significantly simplified.
+($\tensor{A}{B}$), and usage inference is significantly simplified.
 \fixme{rntz reference?} \fixmeBA{Don't mention inference here if we aren't going to do it in detail}
 
 \fixmeBA{this should all have fwd references to where they are used.}
@@ -120,7 +120,7 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
 \end{example}
 
 \begin{example}[Precise usage counting]
-  Resource annotations track exactly how many times a free variable is used.
+  Usage annotations track exactly how many times a free variable is used.
   There is no annotation for unrestricted use, though an $\omega$ could be added
   analogously to how it is done in \exref{ex:annotations-linearity}, above all
   of the precise elements.
@@ -143,7 +143,7 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
 \end{example}
 
 \begin{example}[Monotonicity]
-  Resource annotations track which ``way up'' we can use a free variable.
+  Usage annotations track which ``way up'' we can use a free variable.
   A variable can be used covariantly ($\uparrow$), contravariantly
   ($\downarrow$), invariantly ($=$), or unrestrictedly ($?$).
 
@@ -180,7 +180,7 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
     \)
   \end{center}
 
-  Notice that $+$ is the join of the sub-resourcing order.
+  Notice that $+$ is the join of the sub-usaging order.
 \end{example}
 
 \begin{example}[Security levels]
@@ -234,7 +234,7 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
   by a positive amount, the result may vary arbitrarily.
 \end{example}
 
-\subsection{Typing \& resourcing}
+\subsection{Typing \& provisioning}
 \label{sec:rules}
 
 \begin{figure}
@@ -264,7 +264,7 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
 Typing judgements are of the form $\ctx{\Gamma}{R} \vdash M : A$, which, when
 the contexts are explicitly expanded, look like
 $\ctxvar{x_1}{A_1}{\rho_1}, \ldots, \ctxvar{x_n}{A_n}{\rho_n} \vdash M : A$.
-Each variable in the context carries a resource annotation, but the conclusion
+Each variable in the context carries a usage annotation, but the conclusion
 is taken to always have annotation $1$.
 Such a restriction is important to keep substitution admissible, as shown in
 \cite{quantitative-type-theory}. \fixmeBA{probably drop the reference here (but keep it later on)}
@@ -276,11 +276,11 @@ Constants are intended to give a way of producing and manipulating values of the
 base type $\base$.
 
 Let $\basis x$ be the $x$th basis vector $\vec 0, x^1, \vec 0$ --- that is, the
-resource context in which every variable is annotated with $0$ except for $x$,
+usage context in which every variable is annotated with $0$ except for $x$,
 which is annotated with $1$.
 Such a context describes the restriction that semantically all variables except
 $x$ are unused, while $x$ is used plainly.
-This makes it the principle resourcing of the variable rule.
+This makes it the principle usage of the variable rule.
 
 \[
   \inferrule*[right=var]
@@ -291,14 +291,15 @@ This makes it the principle resourcing of the variable rule.
 \]
 
 Allowing $\basis x \subres \resctx R$, rather than $\basis x = \resctx R$,
-allows less restrictive resourcings.
+allows less restrictive provisionings.
 For example, we are free to use $x$ if its use is unrestricted, and similarly we
-are free to discard any variables with unrestricted use. \fixmeBA{fwd ref to the subresourcing lemma}
+are free to discard any variables with unrestricted use. \fixmeBA{fwd ref to the subusaging lemma}
 
-Constants $c$ can have arbitrary type $A_c$, but not arbitrary resourcing.
+Constants $c$ can have arbitrary type $A_c$, but not arbitrary usage
+restrictions.
 Constants should have a global character, and not be able to depend on the
 context in which they are used, so it makes sense to say that they are well
-resourced only in a context where all variables can be discarded. \fixmeBA{maybe an example?}
+provisioned only in a context where all variables can be discarded. \fixmeBA{maybe an example?}
 
 \[
   \inferrule*[right=const]
@@ -310,12 +311,11 @@ The following are the rules for $\lambda$-abstractions and application.
 $\multimap$-I is standard, except for the restriction that we use the bound
 variable plainly.
 In $\multimap$-E, the condition $\resctx P + \resctx Q \subres \resctx R$
-means that we must be able to distribute the resources of $\resctx R$ into
-those used to produce the function ($\resctx P$) and those used to produce the
-argument ($\resctx Q$).
-Sub-resourcing is allowed here to maintain the admissibility of sub-resourcing
+means that we must be able to distribute the usage permitted by $\resctx R$ into
+what the function uses ($\resctx P$) and what the argument uses ($\resctx Q$).
+sub-usaging is allowed here to maintain the admissibility of sub-usaging
 as a general rule, stated in \autoref{sec:admissible}, \lemref{lem:subres}.
-\fixmeBA{comment about subresourcing is valid throughout?}
+\fixmeBA{comment about subusaging is valid throughout?}
 
 \begin{mathpar}
   \inferrule*[right=$\multimap$-I]
@@ -335,7 +335,7 @@ In general\fixmeBA{``In the presence of resources''}, we distinguish between ten
 A similar distinction between two types of product can be seen in various
 existing systems: our tensor and with products are respectively products
 eliminated by pattern matching and projection, or equivalently positive and
-negative formulations of products \fixme{refs here}. \fixmeBA{This needs rewording: mention sharing vs not sharing resources; and forward ref to collapse lemma in next subsection}
+negative formulations of products \fixme{refs here}. \fixmeBA{This needs rewording: mention sharing vs not sharing usage; and forward ref to collapse lemma in next subsection}
 
 \begin{mathpar}
   \inferrule*[right=$\otimes$-I]
@@ -392,10 +392,10 @@ what is now nullary.
 Sums are dual to $\withT{}{}$-products.
 \fixmeBA{either quote ``with'', or replace with symbol. Makes grammar weird.}
 The behaviour of sums is familiar from standard type theory, except for the
-splitting of resources in the elimination rules between the term being
+splitting of usages in the elimination rules between the term being
 eliminated and the continuation terms.
 Notice that this splitting also happens for $0$-E ($\exf{}{}$), even though the
-resourcing context $\resctx Q$ is not used in any premises.
+usage context $\resctx Q$ is not used in any premises.
 The addition of the extra $\resctx Q$ can be seen as saying that when we are in
 an impossible case (having created an expression of type $\sumTZero$), we can
 ignore the restrictions imposed by the presence of remaining free variables.\fixme{Maybe needs a demonstration in the next section}
@@ -424,7 +424,7 @@ ignore the restrictions imposed by the presence of remaining free variables.\fix
 
 All of the previous rules have only allowed us to bind variables with usage
 annotation $1$.
-In order to abstract over variables with different resource annotations, we
+In order to abstract over variables with different usage annotations, we
 introduce a bang type former, with $\excl{\rho}{A}$ bundling up a value of type
 $A$ used in accordance with $\rescomment \rho$.\fixmeBA{Forward ref to a demonstration of this}
 
@@ -444,7 +444,7 @@ $A$ used in accordance with $\rescomment \rho$.\fixmeBA{Forward ref to a demonst
 \end{mathpar}
 
 Finally, we include a polymorphic type of lists.
-Resource-wise, lists are a tensoring together of their elements, meaning that
+Usage-wise, lists are a tensoring together of their elements, meaning that
 $\nil$ requires its context to be discarded and $\cons{-}{-}$ requires the
 context to be split between the head and the tail.
 To eliminate a list, we split the context as in other pattern matching
@@ -563,7 +563,7 @@ following formal term.
   \end{aligned}
 \]
 
-In the resourcing derivation, the interesting part is after all of the pattern
+In the provisioning derivation, the interesting part is after all of the pattern
 matching has been done and we are ready to start building the result.
 
 \[
@@ -585,7 +585,7 @@ matching has been done and we are ready to start building the result.
 \]
 
 After this move, $c$ and $d$ become amenable to the var rule, which only applies
-to super-resources of $1$.
+to super-usages of $1$.
 
 The converse cannot be implemented in general because we get to a stage where we
 are essentially trying to prove $\ctxvar{x_{cd}}{\tensor{C}{D}}{\rho} \vdash
@@ -602,7 +602,7 @@ no relation between each other.
 \end{example}
 
 \begin{example}[Comonad operations]
-The following two terms are well typed and well resourced.
+The following two terms are well typed and well provisioned.
 
 \begin{displaymath}
   \begin{eqns}
@@ -670,10 +670,10 @@ Recalling from \autoref{sec:annotations}, $\rescomment \pi \subres \rescomment
 $\rescomment \pi$.
 When lifted pointwise, $\resctx P \subres \resctx Q$ means that
 $\resctx Q$ is a more liberal context than $\resctx
- P$, so any term well resourced in $\resctx P$ is also well
-resourced in $\resctx Q$.
+ P$, so any term well provisioned in $\resctx P$ is also well
+provisioned in $\resctx Q$.
 
-\begin{lemma}[Sub-resourcing]
+\begin{lemma}[sub-usaging]
   \label{lem:subres}
   \[
     \inferrule*[right=subres]{
@@ -686,7 +686,7 @@ resourced in $\resctx Q$.
   \]
 \end{lemma}
 \begin{proof}
-  By induction on the resourcing derivation until a rule with splitting is
+  By induction on the provisioning derivation until a rule with splitting is
   encountered.
   Here, we will just consider splitting by addition, but the other cases are
   similar.
@@ -700,12 +700,12 @@ resourced in $\resctx Q$.
   were given, except with the updated splitting premise.
 \end{proof}
 
-If addition is the join of the sub-resourcing order, then the distinction
+If addition is the join of the sub-usaging order, then the distinction
 between tensor and with products collapses.
 This fact can be seen clearly in the introduction rules, where the condition
 $\resctx P + \resctx Q \subres \resctx R$ is equivalent to the conjunction of
 $\resctx P \subres \resctx R$ and $\resctx Q \subres \resctx R$.
-With these and the admissibility of sub-resourcing, we get the equivalence.
+With these and the admissibility of sub-usaging, we get the equivalence.
 \fixmeBA{Can this be turned into a proposition? E.g., there are terms translating back and forth between both types of product? This observation might make more sense in the previous subsection. Also, it extends to the units too?}
 
 Famously, linear logic does not allow unrestricted weakening.
@@ -731,7 +731,7 @@ can be applied to any variable.
   \]
 \end{lemma}
 
-When $0$ is the bottom element of the subresourcing order, the condition $\vct 0
+When $0$ is the bottom element of the subusaging order, the condition $\vct 0
 \subres \resctx Q$ is trivial, so arbitrary weakening is allowed.
 
 Our main syntactic lemma is substitution.
@@ -745,23 +745,23 @@ Multiplication will be used to apply a substitution to a context.
 \fixme{\ldots example of why na\"{i}ve substitution doesn't work}
 
 Let $|-|$ denote the number of free variables of a given context.
-In the following definition, resource contexts ($\resctx P$ and $\resctx Q$) and
+In the following definition, usage contexts ($\resctx P$ and $\resctx Q$) and
 basis vectors are understood to be row vectors, and juxtaposition of vectors and
 matrices denotes multiplication.
 
-\begin{definition}[Well resourced substitution]
+\begin{definition}[Well provisioned substitution]
   A substitution $\sigma$ from $\Gamma^{\resctx P}$ to
   $\Delta^{\resctx Q}$ is a tuple with the following data.
 
   \begin{itemize}
-  \item a $|\resctx Q| \times |\resctx P|$ matrix of resource annotations $\mat
+  \item a $|\resctx Q| \times |\resctx P|$ matrix of usage annotations $\mat
     \Sigma$ such that $\resctx Q \mat \Sigma \subres \resctx P$
   \item for each $(x:A) \in \Delta$, a term $M_x$ such that
     $\Gamma^{\vct e_x \mat \Sigma} \vdash M_x : A$
   \end{itemize}
 \end{definition}
 
-The idea is that each term $M_x$ is well resourced at row $x$ of $\mat \Sigma$.
+The idea is that each term $M_x$ is well provisioned at row $x$ of $\mat \Sigma$.
 The element $\resctx Q_x$ tells us how many ``copies'' of $M_x$ we need, so the
 requirements for the whole simultaneous substitution are a sum of the rows of
 $\mat \Sigma$ weighted by $\resctx Q$.
@@ -779,7 +779,7 @@ $\mat \Sigma$ weighted by $\resctx Q$.
 \end{lemma}
 \renewcommand{\proofname}{Proof sketch}
 \begin{proof}
-  By induction on the resourcing derivation.
+  By induction on the provisioning derivation.
   Wherever a context is split, by any of $\vct 0 \subres \resctx R$,
   $\resctx P + \resctx Q \subres \resctx R$, or
   $\rescomment \rho * \resctx P \subres \resctx R$, the linearity of vector-matrix

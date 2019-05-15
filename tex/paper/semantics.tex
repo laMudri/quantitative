@@ -1,12 +1,10 @@
-\fixmeBA{We use ``resource'' throughout for the constraints given by the resource typing. Should probably say somewhere that ``resource'' is a stand-in for a more general name that we can't think of.}
-
-Resources will provide a refinement of the semantics of typed programs.
+Usage annotations will provide a refinement of the semantics of typed programs.
 More precisely, we provide a standard semantics of merely well \emph{typed}
 terms into $\mathrm{Set}$, which allows us to interpret terms as programs.
-Then, our semantics of well \emph{resourced} terms is into indexed binary
+Then, our semantics of well \emph{provisioned} terms is into indexed binary
 relations over elements of the $\mathrm{Set}$ semantics.
 
-In addition to the parametricity of the syntax over the choice of resource
+In addition to the parametricity of the syntax over the choice of usage
 annotations, the semantics is parametrised over a monoidal category of worlds,
 which keep track of resources and restrictions we have accumulated.
 Also, the choice of how to interpret the base type and the bang modality is
@@ -20,7 +18,7 @@ fairly liberal.
 \label{sec:set-interp}
 
 We begin with a standard semantics in $\mathrm{Set}$ of typed terms.
-We do not require terms to be well resourced at this stage, and consequently
+We do not require terms to be well provisioned at this stage, and consequently
 this semantics is entirely oblivious to the concerns of resourcing.
 In particular, $\excl{\rho}{}$ has no effect, and the two types of products are
 conflated. \fixmeBA{Point out that this semantics will be refined by the resource-aware semantics below}
@@ -60,10 +58,11 @@ clauses for the bang rules.
 Each constant $c$ must be given a semantics independent of
 context.\fixmeBA{spell this out}
 
-\subsection{Resource Semantics}
+\subsection{Usage Semantics}
 
-The refinement resources provide on top of this is a Kripke-indexed logical
-relation $\sem{A}^R : \mathcal{W}^{op} \to \operatorname{Rel}\sem{A}$ for each type $A$.
+The refinement usage annotations provide on top of this is a Kripke-indexed
+logical relation $\sem{A}^R : \mathcal{W}^{op} \to \operatorname{Rel}\sem{A}$
+for each type $A$.
 $\mathcal{W}$ is assumed to be a symmetric monoidal category.\fixmeBA{pre-ordered set, and explain what `op' means}.
 
 \fixmeBA{We are interested in worlds because it allows us to track how
@@ -168,7 +167,7 @@ together. \fixmeBA{spell out what this entails, and relate it to the
 
 \subsubsection{Interpretation of $\excl{\rho}{}$}
 
-The choice of interpretation of $\excl{\rho}{}$ links the resource
+The choice of interpretation of $\excl{\rho}{}$ links the usage
 annotations present in \name{}'s typing contexts to the semantics.
 
 \begin{example}[Trivial]
@@ -271,7 +270,7 @@ formalised in Agda \autoref{sec:agda-formalisation}.
 
 In the very general setting of this section, it is difficult to see
 the significance of this result. In the next section, we will
-specialise to instantiations of \name{} with specific resource
+specialise to instantiations of \name{} with specific usage
 semirings and specific semantic settings, which will allow us to
 derive concrete semantic results of interest.
 
