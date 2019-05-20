@@ -464,6 +464,16 @@ module Lib.Category where
       ; square = λ f → trans (>>-id (F .arr $E f)) (sym (id->> (F .arr $E f)))
       }
 
+    idNI : (F : Functor C D) → NatIso F F
+    idNI F = record
+      { toNT = idN F
+      ; to-iso = λ X → record
+        { from = id (F .obj X)
+        ; to>>from = id->> _
+        ; from>>to = id->> _
+        }
+      }
+
     module _ {F G H : Functor C D} (α : NatTrans F G) (β : NatTrans G H) where
       private
         module F = Functor F ; module G = Functor G ; module H = Functor H
