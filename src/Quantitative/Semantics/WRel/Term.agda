@@ -2,11 +2,13 @@ import Quantitative.Types.Formers as Form
 import Quantitative.Semantics.Sets as Sem
 import Quantitative.Semantics.WRel as SemR
 import Quantitative.Resources.Context as RCtx
+import Lib.Matrix.Addition as MAdd
 
 open import Lib.Category
 open import Lib.Category.Examples
 open import Lib.Level
 open import Lib.List as L hiding (fold)
+open import Lib.Product
 open import Lib.Relation.Propositional
 open import Lib.Setoid
 open import Lib.Structure
@@ -25,8 +27,9 @@ module Quantitative.Semantics.WRel.Term
   (!W : ∀ {A} → C → EndoFunctor (WREL A))
   (open SemR PrimTy C Const constTy posemiring symMonCat Base BaseR !W)
   (isAct : IsAct (λ ρ → !W ρ .obj)) (open RCtx C Const posemiring)
-  (R⟦const⟧ : ∀ {n} Γ {Δ : RCtx n} l →
-              R⟦ Γ , Δ ⟧Δ [ (λ _ → ⟦const⟧ l) ]⇒W R⟦ constTy l ⟧T)
+  (open MAdd (record { commutativeMonoid = R.+-commutativeMonoid }))
+  (R⟦const⟧ : ∀ {n} Γ l →
+              R⟦ Γ , 0M {n , 1} ⟧Δ [ (λ _ → ⟦const⟧ l) ]⇒W R⟦ constTy l ⟧T)
   where
 
   private
@@ -47,8 +50,6 @@ module Quantitative.Semantics.WRel.Term
     open import Lib.Dec.Properties
     open import Lib.Equality as ≡ using (_≡_; subst2)
     open import Lib.Function as F hiding (id; _>>_) renaming (_o_ to _∘_)
-    open import Lib.Matrix.Addition
-      (record { commutativeMonoid = R.+-commutativeMonoid })
     open import Lib.Matrix.Multiplication (record { semiring = R.semiring })
     open import Lib.Matrix.Multiplication.Basis
       (record { semiring = R.semiring })
@@ -56,7 +57,6 @@ module Quantitative.Semantics.WRel.Term
     open import Lib.Matrix.Scaling.Right (record { semiring = R.semiring })
     open import Lib.Matrix.Setoid (≡-Setoid C)
     open import Lib.One
-    open import Lib.Product
     open import Lib.Sum
     open import Lib.Sum.Pointwise
     open import Lib.Thinning
@@ -184,7 +184,7 @@ module Quantitative.Semantics.WRel.Term
   fundamental {Γ = Γ} (var {i} {T} {≡.refl} sub) =
     R⟦lookup⟧ i (≤M-trans sub (≤M-reflexive (symM (*r-identity _))))
     >>W′ fst (act-1 R⟦ T ⟧T)
-  fundamental {Γ = Γ} (const {l = l} split) = R⟦const⟧ Γ l
+  fundamental {Γ = Γ} (const {l = l} split) = RΔ-weaken Γ split >>N R⟦const⟧ Γ l
   fundamental {Γ = Γ} (app {S = S} {T} {et = et} {st} split er sr) =
     RΔ-split-+ Γ split >>N ∧W .arr $E (fundamental er , fundamental sr)
                        >>N evalW ⟦ et ⟧t ⟦ st ⟧t R⟦ S ⟧T R⟦ T ⟧T
