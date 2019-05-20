@@ -70,24 +70,29 @@ the syntax and usage annotations are \emph{well provisioned}.
 We provide a unified denotational semantics as a tool to show that any well
 provisioned term really has the properties we wanted of it.
 
-We start by giving terms a standard $\mathrm{Set}$ semantics.
+We start by giving terms a standard $\mathrm{Set}$ semantics, written $\sem
+A$, $\sem \Gamma$, and $\sem t : \sem \Gamma \to \sem A$ for types, contexts and
+terms, respectively.
 When written in a dependently typed programming language, this is an interpreter
-that takes a meta-level value for each variable in the context and produces a
-meta-level value as a result.
-If we have a term in context with one variable, we can consider whether the
-function the semantics gives is monotonic.
-This would mean that if a bigger value for the context is given, the result will
-also be bigger.
-To capture this, we interpret types as binary endorelations over their
-$\mathrm{Set}$ semantics.
-The property we want is the following square, where $\Gamma \vdash t : A$,
-$\gamma, \gamma' \in \sem\Gamma$, $a, a' \in \sem A$.
-\fixme{This is not really coherent yet.}
+that takes a metalanguage value for each variable in the context and produces a
+metalanguage value as a result.
+If we have a term in context with one variable, we can consider whether $\sem t
+: \sem A \to \sem B$ is monotonic.
+This would mean that if a bigger $\sem A$ value is given, the resulting $\sem B$
+value will also be bigger.
+To capture this, we interpret each type $A$ as a binary endorelation over $\sem
+A$, written $\sem{A}^R \subseteq \sem A \times \sem A$.
+Then, given our one-variable term $\ctxvar{x}{A}{1} \vdash t : B$, its semantics
+says that it preserves the relation.
+Explicitly, $\sem{t}^R :
+\forall a, a'.~\sem{A}^R(a, a') \implies \sem{B}^R(\sem t~a, \sem t~a')$.
+% The property we want is the following square, where $\Gamma \vdash t : A$,
+% $\gamma, \gamma' \in \sem\Gamma$, $a, a' \in \sem A$.
 
-\begin{tikzcd}
-  \gamma \arrow[r] \arrow[d, "\sem t" left] & \gamma' \arrow[d, "\sem t"] \\
-  a \arrow[r] & a'
-\end{tikzcd}
+% \begin{tikzcd}
+%   \gamma \arrow[r] \arrow[d, "\sem t" left] & \gamma' \arrow[d, "\sem t"] \\
+%   a \arrow[r] & a'
+% \end{tikzcd}
 
 For other properties, however, we also need the relation to be preserved
 relative to a \emph{world}.
