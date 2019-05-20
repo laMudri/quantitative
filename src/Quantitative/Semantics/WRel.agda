@@ -63,7 +63,7 @@ module Quantitative.Semantics.WRel
 
   mapW-subst : ∀ {A B} R {f g : A → B} → f ≡E g → mapW f R ⇒W mapW g R
   mapW-subst R fg = record
-    { η = λ w a b r → subst2 (R .obj w) (fg (≡.refl {a = a})) (fg (≡.refl {a = b})) r
+    { η = λ w a b r → subst2 (R .obj w) (fg (≡.refl {x = a})) (fg (≡.refl {x = b})) r
     ; square = λ _ → <>
     }
 

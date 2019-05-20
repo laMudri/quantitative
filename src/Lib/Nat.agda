@@ -2,11 +2,7 @@ module Lib.Nat where
   open import Lib.Dec
   open import Lib.Equality
 
-  data Nat : Set where
-    zero : Nat
-    succ : Nat → Nat
-
-  {-# BUILTIN NATURAL Nat #-}
+  open import Data.Nat public using (zero) renaming (ℕ to Nat; suc to succ)
 
   infixr 6 _+N_
   _+N_ : Nat → Nat → Nat

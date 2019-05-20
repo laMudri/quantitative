@@ -4,11 +4,7 @@ module Lib.Equality where
   open import Lib.Product
   open import Lib.Zero
 
-  data _≡_ {l : Level}{A : Set l}(a : A) : A → Set l where
-    refl : a ≡ a
-  infix 3 _≡_
-
-  {-# BUILTIN EQUALITY _≡_ #-}
+  open import Relation.Binary.PropositionalEquality public using (_≡_; refl)
 
   -- Basic lemmas
 
