@@ -1,6 +1,6 @@
 module Quantitative.Instantiation.Monotonicity where
 
-  open import Lib.Equality
+  open import Lib.Equality as ≡
   open import Lib.Level
   open import Lib.Product
   open import Lib.Setoid
@@ -10,11 +10,13 @@ module Quantitative.Instantiation.Monotonicity where
   data WayUp : Set where
     ↑↑ ↓↓ ?? ~~ : WayUp
 
+  infix 4 _≤_
   data _≤_ : (x y : WayUp) → Set where
     ~~≤ : ∀ {y} → ~~ ≤ y
     ≤?? : ∀ {x} → x ≤ ??
     ≤-refl : ∀ {x} → x ≤ x
 
+  infixr 6 _+_
   _+_ : (x y : WayUp) → WayUp
   ↑↑ + ↑↑ = ↑↑
   ↑↑ + ↓↓ = ~~
@@ -27,6 +29,7 @@ module Quantitative.Instantiation.Monotonicity where
   ?? + y = y
   ~~ + y = ~~
 
+  infixr 7 _*_
   _*_ : (x y : WayUp) → WayUp
   ↑↑ * y = y
   ↓↓ * ↑↑ = ↓↓
@@ -415,3 +418,43 @@ module Quantitative.Instantiation.Monotonicity where
       Γ succl → record { η = λ _ _ _ _ _ _ _ x x′ xx → ZP.+-monoʳ-≤ (+ 1) xx }
       Γ predl → record { η = λ _ _ _ _ _ _ _ x x′ xx → ZP.+-monoʳ-≤ (- + 1) xx }
       Γ negl → record { η = λ _ _ _ _ _ _ _ x x′ xx → ZP.neg-mono-≤-≥ xx })
+
+  open import Quantitative.Syntax.Direction
+  open import Lib.Thinning as Th using (oz; os; o′)
+  open import Lib.Vec
+  open ΣPosemiring σPosemiring using (Carrier; σPoset; +-σCommutativeMonoid)
+  open import Lib.Matrix.Setoid Carrier
+  open import Lib.Matrix.Addition +-σCommutativeMonoid
+  open import Lib.Matrix.Poset σPoset
+
+  all-mono : ∀ {d} {t : Term 0 d} (tt : nil ⊢t t :-: BASE <> ⊸ BASE <>)
+             (tr : 0M ⊢r tt) → let f = ⟦ tt ⟧t <> in
+             ∀ {x y} → x Z.≤ y → f x Z.≤ f y
+  all-mono tt tr xy = fundamental tr .η _ _ _ _ _ _ _ _ _ xy
+
+  all-anti-mono : ∀ {d} {t : Term 0 d}
+                  (tt : nil ⊢t t :-: ! ↓↓ (BASE <>) ⊸ BASE <>) (tr : 0M ⊢r tt) →
+                  let f = ⟦ tt ⟧t <> in ∀ {x y} → y Z.≤ x → f x Z.≤ f y
+  all-anti-mono tt tr yx = fundamental tr .η _ _ _ _ _ _ _ _ _ yx
+
+  test-term : Term 0 chk
+  test-term = lam [ app (const negl) [ app (const succl) [ app (const negl) [ var (os oz) ] ] ] ]
+  --          λ x.             neg               (succ               (neg            x))
+
+  test-term-t : nil ⊢t BASE <> ⊸ BASE <> ∋ _
+  test-term-t = lam [ app (const {l = negl}) (bang [ app (const {l = succl}) [ app (const {l = negl}) (bang [ var {th = os oz} ≡.refl ]) ] ]) ]
+
+  sp0 : ∀ {mn} {Δ : Mat mn} → Δ ≤M 0M
+  sp0 ij = ≤??
+
+  sp+ : ∀ {mn} {Δ : Mat mn} → Δ ≤M Δ +M Δ
+  sp+ ij = go
+    where
+    go : ∀ {x} → x ≤ x + x
+    go {↑↑} = ≤-refl
+    go {↓↓} = ≤-refl
+    go {??} = ≤-refl
+    go {~~} = ≤-refl
+
+  test-term-r : 0M ⊢r test-term-t
+  test-term-r = lam [ app (sp+ {Δ = {!!}}) (const sp0) {!!} ]
