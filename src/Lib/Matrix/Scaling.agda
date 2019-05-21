@@ -22,9 +22,9 @@ module Lib.Matrix.Scaling {c l} (R : ΣSemiring c l) where
       open import Lib.Module Carrier (MatS mn)
 
       scaleMl : Carrier →E MatS mn →S MatS mn
-      scaleMl ._$E_ x ._$E_ M ij = x * M ij
-      scaleMl ._$E_ x ._$E=_ MM ij = refl *-cong MM ij
-      scaleMl ._$E=_ xx MM ij = xx *-cong MM ij
+      scaleMl ._$E_ x ._$E_ M .get ij = x * M .get ij
+      scaleMl ._$E_ x ._$E=_ MM .get ij = refl *-cong MM .get ij
+      scaleMl ._$E=_ xx MM .get ij = xx *-cong MM .get ij
 
       infixr 7 _*l_
 
@@ -44,17 +44,17 @@ module Lib.Matrix.Scaling {c l} (R : ΣSemiring c l) where
           { +*s-isSemiring = isSemiring
           ; +f-isCommutativeMonoid = isCommutativeMonoidM
           ; _*f-cong_ = λ where
-            xx MM ii → xx *-cong MM ii
+            xx MM .get ii → xx *-cong MM .get ii
           ; annihil = λ where
-            .fst x ij → annihil .fst x
-            .snd M ij → annihil .snd (M ij)
+            .fst x .get ij → annihil .fst x
+            .snd M .get ij → annihil .snd (M .get ij)
           ; distrib = λ where
-            .fst x M N ij → distrib .fst x (M ij) (N ij)
-            .snd x y M ij → distrib .snd (M ij) x y
+            .fst x M N .get ij → distrib .fst x (M .get ij) (N .get ij)
+            .snd x y M .get ij → distrib .snd (M .get ij) x y
           ; assoc = λ where
-            x y M ij → *-assoc x y (M ij)
+            x y M .get ij → *-assoc x y (M .get ij)
           ; identity = λ where
-            M ij → *-identity .fst (M ij)
+            M .get ij → *-identity .fst (M .get ij)
           }
         }
       open Semimodule Mat-semimodule public
@@ -71,11 +71,11 @@ module Lib.Matrix.Scaling {c l} (R : ΣSemiring c l) where
 
   *l-linear : ∀ {m n o} x (M : Mat (m , n)) (N : Mat (n , o)) →
               (x *l M) *M N ≈M x *l (M *M N)
-  *l-linear {n = n} x M N (i , k) =
-    ((x *l M) *M N) (i , k)  ≈[ refl ]≈
-    (sum λ j → (x * M (i , j)) * N (j , k))
-                             ≈[ (sum-cong {n} λ j → *-assoc _ _ _) ]≈
-    (sum λ j → x * (M (i , j) * N (j , k)))
-                             ≈[ sym (*-sum x λ j → M (i , j) * N (j , k)) ]≈
-    x * (sum λ j → M (i , j) * N (j , k))  ≈[ refl ]≈
-    (x *l (M *M N)) (i , k)  QED
+  *l-linear {n = n} x M N .get (i , k) =
+    ((x *l M) *M N) .get (i , k)  ≈[ refl ]≈
+    (sum λ j → (x * M .get (i , j)) * N .get (j , k))
+                       ≈[ (sum-cong {n} λ j → *-assoc _ _ _) ]≈
+    (sum λ j → x * (M .get (i , j) * N .get (j , k)))
+                       ≈[ sym (*-sum x λ j → M .get (i , j) * N .get (j , k)) ]≈
+    x * (sum λ j → M .get (i , j) * N .get (j , k))  ≈[ refl ]≈
+    (x *l (M *M N)) .get (i , k)  QED

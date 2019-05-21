@@ -80,16 +80,16 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
   *-indic fff x = fst annihil x
 
   basis-col : ∀ {n} → Fin n → Mat (n , 1)
-  basis-col k = set′ k oi (λ _ → e1) $E [| e0 |]
+  basis-col k = set′ k oi (mk λ _ → e1) $E [| e0 |]
 
   1M : ∀ {m} → Mat (m , m)
-  1M (i , j) = basis-col j (i , zeroth)
+  1M .get (i , j) = basis-col j .get (i , zeroth)
 
   multM : ∀ {m n o} → MatS (m , n) ×S MatS (n , o) →E MatS (m , o)
-  multM {m} {n} {o} ._$E_ (M , N) (i , k) =
-    sum {n} λ j → M (i , j) * N (j , k)
-  multM {m} {n} {o} ._$E=_ (MM , NN) (i , k) =
-    sum-cong {n} λ j → MM (i , j) *-cong NN (j , k)
+  multM {m} {n} {o} ._$E_ (M , N) .get (i , k) =
+    sum {n} λ j → M .get (i , j) * N .get (j , k)
+  multM {m} {n} {o} ._$E=_ (MM , NN) .get (i , k) =
+    sum-cong {n} λ j → MM .get (i , j) *-cong NN .get (j , k)
 
   infixr 7 _*M_ _*M-cong_
   _*M_ : ∀ {m n o} → Mat (m , n) → Mat (n , o) → Mat (m , o)
@@ -106,19 +106,20 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
   *M-identity .fst = li
     where
     li : ∀ {mn} (N : Mat mn) → 1M *M N ≈M N
-    li {succ m , n} N (i@(os e) , k)
+    li {succ m , n} N .get (i@(os e) , k)
       rewrite true→≡yes (e ⊆? oe) (empty-⊆ e oe) .snd | oe-unique oe e =
       trans (*-identity .fst _ +-cong trans (sum-cong {m} λ j → annihil .snd _)
                                             (sum-e0 m))
             (+-identity .snd _)
-    li {succ m , n} N (o′ i , k)
+    li {succ m , n} N .get (o′ i , k)
       rewrite false→≡no (i ⊆? oe) ((λ ()) o ⊆⇒≤) .snd =
       trans (annihil .snd _ +-cong trans (sum-cong under-binder)
-                                         (li (remove-row $E N) (i , k)))
+                                         (li (remove-row $E N) .get (i , k)))
             (+-identity .fst _)
       where
-      under-binder : ∀ j → (remove-col $E 1M) (o′ i , j) * (remove-row $E N) (j , k) ≈
-                                              1M (i , j) * (remove-row $E N) (j , k)
+      under-binder : ∀ j →
+        (remove-col $E 1M) .get (o′ i , j) * (remove-row $E N) .get (j , k)
+                     ≈ 1M  .get (   i , j) * (remove-row $E N) .get (j , k)
       under-binder j with i ⊆? j | map⊎-rel {B′ = Not (o′ i ⊆ o′ j)} o′′ inv (i ⊆? j)
         where inv = _o (λ where (o′′ sub) → sub)
       ... | yes _ | inl _ = refl
@@ -126,22 +127,24 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
   *M-identity .snd = ri
     where
     ri : ∀ {mn} (M : Mat mn) → M *M 1M ≈M M
-    ri {m , succ n} M (i , k@(os e))
+    ri {m , succ n} M .get (i , k@(os e))
       rewrite true→≡yes (oe ⊆? e) (empty-⊆ oe e) .snd | oe-unique oe e =
       trans (*-identity .snd _ +-cong trans (sum-cong under-binder)
                                             (sum-e0 n))
             (+-identity .snd _)
       where
-      under-binder : ∀ j → (remove-col $E M) (i , j) * (remove-row $E 1M) (j , k) ≈ e0
+      under-binder : ∀ j →
+        (remove-col $E M) .get (i , j) * (remove-row $E 1M) .get (j , k) ≈ e0
       under-binder j rewrite false→≡no (j ⊆? e) ((λ ()) o ⊆⇒≤) .snd = annihil .fst _
-    ri {m , succ n} M (i , o′ k)
+    ri {m , succ n} M .get (i , o′ k)
       rewrite false→≡no (k ⊆? oe) ((λ ()) o ⊆⇒≤) .snd =
       trans (annihil .fst _ +-cong trans (sum-cong under-binder)
-                                         (ri (remove-col $E M) (i , k)))
+                                         (ri (remove-col $E M) .get (i , k)))
             (+-identity .fst _)
       where
-      under-binder : ∀ j → (remove-col $E M) (i , j) * (remove-row $E 1M) (j , o′ k) ≈
-                           (remove-col $E M) (i , j) * 1M (j , k)
+      under-binder : ∀ j →
+        (remove-col $E M) .get (i , j) * (remove-row $E 1M) .get (j , o′ k) ≈
+        (remove-col $E M) .get (i , j) *                1M  .get (j ,    k)
       under-binder j with j ⊆? k | map⊎-rel {B′ = Not (o′ j ⊆ o′ k)} o′′ inv (j ⊆? k)
         where inv = _o (λ where (o′′ sub) → sub)
       ... | yes _ | inl _ = refl
@@ -150,18 +153,19 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
   *M-assoc :
     ∀ {m n o p} (M : Mat (m , n)) (N : Mat (n , o)) (O : Mat (o , p)) →
     (M *M N) *M O ≈M M *M (N *M O)
-  *M-assoc {m} {n} {o} {p} M N O (i , l) =
-    (sum λ k → (sum λ j → M (i , j) * N (j , k)) * O (k , l))
-      ≈[ (sum-cong {o} λ k → sum-* (λ j → M (i , j) * N (j , k))
-                                   (O (k , l))) ]≈
-    (sum λ k → sum λ j → (M (i , j) * N (j , k)) * O (k , l))
+  *M-assoc {m} {n} {o} {p} M N O .get (i , l) =
+    (sum λ k → (sum λ j → M .get (i , j) * N .get (j , k)) * O .get (k , l))
+      ≈[ (sum-cong {o} λ k → sum-* (λ j → M .get (i , j) * N .get (j , k))
+                                   (O .get (k , l))) ]≈
+    (sum λ k → sum λ j → (M .get (i , j) * N .get (j , k)) * O .get (k , l))
       ≈[ sum-comm {o} {n} _ ]≈
-    (sum λ j → sum λ k → (M (i , j) * N (j , k)) * O (k , l))
+    (sum λ j → sum λ k → (M .get (i , j) * N .get (j , k)) * O .get (k , l))
       ≈[ (sum-cong {n} λ _ → sum-cong {o} λ _ → *-assoc _ _ _) ]≈
-    (sum λ j → sum λ k → M (i , j) * (N (j , k) * O (k , l)))
-      ≈[ sym (sum-cong {n} λ j → *-sum (M (i , j))
-                                       (λ k → N (j , k) * O (k , l))) ]≈
-    (sum λ j → M (i , j) * (sum λ k → N (j , k) * O (k , l)))
+    (sum λ j → sum λ k → M .get (i , j) * (N .get (j , k) * O .get (k , l)))
+      ≈[ sym (sum-cong {n} λ j → *-sum (M .get (i , j))
+                                       (λ k → N .get (j , k) * O .get (k , l)))
+      ]≈
+    (sum λ j → M .get (i , j) * (sum λ k → N .get (j , k) * O .get (k , l)))
       QED
     where
     open SetoidReasoning Carrier
@@ -174,11 +178,11 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
     (∀ {m n o} (M : Mat (m , n)) → M *M 0M {n , o} ≈M 0M {m , o})
     ×
     (∀ {m n o} (N : Mat (n , o)) → 0M {m , n} *M N ≈M 0M {m , o})
-  annihilM .fst {m} {n} {o} M (i , k) =
-    trans (sum-cong {n} λ j → annihil .fst (M (i , j)))
+  annihilM .fst {m} {n} {o} M .get (i , k) =
+    trans (sum-cong {n} λ j → annihil .fst (M .get (i , j)))
           (sum-e0 n)
-  annihilM .snd {m} {n} {o} N (i , k) =
-    trans (sum-cong {n} λ j → annihil .snd (N (j , k)))
+  annihilM .snd {m} {n} {o} N .get (i , k) =
+    trans (sum-cong {n} λ j → annihil .snd (N .get (j , k)))
           (sum-e0 n)
 
   distribM :
@@ -187,9 +191,9 @@ module Lib.Matrix.Multiplication {c l} (R : ΣSemiring c l) where
     ×
     (∀ {m n o} (M : Mat (n , o)) (N O : Mat (m , n)) →
      (N +M O) *M M ≈M N *M M +M O *M M)
-  distribM .fst {m} {n} {o} M N O (i , k) =
+  distribM .fst {m} {n} {o} M N O .get (i , k) =
     trans (sum-cong {n} λ j → distrib .fst _ _ _)
           (sum-+ {n} _ _)
-  distribM .snd {m} {n} {o} M N O (i , k) =
+  distribM .snd {m} {n} {o} M N O .get (i , k) =
     trans (sum-cong {n} λ j → distrib .snd _ _ _)
           (sum-+ {n} _ _)

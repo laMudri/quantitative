@@ -12,10 +12,10 @@ module Lib.Matrix.VecCompat {c l} (A : Setoid c l) where
   open import Lib.Vec
 
   from-col-vec : ∀ {m} → Vec C m → Mat (m , 1)
-  from-col-vec xs (i , _) = lookup i xs
+  from-col-vec xs .get (i , _) = lookup i xs
 
   to-col-vec : ∀ {m} → Mat (m , 1) → Vec C m
-  to-col-vec M = tabulate (λ i → M (i , zeroth))
+  to-col-vec M = tabulate (λ i → M .get (i , zeroth))
 
   from-row-vec : ∀ {n} → Vec C n → Mat (1 , n)
   from-row-vec = transpose $E_ o from-col-vec

@@ -23,7 +23,7 @@ module Lib.Matrix.Addition.Order {c l l′}
       ; e = 0M
       ; _·_ = _+M_
       ; isCommutativePomonoid = record
-        { _·-mono_ = λ MM NN ij → MM ij ·-mono NN ij
+        { _·-mono_ = λ where MM NN .get ij → MM .get ij ·-mono NN .get ij
         ; isPoset = isPosetM
         ; isCommutativeMonoid = isCommutativeMonoidM
         }

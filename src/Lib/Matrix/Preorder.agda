@@ -15,14 +15,21 @@ module Lib.Matrix.Preorder {c l l′} (PreO : ΣPreorder c l l′) where
   open import Lib.Sum
   open import Lib.Thinning renaming (_≤_ to _≤th_) using (Fin; part)
 
+  infix 4 _≤M_
+  record _≤M_ {mn} (M N : Mat mn) : Set l′ where
+    constructor mk
+    field
+      get : ∀ ij → M .get ij ≤ N .get ij
+  open _≤M_ public
+
   MatPreO : Nat × Nat → ΣPreorder c l l′
   MatPreO mn@(m , n) = record
     { Carrier = MatS mn
     ; preorder = record
-      { _≤_ = λ M N → ∀ ij → M ij ≤ N ij
+      { _≤_ = _≤M_
       ; isPreorder = record
-        { ≤-reflexive = λ MM ij → ≤-reflexive (MM ij)
-        ; ≤-trans = λ MN NO ij → ≤-trans (MN ij) (NO ij)
+        { ≤-reflexive = λ where MM .get ij → ≤-reflexive (MM .get ij)
+        ; ≤-trans = λ where MN NO .get ij → ≤-trans (MN .get ij) (NO .get ij)
         }
       }
     }
@@ -34,16 +41,16 @@ module Lib.Matrix.Preorder {c l l′} (PreO : ΣPreorder c l l′) where
   open Explicit public using ()
     renaming (preorder to Mat-preorder)
   open Implicit public using ()
-    renaming ( _≤_ to _≤M_; ≤-refl to ≤M-refl; ≤-reflexive to ≤M-reflexive
+    renaming ( ≤-refl to ≤M-refl; ≤-reflexive to ≤M-reflexive
              ; ≤-trans to ≤M-trans; isPreorder to isPreorderM
              )
 
   _+↓-mono_ : ∀ {m m′ n} {M M′ : Mat (m , n)} {N N′ : Mat (m′ , n)} →
               M ≤M M′ → N ≤M N′ → M +↓ N ≤M M′ +↓ N′
-  (_+↓-mono_ {m} {m′} {n} MM NN) (i , j) with part m′ i
-  ... | inl i′ = NN (i′ , j)
-  ... | inr i′ = MM (i′ , j)
+  _+↓-mono_ {m} {m′} {n} MM NN .get (i , j) with part m′ i
+  ... | inl i′ = NN .get (i′ , j)
+  ... | inr i′ = MM .get (i′ , j)
 
   thin-≤M : ∀ {m n m′ n′} (mm : m′ ≤th m) (nn : n′ ≤th n) {M N : Mat (m , n)} →
             M ≤M N → thin mm nn $E M ≤M thin mm nn $E N
-  thin-≤M mm nn MN ij = MN _
+  thin-≤M mm nn MN .get ij = MN .get _

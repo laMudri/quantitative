@@ -19,22 +19,23 @@ module Lib.Matrix.Addition {c l} (M : ΣCommutativeMonoid c l) where
   MatCM mn@(m , n) = record
     { Carrier = MatS mn
     ; commutativeMonoid = record
-      { e = λ _ → e
+      { e = mk λ _ → e
       ; _·_ = _+_
       ; isCommutativeMonoid = record
-        { comm = λ { M N ij → comm (M ij) (N ij) }
+        { comm = λ where M N .get ij → comm (M .get ij) (N .get ij)
         ; isMonoid = record
-          { identity = (λ { N ij → fst identity (N ij) })
-                     , (λ { M ij → snd identity (M ij) })
-          ; assoc = λ { M N O ij → assoc _ _ _ }
-          ; _·-cong_ = λ { MM NN ij → MM ij ·-cong NN ij }
+          { identity = λ where
+            .fst N .get ij → fst identity (N .get ij)
+            .snd M .get ij → snd identity (M .get ij)
+          ; assoc = λ where M N O .get ij → assoc _ _ _
+          ; _·-cong_ = λ where MM NN .get ij → MM .get ij ·-cong NN .get ij
           }
         }
       }
     }
     where
     _+_ : (M N : Mat mn) → Mat mn
-    (M + N) ij = M ij · N ij
+    (M + N) .get ij = M .get ij · N .get ij
 
   private
     module Explicit (mn : Nat × Nat) = ΣCommutativeMonoid (MatCM mn)

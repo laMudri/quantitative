@@ -5,22 +5,25 @@ module Lib.Matrix {c} (C : Set c) where
   open import Lib.Sum
   open import Lib.Thinning
 
-  Mat : Nat × Nat → Set c
-  Mat (m , n) = Fin m × Fin n → C
+  record Mat (mn : Nat × Nat) : Set c where
+    constructor mk
+    field
+      get : Fin (mn .fst) × Fin (mn .snd) → C
+  open Mat public
 
   infixl 5 _+↓_ _+→_
   _+↓_ : ∀ {m m′ n} → Mat (m , n) → Mat (m′ , n) → Mat (m′ +N m , n)
-  (_+↓_ {m} {m′} {n} M N) (i , j) =
-    [ (λ i′ → N (i′ , j)) , (λ i′ → M (i′ , j)) ] (part m′ i)
+  _+↓_ {m} {m′} {n} M N .get (i , j) =
+    [ (λ i′ → N .get (i′ , j)) , (λ i′ → M .get (i′ , j)) ] (part m′ i)
 
   _+→_ : ∀ {m n n′} → Mat (m , n) → Mat (m , n′) → Mat (m , n′ +N n)
-  (_+→_ {m} {n} {n′} M N) (i , j) =
-    [ (λ j′ → N (i , j′)) , (λ j′ → M (i , j′)) ] (part n′ j)
+  _+→_ {m} {n} {n′} M N .get (i , j) =
+    [ (λ j′ → N .get (i , j′)) , (λ j′ → M .get (i , j′)) ] (part n′ j)
 
   -- These two help size inference, and are nice visually
   -- Mnemonic: || for a (narrow) column; -- for a (flat) row
   [-_-] : ∀ {n} → C → Mat (1 , n)
-  [- v -] = λ _ → v
+  [- v -] .get _ = v
 
   [|_|] : ∀ {m} → C → Mat (m , 1)
-  [| v |] = λ _ → v
+  [| v |] .get _ = v

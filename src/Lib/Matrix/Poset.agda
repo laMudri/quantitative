@@ -20,7 +20,7 @@ module Lib.Matrix.Poset {c l l′} (Po : ΣPoset c l l′) where
     ; poset = record
       { _≤_ = _≤M_
       ; isPoset = record
-        { antisym = λ { MN NM ij → antisym (MN ij) (NM ij) }
+        { antisym = λ where MN NM .get ij → antisym (MN .get ij) (NM .get ij)
         ; isPreorder = isPreorderM
         }
       }

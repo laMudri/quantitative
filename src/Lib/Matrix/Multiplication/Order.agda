@@ -24,4 +24,5 @@ module Lib.Matrix.Multiplication.Order {c l l′}
 
   _*M-mono_ : ∀ {m n o} {M M′ : Mat (m , n)} {N N′ : Mat (n , o)} →
               M ≤M M′ → N ≤M N′ → M *M N ≤M M′ *M N′
-  (MM *M-mono NN) (i , k) = sum-mono (λ j → MM (i , j) *-mono NN (j , k))
+  (MM *M-mono NN) .get (i , k) =
+    sum-mono (λ j → MM .get (i , j) *-mono NN .get (j , k))

@@ -35,11 +35,11 @@ module Lib.Matrix.Scaling.Right {c l} (R : ΣSemiring c l) where
 
   *r-linear : ∀ {m n o} (M : Mat (m , n)) (N : Mat (n , o)) x →
               M *M (N *r x) ≈M (M *M N) *r x
-  *r-linear {n = n} M N x (i , k) =
-    (M *M (N *r x)) (i , k)  ≈[ refl ]≈
-    (sum λ j → M (i , j) * N (j , k) * x)
-                             ≈[ (sum-cong {n} λ j → sym (*-assoc _ _ _)) ]≈
-    (sum λ j → (M (i , j) * N (j , k)) * x)
-                             ≈[ sym (sum-* (λ j → M (i , j) * N (j , k)) x) ]≈
-    (sum λ j → M (i , j) * N (j , k)) * x  ≈[ refl ]≈
-    ((M *M N) *r x) (i , k)  QED
+  *r-linear {n = n} M N x .get (i , k) =
+    (M *M (N *r x)) .get (i , k)  ≈[ refl ]≈
+    (sum λ j → M .get (i , j) * N .get (j , k) * x)
+                     ≈[ (sum-cong {n} λ j → sym (*-assoc _ _ _)) ]≈
+    (sum λ j → (M .get (i , j) * N .get (j , k)) * x)
+                     ≈[ sym (sum-* (λ j → M .get (i , j) * N .get (j , k)) x) ]≈
+    (sum λ j → M .get (i , j) * N .get (j , k)) * x  ≈[ refl ]≈
+    ((M *M N) *r x) .get (i , k)  QED
