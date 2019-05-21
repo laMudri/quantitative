@@ -65,8 +65,9 @@ module Lib.Matrix.Setoid {c l} (A : Setoid c l) where
   set : ∀ {m n m′ n′} → m ≤ m′ → n ≤ n′ →
         (MatS (m , n) →E MatS (m , n)) → (MatS (m′ , n′) →E MatS (m′ , n′))
   set mm nn f ._$E_ M .get (i , j) =
-    [ (λ where (imm , jnn) → let M′ = thin mm nn $E M in
-                             (f $E M′) .get (⊆⇒≤ imm , ⊆⇒≤ jnn))
+    [ (λ stuff → let imm , jnn = stuff in
+                 let M′ = thin mm nn $E M in
+                 (f $E M′) .get (⊆⇒≤ imm , ⊆⇒≤ jnn))
     , (λ _ → M .get (i , j))
     ] (i ⊆? mm ×? j ⊆? nn)
   set mm nn f ._$E=_ MM .get (i , j) with i ⊆? mm ×? j ⊆? nn
