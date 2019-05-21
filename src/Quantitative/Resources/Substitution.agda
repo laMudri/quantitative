@@ -45,167 +45,143 @@ module Quantitative.Resources.Substitution
   open import Lib.Vec.Thinning using (lookup′)
   open import Lib.Zero
 
+  ≤-to-Mat : ∀ {m n} → m ≤ n → Mat (n , m)
+  ≤-to-Mat oz .get (() , _)
+  ≤-to-Mat (os th) .get (os i , os j) = R.e1
+  ≤-to-Mat (os th) .get (os i , o′ j) = R.e0
+  ≤-to-Mat (os th) .get (o′ i , os j) = R.e0
+  ≤-to-Mat (os th) .get (o′ i , o′ j) = ≤-to-Mat th .get (i , j)
+  ≤-to-Mat (o′ th) .get (os i , j) = R.e0
+  ≤-to-Mat (o′ th) .get (o′ i , j) = ≤-to-Mat th .get (i , j)
+
+  ≤-to-Mat-action : ∀ {m n} i (th : m ≤ n) →
+                    ≤-to-Mat th *M basis-col i ≈M basis-col (i ≤-comp th)
+  ≤-to-Mat-action i th = transM (choose-col i (≤-to-Mat th)) (lemma i th)
+    where
+    lemma : ∀ {m n} i (th : m ≤ n) →
+            thin oi i $E ≤-to-Mat th ≈M basis-col (i ≤-comp th)
+    lemma i (o′ th) .get (os j , k) = refl
+    lemma i (o′ th) .get (o′ j , k@(os oz)) rewrite lemma i th .get (j , k)
+      with j ⊆? i ≤-comp th
+    ... | yes _ = refl
+    ... | no _ = refl
+    lemma (os i) (os th) .get (os j , k@(os oz))
+      rewrite true→≡yes (j ⊆? i ≤-comp th) (empty-⊆ j _) .snd = refl
+    lemma (os i) (os th) .get (o′ j , k@(os oz))
+      rewrite false→≡no (j ⊆? i ≤-comp th) ((λ ()) o ⊆⇒≤) .snd = refl
+    lemma (o′ i) (os th) .get (os j , k) = refl
+    lemma (o′ i) (os th) .get (o′ j , k@(os oz)) rewrite lemma i th .get (j , k)
+      with j ⊆? i ≤-comp th
+    ... | yes _ = refl
+    ... | no _ = refl
+
+  oi-to-1M : ∀ {n} → ≤-to-Mat oi ≈M 1M {n}
+  oi-to-1M {zero} .get (() , _)
+  oi-to-1M {succ n} .get (os i , os j)
+    rewrite true→≡yes (i ⊆? j) (empty-⊆ i j) .snd = refl
+  oi-to-1M {succ n} .get (os i , o′ j) = refl
+  oi-to-1M {succ n} .get (o′ i , os j)
+    rewrite false→≡no (i ⊆? j) ((λ ()) o ⊆⇒≤) .snd = refl
+  oi-to-1M {succ n} .get (o′ i , o′ j) rewrite oi-to-1M {n} .get (i , j)
+    with i ⊆? j
+  ... | yes _ = refl
+  ... | no _ = refl
+
   RenRes : ∀ {m n} → m ≤ n → RCtx m → RCtx n → Set l′
-  RenRes th Δm Δn = thin             th  oi $E Δn ≤M Δm
-                  × thin (complement th) oi $E Δn ≤M [| R.e0 |]
+  RenRes {m} {n} th Δm Δn = Δn ≤M ≤-to-Mat th *M Δm
 
-  free-RenRes : ∀ {m n} (th : m ≤ n) (Δm : RCtx m) → ∃ λ Δn → RenRes th Δm Δn
-  free-RenRes th Δm = Δn , thr
-    where
-    Δn = set′ th oi Δm $E [| R.e0 |]
+  bind-RenRes : ∀ {m n} {th : m ≤ n} {Δm Δn ρ} →
+                RenRes th Δm Δn → RenRes (os th) (Δm +↓ [- ρ -]) (Δn +↓ [- ρ -])
+  bind-RenRes {m = m} {Δm = Δm} {ρ = ρ} thr .get (os _ , j) = R.≤-reflexive (sym
+    (R.e1 R.* ρ R.+ (sum λ i → R.e0 R.* Δm .get (i , j))
+       =[ R.*-identity .fst ρ R.+-cong (sum-cong {m} λ i → R.annihil .snd _) ]=
+              ρ R.+ (sum {m} λ i → R.e0)  =[ refl R.+-cong sum-e0 m ]=
+              ρ R.+                R.e0   =[ R.+-identity .snd ρ ]=
+              ρ  QED))
+  bind-RenRes {th = th} {Δm = Δm} {ρ = ρ} thr .get (o′ i , j) =
+    R.≤-trans (thr .get (i , j)) (R.≤-reflexive (sym
+      (R.e0 R.* ρ R.+ (sum λ k → M .get (i , k) R.* Δm .get (k , j))
+         =[ R.annihil .snd ρ R.+-cong refl ]=
+       R.e0       R.+ (sum λ k → M .get (i , k) R.* Δm .get (k , j))
+         =[ R.+-identity .fst _ ]=
+                      (sum λ k → M .get (i , k) R.* Δm .get (k , j))  QED)))
+    where M = ≤-to-Mat th
 
-    thr : RenRes th Δm Δn
-    thr .fst .get (i , o′ ())
-    thr .fst .get (i , j@(os oz))
-      with i ≤-comp th ⊆? th | true→≡yes (i ≤-comp th ⊆? th) (comp-⊆ i th)
-    ... | ._ | el , refl rewrite ⊆-factor-trivial el = R.≤-refl
-    thr .snd .get (i , j)
-      with i ≤-comp complement th ⊆? th
-         | false→≡no (i ≤-comp complement th ⊆? th)
-                     (∈c⇒∉ (comp-⊆ i (complement th)))
-    ... | ._ | nel , refl = R.≤-refl
-
-  ren-split-0 : ∀ {m n th Δm} Δn → RenRes {m} {n} th Δm Δn →
-                Δm ≤M [| R.e0 |] → Δn ≤M [| R.e0 |]
-  ren-split-0 Δn thr split .get (i , o′ ())
-  ren-split-0 {th = th} Δn thr split .get (i , j@(os oz)) with i ∈? th
-  ren-split-0 {th = th} Δn thr split .get (i , j@(os oz)) | inl el with ⊆-factor el
-  ...   | i′ , refl = R.≤-trans (thr .fst .get (i′ , j)) (split .get (i′ , j))
-  ren-split-0 {th = th} Δn thr split .get (i , j@(os oz)) | inr elc with ⊆-factor elc
-  ...   | i′ , refl = thr .snd .get (i′ , j)
-
-  ren-split-+ : ∀ {m n th Δm} Δn → RenRes {m} {n} th Δm Δn →
-                ∀ {Δm0 Δm1} → Δm ≤M Δm0 +M Δm1 →
-                ∃ λ Δn0 → ∃ λ Δn1 → Δn ≤M Δn0 +M Δn1
-                                  × RenRes th Δm0 Δn0 × RenRes th Δm1 Δn1
-  ren-split-+ {th = th} Δn thr {Δm0} {Δm1} split =
-    Δn0 , Δn1 , split′ , thr0 , thr1
-    where
-    f0 = free-RenRes th Δm0
-    f1 = free-RenRes th Δm1
-    Δn0 = f0 .fst ; thr0 = f0 .snd
-    Δn1 = f1 .fst ; thr1 = f1 .snd
-
-    split′ : Δn ≤M Δn0 +M Δn1
-    split′ .get (i , o′ ())
-    split′ .get (i , j@(os oz)) with i ⊆? th
-    split′ .get (i , j@(os oz)) | yes el with ⊆-factor el
-    ... | i′ , refl = (≤M-trans (thr .fst) split) .get (i′ , j)
-    split′ .get (i , j@(os oz)) | no nel with ⊆-factor (∉⇒∈c nel)
-    ... | i′ , refl =
-      (≤M-trans (thr .snd) (≤M-reflexive (symM (+M-identity .fst _)))) .get (i′ , j)
-
-  ren-split-*r : ∀ {m n th Δm} Δn → RenRes {m} {n} th Δm Δn →
-                 ∀ {ρ Δm0} → Δm ≤M Δm0 *r ρ →
-                 ∃ λ Δn0 → Δn ≤M Δn0 *r ρ × RenRes th Δm0 Δn0
-  ren-split-*r {th = th} Δn thr {ρ} {Δm0} split =
-    Δn0 , split′ , thr0
-    where
-    f0 = free-RenRes th Δm0
-    Δn0 = f0 .fst ; thr0 = f0 .snd
-
-    split′ : Δn ≤M Δn0 *r ρ
-    split′ .get (i , (o′ ()))
-    split′ .get (i , j@(os oz)) with i ⊆? th
-    split′ .get (i , j@(os oz)) | yes el with ⊆-factor el
-    ... | i′ , refl = (≤M-trans (thr .fst) split) .get (i′ , j)
-    split′ .get (i , j@(os oz)) | no nel with ⊆-factor (∉⇒∈c nel)
-    ... | i′ , refl =
-      (≤M-trans (thr .snd) (≤M-reflexive (symM (*r-annihil .fst ρ)))) .get (i′ , j)
-
-  +↓-RenRes : ∀ {m n th Δm} Δn → RenRes {m} {n} th Δm Δn →
-              ∀ {o} Δ → RenRes (oi {o} +≤+ th) (Δm +↓ Δ) (Δn +↓ Δ)
-  +↓-RenRes {th = th} Δn thr {o} Δ .fst .get (i , j)
-    with ≤-+ (o) i | comp-+ i (oi {o}) th
-  ... | 0 , .1 , io , im , refl | iq
-    rewrite iq | comp-oi io | split-+≤+ io (im ≤-comp th) = thr .fst .get (im , j)
-  ... | 1 , .0 , io , im , refl | iq
-    rewrite iq | comp-oi io | split-+≤+ io (im ≤-comp th) | comp-oi j = R.≤-refl
-  ... | succ (succ _) , _ , io , im , () | iq
-  +↓-RenRes {th = th} Δn thr {o} Δ .snd .get (i , j)
-    with diff (oi {o} +≤+ th) | diff-+≤+ (oi {o}) th
-       | (oi {o} +≤+ th) ᶜ | complement-+≤+ (oi {o}) th
-  ... | ._ | refl | ._ | refl with diff (oi {o}) | diff-oi o | oi {o} ᶜ
-  ... | ._ | refl | oiᶜ with ≤-+ 0 i | comp-+ i oiᶜ (th ᶜ)
-  ... | 0 , .1 , io , im , refl | iq
-    rewrite iq | split-+≤+ (oz ≤-comp oiᶜ) (i ≤-comp th ᶜ) = thr .snd .get (i , j)
-  ... | 1 , .0 , io , im , refl | iq
-    rewrite iq | split-+≤+ (oz ≤-comp oiᶜ) (i ≤-comp th ᶜ) = thr .snd .get (i , j)
-  ... | (succ (succ _)) , 1m , io , im , () | iq
+  resplit : ∀ {m n} {Δm Δm′ : RCtx m} {Δn Δn′ : RCtx n} {M : Mat (n , m)} →
+            Δn ≤M M *M Δm → Δm ≤M Δm′ → M *M Δm′ ≈M Δn′ → Δn ≤M Δn′
+  resplit sub split eq =
+    ≤M-trans sub (≤M-trans (≤M-refl *M-mono split) (≤M-reflexive eq))
 
   renameRes :
     ∀ {m n d th} {t : Term m d}
     {Γm Γn S} {tht : RenTy {m} {n} th Γm Γn} {tt : Γm ⊢t t :-: S}
     {Δm} Δn → RenRes th Δm Δn → Δm ⊢r tt → Δn ⊢r renameTy {th = th} tht tt
-  renameRes {th = th} {Δm = Δm} Δn thr (var {th = i} {eq = refl} sub) = var go
-    where
-    go : Δn ≤M basis-col (i ≤-comp th)
-    go .get (j , o′ ())
-    go .get (j , k@(os oz)) with j ∈? th
-    ... | inr j∈thᶜ rewrite false→≡no (j ⊆? i ≤-comp th)
-                                      (∈c⇒∉ j∈thᶜ o ⊆comp⇒⊆r i)
-                                      .snd
-                          | ⊆-factor j∈thᶜ .snd = thr .snd .get (_ , k)
-    ... | inl j∈th with ⊆-factor j∈th
-    ...   | j′ , refl with R.≤-trans (thr .fst .get (j′ , k)) (sub .get (j′ , k))
-    ...     | res with j′ ⊆? i | j′ ≤-comp th ⊆? i ≤-comp th
-    ...       | a | b with dec-agree (⊆-comp-cong-r _) ⊆-comp-cancel-r a b
-    ...         | inl <> = res
-    ...         | inr <> = res
-  renameRes Δn thr (const split) = const (ren-split-0 Δn thr split)
-  renameRes Δn thr (app split er sr) with ren-split-+ Δn thr split
-  ... | Δne , Δns , split′ , thre , thrs =
-    app split′ (renameRes Δne thre er) (renameRes Δns thrs sr)
-  renameRes Δn thr (bm {ρ = ρ} split er sr) with ren-split-+ Δn thr split
-  ... | Δne , Δns , split′ , thre , thrs =
-    bm split′ (renameRes Δne thre er)
-              (renameRes _ (+↓-RenRes Δns thrs [- ρ -]) sr)
-  renameRes Δn thr (del split er sr) with ren-split-+ Δn thr split
-  ... | Δne , Δns , split′ , thre , thrs =
-    del split′ (renameRes Δne thre er) (renameRes Δns thrs sr)
-  renameRes Δn thr (pm split er sr) with ren-split-+ Δn thr split
-  ... | Δne , Δns , split′ , thre , thrs =
-    pm split′ (renameRes Δne thre er)
-              (renameRes _ (+↓-RenRes (Δns +↓ [- R.e1 -])
-                                      (+↓-RenRes Δns thrs [- R.e1 -])
-                                      [- R.e1 -])
-                           sr)
+  renameRes {th = th} Δn thr (var {th = i} {eq = refl} sub) =
+    var (≤M-trans thr (≤M-trans (≤M-refl *M-mono sub)
+                                (≤M-reflexive (≤-to-Mat-action i th))))
+  renameRes {th = th} Δn thr (const split) =
+    const (resplit thr split (annihilM .fst M))
+    where M = ≤-to-Mat th
+  renameRes {th = th} Δn thr (app split er sr) =
+    app (resplit thr split (distribM .fst M _ _))
+        (renameRes _ ≤M-refl er) (renameRes _ ≤M-refl sr)
+    where M = ≤-to-Mat th
+  renameRes {th = th} Δn thr (bm split er sr) =
+    bm (resplit thr split (distribM .fst M _ _))
+       (renameRes _ ≤M-refl er) (renameRes _ (bind-RenRes ≤M-refl) sr)
+    where M = ≤-to-Mat th
+  renameRes {th = th} Δn thr (del split er sr) =
+    del (resplit thr split (distribM .fst M _ _))
+        (renameRes _ ≤M-refl er) (renameRes _ ≤M-refl sr)
+    where M = ≤-to-Mat th
+  renameRes {th = th} Δn thr (pm {Δs = Δs} split er sr) =
+    pm (resplit thr split (distribM .fst M _ _))
+       (renameRes _ ≤M-refl er)
+       (renameRes _ (bind-RenRes {Δm = Δs +↓ [- R.e1 -]}
+                                 (bind-RenRes ≤M-refl))
+                    sr)
+    where M = ≤-to-Mat th
   renameRes Δn thr (proj er) = proj (renameRes Δn thr er)
-  renameRes Δn thr (exf split er) with ren-split-+ Δn thr split
-  ... | Δne , Δns , split′ , thre , thrs =
-    exf split′ (renameRes Δne thre er)
-  renameRes Δn thr (cse split er s0r s1r) with ren-split-+ Δn thr split
-  ... | Δne , Δns , split′ , thre , thrs =
-    cse split′ (renameRes Δne thre er)
-               (renameRes _ (+↓-RenRes Δns thrs [- R.e1 -]) s0r)
-               (renameRes _ (+↓-RenRes Δns thrs [- R.e1 -]) s1r)
-  renameRes {m = m} {n} {th = th} Δn thr (fold er snr scr) =
+  renameRes {th = th} Δn thr (exf split er) =
+    exf (resplit thr split (distribM .fst M _ _)) (renameRes _ ≤M-refl er)
+    where M = ≤-to-Mat th
+  renameRes {th = th} Δn thr (cse split er s0r s1r) =
+    cse (resplit thr split (distribM .fst M _ _)) (renameRes _ ≤M-refl er)
+        (renameRes _ (bind-RenRes ≤M-refl) s0r)
+        (renameRes _ (bind-RenRes ≤M-refl) s1r)
+    where M = ≤-to-Mat th
+  renameRes {th = th} Δn thr (fold er snr scr) =
     fold (renameRes Δn thr er)
-         (renameRes 0M 0-RenRes snr)
-         (renameRes _ (+↓-RenRes (0M +↓ [- R.e1 -])
-                                 (+↓-RenRes 0M 0-RenRes [- R.e1 -]) [- R.e1 -])
-                    scr)
+         (renameRes _ (≤M-reflexive (symM (annihilM .fst M))) snr)
+         (renameRes _ thrc scr)
     where
-    0-RenRes : RenRes {m} {n} th 0M 0M
-    0-RenRes .fst .get _ = R.≤-refl
-    0-RenRes .snd .get _ = R.≤-refl
+    M = ≤-to-Mat th
+    thrc = bind-RenRes {Δm = 0M +↓ [- R.e1 -]}
+                       (bind-RenRes (≤M-reflexive (symM (annihilM .fst M))))
   renameRes Δn thr (the sr) = the (renameRes Δn thr sr)
   renameRes Δn thr (lam sr) =
-    lam (renameRes _ (+↓-RenRes Δn thr [- R.e1 -]) sr)
-  renameRes Δn thr (bang split sr) with ren-split-*r Δn thr split
-  ... | Δns , splitn , thrs = bang splitn (renameRes Δns thrs sr)
-  renameRes Δn thr (unit split) = unit (ren-split-0 Δn thr split)
-  renameRes Δn thr (ten split s0r s1r) with ren-split-+ Δn thr split
-  ... | Δn0 , Δn1 , split′ , thr0 , thr1 =
-    ten split′ (renameRes Δn0 thr0 s0r) (renameRes Δn1 thr1 s1r)
+    lam (renameRes (Δn +↓ [- R.e1 -]) (bind-RenRes thr) sr)
+  renameRes {th = th} Δn thr (bang split sr) =
+    bang (resplit thr split (*r-linear M _ _)) (renameRes _ ≤M-refl sr)
+    where M = ≤-to-Mat th
+  renameRes {th = th} Δn thr (unit split) =
+    unit (resplit thr split (annihilM .fst M))
+    where M = ≤-to-Mat th
+  renameRes {th = th} Δn thr (ten split s0r s1r) =
+    ten (resplit thr split (distribM .fst M _ _))
+        (renameRes _ ≤M-refl s0r) (renameRes _ ≤M-refl s1r)
+    where M = ≤-to-Mat th
   renameRes Δn thr eat = eat
   renameRes Δn thr (wth s0r s1r) =
     wth (renameRes Δn thr s0r) (renameRes Δn thr s1r)
   renameRes Δn thr (inj sr) = inj (renameRes Δn thr sr)
-  renameRes Δn thr (nil split) = nil (ren-split-0 Δn thr split)
-  renameRes Δn thr (cons split s0r s1r) with ren-split-+ Δn thr split
-  ... | Δn0 , Δn1 , split′ , thr0 , thr1 =
-    cons split′ (renameRes Δn0 thr0 s0r) (renameRes Δn1 thr1 s1r)
+  renameRes {th = th} Δn thr (nil split) =
+    nil (resplit thr split (annihilM .fst M))
+    where M = ≤-to-Mat th
+  renameRes {th = th} Δn thr (cons split s0r s1r) =
+    cons (resplit thr split (distribM .fst M _ _))
+         (renameRes _ ≤M-refl s0r) (renameRes _ ≤M-refl s1r)
+    where M = ≤-to-Mat th
   renameRes Δn thr [ er ] = [ renameRes Δn thr er ]
 
   weakenRes : ∀ {n d Γ S Δ Δ′} {t : Term n d} {tt : Γ ⊢t t :-: S} →
@@ -266,10 +242,17 @@ module Quantitative.Resources.Substitution
                      (M *M Δm) .get (i , k)  QED)))
 
     thr : ∀ k → RenRes (o′ oi) (thin oi k $E M) (thin oi (o′ k) $E M′)
-    thr k .fst .get (i , j) rewrite comp-oi (i ≤-comp oi) | comp-oi j = R.≤-refl
-    thr k .snd .get (i , j) with diff (oi {n}) | diff-oi n | oi {n} ᶜ
-    thr k .snd .get (os i , j) | .0 | refl | oiᶜ = R.≤-refl
-    thr k .snd .get (o′ () , j) | .0 | refl | oiᶜ
+    thr k .get (os i , j) =
+      R.≤-reflexive (sym (trans (sum-cong {n} λ k′ → R.annihil .snd _)
+                                (sum-e0 n)))
+    thr k .get (o′ i , os oz) rewrite comp-oi i | oi-comp k =
+      R.≤-reflexive (sym
+        ((sum λ j → ≤-to-Mat oi .get (i , j) R.* M .get (j ≤-comp oi , k))
+           =[ (sum-cong {n} λ j → oi-to-1M .get (i , j) R.*-cong
+                                  cong (M .get o (_, k)) (comp-oi j)) ]=
+         (sum λ j → 1M .get (i , j) R.* M .get (j , k))
+           =[ *M-identity .fst M .get (i , k) ]=
+         M .get (i , k)  QED))
 
     ur′ : (k : Fin (succ m)) → thin oi k $E M′ ⊢r liftSubstTy vft k
     ur′ (os k) = var go
@@ -284,11 +267,6 @@ module Quantitative.Resources.Substitution
     ur′ (o′ k) =
       let tr = weakenRes (≤M-reflexive (symM (choose-col k M))) (ur k) in
       renameRes (thin oi (o′ k) $E M′) (thr k) tr
-
-  resplit : ∀ {m n} {Δm Δm′ : RCtx m} {Δn Δn′ : RCtx n} {M : Mat (n , m)} →
-            Δn ≤M M *M Δm → Δm ≤M Δm′ → M *M Δm′ ≈M Δn′ → Δn ≤M Δn′
-  resplit sub split eq =
-    ≤M-trans sub (≤M-trans (≤M-refl *M-mono split) (≤M-reflexive eq))
 
   substituteRes :
     ∀ {m n d} {t : Term m d} {vf : Subst m n}
