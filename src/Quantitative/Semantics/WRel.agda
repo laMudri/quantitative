@@ -358,7 +358,7 @@ module Quantitative.Semantics.WRel
   R⟦_,_⟧Δ : ∀ {n} (Γ : TCtx n) (Δ : RCtx n) → WREL.Obj ⟦ Γ ⟧Γ
   R⟦ nil , _ ⟧Δ = 1W
   R⟦ T :: Γ , Δρ ⟧Δ =
-    let ρ = Δρ (zeroth , zeroth) in
+    let ρ = Δρ .get (zeroth , zeroth) in
     let Δ = remove-row $E Δρ in
     ⊗W .obj (R⟦ T , ρ ⟧ρ , R⟦ Γ , Δ ⟧Δ)
 

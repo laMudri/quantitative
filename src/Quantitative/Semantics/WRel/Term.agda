@@ -71,8 +71,8 @@ module Quantitative.Semantics.WRel.Term
   RΔ-weaken : ∀ {n} Γ {Δ Δ′ : RCtx n} → Δ ≤M Δ′ → R⟦ Γ , Δ ⟧Δ ⇒W R⟦ Γ , Δ′ ⟧Δ
   RΔ-weaken nil sub = idN 1W
   RΔ-weaken (T :: Γ) sub =
-    ⊗W .arr $E (Rρ-weaken T (sub (zeroth , zeroth))
-               , RΔ-weaken Γ (λ x → let i , j = x in sub (o′ i , j)))
+    ⊗W .arr $E (Rρ-weaken T (sub .get (zeroth , zeroth))
+               , RΔ-weaken Γ (λ where .get (i , j) → sub .get (o′ i , j)))
 
 
   Rρ-split-0 : ∀ T {ρ} → ρ R.≤ R.e0 → R⟦ T , ρ ⟧ρ ⇒W ⊤W
@@ -82,10 +82,10 @@ module Quantitative.Semantics.WRel.Term
   RΔ-split-0 : ∀ {n} Γ {Δ : RCtx n} → Δ ≤M 0M → R⟦ Γ , Δ ⟧Δ ⇒W ⊤W
   RΔ-split-0 nil _ = WREL.id _ 1W
   RΔ-split-0 (S :: Γ) {Δρ} split-le =
-    let ρ = Δρ (zeroth , zeroth) in
+    let ρ = Δρ .get (zeroth , zeroth) in
     let Δ = remove-row $E Δρ in
-    let le = split-le (zeroth , zeroth) in
-    let split = λ where (i , j) → split-le (o′ i , j) in
+    let le = split-le .get (zeroth , zeroth) in
+    let split = λ where .get (i , j) → split-le .get (o′ i , j) in
     WREL._>>_ _ {⊗W .obj (R⟦ S , ρ ⟧ρ , R⟦ Γ , Δ ⟧Δ)} {⊗W .obj (⊤W , ⊤W)} {⊤W}
               (⊗W .arr $E (Rρ-split-0 S le , RΔ-split-0 Γ split)) ⊤×⊤-⇒W-⊤
 
@@ -100,14 +100,14 @@ module Quantitative.Semantics.WRel.Term
                R⟦ Γ , Δ ⟧Δ ⇒W ∧W .obj (R⟦ Γ , Δx ⟧Δ , R⟦ Γ , Δy ⟧Δ)
   RΔ-split-+ nil _ = 1-⇒W-1∧1
   RΔ-split-+ (S :: Γ) {Δρ} {Δρx} {Δρy} split-le =
-    let ρ = Δρ (zeroth , zeroth) in
+    let ρ = Δρ .get (zeroth , zeroth) in
     let Δ = remove-row $E Δρ in
-    let ρx = Δρx (zeroth , zeroth) in
+    let ρx = Δρx .get (zeroth , zeroth) in
     let Δx = remove-row $E Δρx in
-    let ρy = Δρy (zeroth , zeroth) in
+    let ρy = Δρy .get (zeroth , zeroth) in
     let Δy = remove-row $E Δρy in
-    let le = split-le (zeroth , zeroth) in
-    let split = λ where (i , j) → split-le (o′ i , j) in
+    let le = split-le .get (zeroth , zeroth) in
+    let split = λ where .get (i , j) → split-le .get (o′ i , j) in
     WREL._>>_ _ {⊗W .obj (R⟦ S , ρ ⟧ρ , R⟦ Γ , Δ ⟧Δ)}
                 {⊗W .obj (∧W .obj (R⟦ S , ρx ⟧ρ , R⟦ S , ρy ⟧ρ)
                         , ∧W .obj (R⟦ Γ , Δx ⟧Δ , R⟦ Γ , Δy ⟧Δ))}
@@ -132,12 +132,12 @@ module Quantitative.Semantics.WRel.Term
                R⟦ Γ , Δ ⟧Δ ⇒W act ρ R⟦ Γ , Δx ⟧Δ
   RΔ-split-* nil {ρ} _ = act-1W ρ
   RΔ-split-* (S :: Γ) {ρ} {Δπ} {Δπx} split-le =
-    let π = Δπ (zeroth , zeroth) in
+    let π = Δπ .get (zeroth , zeroth) in
     let Δ = remove-row $E Δπ in
-    let πx = Δπx (zeroth , zeroth) in
+    let πx = Δπx .get (zeroth , zeroth) in
     let Δx = remove-row $E Δπx in
-    let le = split-le (zeroth , zeroth) in
-    let split = λ where (i , j) → split-le (o′ i , j) in
+    let le = split-le .get (zeroth , zeroth) in
+    let split = λ where .get (i , j) → split-le .get (o′ i , j) in
     WREL._>>_ _ {⊗W .obj (R⟦ S , π ⟧ρ , R⟦ Γ , Δ ⟧Δ)}
                 {⊗W .obj (act ρ R⟦ S , πx ⟧ρ , act ρ R⟦ Γ , Δx ⟧Δ)}
                 {act ρ (⊗W .obj (R⟦ S , πx ⟧ρ , R⟦ Γ , Δx ⟧Δ))}
@@ -148,33 +148,33 @@ module Quantitative.Semantics.WRel.Term
   R⟦lookup⟧ : ∀ {n} {Γ : TCtx n} {Δ : RCtx n} {π} i → Δ ≤M basis-col i *r π →
               R⟦ Γ , Δ ⟧Δ [ ⟦lookup⟧ i ]⇒W R⟦ lookup′ i Γ , π ⟧ρ
   R⟦lookup⟧ {Γ = T :: Γ} {Δρ} {π} (os e) split-le =
-    ⊗W .arr $E (Rρ-weaken T le , RΔ-split-0 Γ split >>N ⊤-⇒W-1 ⟦ Γ ⟧Γ)
+    ⊗W .arr $E (Rρ-weaken T le , RΔ-split-0 Γ (mk split) >>N ⊤-⇒W-1 ⟦ Γ ⟧Γ)
     >>W′ ⊗1-⇒W R⟦ T , π ⟧ρ
     where
-    le : Δρ (zeroth , zeroth) R.≤ π
-    le with split-le (zeroth , zeroth)
+    le : Δρ .get (zeroth , zeroth) R.≤ π
+    le with split-le .get (zeroth , zeroth)
     ... | res rewrite true→≡yes (oe ⊆? e) (empty-⊆ oe e) .snd =
       R.≤-trans res (R.≤-reflexive (R.*-identity .fst π))
 
-    split : ∀ ij → let i , j = ij in Δρ (o′ i , j) R.≤ R.e0
+    split : ∀ ij → let i , j = ij in Δρ .get (o′ i , j) R.≤ R.e0
     split (i , j)
-      with i ⊆? e | false→≡no (i ⊆? e) ((λ ()) ∘ ⊆⇒≤) | split-le (o′ i , j)
+      with i ⊆? e | false→≡no (i ⊆? e) ((λ ()) ∘ ⊆⇒≤) | split-le .get (o′ i , j)
     ... | .(no _) | _ , ≡.refl | res =
       R.≤-trans res (R.≤-reflexive (R.annihil .snd π))
   R⟦lookup⟧ {Γ = T :: Γ} {Δρ} {π} (o′ i) split-le =
-    ⊗W .arr $E (Rρ-split-0 T le >>N ⊤-⇒W-1 ⟦ T ⟧T , R⟦lookup⟧ i split)
+    ⊗W .arr $E (Rρ-split-0 T le >>N ⊤-⇒W-1 ⟦ T ⟧T , R⟦lookup⟧ i (mk split))
     >>W′ 1⊗-⇒W R⟦ lookup′ i Γ , π ⟧ρ
     where
-    le : Δρ (zeroth , zeroth) R.≤ R.e0
-    le = R.≤-trans (split-le (zeroth , zeroth))
+    le : Δρ .get (zeroth , zeroth) R.≤ R.e0
+    le = R.≤-trans (split-le .get (zeroth , zeroth))
                    (R.≤-reflexive (R.annihil .snd π))
 
-    split : ∀ (ij : _ × _) →
-            let i′ , j = ij in Δρ (o′ i′ , j) R.≤ (basis-col i *r π) (i′ , j)
+    split : ∀ ij → let i′ , j = ij in
+            Δρ .get (o′ i′ , j) R.≤ (basis-col i *r π) .get (i′ , j)
     split (i′ , o′ ())
     split (i′ , j@(os oz))
       with i′ ⊆? i | map⊎-rel {B′ = Not (i′ ⊆ i)} o′′ F.id (i′ ⊆? i)
-         | split-le (o′ i′ , j)
+         | split-le .get (o′ i′ , j)
     ... | .(yes _) | inl r | res = res
     ... | .(no _) | inr s | res = res
 

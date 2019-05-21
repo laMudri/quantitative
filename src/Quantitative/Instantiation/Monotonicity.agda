@@ -422,10 +422,12 @@ module Quantitative.Instantiation.Monotonicity where
   open import Quantitative.Syntax.Direction
   open import Lib.Thinning as Th using (oz; os; o′)
   open import Lib.Vec
-  open ΣPosemiring σPosemiring using (Carrier; σPoset; +-σCommutativeMonoid)
+  open ΣPosemiring σPosemiring
+    using (Carrier; σPoset; +-σCommutativeMonoid; σSemiring)
   open import Lib.Matrix.Setoid Carrier
   open import Lib.Matrix.Addition +-σCommutativeMonoid
   open import Lib.Matrix.Poset σPoset
+  open import Lib.Matrix.Scaling.Right σSemiring
 
   all-mono : ∀ {d} {t : Term 0 d} (tt : nil ⊢t t :-: BASE <> ⊸ BASE <>)
              (tr : 0M ⊢r tt) → let f = ⟦ tt ⟧t <> in
@@ -437,18 +439,17 @@ module Quantitative.Instantiation.Monotonicity where
                   let f = ⟦ tt ⟧t <> in ∀ {x y} → y Z.≤ x → f x Z.≤ f y
   all-anti-mono tt tr yx = fundamental tr .η _ _ _ _ _ _ _ _ _ yx
 
-  test-term : Term 0 chk
-  test-term = lam [ app (const negl) [ app (const succl) [ app (const negl) [ var (os oz) ] ] ] ]
-  --          λ x.             neg               (succ               (neg            x))
+  -- Test case:
+  -- λx. neg [succ (neg [x])] is monotonic
 
   test-term-t : nil ⊢t BASE <> ⊸ BASE <> ∋ _
   test-term-t = lam [ app (const {l = negl}) (bang [ app (const {l = succl}) [ app (const {l = negl}) (bang [ var {th = os oz} ≡.refl ]) ] ]) ]
 
   sp0 : ∀ {mn} {Δ : Mat mn} → Δ ≤M 0M
-  sp0 ij = ≤??
+  sp0 .get ij = ≤??
 
   sp+ : ∀ {mn} {Δ : Mat mn} → Δ ≤M Δ +M Δ
-  sp+ ij = go
+  sp+ .get ij = go
     where
     go : ∀ {x} → x ≤ x + x
     go {↑↑} = ≤-refl
@@ -457,4 +458,8 @@ module Quantitative.Instantiation.Monotonicity where
     go {~~} = ≤-refl
 
   test-term-r : 0M ⊢r test-term-t
-  test-term-r = lam [ app (sp+ {Δ = {!!}}) (const sp0) {!!} ]
+  test-term-r = let Δ0 = _ in let Δ1 = Δ0 *r ↓↓ in let Δ2 = Δ1 *r ↓↓ in
+    lam [ app {Δ = Δ0} {Δs = Δ0} sp+ (const sp0) (bang {Δs = Δ1} (λ where .get (os oz , os oz) → ≤-refl) [ app {Δs = Δ1} sp+ (const sp0) [ app {Δs = Δ1} sp+ (const sp0) (bang {Δs = Δ2} (λ where .get (os oz , os oz) → ≤-refl) [ var (λ where .get (os oz , os oz) → ≤-refl) ]) ] ]) ]
+
+  _ : let f = ⟦ test-term-t ⟧t <> in ∀ {x y} → x Z.≤ y → f x Z.≤ f y
+  _ = all-mono _ test-term-r

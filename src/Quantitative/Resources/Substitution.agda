@@ -55,11 +55,11 @@ module Quantitative.Resources.Substitution
     Δn = set′ th oi Δm $E [| R.e0 |]
 
     thr : RenRes th Δm Δn
-    thr .fst (i , o′ ())
-    thr .fst (i , j@(os oz))
+    thr .fst .get (i , o′ ())
+    thr .fst .get (i , j@(os oz))
       with i ≤-comp th ⊆? th | true→≡yes (i ≤-comp th ⊆? th) (comp-⊆ i th)
     ... | ._ | el , refl rewrite ⊆-factor-trivial el = R.≤-refl
-    thr .snd (i , j)
+    thr .snd .get (i , j)
       with i ≤-comp complement th ⊆? th
          | false→≡no (i ≤-comp complement th ⊆? th)
                      (∈c⇒∉ (comp-⊆ i (complement th)))
@@ -67,12 +67,12 @@ module Quantitative.Resources.Substitution
 
   ren-split-0 : ∀ {m n th Δm} Δn → RenRes {m} {n} th Δm Δn →
                 Δm ≤M [| R.e0 |] → Δn ≤M [| R.e0 |]
-  ren-split-0 Δn thr split (i , o′ ())
-  ren-split-0 {th = th} Δn thr split (i , j@(os oz)) with i ∈? th
-  ren-split-0 {th = th} Δn thr split (i , j@(os oz)) | inl el with ⊆-factor el
-  ...   | i′ , refl = R.≤-trans (thr .fst (i′ , j)) (split (i′ , j))
-  ren-split-0 {th = th} Δn thr split (i , j@(os oz)) | inr elc with ⊆-factor elc
-  ...   | i′ , refl = thr .snd (i′ , j)
+  ren-split-0 Δn thr split .get (i , o′ ())
+  ren-split-0 {th = th} Δn thr split .get (i , j@(os oz)) with i ∈? th
+  ren-split-0 {th = th} Δn thr split .get (i , j@(os oz)) | inl el with ⊆-factor el
+  ...   | i′ , refl = R.≤-trans (thr .fst .get (i′ , j)) (split .get (i′ , j))
+  ren-split-0 {th = th} Δn thr split .get (i , j@(os oz)) | inr elc with ⊆-factor elc
+  ...   | i′ , refl = thr .snd .get (i′ , j)
 
   ren-split-+ : ∀ {m n th Δm} Δn → RenRes {m} {n} th Δm Δn →
                 ∀ {Δm0 Δm1} → Δm ≤M Δm0 +M Δm1 →
@@ -87,13 +87,13 @@ module Quantitative.Resources.Substitution
     Δn1 = f1 .fst ; thr1 = f1 .snd
 
     split′ : Δn ≤M Δn0 +M Δn1
-    split′ (i , o′ ())
-    split′ (i , j@(os oz)) with i ⊆? th
-    split′ (i , j@(os oz)) | yes el with ⊆-factor el
-    ... | i′ , refl = (≤M-trans (thr .fst) split) (i′ , j)
-    split′ (i , j@(os oz)) | no nel with ⊆-factor (∉⇒∈c nel)
+    split′ .get (i , o′ ())
+    split′ .get (i , j@(os oz)) with i ⊆? th
+    split′ .get (i , j@(os oz)) | yes el with ⊆-factor el
+    ... | i′ , refl = (≤M-trans (thr .fst) split) .get (i′ , j)
+    split′ .get (i , j@(os oz)) | no nel with ⊆-factor (∉⇒∈c nel)
     ... | i′ , refl =
-      (≤M-trans (thr .snd) (≤M-reflexive (symM (+M-identity .fst _)))) (i′ , j)
+      (≤M-trans (thr .snd) (≤M-reflexive (symM (+M-identity .fst _)))) .get (i′ , j)
 
   ren-split-*r : ∀ {m n th Δm} Δn → RenRes {m} {n} th Δm Δn →
                  ∀ {ρ Δm0} → Δm ≤M Δm0 *r ρ →
@@ -105,32 +105,32 @@ module Quantitative.Resources.Substitution
     Δn0 = f0 .fst ; thr0 = f0 .snd
 
     split′ : Δn ≤M Δn0 *r ρ
-    split′ (i , (o′ ()))
-    split′ (i , j@(os oz)) with i ⊆? th
-    split′ (i , j@(os oz)) | yes el with ⊆-factor el
-    ... | i′ , refl = (≤M-trans (thr .fst) split) (i′ , j)
-    split′ (i , j@(os oz)) | no nel with ⊆-factor (∉⇒∈c nel)
+    split′ .get (i , (o′ ()))
+    split′ .get (i , j@(os oz)) with i ⊆? th
+    split′ .get (i , j@(os oz)) | yes el with ⊆-factor el
+    ... | i′ , refl = (≤M-trans (thr .fst) split) .get (i′ , j)
+    split′ .get (i , j@(os oz)) | no nel with ⊆-factor (∉⇒∈c nel)
     ... | i′ , refl =
-      (≤M-trans (thr .snd) (≤M-reflexive (symM (*r-annihil .fst ρ)))) (i′ , j)
+      (≤M-trans (thr .snd) (≤M-reflexive (symM (*r-annihil .fst ρ)))) .get (i′ , j)
 
   +↓-RenRes : ∀ {m n th Δm} Δn → RenRes {m} {n} th Δm Δn →
               ∀ {o} Δ → RenRes (oi {o} +≤+ th) (Δm +↓ Δ) (Δn +↓ Δ)
-  +↓-RenRes {th = th} Δn thr {o} Δ .fst (i , j)
+  +↓-RenRes {th = th} Δn thr {o} Δ .fst .get (i , j)
     with ≤-+ (o) i | comp-+ i (oi {o}) th
   ... | 0 , .1 , io , im , refl | iq
-    rewrite iq | comp-oi io | split-+≤+ io (im ≤-comp th) = thr .fst (im , j)
+    rewrite iq | comp-oi io | split-+≤+ io (im ≤-comp th) = thr .fst .get (im , j)
   ... | 1 , .0 , io , im , refl | iq
     rewrite iq | comp-oi io | split-+≤+ io (im ≤-comp th) | comp-oi j = R.≤-refl
   ... | succ (succ _) , _ , io , im , () | iq
-  +↓-RenRes {th = th} Δn thr {o} Δ .snd (i , j)
+  +↓-RenRes {th = th} Δn thr {o} Δ .snd .get (i , j)
     with diff (oi {o} +≤+ th) | diff-+≤+ (oi {o}) th
        | (oi {o} +≤+ th) ᶜ | complement-+≤+ (oi {o}) th
   ... | ._ | refl | ._ | refl with diff (oi {o}) | diff-oi o | oi {o} ᶜ
   ... | ._ | refl | oiᶜ with ≤-+ 0 i | comp-+ i oiᶜ (th ᶜ)
   ... | 0 , .1 , io , im , refl | iq
-    rewrite iq | split-+≤+ (oz ≤-comp oiᶜ) (i ≤-comp th ᶜ) = thr .snd (i , j)
+    rewrite iq | split-+≤+ (oz ≤-comp oiᶜ) (i ≤-comp th ᶜ) = thr .snd .get (i , j)
   ... | 1 , .0 , io , im , refl | iq
-    rewrite iq | split-+≤+ (oz ≤-comp oiᶜ) (i ≤-comp th ᶜ) = thr .snd (i , j)
+    rewrite iq | split-+≤+ (oz ≤-comp oiᶜ) (i ≤-comp th ᶜ) = thr .snd .get (i , j)
   ... | (succ (succ _)) , 1m , io , im , () | iq
 
   renameRes :
@@ -140,14 +140,14 @@ module Quantitative.Resources.Substitution
   renameRes {th = th} {Δm = Δm} Δn thr (var {th = i} {eq = refl} sub) = var go
     where
     go : Δn ≤M basis-col (i ≤-comp th)
-    go (j , o′ ())
-    go (j , k@(os oz)) with j ∈? th
+    go .get (j , o′ ())
+    go .get (j , k@(os oz)) with j ∈? th
     ... | inr j∈thᶜ rewrite false→≡no (j ⊆? i ≤-comp th)
                                       (∈c⇒∉ j∈thᶜ o ⊆comp⇒⊆r i)
                                       .snd
-                          | ⊆-factor j∈thᶜ .snd = thr .snd (_ , k)
+                          | ⊆-factor j∈thᶜ .snd = thr .snd .get (_ , k)
     ... | inl j∈th with ⊆-factor j∈th
-    ...   | j′ , refl with R.≤-trans (thr .fst (j′ , k)) (sub (j′ , k))
+    ...   | j′ , refl with R.≤-trans (thr .fst .get (j′ , k)) (sub .get (j′ , k))
     ...     | res with j′ ⊆? i | j′ ≤-comp th ⊆? i ≤-comp th
     ...       | a | b with dec-agree (⊆-comp-cong-r _) ⊆-comp-cancel-r a b
     ...         | inl <> = res
@@ -187,8 +187,8 @@ module Quantitative.Resources.Substitution
                     scr)
     where
     0-RenRes : RenRes {m} {n} th 0M 0M
-    0-RenRes .fst _ = R.≤-refl
-    0-RenRes .snd _ = R.≤-refl
+    0-RenRes .fst .get _ = R.≤-refl
+    0-RenRes .snd .get _ = R.≤-refl
   renameRes Δn thr (the sr) = the (renameRes Δn thr sr)
   renameRes Δn thr (lam sr) =
     lam (renameRes _ (+↓-RenRes Δn thr [- R.e1 -]) sr)
@@ -248,39 +248,39 @@ module Quantitative.Resources.Substitution
     M′ , sub′ , λ k → weakenRes (≤M-reflexive (choose-col k M′)) (ur′ k)
     where
     M′ : Mat (succ n , succ m)
-    M′ (os i , os j) = R.e1
-    M′ (os i , o′ j) = R.e0
-    M′ (o′ i , os j) = R.e0
-    M′ (o′ i , o′ j) = M (i , j)
+    M′ .get (os i , os j) = R.e1
+    M′ .get (os i , o′ j) = R.e0
+    M′ .get (o′ i , os j) = R.e0
+    M′ .get (o′ i , o′ j) = M .get (i , j)
 
     sub′ : Δn +↓ [- ρ -] ≤M M′ *M (Δm +↓ [- ρ -])
-    sub′ (os i , k) = R.≤-reflexive (sym
-     (R.e1 R.* ρ R.+ (sum λ j → R.e0 R.* Δm (j , k))
+    sub′ .get (os i , k) = R.≤-reflexive (sym
+     (R.e1 R.* ρ R.+ (sum λ j → R.e0 R.* Δm .get (j , k))
         =[ R.*-identity .fst ρ R.+-cong (sum-cong {m} λ j → R.annihil .snd _) ]=
                ρ R.+ (sum {m} λ j → R.e0)  =[ refl R.+-cong sum-e0 m ]=
                ρ R.+ R.e0                  =[ R.+-identity .snd ρ ]=
                ρ                           QED))
-    sub′ (o′ i , k) = R.≤-trans (sub (i , k)) (R.≤-reflexive (sym
-     (R.e0 R.* ρ R.+ (M *M Δm) (i , k)  =[ R.annihil .snd ρ R.+-cong refl ]=
-      R.e0       R.+ (M *M Δm) (i , k)  =[ R.+-identity .fst _ ]=
-                     (M *M Δm) (i , k)  QED)))
+    sub′ .get (o′ i , k) = R.≤-trans (sub .get (i , k)) (R.≤-reflexive (sym
+     (R.e0 R.* ρ R.+ (M *M Δm) .get (i , k)  =[ R.annihil .snd ρ R.+-cong refl ]=
+      R.e0       R.+ (M *M Δm) .get (i , k)  =[ R.+-identity .fst _ ]=
+                     (M *M Δm) .get (i , k)  QED)))
 
     thr : ∀ k → RenRes (o′ oi) (thin oi k $E M) (thin oi (o′ k) $E M′)
-    thr k .fst (i , j) rewrite comp-oi (i ≤-comp oi) | comp-oi j = R.≤-refl
-    thr k .snd (i , j) with diff (oi {n}) | diff-oi n | oi {n} ᶜ
-    thr k .snd (os i , j) | .0 | refl | oiᶜ = R.≤-refl
-    thr k .snd (o′ () , j) | .0 | refl | oiᶜ
+    thr k .fst .get (i , j) rewrite comp-oi (i ≤-comp oi) | comp-oi j = R.≤-refl
+    thr k .snd .get (i , j) with diff (oi {n}) | diff-oi n | oi {n} ᶜ
+    thr k .snd .get (os i , j) | .0 | refl | oiᶜ = R.≤-refl
+    thr k .snd .get (o′ () , j) | .0 | refl | oiᶜ
 
     ur′ : (k : Fin (succ m)) → thin oi k $E M′ ⊢r liftSubstTy vft k
     ur′ (os k) = var go
       where
       go : thin oi (os k) $E M′ ≤M basis-col zeroth
-      go (os i , os oz)
+      go .get (os i , os oz)
         rewrite oe-unique i oe | true→≡yes (oe ⊆? oe {n}) (empty-⊆ oe oe) .snd
         = R.≤-refl
-      go (o′ i , os oz) rewrite false→≡no (i ⊆? oe) (>⇒≰ oi o ⊆⇒≤) .snd
+      go .get (o′ i , os oz) rewrite false→≡no (i ⊆? oe) (>⇒≰ oi o ⊆⇒≤) .snd
         = R.≤-refl
-      go (i , o′ ())
+      go .get (i , o′ ())
     ur′ (o′ k) =
       let tr = weakenRes (≤M-reflexive (symM (choose-col k M))) (ur k) in
       renameRes (thin oi (o′ k) $E M′) (thr k) tr
@@ -381,12 +381,12 @@ module Quantitative.Resources.Substitution
     ur (os e) = weakenRes (≤M-reflexive eq) er
       where
       eq : (1M +→ Δe) *M basis-col (os e) ≈M Δe
-      eq (j , k@(os oz)) rewrite choose-col (os e) (1M +→ Δe) (j , k)
-                               | comp-oi j = ≡.refl
-      eq (j , o′ ())
+      eq .get (j , k@(os oz)) rewrite choose-col (os e) (1M +→ Δe) .get (j , k)
+                                    | comp-oi j = ≡.refl
+      eq .get (j , o′ ())
     ur (o′ i) = var (≤M-reflexive eq)
       where
       eq : (1M +→ Δe) *M basis-col (o′ i) ≈M basis-col i
-      eq (j , k@(os oz)) rewrite choose-col (o′ i) (1M +→ Δe) (j , k)
-                               | comp-oi j | oi-comp i = ≡.refl
-      eq (j , o′ ())
+      eq .get (j , k@(os oz)) rewrite choose-col (o′ i) (1M +→ Δe) .get (j , k)
+                                    | comp-oi j | oi-comp i = ≡.refl
+      eq .get (j , o′ ())
