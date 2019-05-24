@@ -335,6 +335,9 @@ module Quantitative.Instantiation.Monotonicity where
   open import Quantitative.Semantics.Sets.Term One WayUp
     Const constTy (λ _ → ℤ) ⟦const⟧
 
+  open import Quantitative.Semantics.WRel.Core ONE-smc
+  open import Quantitative.Semantics.WRel.Bang WayUp posemiring ONE-smc
+
   isAct : IsAct (λ ρ → !W ρ .obj)
   isAct = record
     { act-≤ = λ πρ R → record { η = λ _ x y r → act-≤ πρ R x y r }

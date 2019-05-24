@@ -1,6 +1,8 @@
 import Quantitative.Types.Formers as Form
 import Quantitative.Semantics.Sets as Sem
+import Quantitative.Semantics.WRel.Core as Core
 import Quantitative.Semantics.WRel as SemR
+import Quantitative.Semantics.WRel.Bang as Bang
 import Quantitative.Resources.Context as RCtx
 import Lib.Matrix.Addition as MAdd
 
@@ -19,13 +21,13 @@ module Quantitative.Semantics.WRel.Term
   (posemiring : Posemiring (≡-Setoid C) l)
   (symMonCat : SymmetricMonoidalCategory lzero lzero lzero)
   (open SymmetricMonoidalCategory symMonCat renaming (C to W))
-  (let WREL = λ (A : Set) → FUNCTOR (OP W) (REL (≡-Setoid A) lzero))
-  (let module WREL A = Category (WREL A))
+  (open Core symMonCat)
   (Base : PrimTy → Set)
   (open Sem PrimTy C Const constTy Base) (⟦const⟧ : ∀ l → ⟦ constTy l ⟧T)
   (BaseR : (b : PrimTy) → WREL.Obj (Base b))
   (!W : ∀ {A} → C → EndoFunctor (WREL A))
   (open SemR PrimTy C Const constTy posemiring symMonCat Base BaseR !W)
+  (open Bang C posemiring symMonCat)
   (isAct : IsAct (λ ρ → !W ρ .obj)) (open RCtx C Const posemiring)
   (open MAdd (record { commutativeMonoid = R.+-commutativeMonoid }))
   (R⟦const⟧ : ∀ {n} Γ l →
@@ -61,6 +63,7 @@ module Quantitative.Semantics.WRel.Term
     open import Lib.Sum.Pointwise
     open import Lib.Thinning
     open import Lib.Two
+    open import Lib.TypeAlgebra
     open import Lib.Vec
     open import Lib.Vec.Thinning
     open import Lib.Zero
