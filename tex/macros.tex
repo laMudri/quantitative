@@ -1,15 +1,29 @@
 \ifx\newelims\undefined
   \def\newelims{0}
 \fi
+\ifx\multnotation\undefined
+  \def\multnotation{0}
+\fi
 
 \newcommand{\fixme}[1]{{\color{red}\underline{\em{#1}}}}
 \newcommand{\fixmeBA}[1]{{\color{red}{[Bob:{\em #1}]}}}
 
 
 \newcommand{\bind}[2]{#2}
-\newcommand{\ctx}[2]{#1^{\resctx{#2}}}
-%\newcommand{\ctx}[2]{{#2}^{#1}}
-\newcommand{\ctxvar}[3]{#1 \stackrel{\rescomment{#3}}: #2}
+\newcommand{\ctx}[2]{%
+  \if\multnotation0%
+  #1^{\resctx{#2}}%
+  \else%
+  \resctx{#2}#1%
+  \fi
+}
+\newcommand{\ctxvar}[3]{%
+  \if\multnotation0%
+  #1 \stackrel{\rescomment{#3}}: #2%
+  \else%
+  \rescomment{#3}#1 : #2%
+  \fi%
+}
 \definecolor{res}{HTML}{008000}
 \definecolor{resperm}{HTML}{008000}
 \newcommand{\rescomment}[1]{{\color{res}#1}}
