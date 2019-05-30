@@ -1,0 +1,955 @@
+In this section, we present a simply typed calculus \name{} that is parametric
+in a set $\mathscr{R}$ of usage annotations, under conditions detailed in
+\autoref{sec:annotations}.
+
+\subsection{Types}
+
+Our grammar of types and contexts is given in \autoref{fig:syntax}.
+Throughout this paper, the colour \rescomment{green} highlights usage
+annotations, which are generally the interesting things to watch in typing rules
+and are the main point of departure between this system and a standard simply
+typed $\lambda$-calculus.
+As we show in \autoref{sec:dill}, these annotations allow us to subsume also
+normal linear type systems. \fixme{and other coeffect systems}
+
+\fixmeBA{mention that we really think of the usage annotations as ``refining'' the underlying types and terms}
+
+\begin{figure}
+  \begin{mathpar}
+    \rescomment \rho, \rescomment \pi \in \mathscr R \and
+    A, B, C \Coloneqq \base_k \mid \fun{A}{B} \mid \tensorOne \mid \tensor{A}{B}
+    \mid \withTOne \mid \withT{A}{B} \mid \sumTZero \mid \sumT{A}{B} \mid
+    \excl{\rho}{A} \mid \listT{A} \\
+    \Gamma, \Delta \Coloneqq \cdot \mid \Gamma, x : A \and
+    \resctx P, \resctx Q, \resctx R \Coloneqq
+    \cdot \mid \resctx R, x^{\rescomment \rho} \and
+    \ctx{\Gamma}{R} \Coloneqq
+    \cdot \mid \ctx{\Gamma}{R}, \ctxvar{x}{A}{\rho}
+  \end{mathpar}
+  \caption{Basic syntax}
+  \label{fig:syntax}
+\end{figure}
+
+We have a set of uninterpreted base types $\base_k$; functions $\fun{}{}$; two
+kinds of finite products $\tensorOne$/$\tensor{}{}$ and
+$\withTOne$/$\withT{}{}$; finite sums $\sumTZero$/$\sumT{}{}$; a graded modality
+$\excl{\rho}{}$; and polymorphic lists.
+These will be explained further when their typing rules are introduced in
+\autoref{sec:rules}.
+
+\fixmeBA{explain usage contexts on their own first?}
+Our contexts are combinations of a typing context $\Gamma$ and a usage
+context $\resctx R$, written $\ctx{\Gamma}{R}$.
+It will sometimes be useful to talk only about one part at a time.
+In particular, it will be useful to think of usage contexts as row
+vectors, and to use standard linear algebra operations on them, when stating and
+proving simultaneous substitution in \autoref{sec:admissible}.
+
+\subsection{Usage annotations}
+\label{sec:annotations}
+
+\fixmeBA{In general, I don't like starting sentences with numbers or symbols...}
+
+We assume that our set of annotations $\mathscr R$ forms a partially ordered
+semiring $(\mathscr{R}, \subres, 0, +, 1, *)$.
+These annotations adorn free variables.
+$0$ represents non-usage, and $+$ the combination of separate usages.
+$(\mathscr{R}, 0, +)$ forms a commutative monoid.
+$1$ represents a single or plain usage, and $*$ applies a transformation upon
+the type of usage allowed.
+$(\mathscr{R}, 1, *)$ forms a monoid that is annihilated by and distributes over
+the additive structure.
+The order $\subres$ describes a sub-usaging relation.
+We have $\pi \subres \rho$ if and only if the annotation $\pi$ allows use in at
+most as many situations as the annotation $\rho$ allows.
+This acts a lot like a subtyping relation.\fixmeBA{In what way? It induces one?}
+$(\mathscr{R}, \subres)$ forms a partial order, and addition and multiplication
+are monotonic with respect to $\subres$.
+
+In many cases of interest, $0$ and $+$ are respectively the bottom and join of
+the sub-usaging order, turning it into a join semilattice.
+In these cases, with products ($\withT{A}{B}$) coincide with tensor products
+($\tensor{A}{B}$), and usage inference is significantly simplified.
+\fixme{rntz reference?} \fixmeBA{Don't mention inference here if we aren't going to do it in detail}
+
+\fixmeBA{this should all have fwd references to where they are used.}
+
+\begin{example}[Trivial]
+  The one-element partially ordered semiring provides no usage restrictions.
+  The calculus becomes equivalent to a simply typed $\lambda$-calculus.
+\end{example}
+
+\begin{example}[Linearity]
+  \label{ex:annotations-linearity}
+  We approximate counting usages.
+  $0$ and $1$ represent exactly their respective number of usages.
+  $\omega$ represents unrestricted usage.
+  The effect of the bang ($\oc$) modality of linear logic is achieved by
+  multiplication by $\omega$, which makes everything available become
+  unrestricted.
+
+  \begin{center}
+    \begin{tabular}{>{$}c<{$}}
+      0 \coloneqq 0 \\
+      1 \coloneqq 1
+    \end{tabular}%
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}}
+      +      & 0      & 1      & \omega \\
+      \hline
+      0      & 0      & 1      & \omega \\
+      1      & 1      & \omega & \omega \\
+      \omega & \omega & \omega & \omega \\
+    \end{tabular}%
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}}
+      *      & 0      & 1      & \omega \\
+      \hline
+      0      & 0      & 0      & 0      \\
+      1      & 0      & 1      & \omega \\
+      \omega & 0      & \omega & \omega \\
+    \end{tabular}%
+    \hspace{0.5in}%
+    \(
+    \begin{tikzcd}[arrows=dash,row sep=0.5cm,column sep=0.5cm]
+      & \omega & \\
+      0 \arrow[ur] && 1 \arrow[ul]
+    \end{tikzcd}
+    \)
+  \end{center}
+\end{example}
+
+\begin{example}[Precise usage counting]
+  Usage annotations track exactly how many times a free variable is used.
+  There is no annotation for unrestricted use, though an $\omega$ could be added
+  analogously to how it is done in \exref{ex:annotations-linearity}, above all
+  of the precise elements.
+
+  \begin{center}
+    \(\mathscr R \coloneqq \mathbb N\)
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}c<{$}}
+      0 \coloneqq 0 \\
+      1 \coloneqq 1
+    \end{tabular}%
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}c<{$}}
+      {+} \coloneqq {+} \\
+      {*} \coloneqq {\times}
+    \end{tabular}%
+    \hspace{0.5in}%
+    \(m \subres n \iff m = n\)
+  \end{center}
+\end{example}
+
+\begin{example}[Monotonicity]
+  Usage annotations track which ``way up'' we can use a free variable.
+  A variable can be used covariantly ($\uparrow$), contravariantly
+  ($\downarrow$), invariantly ($=$), or unrestrictedly ($?$).
+
+  \begin{center}
+    \begin{tabular}{>{$}c<{$}}
+      0 \coloneqq {=} \\
+      1 \coloneqq {\uparrow}
+    \end{tabular}%
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}>{$}l<{$}}
+      +          & =          & \uparrow & \downarrow & ? \\
+      \hline
+      =          & =          & \uparrow & \downarrow & ? \\
+      \uparrow   & \uparrow   & \uparrow & ?          & ? \\
+      \downarrow & \downarrow & ?        & \downarrow & ? \\
+      ?          & ?          & ?        & ?          & ? \\
+    \end{tabular}%
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}>{$}l<{$}}
+      *          & = & \uparrow   & \downarrow & ? \\
+      \hline
+      =          & = & =          & =          & = \\
+      \uparrow   & = & \uparrow   & \downarrow & ? \\
+      \downarrow & = & \downarrow & \uparrow   & ? \\
+      ?          & = & ?          & ?          & ? \\
+    \end{tabular}%
+    \hspace{0.5in}%
+    \(
+    \begin{tikzcd}[arrows=dash,row sep=0.5cm,column sep=0.5cm]
+      & ? & \\
+      \uparrow \arrow[ur] && \downarrow \arrow[ul] \\
+      & = \arrow[ul]\arrow[ur] &
+    \end{tikzcd}
+    \)
+  \end{center}
+
+  Notice that $+$ is the join of the sub-usaging order.
+\end{example}
+
+\begin{example}[Security levels]
+  Similar to \cite{abadi99core}, our annotations can be security levels
+  constraining where a variable can be seen.
+  We assume a security lattice $\mathcal L$, and make the following choices.
+
+  \begin{center}
+    \(\mathscr R \coloneqq \mathcal L\)
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}c<{$}}
+      0 \coloneqq \bot \\
+      1 \coloneqq \top
+    \end{tabular}%
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}c<{$}}
+      {+} \coloneqq {\vee} \\
+      {*} \coloneqq {\wedge}
+    \end{tabular}%
+    \hspace{0.5in}%
+    \(x \subres y \iff x \leq y\)
+  \end{center}
+\end{example}
+
+\begin{example}[Sensitivity analysis]
+  Following \cite{reed10distance}, we can put an upper bound on the size of
+  change observed in a term after a perturbation of a free variable by
+  annotating with distances. 
+  The distance tells us how much the output may vary by when the variable varies
+  by a distance of $1$.
+
+  \begin{center}
+    \(\mathscr R \coloneqq \{x \in \mathbb R \mid x \geq 0\} \cup \{\infty\}\)
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}c<{$}}
+      0 \coloneqq 0 \\
+      1 \coloneqq 1
+    \end{tabular}%
+    \hspace{0.5in}%
+    \begin{tabular}{>{$}c<{$}}
+      {+} \coloneqq {+} \\
+      {*} \coloneqq {\times}
+    \end{tabular}%
+    \hspace{0.5in}%
+    \(x \subres y \iff x \leq y\)
+  \end{center}
+
+  An annotation $0$ on a variable $x$ says that no matter how much $x$
+  changes, the result will vary by $0$.
+  Conversely, an annotation $\infty$ says that as soon as the variable changes
+  by a positive amount, the result may vary arbitrarily.
+\end{example}
+
+\subsection{Typing \& provisioning}
+\label{sec:rules}
+
+\begin{figure}
+  \begin{displaymath}
+    \begin{array}{rl}
+      \textrm{Constants} & c \\
+      \textrm{Variables} & x \\
+      \textrm{Terms} & M, N
+                       \begin{array}[t]{rlcl}
+                         \Coloneqq & c & \mid & x \\
+                         \mid & \lam{x}{A} & \mid & \app{M}{N} \\
+                         \mid & \unit & \mid & \del{C}{M}{N} \\
+                         \mid & \ten{M}{N} & \mid & \prm{C}{M}{x}{y}{N} \\
+                         \mid & \eat & & \\
+                         \mid & \wth{M}{N} & \mid & \proj{i}{M} \\
+                                   & & \mid & \exf{C}{M} \\ 
+                         \mid & \inj{i}{M} & \mid & \cse{C}{M}{x}{N_0}{y}{N_1} \\
+                         \mid & \bang{M} & \mid & \bm{C}{M}{x}{N} \\
+                         \mid & \nil \mid \cons{M}{N} & \mid & \fold{M}{N_n}{x}{y}{N_c}
+                       \end{array}
+    \end{array}
+  \end{displaymath}
+  \caption{Term syntax}
+  \label{fig:terms}
+\end{figure}
+
+Typing judgements are of the form $\ctx{\Gamma}{R} \vdash M : A$, which, when
+the contexts are explicitly expanded, look like
+$\ctxvar{x_1}{A_1}{\rho_1}, \ldots, \ctxvar{x_n}{A_n}{\rho_n} \vdash M : A$.
+Each variable in the context carries a usage annotation, but the conclusion
+is taken to always have annotation $1$.
+Such a restriction is important to keep substitution admissible, as shown in
+\cite{quantitative-type-theory}. \fixmeBA{probably drop the reference here (but keep it later on)}
+
+A summary of the term syntax is given in \autoref{fig:terms}.
+As well as variables, and constructors and destructors for each type former, we
+have a set of constants.
+Constants are intended to give a way of producing and manipulating values of the
+base type $\base$.
+
+Let $\basis x$ be the $x$th basis vector $\vec 0, x^1, \vec 0$ --- that is, the
+usage context in which every variable is annotated with $0$ except for $x$,
+which is annotated with $1$.
+Such a context describes the restriction that semantically all variables except
+$x$ are unused, while $x$ is used plainly.
+This makes it the principle usage of the variable rule.
+
+\[
+  \inferrule*[right=var]
+  {(x : A) \in \Gamma
+    \\ \subrctx{\basis x}{\resctx R}
+  }
+  {\ctx{\Gamma}{R} \vdash x : A}
+\]
+
+Allowing $\basis x \subres \resctx R$, rather than $\basis x = \resctx R$,
+allows less restrictive provisionings.
+For example, we are free to use $x$ if its use is unrestricted, and similarly we
+are free to discard any variables with unrestricted use. \fixmeBA{fwd ref to the subusaging lemma}
+
+Constants $c$ can have arbitrary type $A_c$, but not arbitrary usage
+restrictions.
+Constants should have a global character, and not be able to depend on the
+context in which they are used, so it makes sense to say that they are well
+provisioned only in a context where all variables can be discarded. \fixmeBA{maybe an example?}
+
+\[
+  \inferrule*[right=const]
+  {\subrctx{\vct 0}{\resctx R}}
+  {\ctx{\Gamma}{R} \vdash c : A_c}
+\]
+
+The following are the rules for $\lambda$-abstractions and application.
+$\multimap$-I is standard, except for the restriction that we use the bound
+variable plainly.
+In $\multimap$-E, the condition $\resctx P + \resctx Q \subres \resctx R$
+means that we must be able to distribute the usage permitted by $\resctx R$ into
+what the function uses ($\resctx P$) and what the argument uses ($\resctx Q$).
+sub-usaging is allowed here to maintain the admissibility of sub-usaging
+as a general rule, stated in \autoref{sec:admissible}, \lemref{lem:subres}.
+\fixmeBA{comment about subusaging is valid throughout?}
+
+\begin{mathpar}
+  \inferrule*[right=$\multimap$-I]
+  {\ctx{\Gamma}{R}, \ctxvar{x}{A}{1} \vdash M : B}
+  {\ctx{\Gamma}{R} \vdash \lam{x}{M} : \fun{A}{B}}
+  \and
+  \inferrule*[right=$\multimap$-E]
+  {\ctx{\Gamma}{P} \vdash M : \fun{A}{B}
+    \\ \ctx{\Gamma}{Q} \vdash N : A
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+  }
+  {\ctx{\Gamma}{R} \vdash \app{M}{N} : B}
+\end{mathpar}
+
+In general\fixmeBA{``In the presence of resources''}, we distinguish between tensor products ($\otimes$) and with products
+($\&$).
+A similar distinction between two types of product can be seen in various
+existing systems: our tensor and with products are respectively products
+eliminated by pattern matching and projection, or equivalently positive and
+negative formulations of products \fixme{refs here}. \fixmeBA{This needs rewording: mention sharing vs not sharing usage; and forward ref to collapse lemma in next subsection}
+
+\begin{mathpar}
+  \inferrule*[right=$\otimes$-I]
+  {\ctx{\Gamma}{P} \vdash M : A
+    \\ \ctx{\Gamma}{Q} \vdash N : B
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+  }
+  {\ctx{\Gamma}{R} \vdash \ten{M}{N} : \tensor{A}{B}}
+  \and
+  \inferrule*[right=$\otimes$-E]
+  {\ctx{\Gamma}{P} \vdash M : \tensor{A}{B}
+    \\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1}, \ctxvar{y}{B}{1} \vdash N : C
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+  }
+  {\ctx{\Gamma}{R} \vdash \prm{C}{M}{x}{y}{N} : C}
+
+  \and
+
+  \inferrule*[right=$\&$-I]
+  {\ctx{\Gamma}{R} \vdash M : A
+    \\ \ctx{\Gamma}{R} \vdash N : B
+  }
+  {\ctx{\Gamma}{R} \vdash \wth{M}{N} : \withT{A}{B}}
+  \and
+  \inferrule*[right=$\&$-E$_i$]
+  {\ctx{\Gamma}{R} \vdash M : \withT{A_0}{A_1}}
+  {\ctx{\Gamma}{R} \vdash \proj{i}{M} : A_i}
+\end{mathpar}
+
+To derive the units for each of the products, we turn what was then binary into
+what is now nullary.
+
+\begin{mathpar}
+  \inferrule*[right=$1$-I]
+  {\subrctx{\vct 0}{\resctx R}}
+  {\ctx{\Gamma}{R} \vdash \unit : \tensorOne}
+  \and
+  \inferrule*[right=$1$-E]
+  {\ctx{\Gamma}{P} \vdash M : \tensorOne
+    \\ \ctx{\Gamma}{Q} \vdash N : A
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+  }
+  {\ctx{\Gamma}{R} \vdash \del{A}{M}{N} : A}
+
+  \and
+
+  \inferrule*[right=$\top$-I]
+  { }
+  {\ctx{\Gamma}{R} \vdash \eat : \withTOne}
+  \and
+  \text{(no $\top$-E)}
+\end{mathpar}
+
+Sums are dual to $\withT{}{}$-products.
+\fixmeBA{either quote ``with'', or replace with symbol. Makes grammar weird.}
+The behaviour of sums is familiar from standard type theory, except for the
+splitting of usages in the elimination rules between the term being
+eliminated and the continuation terms.
+Notice that this splitting also happens for $0$-E ($\exf{}{}$), even though the
+usage context $\resctx Q$ is not used in any premises.
+The addition of the extra $\resctx Q$ can be seen as saying that when we are in
+an impossible case (having created an expression of type $\sumTZero$), we can
+ignore the restrictions imposed by the presence of remaining free variables.\fixme{Maybe needs a demonstration in the next section}
+
+\begin{mathpar}
+  \text{(no $0$-I)}
+  \and
+  \inferrule*[right=$0$-E$_i$]
+  {\ctx{\Gamma}{P} \vdash M : \sumTZero
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+  }
+  {\ctx{\Gamma}{R} \vdash \exf{A}{M} : A}
+
+  \inferrule*[right=$\oplus$-I]
+  {\ctx{\Gamma}{R} \vdash M : A_i}
+  {\ctx{\Gamma}{R} \vdash \inj{i}{M} : \sumT{A_0}{A_1}}
+  \and
+  \inferrule*[right=$\oplus$-E]
+  {\ctx{\Gamma}{P} \vdash M : \sumT{A}{B}
+    \\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1} \vdash N_0 : C
+    \\ \ctx{\Gamma}{Q}, \ctxvar{y}{B}{1} \vdash N_1 : C
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+  }
+  {\ctx{\Gamma}{R} \vdash \cse{C}{M}{x}{N_0}{y}{N_1} : C}
+\end{mathpar}
+
+All of the previous rules have only allowed us to bind variables with usage
+annotation $1$.
+In order to abstract over variables with different usage annotations, we
+introduce a bang type former, with $\excl{\rho}{A}$ bundling up a value of type
+$A$ used in accordance with $\rescomment \rho$.\fixmeBA{Forward ref to a demonstration of this}
+
+\begin{mathpar}
+  \inferrule*[right=$\excl{\rho}{}$-I]
+  {\ctx{\Gamma}{P} \vdash M : A
+    \\ \subrctx{\rescomment \rho * \resctx P}{\resctx R}
+  }
+  {\ctx{\Gamma}{R} \vdash \bang{M} : \excl{\rho}{A}}
+  \and
+  \inferrule*[right=$\excl{\rho}{}$-E]
+  {\ctx{\Gamma}{P} \vdash M : \excl{\rho}{A}
+    \\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{\rho} \vdash N : B
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+  }
+  {\ctx{\Gamma}{R} \vdash \bm{B}{M}{x}{N} : B}
+\end{mathpar}
+
+Finally, we include a polymorphic type of lists.
+Usage-wise, lists are a tensoring together of their elements, meaning that
+$\nil$ requires its context to be discarded and $\cons{-}{-}$ requires the
+context to be split between the head and the tail.
+To eliminate a list, we split the context as in other pattern matching
+eliminators, but also require that both continuations use only discardable
+and duplicable variables.
+This ensures that, for example, the continuation that deals with $\cons{-}{-}$
+can be invoked as many times as necessary.
+
+\begin{mathpar}
+  \inferrule*[right=$\listT{}$-Inil]
+  {\subrctx{\vct 0}{\resctx R}}
+  {\ctx{\Gamma}{R} \vdash \nil : \listT A}
+  \and
+  \inferrule*[right=$\listT{}$-Icons]
+  {\ctx{\Gamma}{P} \vdash M : A
+    \\ \ctx{\Gamma}{Q} \vdash N : \listT A
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+  }
+  {\ctx{\Gamma}{R} \vdash \cons{M}{N} : \listT A}
+  \and
+  \inferrule*[right=$\listT{}$-E]
+  {\ctx{\Gamma}{P} \vdash M : \listT A
+    \\ \ctx{\Gamma}{Q} \vdash N_n : C
+    \\ \ctx{\Gamma}{Q}, \ctxvar{h}{A}{1}, \ctxvar{r}{\listT A}{1} \vdash N_c : C
+    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+    \\ \subrctx{\vct 0}{\resctx Q}
+    \\ \subrctx{\resctx Q + \resctx Q}{\resctx Q}
+  }
+  {\ctx{\Gamma}{R} \vdash \fold{M}{N_n}{h}{r}{N_c} : C}
+\end{mathpar}
+
+\fixmeBA{Could have separate $\resctx Q$ and $\resctx Q'$ for the nil and cons cases, and let the condition be $\subrctx{\resctx Q + \resctx Q'}{\resctx Q'}$?}
+
+\subsection{Example programs}
+
+\begin{example}
+  To start, we assume that we have instantiated $\mathscr R$ to be
+  $\{0,1,\omega\}$, with operations as defined in \autoref{sec:annotations}.
+  We also assume a single base type $\base$, and no constants.
+  In this case, the annotation $1$ corresponds to linear usage, and $\omega$
+  corresponds to unrestricted usage.
+  This means that there is no term of type
+  $\ctxvar{x}{\base}{1} \vdash \tensor{\base}{\base}$, but we do have the
+  following.
+
+  \[
+    \inferrule*[Right=$\tensor{}{}$-I]
+    {
+      \inferrule*[Right=var]
+      {\rescomment{1 \subres \omega}}
+      {\ctxvar{x}{\base}{\omega} \vdash x : \base}
+      \\
+      \inferrule*[Right=var]
+      {\rescomment{1 \subres \omega}}
+      {\ctxvar{x}{\base}{\omega} \vdash x : \base}
+      \\ \rescomment{\omega + \omega \subres \omega}
+    }
+    {\ctxvar{x}{\base}{\omega} \vdash \ten{x}{x} : \tensor{\base}{\base}}
+  \]
+
+  We can abstract over this derivation by giving a closed term proving
+  $\vdash \fun{\excl{\omega}{\base}}{\tensor{\base}{\base}}$.
+  The new derivation extends the previous derivation by following the types.
+
+  \[
+    \inferrule*[Right=$\fun{}{}$-I]
+    {
+      \inferrule*[Right=$\excl{}{}$-E]
+      {
+        \inferrule*[Right=var]
+        {\rescomment{1 \subres 1}}
+        {\ctxvar{b_x}{\excl{\omega}{\base}}{1} \vdash b_x
+          : \excl{\omega}{\base}}
+        \\ \inferrule*{}
+        {\nabla \\\\
+          \ctxvar{b_x}{\excl{\omega}{\base}}{0}, \ctxvar{x}{\base}{\omega}
+          \vdash \ten{x}{x} : \tensor{\base}{\base}}
+        \\ \rescomment{1 + 0 \subres 1}
+      }
+      {\ctxvar{b_x}{\excl{\omega}{\base}}{1} \vdash \bm{}{b_x}{x}{\ten{x}{x}}
+        : \tensor{\base}{\base}}
+    }
+    {\vdash \lam{b_x}{\bm{}{b_x}{x}{\ten{x}{x}}}
+      : \fun{\excl{\omega}{\base}}{\tensor{\base}{\base}}}
+  \]
+
+  For $\nabla$, we have the previous derivation, but weakened by the addition of
+  the assumption $\ctxvar{b_x}{\excl{\omega}{\base}}{0}$.
+  In this case, it is easy to see that this weakening is permissible, because
+  when it appears in the variable rule, we don't use $b_x$, so we need to show
+  that it is discardable, which it is.
+  In \lemref{lem:weak}, we will prove that such a weakening is generally
+  admissible.
+
+  That $b_x$ plays no role and places no restrictions on the continuation term
+  suggests that we are justified to use pattern matching syntax colloquially.
+  In this instance, we may write $\lam{\bang x}{M}$ to abbreviate
+  $\lam{b_x}{\bm{b_x}{b_x}{x}{M}}$.
+\end{example}
+
+\fixmeBA{For each program should say why it is interesting: the three properties below because they correspond to the properties of a graded (lax-)monoidal comonoid comonad.}
+
+\begin{example}[Monoidality]
+We can show that $\excl{\rho}{}$ preserves tensor products in one direction:
+$\fun{\tensor{\excl{\rho}{C}}{\excl{\rho}{D}}}{\excl{\rho}{(\tensor{C}{D})}}$.
+Colloquially, we have the term
+$\lam{\ten{\bang c}{\bang d}}{\bang{\ten{c}{d}}}$, which expands out to the
+following formal term.
+
+\[
+  \begin{aligned}
+    \lam{x_{bcbd}}{& \prm{ }{x_{bcbd}}{b_c}{b_d}{\\
+        & \bm{ }{b_c}{c}{\\
+          & \bm{ }{b_d}{d}{\\
+            & \bang{\ten{c}{d}}}}}}
+  \end{aligned}
+\]
+
+In the provisioning derivation, the interesting part is after all of the pattern
+matching has been done and we are ready to start building the result.
+
+\[
+  \inferrule*[right=$\excl{\rho}{}$-I]{
+    \rho * x_{bcbd}^0, b_c^0, b_d^0, c^1, d^1
+    \subres x_{bcbd}^0, b_c^0, b_d^0, c^\rho, d^\rho
+    \\
+    \ctxvar{x_{bcbd}}{\tensor{\excl{\rho}{C}}{\excl{\rho}{D}}}{0},
+    \ctxvar{b_c}{\excl{\rho}{C}}{0}, \ctxvar{b_d}{\excl{\rho}{D}}{0},
+    \ctxvar{c}{C}{1}, \ctxvar{d}{D}{1}
+    \vdash \ten{c}{d} : \tensor{C}{D}
+  }
+  {
+    \ctxvar{x_{bcbd}}{\tensor{\excl{\rho}{C}}{\excl{\rho}{D}}}{0},
+    \ctxvar{b_c}{\excl{\rho}{C}}{0}, \ctxvar{b_d}{\excl{\rho}{D}}{0},
+    \ctxvar{c}{C}{\rho}, \ctxvar{d}{D}{\rho}
+    \vdash \bang{\ten{c}{d}} : \excl{\rho}{(\tensor{C}{D})}
+  }
+\]
+
+After this move, $c$ and $d$ become amenable to the var rule, which only applies
+to super-usages of $1$.
+
+The converse cannot be implemented in general because we get to a stage where we
+are essentially trying to prove $\ctxvar{x_{cd}}{\tensor{C}{D}}{\rho} \vdash
+\wn : \tensor{\excl{\rho}{C}}{\excl{\rho}{D}}$.
+At this point, we cannot use the variable $x_{cd}$ because we might not have
+$1 \subres \rho$, and so the condition of the var rule fails.
+We can do $\otimes$-I, but there is no satisfactory way to split $x_{cd}^\rho$
+between the two halves.
+The interpretation of this non-derivability in linear logic is that
+$\excl{\omega}{(\tensor{C}{D})}$ promises an unlimited supply of $C$s and $D$s
+\emph{in lock step}, whereas $\tensor{\excl{\omega}{C}}{\excl{\omega}{C}}$
+promises both an unlimited supply of $C$s and an unlimited supply of $D$s with
+no relation between each other.
+\end{example}
+
+\begin{example}[Comonad operations]
+The following two terms are well typed and well provisioned.
+
+\begin{displaymath}
+  \begin{eqns}
+    \lam{\bang a}{a} &:& \fun{\excl{1}{A}}{A} \\
+    \lam{\bang a}{\bang{\bang{a}}}
+    &:& \fun{\excl{\pi * \rho}{A}}{\excl{\pi}{\excl{\rho}{A}}}
+  \end{eqns}
+\end{displaymath}
+%We have the following two derivations.
+%
+%\begin{mathpar}
+%  \inferrule*[Right=$\multimap$-I]{
+%    \inferrule*[Right=$\excl{1}{}$-E]{
+%      \inferrule*[right=var]{ }
+%      {\ctxvar{ba}{\excl{1}{A}}{1} \vdash ba : \excl{1}{A}}
+%      \\
+%      \inferrule*[Right=var]{ }
+%      {\ctxvar{ba}{\excl{1}{A}}{0}, \ctxvar{a}{A}{1} \vdash a : A}
+%    }
+%    {\ctxvar{ba}{\excl{1}{A}}{1} \vdash \bm{A}{ba}{a}{a} : A}
+%  }
+%  {\vdash \lam{ba}{\bm{A}{ba}{a}{a}} : \fun{\excl{1}{A}}{A}}
+%
+%  \and
+%
+%  \inferrule*[Right=$\multimap$-I]{
+%    \inferrule*[Right=$\excl{\pi * \rho}{}$-E]{
+%      \inferrule*[right=var]{ }
+%      {\ctxvar{ba}{\excl{\pi * \rho}{A}}{1} \vdash ba : \excl{\pi * \rho}}
+%      \\
+%      \inferrule*[Right=$\excl{\pi}{}$-I]{
+%        \inferrule*[Right=$\excl{\rho}{}$-I]{
+%          \inferrule*[Right=var]{ }
+%          {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{1} \vdash
+%            a : A}
+%        }
+%        {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{\rho} \vdash
+%          \bang{a} : \excl{\rho}{A}}
+%      }
+%      {\ctxvar{ba}{\excl{\pi * \rho}{A}}{0}, \ctxvar{a}{A}{\pi * \rho} \vdash
+%        \bang{\bang{a}} : \excl{\pi}{\excl{\rho}{A}}}
+%    }
+%    {\ctxvar{ba}{\excl{\pi * \rho}{A}}{1} \vdash
+%      \bm{A}{ba}{a}{\bang{\bang{a}}} : \excl{\pi}{\excl{\rho}{A}}}
+%  }
+%  {\vdash \lam{ba}{\bm{A}{ba}{a}{\bang{\bang{a}}}}
+%    : \fun{\excl{\pi * \rho}{A}}{\excl{\pi}{\excl{\rho}{A}}}}
+%\end{mathpar}
+
+These are the counit and comultiplication required in showing that $\excl{(-)}{}$ is a
+graded comonad in our category of types and functions.
+\end{example}
+
+\fixme{exponentials turn additives into multiplicatives}
+
+\fixmeBA{Perhaps say what happens in ``extreme''/''interesting'' cases: e.g. $\mathcal{R} = 1$, and the paragraph from next subsection about collapsing of tensor and with}
+
+\subsection{Admissible rules}
+\label{sec:admissible}
+
+\fixmeBA{An introductory sentence to summarise this section.}
+
+Recalling from \autoref{sec:annotations}, $\rescomment \pi \subres \rescomment
+\rho$ says that $\rescomment \rho$ places more relaxed restrictions than
+$\rescomment \pi$.
+When lifted pointwise, $\resctx P \subres \resctx Q$ means that
+$\resctx Q$ is a more liberal context than $\resctx
+ P$, so any term well provisioned in $\resctx P$ is also well
+provisioned in $\resctx Q$.
+
+\begin{lemma}[sub-usaging]
+  \label{lem:subres}
+  \[
+    \inferrule*[right=subres]{
+      \ctx{\Gamma}{P} \vdash M : A
+      \\ \resctx P \subres \resctx Q
+    }
+    {
+      \ctx{\Gamma}{Q} \vdash M : A
+    }
+  \]
+\end{lemma}
+\begin{proof}
+  By induction on the provisioning derivation until a rule with splitting is
+  encountered.
+  Here, we will just consider splitting by addition, but the other cases are
+  similar.
+  Suppose we are given a derivation of $\ctx{\Gamma}{P} \vdash M : A$,
+  from which one of the premises is
+  $\resctx P_0 + \resctx P_1 \subres \resctx P$.
+  Then, because $\resctx P \subres \resctx Q$, we also have
+  $\resctx P_0 + \resctx P_1 \subres \resctx Q$.
+  Therefore, we can give a derivation for
+  $\ctx{\Gamma}{Q} \vdash M : A$ which is the same as the derivation we
+  were given, except with the updated splitting premise.
+\end{proof}
+
+If addition is the join of the sub-usaging order, then the distinction
+between tensor and with products collapses.
+This fact can be seen clearly in the introduction rules, where the condition
+$\resctx P + \resctx Q \subres \resctx R$ is equivalent to the conjunction of
+$\resctx P \subres \resctx R$ and $\resctx Q \subres \resctx R$.
+With these and the admissibility of sub-usaging, we get the equivalence.
+\fixmeBA{Can this be turned into a proposition? E.g., there are terms translating back and forth between both types of product? This observation might make more sense in the previous subsection. Also, it extends to the units too?}
+
+Famously, linear logic does not allow unrestricted weakening.
+Our system retains this in spirit, but contains a restricted variant.
+Thinking of the $\{0,1,\omega\}$ instantiation, the following rule says that
+\emph{absent} and \emph{unrestricted} variables may be weakened, but linear
+variables may not be.
+In the monotonicity instantiation, all annotations are above $0$, so weakening
+can be applied to any variable.
+
+\begin{lemma}[Weakening]
+  \label{lem:weak}
+  We can add unmentioned free variables if those variables are annotated with a
+  weakenable annotation.
+  \[
+    \inferrule*[right=weak]{
+      \ctx{\Gamma}{P} \vdash M : A
+      \\ \vct 0 \subres \resctx Q
+    }
+    {
+      \ctx{\Gamma}{P}, \ctx{\Delta}{Q} \vdash M : A
+    }
+  \]
+\end{lemma}
+
+When $0$ is the bottom element of the subusaging order, the condition $\vct 0
+\subres \resctx Q$ is trivial, so arbitrary weakening is allowed.
+
+Our main syntactic lemma is substitution.
+To state and prove substitution, the key insight is that semirings give rise to
+an important fragment of linear algebra.
+In particular, we can form vectors and matrices of semiring elements, and define
+addition, scaling, and multiplication.
+Addition and scaling were the two operators used in premises of typing rules.
+Multiplication will be used to apply a substitution to a context.
+
+\fixme{\ldots example of why na\"{i}ve substitution doesn't work}
+
+Let $|-|$ denote the number of free variables of a given context.
+In the following definition, usage contexts ($\resctx P$ and $\resctx Q$) and
+basis vectors are understood to be row vectors, and juxtaposition of vectors and
+matrices denotes multiplication.
+
+\begin{definition}[Well provisioned substitution]
+  A substitution $\sigma$ from $\Gamma^{\resctx P}$ to
+  $\Delta^{\resctx Q}$ is a tuple with the following data.
+
+  \begin{itemize}
+  \item a $|\resctx Q| \times |\resctx P|$ matrix of usage annotations $\mat
+    \Sigma$ such that $\resctx Q \mat \Sigma \subres \resctx P$
+  \item for each $(x:A) \in \Delta$, a term $M_x$ such that
+    $\Gamma^{\vct e_x \mat \Sigma} \vdash M_x : A$
+  \end{itemize}
+\end{definition}
+
+The idea is that each term $M_x$ is well provisioned at row $x$ of $\mat \Sigma$.
+The element $\resctx Q_x$ tells us how many ``copies'' of $M_x$ we need, so the
+requirements for the whole simultaneous substitution are a sum of the rows of
+$\mat \Sigma$ weighted by $\resctx Q$.
+
+\begin{lemma}[Substitution]
+  \[
+    \inferrule*[right=subst]{
+      \ctx{\Delta}{Q} \vdash N : A
+      \\ \sigma : \ctx{\Gamma}{P} \Rightarrow \ctx{\Delta}{Q}
+    }
+    {
+      \ctx{\Gamma}{P} \vdash N[\sigma] : A
+    }
+  \]
+\end{lemma}
+\renewcommand{\proofname}{Proof sketch}
+\begin{proof}
+  By induction on the provisioning derivation.
+  Wherever a context is split, by any of $\vct 0 \subres \resctx R$,
+  $\resctx P + \resctx Q \subres \resctx R$, or
+  $\rescomment \rho * \resctx P \subres \resctx R$, the linearity of vector-matrix
+  multiplication means that $\mat \Sigma$ can stay the same.
+  When going under a binder, the new substitution matrix will be constructed
+  from the given $\mat \Sigma$ as the following.
+  \newcommand*{\mathhuge}[1]{\mathlarger{\mathlarger{\mathlarger{\mathlarger{#1}}}}}
+  \[
+    \operatorname{extend}~\mat \Sigma \coloneqq
+    %\left( \begin{array}{cccc}
+    %  & & & 0 \\
+    %  & \mathhuge{\mat \Sigma} & & \vdots \\
+    %  & & & 0 \\
+    %  0 & \cdots & 0 & 1
+    %\end{array} \right)
+    \begin{pmatrix}
+      \mat \Sigma_{1,1} & \cdots & \mat \Sigma_{1,n} & 0 \\
+      \vdots & \ddots & \vdots & \vdots \\
+      \mat \Sigma_{m,1} & \cdots & \mat \Sigma_{m,n} & 0 \\
+      0 & \cdots & 0 & 1
+    \end{pmatrix}
+    %\begin{pmatrix}
+    %  \mathhuge{\mat \Sigma} & \begin{array}{c} 0 \\ \vdots \\ 0 \end{array} \\
+    %  \begin{array}{ccc} 0 & \cdots & 0 \end{array} & 1
+    %\end{pmatrix}
+    %\begin{pmatrix}
+    %  \multicolumn{3}{c}{\multirow{3}{*}{A}} & 0 \\
+    %  \multicolumn{3}{c}{} & \vdots \\
+    %  \multicolumn{3}{c}{} & 0 \\
+    %  0 & \cdots & 0 & 1
+    %\end{pmatrix}
+  \]
+  The new column says that to substitute the new variable by itself once, we
+  need $1$ use of it, and $0$ use of any other variable.
+  The new row says that the new variable will \emph{only} be used as a
+  substitute for itself, and nowhere else.
+\end{proof}
+\renewcommand{\proofname}{Proof}
+
+\subsection{Equivalence to DILL}
+\label{sec:dill}
+
+\fixmeBA{Would better say ``Translating from DILL to \name{} and
+  back'': we don't really say in what sense we mean ``equivalent'';
+  Barber's thesis
+  (\url{https://www.era.lib.ed.ac.uk/bitstream/handle/1842/392/ECS-LFCS-97-371.pdf},
+  page 51) proves a round trip property using the equational theories
+  of the respective calculi, but we haven't written out an equational
+  theory for \name{} yet}
+
+\fixmeBA{Should say why we are interested in such a translation}
+
+Dual Intuitionistic Linear Logic is a particular formulation of intuitionistic
+linear logic described in \cite{Barber1996}.
+Its key feature, which simplifies the metatheory of linear logic, is the use of
+separate contexts for linear and intuitionistic free variables.
+Here we show that DILL is a fragment of the instantiation of \name{} at the
+linearity semiring $\{0,1,\omega\}$.\fixmeBA{also the fragment without lists}
+
+The types of DILL are the same as the types of \name, except for the
+restriction of $\excl{\rho}{}$ to just $\excl{\omega}{}$.
+We will write the latter simply as $\oc$ when it appears in DILL.
+We add sums and with products to the calculus of \cite{Barber1996}, with the
+obvious rules.\fixmeBA{should put the rules for the precise variant of DILL we are using in an appendix}
+These additive type formers present no additional difficulty to the translation.
+
+\fixmeBA{Should give the translation on terms}
+
+%\begin{figure}
+%  \begin{displaymath}
+%    \begin{eqns}
+%      \mathrm{DILL} &\hookrightarrow& \name \\
+%      Y &\mapsto& \base_Y \\
+%      I &\mapsto& \tensorOne \\
+%      A \multimap B &\mapsto& \fun{A}{B} \\
+%      A \otimes B &\mapsto& \tensor{A}{B} \\
+%      \oc A &\mapsto& \excl{\omega}{A}
+%    \end{eqns}
+%  \end{displaymath}
+%  \label{fig:dill}
+%  \caption{Embedding of DILL types into \name}
+%\end{figure}
+
+\begin{proposition}[DILL $\to$ \name]
+  Given a DILL derivation of \[
+    \Gamma; \Delta \vdash t : A,
+  \] we can produce a $\name_{01\omega}$ derivation of \[
+    \ctx{\Gamma}{\vct \omega}, \ctx{\Delta}{\vct 1} \vdash
+    M_t : A
+  \] for some term $M_t$.
+\end{proposition}
+\begin{proof}
+  By induction on the derivation.
+  We have $0 \subres \omega$, which allows us to discard intuitionistic
+  variables at the var rules, and both $1 \subres 1$ and $1 \subres \omega$,
+  which allow us to use both linear and intuitionistic variables.
+
+  Weakening is used when splitting linear variables between two premises.
+  For example, \TirName{$\otimes$-I} is as follows.
+  \[
+    \inferrule*[right=$\otimes$-I]
+    {\Gamma; \Delta_t \vdash t : A \\ \Gamma; \Delta_u \vdash u : B}
+    {\Gamma; \Delta_t, \Delta_u \vdash t \otimes u : A \otimes B}
+  \]
+  From this, our new derivation is as follows.
+  \[
+    \inferrule*[right=$\tensor{}{}$-I]
+    {
+      \inferrule*[right=weak]
+      {\mathit{ih}_t \\\\
+        \ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 1} \vdash M_t : A}
+      {\ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 1}, \ctx{\Delta_u}{\vct 0}
+        \vdash M_t : A}
+      \\
+      \inferrule*[right=weak]
+      {\mathit{ih}_u \\\\
+        \ctx{\Gamma}{\vct \omega}, \ctx{\Delta_u}{\vct 1} \vdash M_u : A}
+      {\ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 0}, \ctx{\Delta_u}{\vct 1}
+        \vdash M_u : A}
+    }
+    {\ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 1}, \ctx{\Delta_u}{\vct 1}
+      \vdash \ten{M_t}{M_u} : \tensor{A}{B}}
+  \]
+\end{proof}
+
+\begin{proposition}[\name $\to$ DILL]
+  Given a $\name_{01\omega}$ derivation of \[
+    \ctx{\Gamma}{\vct \omega}, \ctx{\Delta}{\vct 1}, \ctx{\Theta}{\vct 0} \vdash
+    M : A,
+  \] which contains only types expressible in DILL, we can produce a DILL
+  derivation of \[
+    \Gamma; \Delta \vdash t_M : A
+  \] for some term $t_M$.
+\end{proposition}
+\begin{proof}
+  By induction on the derivation.
+
+  In the case of \TirName{var}, all of the unused variables have annotation
+  greater than $0$, i.e., $0$ or $\omega$.
+  Those annotated $0$ are absent from the DILL derivation, and those annotated
+  $\omega$ are in the intuitionistic context.
+  The used variable is annotated either $1$ or $\omega$.
+  In the first case, we use \TirName{Lin-Ax}, and in the second case,
+  \TirName{Int-Ax}.
+
+  All binding of variables in \name{} maps directly onto DILL.
+
+  For the \TirName{$\excl{\omega}{}$-I} rule, we are required to prove that the
+  following is admissible in DILL.
+  \[
+    \inferrule*
+    {\Gamma; \Delta \vdash t_M : A}
+    {\Gamma, \Delta; \cdot \vdash \oc t_M : \oc A}
+  \]
+  This follows from the Environment Weakening property from Lemma 3.1 of
+  \cite{Barber1996} applied to $\Delta$, followed by \TirName{$\oc$-I}.
+
+  Splitting of contexts is more involved.
+  We shall again take \TirName{$\tensor{}{}$-I} as our example.
+  We are trying to prove admissible \[
+    \inferrule*
+    {\Gamma_A; \Delta_A \vdash t_M : A \\ \Gamma_B; \Delta_B \vdash t_N}
+    {\Gamma; \Delta \vdash t_M \otimes t_N : A \otimes B}
+  \] given also that $\Delta$ consists of only (but not necessarily all)
+  variables that occur exactly once in $\Delta_A, \Delta_B$ and not at all in
+  $\Gamma_A, \Gamma_B$, and that $\Gamma$ consists of all of the other variables
+  from the premises.
+  To prove this rule admissible, on both premises we apply Environment Weakening
+  to all variables in $\Delta_A$ or $\Delta_B$ that are also in $\Gamma$.
+  This gives us $\Gamma; \Delta_A' \vdash t_M : A$ and $\Gamma; \Delta_B' \vdash
+  t_N : B$, with $\Delta_A', \Delta_B' = \Delta$.
+  At this point, we can apply \TirName{$\otimes$-I} and be done.
+\end{proof}

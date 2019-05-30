@@ -1,0 +1,112 @@
+In this section, we give a brief informal overview of the properties we wish to
+obtain of programs for free by restricting usage.
+We use this to motivate the design of syntax and semantics detailed in
+\autoref{sec:syntax} and \autoref{sec:semantics} respectively.
+
+\subsection{Syntax}
+
+Our fundamental syntactic principle is that we will restrict use of the variable
+rule by encoding in contexts \emph{how} its variables can be used.
+To each variable in the context, we attach a \emph{usage annotation}.
+We may use a given variable only if it can be used in a plain manner, and all
+other variables in that context can be unused (discarded).
+
+Unlike types, we should expect the usage annotations of variables to change in a
+typing derivation.
+For example, suppose we want a linear $\lambda$-calculus, where each
+$\lambda$-bound variable has to be used exactly once.
+Then in this language, we want to write a curried function of two arguments that
+pairs those two arguments together.
+Na\"ively, we can write
+$\lambda x.\lambda y.~(x, y) : \fun{A}{\fun{B}{\tensor{A}{B}}}$.
+When we check this, we have to use $x$ and discard $y$ in the left of the pair,
+and use $y$ and discard $x$ in the right.
+Doing both of these must constitute using both $x$ and $y$, eventually
+discarding neither, implying some notion of accumulation of usages.
+
+To deal with this formally, we can set the usage annotations to be the natural
+numbers, with the intention of counting how many times a variable is used.
+We can discard a variable annotated $0$, and we can plainly use variables
+annotated $1$.
+So, to use $x$ in our example, we must be trying to conclude
+$\ctxvar{x}{A}{1}, \ctxvar{y}{B}{0} \vdash x : A$, and to use $y$, the
+annotations must be the other way round.
+Then, forming a pair lets us pointwise add together usage annotations, giving
+conclusion
+$\ctxvar{x}{A}{1+0}, \ctxvar{y}{B}{0+1} \vdash (x, y) : \tensor{A}{B}$.
+In general, we require the set of usage annotations to have an addition
+operator, as well as its unit $0$ and designated ``plain use'' annotation $1$.
+
+We also want a way to reify the idea of a variable usable in any particular way
+into a value in its own right.
+For example, we may want a value that can be used exactly twice, rather than
+exactly once.
+For this, we introduce the \emph{graded bang} type constructor $\excl{\rho}$,
+where $\rho$ is a usage annotation.
+This has value constructor $\bang{-}$, and using pattern matching notation
+allows us to write $\lambda\bang{x}.~(x, x) : \fun{\excl{2}{A}}{\tensor{A}{A}}$.
+Before pattern matching, we have a variable $\ctxvar{b}{\excl{2}{A}}{1}$, and
+after pattern matching, it is used up (has annotation $0$) and we get a new
+variable $\ctxvar{x}{A}{2}$.
+
+To produce an open term that can be used twice is to produce an open term that
+can be used once, but in a context where each variable can be used twice as many
+times as it was in producing the term once.
+Formally, if
+$\ctxvar{x_1}{A_1}{\pi_1}, \ldots, \ctxvar{x_n}{A_n}{\pi_n} \vdash t : B$, then
+$\ctxvar{x_1}{A_1}{\rho*\pi_1}, \ldots, \ctxvar{x_n}{A_n}{\rho*\pi_n} \vdash
+\bang t : \excl{\rho}{B}$.
+This means that we have multiplication on usage annotations, of which $1$ is the
+unit.
+
+\subsection{Semantics}
+
+The point of constraining the use of variables is to restrict ourselves to
+certain classes of well behaved terms.
+For example, we may be interested in the linear terms, or the monotonic terms,
+or the terms that are not too sensitive to change.
+We say that the terms that use variables in accordance with the rules given by
+the syntax and usage annotations are \emph{well provisioned}.
+We provide a unified denotational semantics as a tool to show that any well
+provisioned term really has the properties we wanted of it.
+
+We start by giving terms a standard $\mathrm{Set}$ semantics, written $\sem
+A$, $\sem \Gamma$, and $\sem t : \sem \Gamma \to \sem A$ for types, contexts and
+terms, respectively.
+When written in a dependently typed programming language, this is an interpreter
+that takes a metalanguage value for each variable in the context and produces a
+metalanguage value as a result.
+If we have a term in context with one variable, we can consider whether $\sem t
+: \sem A \to \sem B$ is monotonic.
+This would mean that if a bigger $\sem A$ value is given, the resulting $\sem B$
+value will also be bigger.
+To capture this, we interpret each type $A$ as a binary endorelation over $\sem
+A$, written $\sem{A}^R \subseteq \sem A \times \sem A$.
+Then, given our one-variable term $\ctxvar{x}{A}{1} \vdash t : B$, its semantics
+says that it preserves the relation.
+Explicitly, $\sem{t}^R :
+\forall a, a'.~\sem{A}^R(a, a') \implies \sem{B}^R(\sem t~a, \sem t~a')$.
+% The property we want is the following square, where $\Gamma \vdash t : A$,
+% $\gamma, \gamma' \in \sem\Gamma$, $a, a' \in \sem A$.
+
+% \begin{tikzcd}
+%   \gamma \arrow[r] \arrow[d, "\sem t" left] & \gamma' \arrow[d, "\sem t"] \\
+%   a \arrow[r] & a'
+% \end{tikzcd}
+
+For other properties, however, we also need the relation to be preserved
+relative to a \emph{world}.
+For example, in sensitivity analysis, we want say that a perturbation of
+$\varepsilon$ in the environment leads to at most a perturbation of
+$\varepsilon$ in the value produced.
+The world is this $\varepsilon$.
+\fixme{Too early to mention $\otimes$ vs $\&$?}
+Additionally, we want the perturbation of an environment to be the sum of
+perturbations of its variables, meaning that we need to be able to add worlds
+together.
+Finally, to work out the perturbation in a variable $\ctxvar{x}{A}{\rho}$, we
+must consider the usage annotation $\rho$.
+For sensitivity analysis, these annotations are going to be scaling factors, so
+the action of an annotation $\rho$ on a world $\varepsilon$ will produce the
+world $\rho\varepsilon$.
+In general, usage annotations will be interpreted as actions on worlds.

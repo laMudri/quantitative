@@ -1,0 +1,55 @@
+The ingredients of our fundamental lemma are perhaps well known
+(relational interpretations, Kripke-indexing), but the value of our
+framework lies in the generality of being able to choose $\mathcal{W}$
+and its promonoidal structure, and the interpretion the $\oc_\rho$
+modality as a relation transformer. Examples include:
+
+\subsection{Permutation Types}
+With the $\{0,1,\omega\}$ semiring, we
+take the category $\mathcal{W}$ to consist of lists of some type of
+keys, and permutations between them. The relation transformer is
+defined as: $\oc_0 R~l = \top$, where $\top$ is the total relation,
+$\oc_1 R~l = R~l$ and $R_\omega~R~l = (l = []) \land R~l$. With
+suitable types of keys and lists of keys, the fundamental lemma states
+that all programs are permutations. This result has already been
+formalised in a one-off type system at
+\url{https://github.com/bobatkey/sorting-types}.
+
+\subsection{Monotonicity Types}
+With $R$ the partially ordered semiring
+with carrier $\{0,\uparrow,\downarrow,\equiv\}$ ordered
+${\equiv} \leq {\uparrow},{\downarrow}$ and ${\uparrow}, {\downarrow} \leq 0$,
+we take $\mathcal{W}$ to be the one-object, one-arrow category, and
+define the relation transformer $\oc$ to be:
+\begin{mathpar}
+  \oc_0~R = \top
+
+  \oc_\uparrow~R = R
+
+  \oc_\downarrow~R = R^{op}
+
+  \oc_\equiv~R = R \cap R^{op}
+\end{mathpar}
+If we let our base type be natural numbers with the relational
+interpretation $R_{\mathrm{nat}}(n,n') \Leftrightarrow n \leq n'$,
+then the fundamental lemma states that a program of type
+$\ctxvar{x}{\mathrm{nat}}{\uparrow} \vdash t : \mathrm{nat}$ is
+covariant (and similarly for contravariant and invariant).
+
+\subsection{Sensitivity Analysis}
+With the
+$R = \mathbb{R} \cup \{\infty\}$ semiring, we let $\mathcal{W}$ be $R$
+as well. The relation transformer is given by scaling. With a base
+type of real numbers with relational intepretation
+$R_{\mathrm{real}}~k~(x,x') \Leftrightarrow |x-x'| \leq k$, then the
+fundamental lemma states that the usage annotations on the input
+variables tracks the extent to which the program is sensitive to
+changes in those variables.
+
+\subsection{Information Flow}
+With the $R = \mathcal{P}(L)$ semiring,
+we again take $\mathcal{W} = R$, and let the relation transformer to
+be
+$\oc_l R~l' = \{\top~\textrm{when }l \geq l'; R~\textrm{otherwise}\}$.
+Then the fundamental lemma yields the same non-interference properties
+as stated by Abadi et al. for the DCC \cite{abadi99core}.

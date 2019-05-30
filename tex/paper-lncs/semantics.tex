@@ -1,0 +1,280 @@
+Usage annotations will provide a refinement of the semantics of typed programs.
+More precisely, we provide a standard semantics of merely well \emph{typed}
+terms into $\mathrm{Set}$, which allows us to interpret terms as programs.
+Then, our semantics of well \emph{provisioned} terms is into indexed binary
+relations over elements of the $\mathrm{Set}$ semantics.
+
+In addition to the parametricity of the syntax over the choice of usage
+annotations, the semantics is parametrised over a monoidal category of worlds,
+which keep track of resources and restrictions we have accumulated.
+Also, the choice of how to interpret the base type and the bang modality is
+fairly liberal.
+
+\fixmeBA{what is the point of such generality? It is so that we can
+  find the commonalities in the applciations, rather than study them
+  separately.}
+
+\subsection{Set-theoretic Semantics of typed terms}
+\label{sec:set-interp}
+
+We begin with a standard semantics in $\mathrm{Set}$ of typed terms.
+We do not require terms to be well provisioned at this stage, and consequently
+this semantics is entirely oblivious to the concerns of resourcing.
+In particular, $\excl{\rho}{}$ has no effect, and the two types of products are
+conflated. \fixmeBA{Point out that this semantics will be refined by the resource-aware semantics below}
+
+\begin{displaymath}
+  \begin{array}{c@{\hspace{0.5in}}c}
+    \begin{eqns}
+      \sem{\base} &=& X_\base \\
+      \sem{\excl{\rho}{A}} &=& \sem{A} \\
+      \sem{\tensorOne} &=& \{*\} \\
+      \sem{\withTOne} &=& \{*\} \\
+      \sem{\sumTZero} &=& \{\} \\
+    \end{eqns}
+    &
+    \begin{eqns}
+      \\
+      \sem{\fun{A}{B}} &=& \sem{A} \rightarrow \sem{B} \\
+      \sem{\tensor{A}{B}} &=& \sem{A} \times \sem{B} \\
+      \sem{\withT{A}{B}} &=& \sem{A} \times \sem{B} \\
+      \sem{\sumT{A}{B}} &=& \sem{A} \uplus \sem{B} \\
+    \end{eqns}
+  \end{array}
+\end{displaymath}
+
+Typing contexts $\Gamma$ are interpreted as cartesian products of their points.
+Each typing derivation $\Gamma \vdash M : A$ is interpreted as a function
+$\sem{M} : \sem{\Gamma} \to \sem{A}$ in the standard way, plus the following
+clauses for the bang rules.
+
+\begin{displaymath}
+  \begin{eqns}
+    \sem{\bang{M}}~\gamma &=& \sem{M}~\gamma \\
+    \sem{\bm{C}{M}{x}{N}}~\gamma &=& \sem{N}~(\gamma, \sem{M}~\gamma)
+  \end{eqns}
+\end{displaymath}
+
+Each constant $c$ must be given a semantics independent of
+context.\fixmeBA{spell this out}
+
+\subsection{Usage Semantics}
+
+The refinement usage annotations provide on top of this is a Kripke-indexed
+logical relation $\sem{A}^R : \mathcal{W}^{op} \to \operatorname{Rel}\sem{A}$
+for each type $A$.
+$\mathcal{W}$ is assumed to be a symmetric monoidal category.\fixmeBA{pre-ordered set, and explain what `op' means}.
+
+\fixmeBA{We are interested in worlds because it allows us to track how
+  resources affect the meanings of types; we are interested in
+  relations because it allows us to control, via the types, what
+  observations a program can make about the underlying data.}
+
+\subsubsection{Worlds}
+
+Inspired by modal logic \fixme{ref}, our relational semantics assumes a category
+of worlds $\mathcal W$.
+The world keeps track of what resources we have allocated to which parts of the
+program.
+To this end, we need some way of dividing a world into finitely many parts.
+The stipulation that $\mathcal W$ is a \emph{symmetric monoidal}
+category provides us with this.
+
+This gives a semantic counterpart to tensor products.
+
+\fixmeBA{intuitively: the elements of $\mathcal W$ determine the
+  resources that we are talking about, the pre-order determines a
+  notion of ``swappability'', and the monoidal product determines what
+  it means for two resources to be combined.}
+
+\fixmeBA{Can we get away with only requiring a monoidal pre-ordered
+  set here? I think so...}
+
+\fixmeBA{note that in the pre-ordered case, we have more wiggle room
+  for what commutative means...}
+
+\begin{example}[Trivial]
+  The one element pre-ordered set $\{*\}$, with $* \leq *$ and
+  $* \otimes * = *$ gives a ``track nothing'' semantics of
+  resources. \fixmeBA{fwd ref the where this is used.}
+\end{example}
+
+\newcommand{\append}{\mathop{++}}
+
+\begin{example}[Lists and Permutations]
+  Let $K$ be some set of values that will be used as keys for
+  sorting. Define $\mathcal{P}_K$ to be the pre-ordered set consisting
+  of lists of elements of $K$, with $l_1 \leq l_2$ exactly when $l_1$
+  is a permutation of $l_2$. The monoidal product is defined to be
+  list concatenation: $l_1 \otimes l_2 = l_1 \append l_2$, with the
+  empty list as the monoidal unit.
+
+  \fixmeBA{explain the interpretation of the base type of keys}
+
+  \fixmeBA{explain how this will be used in the $\{0,1,\omega\}$ example.}
+\end{example}
+
+\begin{example}[Security Principals]
+  Lattice of sets of names of principals. In terms of resources, this
+  can be thought of as the collection of principals that are ``happy''
+  with this computation. \fixmeBA{still need to fully work out this
+    example}
+\end{example}
+
+\begin{example}[Distances]
+  Positive real numbers, with addition.
+\end{example}
+
+\subsubsection{Interpretation of $\multimap$ and $\otimes$}
+
+Given a preorder of semantic resources
+$(\mathcal{W}, \leq, \otimes, I)$, we have enough structure to
+interpret the function types ($\fun{A}{B}$) and tensor product types
+($\tensor{A}{B}$) of \name{}. If we assume we are given semantic
+interpretations
+$\sem{A}^R : \mathcal{W}^{op} \to \operatorname{Rel}{\sem{A}}$ and
+respectively for $B$, then we define the interpretations
+$\sem{\fun{A}{B}}^R$, $\sem{\tensor{A}{B}}^R$, and
+$\sem{\tensorOne}^R$ as follows:
+\begin{displaymath}
+  \begin{array}{rllcl}
+    \sem{\fun{A}{B}}^R & w & (f,f')
+    &\iff& \forall x. \forall a,a'.\sem{A}^Rx~(a,a')
+           \Rightarrow \sem{B}^R(w \otimes x)~(f~a,f'~a')
+    \\
+    \sem{\tensor{A}{B}}^R & w & ((a,b),(a',b'))
+    &\iff& \exists x,y.
+           w = x \otimes y
+           \wedge \sem{A}^Rx~(a,a')
+           \wedge \sem{B}^Ry~(b,b')
+    \\
+    \sem{\tensorOne}^R & w & (*,*) &\iff& w \leq I
+  \end{array}
+\end{displaymath}
+
+\fixmeBA{this is the ``convolution monoidal product'' or the ``day
+  tensor product'' specialised to our situation.}
+
+\fixmeBA{Spell out what this means in terms of (a) permutations, and
+  (b) distances. Also point out what happens when the monoidal product
+  is actually a join}
+
+\subsubsection{Interpretation of lists}
+
+As mentioned in section XXX, we effectively treat lists as tensored
+together. \fixmeBA{spell out what this entails, and relate it to the
+  permutations example}
+
+\subsubsection{Interpretation of $\excl{\rho}{}$}
+
+The choice of interpretation of $\excl{\rho}{}$ links the usage
+annotations present in \name{}'s typing contexts to the semantics.
+
+\begin{example}[Trivial]
+  The identity
+\end{example}
+
+\begin{example}[Linear Types]
+  $0$ is the identifies everything and forces the resource to be $I$;
+  $1$ is the identity; and $\omega$ forces the resource to be
+  duplicable.
+\end{example}
+
+\begin{example}[Monotonicity Annotations]
+  describe this...
+\end{example}
+
+\begin{example}[Distances]
+  Merp
+\end{example}
+
+\subsubsection{Interpretation of the additives: $\with$ and $\oplus$}
+
+Copy the clauses from below.
+
+\begin{displaymath}
+  \begin{array}{rllcl}
+    \sem{\withTOne}^R & w & (*,*) &\iff& \top \\
+    \sem{\withT{A}{B}}^R & w & ((a,b),(a',b')) &\iff&
+    \sem{A}^R~w~(a,a') \wedge \sem{B}^R~w~(b,b') \\
+    \sem{\sumT{A}{B}}^R & w & (\operatorname{inl} a,\operatorname{inl} a')
+                               &\iff& \sem{A}^R~w~(a,a') \\
+    \sem{\sumT{A}{B}}^R & w & (\operatorname{inr} b,\operatorname{inr} b')
+                               &\iff& \sem{B}^R~w~(b,b') \\
+  \end{array}
+\end{displaymath}
+
+
+\subsubsection{Assignment of Relations to Types}
+
+Let $\left| X \right|$ be the proposition that the set $X$ is
+inhabited.\fixmeBA{don't need this if we're just using a preorder.}
+
+\fixmeBA{put these in a figure to summarise them, and merge this
+  section with the one on the fundamental lemma}
+
+\begin{displaymath}
+  \begin{array}{rllcl}
+    \sem{\base}^R & w & (c,c') &\iff& R_\base~w~(c,c') \\
+    \sem{\fun{A}{B}}^R & w & (f,f')
+                               &\iff& \forall x,y.~
+                                 \left| \mathcal W(x, y \otimes w) \right|
+                                 \Rightarrow \\
+    &&&& \forall a,a'.~\sem{A}^R~y~(a,a')
+                                 \Rightarrow \sem{B}^R~x~(f~a,f'~a') \\
+    \sem{\excl{\rho}{A}}^R & w & (a,a') &\iff& \oc_\rho \sem{A}^R~w~(a,a') \\
+    \sem{\tensorOne}^R & w & (*,*) &\iff& \left|\mathcal W(w, I)\right| \\
+    \sem{\tensor{A}{B}}^R & w & ((a,b),(a',b'))
+                               &\iff& \exists x,y.~
+                                 \left| \mathcal W(w, x \otimes y) \right|
+                                 \wedge \sem{A}^R~x~(a,a')
+                                 \wedge \sem{B}^R~y~(b,b') \\
+    \sem{\withTOne}^R & w & (*,*) &\iff& \top \\
+    \sem{\withT{A}{B}}^R & w & ((a,b),(a',b')) &\iff&
+    \sem{A}^R~w~(a,a') \wedge \sem{B}^R~w~(b,b') \\
+    \sem{\sumT{A}{B}}^R & w & (\operatorname{inl} a,\operatorname{inl} a')
+                               &\iff& \sem{A}^R~w~(a,a') \\
+    \sem{\sumT{A}{B}}^R & w & (\operatorname{inr} b,\operatorname{inr} b')
+                               &\iff& \sem{B}^R~w~(b,b') \\
+  \end{array}
+\end{displaymath}
+
+Type-and-resourcing contexts $\ctx{\Gamma}{R}$ are interpreted as
+tensor products of banged points.\fixmeBA{spell this out, and don't use ``points''}
+
+\begin{displaymath}
+ \begin{eqns}
+   \sem{\ctx{\cdot}{\cdot}}^R~w~(*,*) &=& \mathcal W(w, I) \\
+   \sem{\ctx{\Gamma}{R}, \ctxvar{x}{A}{\rho}}^R~w
+   ~((\gamma,a), (\gamma',a')) &=& 
+ \end{eqns}
+ % \sem{\ctxvar{x_1}{A_1}{\rho_1}, \ldots \ctxvar{x_n}{A_n}{\rho_n}} \coloneqq
+\end{displaymath}
+
+\subsubsection{Semantic Soundness}
+
+We now give the fundamental semantic soundness result for \name{},
+that states that the set-theoretic interpretation of every term
+(\autoref{sec:set-interp}) preserves the Kripke relational semantics
+of contexts and types described above. The proof of this theorem
+proceeds by induction on the typing derivation, and has been
+formalised in Agda \autoref{sec:agda-formalisation}.
+
+\begin{theorem}
+  If $\ctx{\Gamma}{R} \vdash t : T$, then for all worlds $w$ and
+  context interpretations $\gamma, \gamma' \in \sem{\Gamma}$, we have:
+  \begin{displaymath}
+    \sem{\ctx{\Gamma}{R}}^R w~(\gamma, \gamma') \implies \sem{T}^R w~(\sem{t}\gamma, \sem{t}\gamma')
+  \end{displaymath}
+\end{theorem}
+
+In the very general setting of this section, it is difficult to see
+the significance of this result. In the next section, we will
+specialise to instantiations of \name{} with specific usage
+semirings and specific semantic settings, which will allow us to
+derive concrete semantic results of interest.
+
+
+% Local Variables:
+% TeX-master: "quantitative"
+% End:

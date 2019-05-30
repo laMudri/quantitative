@@ -1,0 +1,103 @@
+% This is samplepaper.tex, a sample chapter demonstrating the
+% LLNCS macro package for Springer Computer Science proceedings;
+% Version 2.20 of 2017/10/04
+%
+\documentclass[runningheads]{llncs}
+%
+\usepackage{graphicx}
+% Used for displaying a sample figure. If possible, figure files should
+% be included in EPS format.
+
+\usepackage{stmaryrd}
+\usepackage{mathpartir}
+\usepackage{amssymb}
+\usepackage{cmll}
+\usepackage{xcolor}
+\usepackage{paralist}
+\usepackage{amsmath}
+\usepackage{mathrsfs}
+\usepackage{mathtools}
+\usepackage{multirow}
+\usepackage{relsize}
+\usepackage{tabularx}
+\usepackage{tikz-cd}
+
+\usetikzlibrary{arrows}
+
+\usepackage{hyperref}
+\renewcommand\UrlFont{\color{blue}\rmfamily}
+
+\def\newelims{1}
+\def\multnotation{1}
+\input{../macros.tex}
+
+\newcommand{\lemref}[1]{\hyperref[#1]{Lemma \ref*{#1}}}
+\newcommand{\exref}[1]{\hyperref[#1]{Example \ref*{#1}}}
+\newcommand{\judgeref}[1]{\hyperref[#1]{Judgement \ref*{#1}}}
+\newcommand{\propref}[1]{\hyperref[#1]{Proposition \ref*{#1}}}
+\newcommand{\diagref}[1]{\hyperref[#1]{Diagram \ref*{#1}}}
+\newcommand{\thmref}[1]{\hyperref[#1]{Theorem \ref*{#1}}}
+\newcommand{\defref}[1]{\hyperref[#1]{Definition \ref*{#1}}}
+
+\begin{document}
+%
+\title{A Relational Semantics for a Repertoire of Resourced Calculi
+  \thanks{James Wood is supported by an EPSRC Studentship.}}
+%
+%\titlerunning{Abbreviated paper title}
+% If the paper title is too long for the running head, you can set
+% an abbreviated paper title here
+%
+\author{Robert Atkey\inst{1}\orcidID{0000-1111-2222-3333} \and
+  James Wood\inst{1}\orcidID{1111-2222-3333-4444}}
+%
+\authorrunning{R. Atkey, J. Wood}
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+%
+\institute{University of Strathclyde, Glasgow, G1 1XQ, United Kingdom
+\email{\{robert.atkey,james.wood.100\}@strath.ac.uk}\\
+\url{https://www.strath.ac.uk/}}
+%
+\maketitle              % typeset the header of the contribution
+%
+\begin{abstract}
+The abstract should briefly summarize the contents of the paper in
+150--250 words.
+
+\keywords{First keyword  \and Second keyword \and Another keyword.}
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+\input{introduction}
+
+\section{Motivation}
+\label{sec:motivation}
+\input{motivation}
+
+\section{Syntax}
+\label{sec:syntax}
+\input{syntax}
+
+\section{Semantics}
+\label{sec:semantics}
+\input{semantics}
+
+\section{Instantiations}
+\label{sec:instantiations}
+\input{instantiations}
+
+\section{Conclusions}
+\label{sec:future-work}
+\input{future-work}
+%
+% ---- Bibliography ----
+%
+% BibTeX users should specify bibliography style 'splncs04'.
+% References will then be sorted and formatted in the correct style.
+
+\bibliographystyle{splncs04}
+\bibliography{quantitative}
+
+\end{document}
