@@ -1,4 +1,36 @@
-In normal typed $\lambda$-calculi, variables may be used multiple
+When verifying functional programs in a dependently typed programming language,
+we often end up writing a program twice --- once to implement the program we
+want to run, and once to prove a simple property of the program.
+A standard example of this is proving that a sorting function is a permutation.
+Below we have the $\textrm{sort}$ function, defined idiomatically by iteration,
+and a conventional proof $\textrm{sort-perm}$ showing that it is a permutation.
+We assume an $\textrm{insert}$ function, and proof $\textrm{insert-perm} :
+\forall x,\mathit{xs}.~\textrm{insert}~x~xs \simeq x :: xs$.
+
+\[
+  \begin{array}{ll}
+    \begin{array}[t]{l}
+      \textrm{sort} : \textrm{List}~A \to \textrm{List}~A \\
+      \textrm{sort} = \textrm{foldr}~[]~\textrm{insert}
+    \end{array}
+    \quad & \quad
+      \begin{array}[t]{l}
+        \textrm{sort-perm} : \forall\mathit{xs}.~\textrm{sort}~\mathit{xs} \simeq \mathit{xs} \\
+        \textrm{sort-perm}~[] = [] \\
+        \textrm{sort-perm}~(x :: \mathit{xs}) = \\
+        \quad \textrm{insert-perm}~x~(\textrm{sort}~\mathit{xs}) \\
+        \quad {}\bullet (x :: \textrm{sort-perm}~\mathit{xs})
+      \end{array}
+  \end{array}
+\]
+
+This proof is slightly tricky, but it is proving something obvious.
+The $\textrm{insert}$ function never drops or duplicates its inputs into the
+output, so it is obviously a permutation, and $\textrm{sort}$ is only made up of
+functions that do no dropping or duplicating, so is also a permutation.
+The aim of this paper is to make observations like this formal.
+
+\fixme{Old stuff} In normal typed $\lambda$-calculi, variables may be used multiple
 times, in multiple contexts, for multiple reasons, as long as the
 types agree. The disciplines of linear types \cite{girard87linear} and
 coeffects \cite{PetricekOM14,BrunelGMZ14,GhicaS14} refine this by
