@@ -23,6 +23,8 @@
 % Beamer hacks
 
 \makeatletter
+\newcommand{\subst}[2][]{\ext@arrow 0359\Rightarrowfill@{#1}{#2}}
+
 % Detect mode. mathpalette is used to detect the used math style
 \newcommand<>\Alt[2]{%
   \begingroup
@@ -99,11 +101,11 @@
     \setbeamercovered{transparent}
     \begin{enumerate}
     \item<7-> $\ctxvar{x}{A}{1}, \ctxvar{y}{B}{0} \vdash x : A$ (linearity)
+    %\item<8-> $\ctxvar{x}{\mathbb Z}{\uparrow}, \ctxvar{y}{\mathbb Z}{\downarrow}
+    %  \vdash \bang y : \excl{\downarrow}{\mathbb Z}$ (monotonicity)
     \item<8-> $\ctxvar{x}{\mathbb Z}{\uparrow}, \ctxvar{y}{\mathbb Z}{\downarrow}
-      \vdash \bang y : \excl{\downarrow}{\mathbb Z}$ (monotonicity)
-    \item<9-> $\ctxvar{x}{\mathbb Z}{\uparrow}, \ctxvar{y}{\mathbb Z}{\downarrow}
       \vdash x - \bang y : \mathbb Z$ (monotonicity)
-    \item<10-> $\ctxvar{x}{\mathrm{Secret}}{\mathrm{prv}}
+    \item<9-> $\ctxvar{x}{\mathrm{Secret}}{\mathrm{prv}}
       \nvdash \_ : \excl{\mathrm{pub}}{\mathrm{Secret}}$ (privacy)
     \end{enumerate}
   \end{itemize}
@@ -112,7 +114,6 @@
 \begin{frame}
   \frametitle{What's happening?}
   \begin{mathpar}
-    % \begin{tabular}{cc}
     \onslide<1,5>{
       % Sharing
       \inferrule*[right=$\&$-I]
@@ -136,28 +137,30 @@
       % Scaling
       \inferrule*[right=$\excl{\rho}{}$-I]
       {\ctx{\Gamma}{P} \vdash M : A
-        \\\\ \subrctx{\rescomment \rho * \resctx P}{\resctx R}
+        \\\\ \subrctx{\rescomment \rho \resctx P}{\resctx R}
       }
       {\ctx{\Gamma}{R} \vdash \bang{M} : \excl{\rho}{A}}
     }
     \and
     \onslide<4,5>{
       % Binding
-      \inferrule*[right=$\excl{\rho}{}$-E]
-      {\ctx{\Gamma}{P} \vdash M : \excl{\rho}{A}
-        \\\\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{\rho} \vdash N : B
-        \\\\ \subrctx{\resctx P + \resctx Q}{\resctx R}
-      }
-      {\ctx{\Gamma}{R} \vdash \bm{B}{M}{x}{N} : B}
+      %\inferrule*[right=$\excl{\rho}{}$-E]
+      %{\ctx{\Gamma}{P} \vdash M : \excl{\rho}{A}
+      %  \\\\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{\rho} \vdash N : B
+      %  \\\\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+      %}
+      %{\ctx{\Gamma}{R} \vdash \bm{B}{M}{x}{N} : B}
+      \inferrule*[right=$\to$-I]
+      {\ctx{\Gamma}{R}, \ctxvar{x}{A}{\rho} \vdash M : B}
+      {\ctx{\Gamma}{R} \vdash \lam{x}{M} : \rescomment\rho A \to B}
     }
-    % \end{tabular}
   \end{mathpar}
 \end{frame}
 \setbeamercovered{invisible}
 \begin{frame}
   \frametitle{Substitution}
     \[
-      \inferrule*[right=Subst]
+      \inferrule*[lab=Subst]
       {\ctx{\Gamma}{\uncover<2->{P}} \vdash M : A
         \\ {\begin{pmatrix}
             \rescomment{\uncover<2->{\Alt<-3>{\resctx Q}{\Alt<4>{\wn}{S_1}}}}\Delta
@@ -166,7 +169,7 @@
             \rescomment{\uncover<2->{\Alt<-3>{\resctx Q}{\Alt<4>{\wn}{S_m}}}}\Delta
             \vdash N_m : \Gamma_m
           \end{pmatrix}}}
-      {\ctx{\Delta}{\uncover<2->{Q}} \vdash M[N] : A}
+      {\ctx{\Delta}{\uncover<2->{Q}} \vdash M\{N\} : A}
     \]
   \begin{itemize}
   \item<3->
@@ -196,14 +199,14 @@
 \begin{frame}
   \frametitle{Substitution, stripped down}
     \[
-      \inferrule*[right=Subst]
+      \inferrule*[lab=Subst]
       {\alt<-2>{\resctx P}{\rescomment{\pi_1}x_1, \ldots, \rescomment{\pi_m}x_m}\only<1>\Gamma \vdash M \only<1>{: A}
         \\ {\begin{pmatrix}
             \alt<-2>{\rescomment{S_1}}{\rescomment{\sigma_{1,1}}y_1, \ldots, \rescomment{\sigma_{1,n}}y_n}\only<1>\Delta \vdash N_1 \only<1>{: \Gamma_1} \\
             \vdots \\
             \alt<-2>{\rescomment{S_m}}{\rescomment{\sigma_{m,1}}y_1, \ldots, \rescomment{\sigma_{m,n}}y_n}\only<1>\Delta \vdash N_m \only<1>{: \Gamma_m} \\
           \end{pmatrix}}}
-      {\alt<-2>{\resctx Q}{\rescomment{\rho_1}y_1, \ldots, \rescomment{\rho_n}y_n}\only<1>\Delta \vdash M[N] \only<1>{: A}}
+      {\alt<-2>{\resctx Q}{\rescomment{\rho_1}y_1, \ldots, \rescomment{\rho_n}y_n}\only<1>\Delta \vdash M\{N\} \only<1>{: A}}
     \]
   \begin{itemize}
   \item
@@ -234,7 +237,7 @@
   \begin{itemize}
   \item Notation: $\rescomment 1x$ is the basis vector at $x$
   \item A simultaneous substitution
-    $\ctx{\Gamma}{P} \Rightarrow \ctx{\Delta}{Q}$ is:
+    $\ctx{\Delta}{Q} \subst{} \ctx{\Gamma}{P}$ is:
     \begin{itemize}
     \item A $\left| \resctx P \right|$-by-$\left| \resctx Q \right|$ matrix
       $\rescomment S$, such that
@@ -243,6 +246,215 @@
     \item $\resctx P \rescomment S \subres \resctx Q$
     \end{itemize}
   \end{itemize}
+\end{frame}
+\setbeamercovered{transparent}
+\begin{frame}
+  \frametitle{Substitution on \TirName{$\&$-I}}
+  \[
+    \inferrule*[right=Subst]{
+      \inferrule*[right=$\&$-I]
+      {\ctx{\Gamma}{P} \vdash M : A
+        \\ \ctx{\Gamma}{P} \vdash N : B
+      }
+      {\ctx{\Gamma}{P} \vdash \wth{M}{N} : \withT{A}{B}}
+      \\
+      \ctx{\Delta}{Q} \subst{\sigma} \ctx{\Gamma}{P}
+    }
+    {\ctx{\Delta}{Q} \vdash \wth{M\{\sigma\}}{N\{\sigma\}} : \withT{A}{B}}
+  \]
+  \pause
+  \[
+    \inferrule*[right=$\&$-I]
+    {
+      \inferrule*[right=Subst]
+      {
+        \ctx{\Gamma}{P} \vdash M : A
+        \\\\
+        \ctx{\Delta}{Q} \subst{\sigma} \ctx{\Gamma}{P}
+      }
+      {\ctx{\Delta}{Q} \vdash M\{\sigma\} : A}
+      \\
+      \inferrule*[Right=Subst]
+      {
+        \ctx{\Gamma}{P} \vdash N : B
+        \\\\
+        \ctx{\Delta}{Q} \subst{\sigma} \ctx{\Gamma}{P}
+      }
+      {\ctx{\Delta}{Q} \vdash N\{\sigma\} : B}
+    }
+    {\ctx{\Delta}{Q} \vdash \wth{M\{\sigma\}}{N\{\sigma\}} : \withT{A}{B}}
+  \]
+\end{frame}
+\begin{frame}
+  \frametitle{Substitution on \TirName{$\otimes$-I}}
+  \[
+    \inferrule*[right=Subst]{
+      \inferrule*[right=$\otimes$-I]
+      {\ctx{\Gamma}{P} \vdash M : A
+        \\ \ctx{\Gamma}{Q} \vdash N : B
+        \\\\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+      }
+      {\ctx{\Gamma}{R} \vdash \ten{M}{N} : \tensor{A}{B}}
+      \\
+      \ctx{\Delta}{R'} \subst{\sigma} \ctx{\Gamma}{R}
+    }
+    {\ctx{\Delta}{R'} \vdash \ten{M\{\sigma\}}{N\{\sigma\}} : \tensor{A}{B}}
+  \]
+  \pause
+  \begin{displaymath}
+    \begin{matrix}
+      \resctx{P'} := \resctx P \rescomment S &
+      \resctx{Q'} := \resctx Q \rescomment S \\
+      \ctx{\Delta}{P'} \subst{\sigma} \ctx{\Gamma}{P} &
+      \ctx{\Delta}{Q'} \subst{\sigma} \ctx{\Gamma}{Q}
+    \end{matrix}
+  \end{displaymath}
+  \pause
+  \begin{displaymath}
+    \resctx{P'} + \resctx{Q'}
+    \uncover<1-2,4->{= \resctx P \rescomment S + \resctx Q \rescomment S}
+    \uncover<1-2,5->{= (\resctx P + \resctx Q) \rescomment S}
+    \uncover<1-2,6->{\subres \resctx R \rescomment S}
+    \uncover<1-2,3,7>{\subres \resctx{R'}}
+  \end{displaymath}
+  \[
+    \inferrule*[right=$\otimes$-I]
+    {\ctx{\Delta}{P'} \vdash M\{\sigma\} : A
+      \\ \ctx{\Delta}{Q'} \vdash N\{\sigma\} : B
+      \\ \subrctx{\resctx{P'} + \resctx{Q'}}{\resctx{R'}}
+    }
+    {\ctx{\Delta}{R'} \vdash \ten{M\{\sigma\}}{N\{\sigma\}} : \tensor{A}{B}}
+  \]
+\end{frame}
+\begin{frame}
+  \frametitle{Substitution on \TirName{$\oc_{\rescomment\rho}$-I}}
+  \[
+    \inferrule*[right=Subst]{
+      \inferrule*[right=$\oc_{\rescomment\rho}$-I]
+      {\ctx{\Gamma}{P} \vdash M : A
+        \\ \subrctx{\rescomment \rho \resctx P}{\resctx R}
+      }
+      {\ctx{\Gamma}{R} \vdash \bang{M} : \excl{\rho}{A}}
+      \\
+      \ctx{\Delta}{R'} \subst{\sigma} \ctx{\Gamma}{R}
+    }
+    {\ctx{\Delta}{R'} \vdash \bang{M\{\sigma\}} : \excl{\rho}{A}}
+  \]
+  \pause
+  \begin{displaymath}
+    \begin{matrix}
+      \resctx{P'} := \resctx P \rescomment S \\
+      \ctx{\Delta}{P'} \subst{\sigma} \ctx{\Gamma}{P}
+    \end{matrix}
+  \end{displaymath}
+  \pause
+  \begin{displaymath}
+    \rescomment \rho \resctx{P'}
+    = \rescomment \rho (\resctx P \rescomment S)
+    = (\rescomment \rho \resctx P) \rescomment S
+    \subres \resctx R \rescomment S
+    \subres \resctx{R'}
+  \end{displaymath}
+  \[
+    \inferrule*[right=$\oc_{\rescomment\rho}$-I]
+    {\ctx{\Delta}{P'} \vdash M\{\sigma\} : A
+      \\ \subrctx{\rescomment \rho \resctx{P'}}{\resctx{R'}}
+    }
+    {\ctx{\Delta}{R'} \vdash \bang{M\{\sigma\}} : \excl{\rho}{A}}
+  \]
+\end{frame}
+\begin{frame}
+  \frametitle{Substitution on \TirName{$\to$-I}}
+  \[
+    \inferrule*[right=Subst]{
+      \inferrule*[right=$\to$-I]
+      {\ctx{\Gamma}{R}, \ctxvar{x}{A}{\rho} \vdash M : B}
+      {\ctx{\Gamma}{R} \vdash \lam{x}{M} : \rescomment\rho A \to B}
+      \\
+      \ctx{\Delta}{R'} \subst{\sigma} \ctx{\Gamma}{R}
+    }
+    {\ctx{\Delta}{R'} \vdash \lam{x}{M\{\sigma,x \mapsto x\}}
+      : \rescomment\rho A \to B}
+  \]
+  \pause
+  \begin{mathpar}
+    \rescomment{S'} := \begin{pmatrix}
+      & & & \rescomment 0 \\
+      & \rescomment S & & \vdots \\
+      & & & \rescomment 0 \\
+      \rescomment 0 & \cdots & \rescomment 0 & \rescomment 1
+    \end{pmatrix}
+    \and
+    \begin{pmatrix}\resctx R & \rescomment\rho\end{pmatrix}\rescomment{S'}
+    = \begin{pmatrix}\resctx{R'} & \rescomment\rho\end{pmatrix}
+  \end{mathpar}
+  \pause
+  \[
+    \forall(z : C) \in \Gamma, x : A.~\exists N_z.~
+    (\rescomment 1z\rescomment{S'})\Delta \vdash N_z : C
+  \]
+  \pause
+  Cases:
+  \begin{itemize}
+  \item
+    $
+    \forall(z : C) \in \Gamma.~\exists N_z.~
+    (\rescomment 1z\rescomment{S}) \Delta, \ctxvar{x}{A}{0} \vdash N_z : C
+    $
+  \item
+    $
+    \begin{pmatrix}\rescomment 0 & \cdots & \rescomment 0\end{pmatrix} \Delta,
+    \ctxvar{x}{A}{1} \vdash x : A
+    $
+  \end{itemize}
+\end{frame}
+\begin{frame}[plain]
+  \frametitle{Thank you}
+  Questions?
+\end{frame}
+\begin{frame}
+  \frametitle{Substitution on \TirName{Var}}
+  \[
+    \inferrule*[right=Subst]{
+      \inferrule*[right=Var]
+      {(x : A) \in \Gamma \\ \rescomment 1x \subres \resctx R}
+      {\ctx{\Gamma}{R} \vdash x : A}
+      \\
+      \ctx{\Delta}{R'} \subst{\sigma} \ctx{\Gamma}{R}
+    }
+    {\ctx{\Delta}{R'} \vdash \sigma_x : A}
+  \]
+  \begin{displaymath}
+    \rescomment 1x \rescomment S
+    \subres \resctx R \rescomment S
+    \subres \resctx{R'}
+  \end{displaymath}
+  From $\sigma$, we have
+  $(\rescomment 1x\rescomment S)\Delta \vdash \sigma_x : A$. 
+\end{frame}
+\begin{frame}
+  \frametitle{Single substitution}
+  \[
+    \inferrule*[right=SingleSubst]{
+      \ctx{\Gamma}{P}, \ctxvar{x}{A}{\rho} \vdash M : B
+      \\ \ctx{\Gamma}{Q} \vdash N : A
+    }
+    {(\resctx P + \rescomment\rho\resctx Q)\Gamma \vdash M[N/x]}
+  \]
+  \[
+    \resctx P + \rescomment\rho\resctx Q \subst{[N/x]} \resctx P, \rescomment\rho x
+  \]
+  Need $\begin{pmatrix}\resctx P & \rescomment\rho\end{pmatrix}\rescomment S
+  \subres \resctx P + \rescomment\rho\resctx Q$
+  \[
+    S := \begin{pmatrix}
+      \rescomment 1 & \rescomment 0 & \cdots & \rescomment 0 \\
+      \rescomment 0 & \rescomment 1 & \cdots & \rescomment 0 \\
+      \vdots & \vdots & \ddots & \vdots \\
+      \rescomment 0 & \rescomment 0 & \cdots & \rescomment 1 \\
+      \resctx Q_1 & \resctx Q_2 & \cdots & \resctx Q_n
+    \end{pmatrix}
+  \]
 \end{frame}
 
 \end{document}
