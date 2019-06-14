@@ -6,11 +6,13 @@
 \usepackage{stmaryrd}
 \usepackage{mathpartir}
 \usepackage{amssymb}
+\usepackage{mathrsfs}
 \usepackage{cmll}
 \usepackage{xcolor}
 \usepackage{makecell}
 \usepackage{tikz-cd}
 \usepackage{nccmath}
+\usepackage{mathtools}
 
 \usetikzlibrary{positioning}
 % \usetikzlibrary{decorations.markings}
@@ -19,55 +21,12 @@
 \def\newelims{1}
 \def\multnotation{1}
 \input{../macros.tex}
+\newcommand{\aval}[1]{\rescomment{\mathrm{#1}}}
 
 % Beamer hacks
 
 \makeatletter
-% Detect mode. mathpalette is used to detect the used math style
-\newcommand<>\Alt[2]{%
-  \begingroup
-  \ifmmode
-  \expandafter\mathpalette
-  \expandafter\math@Alt
-  \else
-  \expandafter\make@Alt
-  \fi
-  {{#1}{#2}{#3}}%
-  \endgroup
-}
-
-% Un-brace the second argument (required because \mathpalette reads the three arguments as one
-\newcommand\math@Alt[2]{\math@@Alt{#1}#2}
-
-% Set the two arguments in boxes. The math style is given by #1. \m@th sets \mathsurround to 0.
-\newcommand\math@@Alt[3]{%
-  \setbox\z@ \hbox{$\m@th #1{#2}$}%
-  \setbox\@ne\hbox{$\m@th #1{#3}$}%
-  \@Alt
-}
-
-% Un-brace the argument
-\newcommand\make@Alt[1]{\make@@Alt#1}
-
-% Set the two arguments into normal boxes
-\newcommand\make@@Alt[2]{%
-  \sbox\z@ {#1}%
-  \sbox\@ne{#2}%
-  \@Alt
-}
-
-% Place one of the two boxes using \rlap and place a \phantom box with the maximum of the two boxes
-\newcommand\@Alt[1]{%
-  \alt#1%
-  {\rlap{\usebox0}}%
-  {\rlap{\usebox1}}%
-  \setbox\tw@\null
-  \ht\tw@\ifnum\ht\z@>\ht\@ne\ht\z@\else\ht\@ne\fi
-  \dp\tw@\ifnum\dp\z@>\dp\@ne\dp\z@\else\dp\@ne\fi
-  \wd\tw@\ifnum\wd\z@>\wd\@ne\wd\z@\else\wd\@ne\fi
-  \box\tw@
-}
-
+\newcommand{\subst}[2][]{\ext@arrow 0359\Rightarrowfill@{#1}{#2}}
 \makeatother
 
 \title{Linear metatheory via linear algebra}
@@ -95,24 +54,88 @@
         \ctxvar{y}{B}{\uncover<5->{\pi}}, \ldots,
         \ctxvar{x_n}{A_n}{\uncover<5->{\rho_n}} \vdash y : B}
     \]
-  \item<6-> Examples:
+  \item<6-> Weakening admissible at $\rescomment 0$ demand:
+    \[
+      \inferrule*[right=Weak]
+      {\ctx{\Gamma}{P} \vdash M : A
+        \\ \rescomment{\vec 0} \subres \resctx Q
+      }
+      {\ctx{\Gamma}{P}, \ctx{\Delta}{Q} \vdash M : A}
+    \]
+  \item<7-> Examples:
     \setbeamercovered{transparent}
     \begin{enumerate}
-    \item<7-> $\ctxvar{x}{A}{1}, \ctxvar{y}{B}{0} \vdash x : A$ (linearity)
-    \item<8-> $\ctxvar{x}{\mathbb Z}{\uparrow}, \ctxvar{y}{\mathbb Z}{\downarrow}
-      \vdash \bang y : \excl{\downarrow}{\mathbb Z}$ (monotonicity)
+    \item<8-> $\ctxvar{x}{A}{1}, \ctxvar{y}{B}{0} \vdash x : A$
+      (linearity; DILL from Bar96)
     \item<9-> $\ctxvar{x}{\mathbb Z}{\uparrow}, \ctxvar{y}{\mathbb Z}{\downarrow}
-      \vdash x - \bang y : \mathbb Z$ (monotonicity)
+      \vdash x - y : \mathbb Z$ (monotonicity; Arntzenius)
     \item<10-> $\ctxvar{x}{\mathrm{Secret}}{\mathrm{prv}}
-      \nvdash \_ : \excl{\mathrm{pub}}{\mathrm{Secret}}$ (privacy)
+      \nvdash \_ : \excl{\mathrm{pub}}{\mathrm{Secret}}$
+      (privacy; DCC from ABHR99)
     \end{enumerate}
+  \item<7-> Other related work: PD99; RP10; POM14; GS14; BGMZ14;
+    the Granule project
   \end{itemize}
 \end{frame}
+\setbeamercovered{invisible}
+\begin{frame}
+  \frametitle{Annotation posemiring}
+  \begin{itemize}
+  \item \rescomment{Annotations} form a partially ordered semiring.
+  \item A \emph{partially ordered semiring}
+    $(\mathscr R, \subres, 0, +, 1, \cdot)$ is:
+    \begin{itemize}
+    \item A \emph{partial order} $(\mathscr R, \subres)$
+    \item A \emph{semiring} $(\mathscr R, 0, +, 1, \cdot)$, which is:
+      \begin{itemize}
+      \item A \emph{commutative monoid} $(\mathscr R , 0, +)$
+      \item A \emph{monoid} $(\mathscr R , 1, \cdot)$
+      \item Such that $\cdot$ distributes over $0$ and $+$ on both sides
+      \end{itemize}
+    \item Such that $+$ and $\cdot$ are both monotonic in both arguments
+    \end{itemize}
+    \pause
+  \item Ur-example:
+    $(\rescomment{\mathbb N} \cup \{\rescomment\omega\}, \sqsupseteq,
+    \rescomment 0, +, \rescomment 1, \times)$ ``how many''
+    \begin{tikzpicture}[scale=0.75]
+      \node (omega) at (0,2) {$\rescomment\omega$};
+      \node (zero) at (-4,0) {$\rescomment 0$};
+      \node (one) at (-2,0) {$\rescomment 1$};
+      \node (mid) at (0,0) {$\cdots$};
+      \node (n) at (2,0) {$\rescomment n$};
+      \node (end) at (4,0) {$\cdots$};
+      \draw (zero) -- (omega)
+            (one) -- (omega)
+            (mid) -- (omega)
+            (n) -- (omega)
+            (end) -- (omega);
+    \end{tikzpicture}
+  \end{itemize}
+\end{frame}
+%\begin{frame}
+%  \frametitle{Non-use}
+%  \begin{displaymath}
+%    \inferrule*[right=Var]
+%    {\Gamma_x = A
+%      \\ \begin{pmatrix}
+%        \rescomment{\vec 0} & \rescomment 1x & \rescomment{\vec 0}
+%      \end{pmatrix} \subres \resctx R
+%    }
+%    {\ctx{\Gamma}{R} \vdash x : A}
+%  \end{displaymath}
+%  \begin{displaymath}
+%    \inferrule*[right=Weak]
+%    {\ctx{\Gamma}{P} \vdash M : A
+%      \\ \rescomment{\vec 0} \subres \resctx Q
+%    }
+%    {\ctx{\Gamma}{P}, \ctx{\Delta}{Q} \vdash M : A}
+%  \end{displaymath}
+%\end{frame}
 \setbeamercovered{transparent}
 \begin{frame}
-  \frametitle{What's happening?}
+  \frametitle{What are we dealing with?}
   \begin{mathpar}
-    % \begin{tabular}{cc}
     \onslide<1,5>{
       % Sharing
       \inferrule*[right=$\&$-I]
@@ -136,37 +159,40 @@
       % Scaling
       \inferrule*[right=$\excl{\rho}{}$-I]
       {\ctx{\Gamma}{P} \vdash M : A
-        \\\\ \subrctx{\rescomment \rho * \resctx P}{\resctx R}
+        \\\\ \subrctx{\rescomment \rho \resctx P}{\resctx R}
       }
       {\ctx{\Gamma}{R} \vdash \bang{M} : \excl{\rho}{A}}
     }
     \and
     \onslide<4,5>{
       % Binding
-      \inferrule*[right=$\excl{\rho}{}$-E]
-      {\ctx{\Gamma}{P} \vdash M : \excl{\rho}{A}
-        \\\\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{\rho} \vdash N : B
-        \\\\ \subrctx{\resctx P + \resctx Q}{\resctx R}
-      }
-      {\ctx{\Gamma}{R} \vdash \bm{B}{M}{x}{N} : B}
+      %\inferrule*[right=$\excl{\rho}{}$-E]
+      %{\ctx{\Gamma}{P} \vdash M : \excl{\rho}{A}
+      %  \\\\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{\rho} \vdash N : B
+      %  \\\\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+      %}
+      %{\ctx{\Gamma}{R} \vdash \bm{B}{M}{x}{N} : B}
+      \inferrule*[right=$\to$-I]
+      {\ctx{\Gamma}{R}, \ctxvar{x}{A}{\rho} \vdash M : B}
+      {\ctx{\Gamma}{R} \vdash \lam{x}{M} : \rescomment\rho A \to B}
     }
-    % \end{tabular}
   \end{mathpar}
 \end{frame}
 \setbeamercovered{invisible}
 \begin{frame}
-  \frametitle{Substitution}
+  \frametitle{Simultaneous substitution}
     \[
-      \inferrule*[right=Subst]
+      \inferrule*[lab=Subst]
       {\ctx{\Gamma}{\uncover<2->{P}} \vdash M : A
         \\ {\begin{pmatrix}
-            \rescomment{\uncover<2->{\Alt<-3>{\resctx Q}{\Alt<4>{\wn}{S_1}}}}\Delta
+            \phantom{S_1}\rescomment{\mathllap{\only<2-3>{\resctx Q}}\mathllap{\only<4>{\wn}}\mathllap{\only<5->{S_1}}}\Delta
             \vdash N_1 : \Gamma_1 \\
             \vdots \\
-            \rescomment{\uncover<2->{\Alt<-3>{\resctx Q}{\Alt<4>{\wn}{S_m}}}}\Delta
+            \phantom{S_m}\rescomment{\mathllap{\only<2-3>{\resctx Q}}\mathllap{\only<4>{\wn}}\mathllap{\only<5->{S_m}}}\Delta
+            %\rescomment{\uncover<2->{\Alt<-3>{\resctx Q}{\Alt<4>{\wn}{S_m}}}}\Delta
             \vdash N_m : \Gamma_m
           \end{pmatrix}}}
-      {\ctx{\Delta}{\uncover<2->{Q}} \vdash M[N] : A}
+      {\ctx{\Delta}{\uncover<2->{Q}} \vdash M\{\vec N\} : A}
     \]
   \begin{itemize}
   \item<3->
@@ -196,14 +222,14 @@
 \begin{frame}
   \frametitle{Substitution, stripped down}
     \[
-      \inferrule*[right=Subst]
+      \inferrule*[lab=Subst]
       {\alt<-2>{\resctx P}{\rescomment{\pi_1}x_1, \ldots, \rescomment{\pi_m}x_m}\only<1>\Gamma \vdash M \only<1>{: A}
         \\ {\begin{pmatrix}
             \alt<-2>{\rescomment{S_1}}{\rescomment{\sigma_{1,1}}y_1, \ldots, \rescomment{\sigma_{1,n}}y_n}\only<1>\Delta \vdash N_1 \only<1>{: \Gamma_1} \\
             \vdots \\
             \alt<-2>{\rescomment{S_m}}{\rescomment{\sigma_{m,1}}y_1, \ldots, \rescomment{\sigma_{m,n}}y_n}\only<1>\Delta \vdash N_m \only<1>{: \Gamma_m} \\
           \end{pmatrix}}}
-      {\alt<-2>{\resctx Q}{\rescomment{\rho_1}y_1, \ldots, \rescomment{\rho_n}y_n}\only<1>\Delta \vdash M[N] \only<1>{: A}}
+      {\alt<-2>{\resctx Q}{\rescomment{\rho_1}y_1, \ldots, \rescomment{\rho_n}y_n}\only<1>\Delta \vdash M\{\vec N\} \only<1>{: A}}
     \]
   \begin{itemize}
   \item
@@ -231,18 +257,317 @@
 \end{frame}
 \begin{frame}
   \frametitle{What is a substitution?}
+    \[
+      \inferrule*[lab=Subst]
+      {\rescomment{\pi_1}x_1, \ldots, \rescomment{\pi_m}x_m \vdash M
+        \\ {\begin{pmatrix}
+            \rescomment{\sigma_{1,1}}y_1, \ldots, \rescomment{\sigma_{1,n}}y_n \vdash N_1 \\
+            \vdots \\
+            \rescomment{\sigma_{m,1}}y_1, \ldots, \rescomment{\sigma_{m,n}}y_n \vdash N_m \\
+          \end{pmatrix}}}
+      {\rescomment{\rho_1}y_1, \ldots, \rescomment{\rho_n}y_n \vdash M\{\vec N\}}
+    \]
   \begin{itemize}
-  \item Notation: $\rescomment 1x$ is the basis vector at $x$
+  \item Notation: $\langle x \rvert$ stands for the basis vector at $x$.
   \item A simultaneous substitution
-    $\ctx{\Gamma}{P} \Rightarrow \ctx{\Delta}{Q}$ is:
+    $\ctx{\Delta}{Q} \subst{} \ctx{\Gamma}{P}$ is:
     \begin{itemize}
-    \item A $\left| \resctx P \right|$-by-$\left| \resctx Q \right|$ matrix
+    \item A $\left| \Gamma \right|$-by-$\left| \Delta \right|$ matrix
       $\rescomment S$, such that
-    \item For each $x : A$ in $\Gamma$, a term $N_x$ such that
-      $(\rescomment 1x\rescomment S)\Delta \vdash N_x : A$
+    \item For each $x : A$ in $\Gamma$, a term $N_x$ \\ such that
+      $(\langle x \rvert\rescomment S)\Delta \vdash N_x : A$
     \item $\resctx P \rescomment S \subres \resctx Q$
     \end{itemize}
   \end{itemize}
+\end{frame}
+\setbeamercovered{transparent}
+\begin{frame}
+  \frametitle{Substitution on \TirName{$\&$-I}}
+  \[
+    \inferrule*[right=Subst]{
+      \inferrule*[right=$\&$-I]
+      {\ctx{\Gamma}{P} \vdash M : A
+        \\ \ctx{\Gamma}{P} \vdash N : B
+      }
+      {\ctx{\Gamma}{P} \vdash \wth{M}{N} : \withT{A}{B}}
+      \\
+      \ctx{\Delta}{Q} \subst{\sigma} \ctx{\Gamma}{P}
+    }
+    {\ctx{\Delta}{Q} \vdash \wth{M\{\sigma\}}{N\{\sigma\}} : \withT{A}{B}}
+  \]
+  \pause
+  \[
+    \inferrule*[right=$\&$-I]
+    {
+      \inferrule*[right=Subst]
+      {
+        \ctx{\Gamma}{P} \vdash M : A
+        \\\\
+        \ctx{\Delta}{Q} \subst{\sigma} \ctx{\Gamma}{P}
+      }
+      {\ctx{\Delta}{Q} \vdash M\{\sigma\} : A}
+      \\
+      \inferrule*[Right=Subst]
+      {
+        \ctx{\Gamma}{P} \vdash N : B
+        \\\\
+        \ctx{\Delta}{Q} \subst{\sigma} \ctx{\Gamma}{P}
+      }
+      {\ctx{\Delta}{Q} \vdash N\{\sigma\} : B}
+    }
+    {\ctx{\Delta}{Q} \vdash \wth{M\{\sigma\}}{N\{\sigma\}} : \withT{A}{B}}
+  \]
+\end{frame}
+\begin{frame}
+  \frametitle{Substitution on \TirName{$\otimes$-I}}
+  \[
+    \inferrule*[right=Subst]{
+      \inferrule*[right=$\otimes$-I]
+      {\ctx{\Gamma}{P} \vdash M : A
+        \\ \ctx{\Gamma}{Q} \vdash N : B
+        \\\\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+      }
+      {\ctx{\Gamma}{R} \vdash \ten{M}{N} : \tensor{A}{B}}
+      \\
+      \ctx{\Delta}{R'} \subst{\sigma} \ctx{\Gamma}{R}
+    }
+    {\ctx{\Delta}{R'} \vdash \ten{M\{\sigma\}}{N\{\sigma\}} : \tensor{A}{B}}
+  \]
+  \pause
+  \begin{displaymath}
+    \begin{matrix}
+      \resctx{P'} := \resctx P \rescomment S &
+      \resctx{Q'} := \resctx Q \rescomment S \\
+      \ctx{\Delta}{P'} \subst{\sigma} \ctx{\Gamma}{P} &
+      \ctx{\Delta}{Q'} \subst{\sigma} \ctx{\Gamma}{Q}
+    \end{matrix}
+  \end{displaymath}
+  \pause
+  \begin{displaymath}
+    \resctx{P'} + \resctx{Q'}
+    \uncover<1-2,4->{= \resctx P \rescomment S + \resctx Q \rescomment S}
+    \uncover<1-2,5->{= (\resctx P + \resctx Q) \rescomment S}
+    \uncover<1-2,6->{\subres \resctx R \rescomment S}
+    \uncover<1-2,3,7>{\subres \resctx{R'}}
+  \end{displaymath}
+  \[
+    \inferrule*[right=$\otimes$-I]
+    {\ctx{\Delta}{P'} \vdash M\{\sigma\} : A
+      \\ \ctx{\Delta}{Q'} \vdash N\{\sigma\} : B
+      \\\\ \subrctx{\resctx{P'} + \resctx{Q'}}{\resctx{R'}}
+    }
+    {\ctx{\Delta}{R'} \vdash \ten{M\{\sigma\}}{N\{\sigma\}} : \tensor{A}{B}}
+  \]
+\end{frame}
+\begin{frame}
+  \frametitle{Substitution on \TirName{$\oc_{\rescomment\rho}$-I}}
+  \[
+    \inferrule*[right=Subst]{
+      \inferrule*[right=$\oc_{\rescomment\rho}$-I]
+      {\ctx{\Gamma}{P} \vdash M : A
+        \\ \subrctx{\rescomment \rho \resctx P}{\resctx R}
+      }
+      {\ctx{\Gamma}{R} \vdash \bang{M} : \excl{\rho}{A}}
+      \\
+      \ctx{\Delta}{R'} \subst{\sigma} \ctx{\Gamma}{R}
+    }
+    {\ctx{\Delta}{R'} \vdash \bang{M\{\sigma\}} : \excl{\rho}{A}}
+  \]
+  \pause
+  \begin{displaymath}
+    \begin{matrix}
+      \resctx{P'} := \resctx P \rescomment S \\
+      \ctx{\Delta}{P'} \subst{\sigma} \ctx{\Gamma}{P}
+    \end{matrix}
+  \end{displaymath}
+  \pause
+  \begin{displaymath}
+    \rescomment \rho \resctx{P'}
+    = \rescomment \rho (\resctx P \rescomment S)
+    = (\rescomment \rho \resctx P) \rescomment S
+    \subres \resctx R \rescomment S
+    \subres \resctx{R'}
+  \end{displaymath}
+  \[
+    \inferrule*[right=$\oc_{\rescomment\rho}$-I]
+    {\ctx{\Delta}{P'} \vdash M\{\sigma\} : A
+      \\ \subrctx{\rescomment \rho \resctx{P'}}{\resctx{R'}}
+    }
+    {\ctx{\Delta}{R'} \vdash \bang{M\{\sigma\}} : \excl{\rho}{A}}
+  \]
+\end{frame}
+\begin{frame}
+  \frametitle{Substitution on \TirName{$\to$-I}}
+  \[
+    \inferrule*[right=Subst]{
+      \inferrule*[right=$\to$-I]
+      {\ctx{\Gamma}{R}, \ctxvar{x}{A}{\rho} \vdash M : B}
+      {\ctx{\Gamma}{R} \vdash \lam{x}{M} : \rescomment\rho A \to B}
+      \\
+      \ctx{\Delta}{R'} \subst{\sigma} \ctx{\Gamma}{R}
+    }
+    {\ctx{\Delta}{R'} \vdash \lam{x}{M\{\sigma,x \mapsto x\}}
+      : \rescomment\rho A \to B}
+  \]
+  \pause
+  \begin{mathpar}
+    \rescomment{S'} := \begin{pmatrix}
+      & & & \rescomment 0 \\
+      & \rescomment S & & \vdots \\
+      & & & \rescomment 0 \\
+      \rescomment 0 & \cdots & \rescomment 0 & \rescomment 1
+    \end{pmatrix}
+    \and
+    \begin{pmatrix}\resctx R & \rescomment\rho\end{pmatrix}\rescomment{S'}
+    = \begin{pmatrix}\resctx{R'} & \rescomment\rho\end{pmatrix}
+  \end{mathpar}
+  \pause
+  \[
+    \forall(z : C) \in \Gamma, x : A.~\exists N_z.~
+    (\langle z \rvert\rescomment{S'})\Delta \vdash N_z : C
+  \]
+  \pause
+  Cases:
+  \begin{itemize}
+  \item
+    $
+    \forall(z : C) \in \Gamma.~\exists N_z.~
+    (\langle z \rvert\rescomment{S}) \Delta, \ctxvar{x}{A}{0} \vdash N_z : C
+    $
+  \item
+    $
+    \begin{pmatrix}\rescomment 0 & \cdots & \rescomment 0\end{pmatrix} \Delta,
+    \ctxvar{x}{A}{1} \vdash x : A
+    $
+  \end{itemize}
+\end{frame}
+\begin{frame}
+  \frametitle{Conclusions}
+  \begin{itemize}
+  \item A notion of substitution that remains constant, even though contexts
+    change.
+  \item Lesson: don't remove things from scope; mark them depleted
+    ($\rescomment 0$).
+  \item Agda code at \url{https://github.com/laMudri/quantitative}
+  \item Translation table:
+    \begin{tabular}{|l|p{170pt}|}
+      \hline
+      Syntax & Linear algebra \\
+      \hline
+      Annotation context & Vector \\
+      \TirName{Var} annotation & Basis vector \\
+      Weakening & Embedding into a space of higher dimension \\
+      A substitution & A linear map \\
+      \hline
+    \end{tabular}
+  \end{itemize}
+\end{frame}
+
+\appendix
+
+\begin{frame}
+  \frametitle{Substitution on \TirName{Var}}
+  \[
+    \inferrule*[right=Subst]{
+      \inferrule*[right=Var]
+      {(x : A) \in \Gamma \\ \langle x \rvert \subres \resctx R}
+      {\ctx{\Gamma}{R} \vdash x : A}
+      \\
+      \ctx{\Delta}{R'} \subst{\sigma} \ctx{\Gamma}{R}
+    }
+    {\ctx{\Delta}{R'} \vdash \sigma_x : A}
+  \]
+  \begin{displaymath}
+    \langle x \rvert\rescomment S
+    \subres \resctx R \rescomment S
+    \subres \resctx{R'}
+  \end{displaymath}
+  From $\sigma$, we have
+  $(\langle x \rvert\rescomment S)\Delta \vdash \sigma_x : A$.
+\end{frame}
+\begin{frame}
+  \frametitle{Single substitution}
+  \[
+    \inferrule*[right=SingleSubst]{
+      \ctx{\Gamma}{P}, \ctxvar{x}{A}{\rho} \vdash M : B
+      \\ \ctx{\Gamma}{Q} \vdash N : A
+    }
+    {(\resctx P + \rescomment\rho\resctx Q)\Gamma \vdash M[N/x]}
+  \]
+  \[
+    \resctx P + \rescomment\rho\resctx Q \subst{[N/x]} \resctx P, \rescomment\rho x
+  \]
+  Need $\begin{pmatrix}\resctx P & \rescomment\rho\end{pmatrix}\rescomment S
+  \subres \resctx P + \rescomment\rho\resctx Q$
+  \[
+    S := \begin{pmatrix}
+      \rescomment 1 & \rescomment 0 & \cdots & \rescomment 0 \\
+      \rescomment 0 & \rescomment 1 & \cdots & \rescomment 0 \\
+      \vdots & \vdots & \ddots & \vdots \\
+      \rescomment 0 & \rescomment 0 & \cdots & \rescomment 1 \\
+      \resctx Q_1 & \resctx Q_2 & \cdots & \resctx Q_n
+    \end{pmatrix}
+  \]
+\end{frame}
+\begin{frame}
+  \frametitle{DILL}
+  \begin{mathpar}
+    \begin{array}{c|ccc}
+      + & 0 & 1 & \omega \\ \hline
+      0 & 0 & 1 & \omega \\
+      1 & 1 & \omega & \omega \\
+      \omega & \omega & \omega & \omega
+    \end{array}
+    \and
+    \begin{array}{c|ccc}
+      \cdot & 0 & 1 & \omega \\ \hline
+      0 & 0 & 0 & 0 \\
+      1 & 0 & 1 & \omega \\
+      \omega & 0 & \omega & \omega
+    \end{array}
+    \and
+    \begin{tikzpicture}[scale=0.75,baseline={(0,1)}]
+      \node (omega) at (0,2) {$\omega$};
+      \node (zero) at (-2,0) {$0$};
+      \node (one) at (2,0) {$1$};
+      \draw (zero) -- (omega)
+            (one) -- (omega);
+    \end{tikzpicture}
+    \and
+    \Gamma; \Delta \vdash M : A \leftrightsquigarrow
+    \vec{\rescomment\omega}\Gamma, \vec{\rescomment 1}\Delta,
+    \vec{\rescomment 0}\Theta \vdash M : A
+  \end{mathpar}
+\end{frame}
+\begin{frame}
+  \frametitle{Pfenning, Davies}
+  \begin{mathpar}
+    0 = \aval{unused}
+    \and
+    1 = \aval{true}
+    \\
+    \begin{array}{c|ccc}
+      + & \aval u & \aval t & \aval v \\ \hline
+      \aval u & \aval u & \aval t & \aval v \\
+      \aval t & \aval t & \aval t & \aval v \\
+      \aval v & \aval v & \aval v & \aval v
+    \end{array}
+    \and
+    \begin{array}{c|ccc}
+      \cdot & \aval u & \aval t & \aval v \\ \hline
+      \aval u & \aval u & \aval u & \aval u \\
+      \aval t & \aval u & \aval t & \aval v \\
+      \aval v & \aval u & \aval v & \aval v
+    \end{array}
+    \and
+    \begin{tikzpicture}[scale=0.75,baseline={(0,0)}]
+      \node (valid) at (0,2) {$\aval{valid}$};
+      \node (true) at (0,0) {$\aval{true}$};
+      \node (unused) at (0,-2) {$\aval{unused}$};
+      \draw (true) -- (valid)
+            (unused) -- (true);
+    \end{tikzpicture}
+  \end{mathpar}
 \end{frame}
 
 \end{document}
