@@ -13,6 +13,7 @@
 \usepackage{tikz-cd}
 \usepackage{nccmath}
 \usepackage{mathtools}
+\usepackage{graphicx}
 
 \usetikzlibrary{positioning}
 % \usetikzlibrary{decorations.markings}
@@ -32,13 +33,50 @@
 \title{Linear metatheory via linear algebra}
 \author{Bob Atkey\inst{1} \and James Wood\inst{1}}
 \institute{\inst{1}University of Strathclyde}
-\date{TYPES, June 2019}
+\date{SPLS, June 2019}
 
 \begin{document}
 \setlength{\abovedisplayskip}{0pt}
 \frame{\titlepage}
 \begin{frame}
-  \frametitle{Introduction}
+  \frametitle{La logique lin\'eaire}
+  \begin{itemize}
+  \item A logic of \emph{resources} or \emph{interaction},
+    rather than truth or provability.
+    \pause
+  \item Each variable is used exactly once.
+    \pause
+  \item Contexts are multisets of formulae.
+    \[
+      \inferrule*[right=$\otimes$-I]
+      {\Gamma \vdash M : A \\ \Delta \vdash N : B}
+      {\Gamma, \Delta \vdash (M, N) : A \otimes B}
+    \]
+    \pause
+  \item We should be able to replace variables by terms (substitution).
+    \pause
+  \item $\oc A$ is like $A$, but can be discarded and duplicated.
+    \pause
+  \item Substitution is really difficult!
+    \[
+      \inferrule*[right=$\oc$-I]
+      {\Gamma \vdash M : A}
+      {\oc\Gamma \vdash [M] : \oc A}
+    \]
+  \end{itemize}
+\end{frame}
+\begin{frame}
+  \frametitle{A substitute for linear logic}
+  \includegraphics[trim={15cm 15cm 18cm 9cm},clip,width=\textwidth]{bread.jpeg}
+  \begin{itemize}
+  \item Type theory is ever evolving.
+  \item More general, more well-behaved.
+    \pause
+  \item BREAD
+  \end{itemize}
+\end{frame}
+\begin{frame}
+  \frametitle{So how you gonna do it?}
   \begin{itemize}
   \item<1-> $\ctx{\Gamma}{\uncover<3->R} \vdash M : A$
   \item<2-> $\ctxvar{x_1}{A_1}{\uncover<3->{\rho_1}}, \ldots,
@@ -442,6 +480,66 @@
   \end{itemize}
 \end{frame}
 \begin{frame}
+  \frametitle{DILL}
+  \begin{mathpar}
+    \begin{array}{c|ccc}
+      + & \aval 0 & \aval 1 & \aval\omega \\ \hline
+      \aval 0 & \aval 0 & \aval 1 & \aval\omega \\
+      \aval 1 & \aval 1 & \aval\omega & \aval\omega \\
+      \aval\omega & \aval\omega & \aval\omega & \aval\omega
+    \end{array}
+    \and
+    \begin{array}{c|ccc}
+      \cdot & \aval 0 & \aval 1 & \aval\omega \\ \hline
+      \aval 0 & \aval 0 & \aval 0 & \aval 0 \\
+      \aval 1 & \aval 0 & \aval 1 & \aval\omega \\
+      \aval\omega & \aval 0 & \aval\omega & \aval\omega
+    \end{array}
+    \and
+    \begin{tikzpicture}[scale=0.75,baseline={(0,1)}]
+      \node (omega) at (0,2) {$\aval\omega$};
+      \node (zero) at (-2,0) {$\aval 0$};
+      \node (one) at (2,0) {$\aval 1$};
+      \draw (zero) -- (omega)
+            (one) -- (omega);
+    \end{tikzpicture}
+    \and
+    \Gamma; \Delta \vdash M : A \leftrightsquigarrow
+    \vec{\rescomment\omega}\Gamma, \vec{\rescomment 1}\Delta,
+    \vec{\rescomment 0}\Theta \vdash M : A
+  \end{mathpar}
+\end{frame}
+\begin{frame}
+  \frametitle{Pfenning, Davies}
+  \begin{mathpar}
+    0 = \aval{unused}
+    \and
+    1 = \aval{true}
+    \\
+    \begin{array}{c|ccc}
+      + & \aval u & \aval t & \aval v \\ \hline
+      \aval u & \aval u & \aval t & \aval v \\
+      \aval t & \aval t & \aval t & \aval v \\
+      \aval v & \aval v & \aval v & \aval v
+    \end{array}
+    \and
+    \begin{array}{c|ccc}
+      \cdot & \aval u & \aval t & \aval v \\ \hline
+      \aval u & \aval u & \aval u & \aval u \\
+      \aval t & \aval u & \aval t & \aval v \\
+      \aval v & \aval u & \aval v & \aval v
+    \end{array}
+    \and
+    \begin{tikzpicture}[scale=0.75,baseline={(0,0)}]
+      \node (valid) at (0,2) {$\aval{valid}$};
+      \node (true) at (0,0) {$\aval{true}$};
+      \node (unused) at (0,-2) {$\aval{unused}$};
+      \draw (true) -- (valid)
+            (unused) -- (true);
+    \end{tikzpicture}
+  \end{mathpar}
+\end{frame}
+\begin{frame}
   \frametitle{Conclusions}
   \begin{itemize}
   \item A notion of substitution that remains constant, even though contexts
@@ -508,66 +606,6 @@
       \resctx Q_1 & \resctx Q_2 & \cdots & \resctx Q_n
     \end{pmatrix}
   \]
-\end{frame}
-\begin{frame}
-  \frametitle{DILL}
-  \begin{mathpar}
-    \begin{array}{c|ccc}
-      + & 0 & 1 & \omega \\ \hline
-      0 & 0 & 1 & \omega \\
-      1 & 1 & \omega & \omega \\
-      \omega & \omega & \omega & \omega
-    \end{array}
-    \and
-    \begin{array}{c|ccc}
-      \cdot & 0 & 1 & \omega \\ \hline
-      0 & 0 & 0 & 0 \\
-      1 & 0 & 1 & \omega \\
-      \omega & 0 & \omega & \omega
-    \end{array}
-    \and
-    \begin{tikzpicture}[scale=0.75,baseline={(0,1)}]
-      \node (omega) at (0,2) {$\omega$};
-      \node (zero) at (-2,0) {$0$};
-      \node (one) at (2,0) {$1$};
-      \draw (zero) -- (omega)
-            (one) -- (omega);
-    \end{tikzpicture}
-    \and
-    \Gamma; \Delta \vdash M : A \leftrightsquigarrow
-    \vec{\rescomment\omega}\Gamma, \vec{\rescomment 1}\Delta,
-    \vec{\rescomment 0}\Theta \vdash M : A
-  \end{mathpar}
-\end{frame}
-\begin{frame}
-  \frametitle{Pfenning, Davies}
-  \begin{mathpar}
-    0 = \aval{unused}
-    \and
-    1 = \aval{true}
-    \\
-    \begin{array}{c|ccc}
-      + & \aval u & \aval t & \aval v \\ \hline
-      \aval u & \aval u & \aval t & \aval v \\
-      \aval t & \aval t & \aval t & \aval v \\
-      \aval v & \aval v & \aval v & \aval v
-    \end{array}
-    \and
-    \begin{array}{c|ccc}
-      \cdot & \aval u & \aval t & \aval v \\ \hline
-      \aval u & \aval u & \aval u & \aval u \\
-      \aval t & \aval u & \aval t & \aval v \\
-      \aval v & \aval u & \aval v & \aval v
-    \end{array}
-    \and
-    \begin{tikzpicture}[scale=0.75,baseline={(0,0)}]
-      \node (valid) at (0,2) {$\aval{valid}$};
-      \node (true) at (0,0) {$\aval{true}$};
-      \node (unused) at (0,-2) {$\aval{unused}$};
-      \draw (true) -- (valid)
-            (unused) -- (true);
-    \end{tikzpicture}
-  \end{mathpar}
 \end{frame}
 
 \end{document}
