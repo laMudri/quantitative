@@ -1,0 +1,341 @@
+\documentclass[acmsmall,review]{acmart}
+
+\usepackage{stmaryrd}
+\usepackage{mathpartir}
+\usepackage{amssymb}
+\usepackage{cmll}
+\usepackage{xcolor}
+\usepackage{paralist}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage{multirow}
+\usepackage{relsize}
+\usepackage{tabularx}
+\usepackage{tikz-cd}
+
+\def\newelims{1}
+\def\multnotation{1}
+\input{../macros.tex}
+
+\begin{document}
+
+\title{The syntax of \name}
+
+\author{Robert Atkey}
+%\authornote{with author1 note}          %% \authornote is optional;
+                                        %% can be repeated if necessary
+%\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
+\affiliation{
+  % \position{Position1}
+  \department{Computer and Information Sciences}              %% \department is recommended
+  \institution{University of Strathclyde}            %% \institution is required
+  % \streetaddress{Street1 Address1}
+  % \city{City1}
+  % \state{State1}
+  % \postcode{Post-Code1}
+%  \country{UK}                    %% \country is recommended
+}
+\email{robert.atkey@strath.ac.uk}          %% \email is recommended
+
+\author{James Wood}
+% \authornote{with }          %% \authornote is optional;
+                                        %% can be repeated if necessary
+%\orcid{nnnn-nnnn-nnnn-nnnn}             %% \orcid is optional
+\affiliation{
+  % \position{Position2a}
+  \department{Computer and Information Sciences}              %% \department is recommended
+  \institution{University of Strathclyde}            %% \institution is required
+  % \streetaddress{Street2a Address2a}
+  % \city{City2a}
+  % \state{State2a}
+  % \postcode{Post-Code2a}
+%  \country{UK}                   %% \country is recommended
+}
+\email{james.wood.100@strath.ac.uk}         %% \email is recommended
+
+\begin{abstract}
+  We present the syntax of \name, up to and including substitution.
+\end{abstract}
+
+\maketitle
+
+\section{Usage algebra}
+
+A \emph{usage algebra} can be summarised as a partially ordered semiring.
+A usage algebra $(\mathscr R, \subres, 0, +, 1, *)$ is a structure in which
+$(\mathscr R, \subres)$ forms a partial order, $(\mathscr R, 0, +, 1, *)$ forms
+a semiring, and $+$ and $*$ are monotonic with respect to $\subres$.
+Unpacking slightly more, we take a semiring to be a structure
+$(\mathscr R, 0, +, 1, *)$ such that $(\mathscr R, 0, +)$ is a commutative
+monoid, $(\mathscr R, 1, *)$ is a monoid, $*$ is annihilated by $0$, and $*$
+distributes over $+$.
+
+Elements of a usage algebra are called \emph{usage annotations}, and describe
+\emph{how} resources are used in a program.
+In the syntax for \name, each assumption will have a usage annotation,
+describing how that assumption can be used in the derivation.
+The additive structure describes how to combine multiple usages of an
+assumption, and the multiplicative structure describes what happens when usage
+requirements are composed.
+In standard proof tree notation, addition can be seen as acting horizontally,
+whereas multiplication acts vertically.
+The ordering describes the specificness of annotations.
+If $\pi \subres \rho$, $\pi$ can be the annotation for a variable wherever
+$\rho$ can be.
+We can read this relation as ``$\textrm{supply} \subres \textrm{demand}$'' ---
+where we demand that a variable be used according to $\rho$, it is also fine to
+use it as $\pi$.
+
+\subsection{Vectors and matrices}
+
+\begin{definition}
+  A \emph{left semimodule} over a semiring $\mathscr R$ is a structure
+  $(\mathscr M, 0 : \mathscr M, + : \mathscr M \times \mathscr M \to \mathscr M,
+  * : \mathscr R \times \mathscr M \to \mathscr M)$ such that
+  \begin{itemize}
+  \item $(\mathscr M, 0, +)$ is a commutative monoid
+  \item Scaling of a fixed element $m$ respects all of the semiring structure
+    particularly:
+    \begin{itemize}
+    \item $0_\mathscr R * m = 0_\mathscr M$
+    \item $(\pi +_\mathscr R \rho) * m = \pi * m +_\mathscr M \rho * m$
+    \item $1_\mathscr R * m = m$
+    \item $(\pi *_\mathscr R \rho) * m = \pi * (\rho * m)$
+    \end{itemize}
+  \item Scaling by a fixed element $\pi$ respects the additive structure;
+    particularly:
+    \begin{itemize}
+    \item $\pi * 0_\mathscr M = 0_\mathscr M$
+    \item $\pi * (m +_\mathscr M n) = \pi * m +_\mathscr M \pi * n$
+    \end{itemize}
+  \end{itemize}
+\end{definition}
+
+\begin{definition}
+  A \emph{(left) semimodule homomorphism} or \emph{linear map} between
+  $\mathscr R$-left semimodules $\mathscr M$ and $\mathscr N$ is a function $T$
+  on the underlying sets such that all of the semimodule structure is preserved.
+  Particularly,
+  \begin{itemize}
+  \item $T(0_\mathscr M) = 0_\mathscr N$
+  \item $T(m +_\mathscr M n) = T(m) +_\mathscr N T(n)$
+  \item $T(\pi *_\mathscr M m) = \pi *_\mathscr N T(m)$
+  \end{itemize}
+\end{definition}
+
+A semiring is just about enough structure to let us talk about finite vectors,
+and let us represent linear maps as matrices.
+To the standard operations of addition, scaling, and multiplication of vectors
+and matrices, we also say that the order lifts pointwise.
+
+Conversely to standard practice, matrices will typically right-multiply vectors,
+rather than left-multiply.
+Following this practice, a linear transformation
+$T : \mathscr R^m \to \mathscr R^n$ is represented by an $m \times n$ matrix
+$M_T$, and the application of a linear map $T(v)$ is represented by $vM_T$.
+
+\begin{definition}[Standard basis]
+  \begin{align*}
+    \langle i \rvert_j =
+    \begin{cases}
+      1, & \textrm{if }i = j \\
+      0, & \textrm{otherwise} \\
+    \end{cases}
+  \end{align*}
+\end{definition}
+
+\begin{definition}[Matrix operations]
+    \begin{align*}
+      0 &: \mathrm{Mat}~m~n \\
+      0_{ij} &= 0 \\
+      + &: \mathrm{Mat}~m~n \times \mathrm{Mat}~m~n \to \mathrm{Mat}~m~n \\
+      (M + N)_{ij} &= M_{ij} + N_{ij} \\
+      1 &: \mathrm{Mat}~m~m \\
+      1_{ij} &= \langle i \rvert_j \\
+      * &: \mathrm{Mat}~m~n \times \mathrm{Mat}~n~o \to \mathrm{Mat}~m~o \\
+      (MN)_{ik} &= \sum_j M_{ij}N_{jk}
+    \end{align*}
+\end{definition}
+
+\begin{lemma}
+  Natural numbers and matrices between them form a symmetric monoidal category.
+\end{lemma}
+
+\begin{lemma}
+  Each matrix $M : \mathrm{Mat}~m~n$ gives rise to a linear map
+  $T_M : \mathscr R^m \to \mathscr R^n$ by right-multiplication.
+\end{lemma}
+\begin{proof}
+  We observe the following equations:
+  \begin{itemize}
+  \item $\left(\vec 0M\right)_{k} = \sum_j 0M_{jk} = 0 = \vec 0_{k}$
+  \item $\left((u + v)M\right)_{k} = \sum_j \left(u_j + v_j\right)M_{jk} =
+    \sum_j u_jM_{jk} + \sum_j v_jM_{jk} = (uM + vM)_{k}$
+  \item $\left((\pi u)M\right)_{k} = \sum_j \pi u_jM_{jk} =
+    \pi\sum_j u_jM_{jk} = \left(\pi(uM)\right)_{k}$
+  \end{itemize}
+\end{proof}
+
+\begin{lemma}
+  Each linear map $T : \mathscr R^m \to \mathscr R^n$ gives rise to a matrix
+  $M : \mathrm{Mat}~m~n$ with the same action.
+\end{lemma}
+\begin{proof}
+  We construct $M$ as follows.
+  \[
+    M_{jk} = T(\langle j \rvert)_k
+  \]
+  Then, consider $uM$.
+  \[
+    (uM)_k = \sum_j u_jM_{jk} = \sum_j u_jT\left(\langle j \rvert\right)_k
+    = T\left(\sum_j u_j\langle j \rvert\right)_k
+  \]
+  Note that $\sum_j u_j\langle j \rvert$ is exactly $u$, so we are done.
+\end{proof}
+
+\section{Syntax}
+
+\section{Metatheory}
+
+Our proof of the admissibility of substitution follows a mostly standard
+structure for a typed $\lambda$-calculus formalised using de Bruijn indexes.
+After a particular lemma about the action of subusaging, we prove the
+admissibility of weakening, show how to push a substitution under a binder, and
+finally prove substitution.
+
+The main deviation from the standard structure is the addition of usage
+constraints expressed as matrices --- in other words, linear maps between the
+finite-dimensional semimodules in which usage contexts live.
+Generally, our lemmas will require, in addition to their usual premises, the
+provision of a matrix satisfying a certain relationship between the premises and
+the conclusion.
+
+\subsection{Subusaging}
+
+Similar to subtyping, we have as an admissible rule that if subusaging holds
+pointwise between two annotation contexts, we can coerce any typing derivation.
+
+\begin{lemma}[sub-usaging]\label{lem:subuse}
+  The following rule is admissible.
+  \[
+    \inferrule*[right=subuse]{
+      \ctx{\Gamma}{Q} \vdash M : A
+      \\ \resctx P \subres \resctx Q
+    }
+    {
+      \ctx{\Gamma}{P} \vdash M : A
+    }
+  \]
+\end{lemma}
+\begin{proof}
+  By induction on the usage derivation until a rule with splitting is
+  encountered.
+  Here, we will just consider splitting by addition, but the other cases are
+  similar.
+  Suppose we are given a derivation of $\ctx{\Gamma}{P} \vdash M : A$,
+  from which one of the premises is
+  $\resctx Q \subres \resctx Q_0 + \resctx Q_1$.
+  Then, because $\resctx P \subres \resctx Q$, we also have
+  $\resctx P \subres \resctx Q_0 + \resctx Q_1$.
+  Therefore, we can give a derivation for
+  $\ctx{\Gamma}{Q} \vdash M : A$ which is the same as the derivation we
+  were given, except with the updated splitting premise.
+\end{proof}
+
+\subsection{Weakening}
+
+The content of a weakening is an order-preserving embedding (OPE).
+An OPE $\theta$ from $m$ to $n$ yields an $m \times n$ matrix $\resmat S_\theta$
+mapping (via right-multiplication) the everywhere-$1$ row vector of length $m$
+to the bit vector describing the OPE (of length $n$).
+In this matrix, each row is either a basis vector or the $\vec 0$ vector, with
+basis vectors used in order.
+In the same way that weakening is a special case of substitution, we will see
+that where $\resmat S_\theta$ justifies a weakening, a matrix of arbitrary form
+may justify a substitution.
+
+\begin{lemma}[weakening]\label{lem:weak}
+  The following rule is admissible.
+  \[
+    \inferrule*[right=weak]{
+      \ctx{(\theta\Gamma)}{Q} \vdash M : A
+      \\ \resctx P \subres \resctx Q \resmat S_\theta
+    }
+    {
+      \ctx{\Gamma}{P} \vdash M[\theta] : A
+    }
+  \]
+\end{lemma}
+\begin{proof}
+  By structural induction\ldots
+\end{proof}
+
+\subsection{Definition of a substitution}
+
+Simultaneous substitution (henceforth just ``substitution'') is a generalisation
+of weakening.
+Where in weakening, variables are substituted by new variables, in substitution,
+variables are substituted by terms in a new context.
+Without the OPE $\theta$, we must decide what matrix specifies the relationship
+between the premises and the conclusion.
+
+Substitution is the most liberal notion of morphism between contexts one would
+typically consider.
+It allows arbitrary use of the type theory in order to state that one context
+can be derived from another.
+We take this as the motivation for allowing a linear transformation of arbitrary
+form to justify a substitution.
+
+In the abstract, our admissible rule for substitution is going to look like the
+following.
+
+\[
+  \inferrule*[right=subst]{
+    \ctx{\Delta}{Q} \vdash M : A
+    \\ \ctx{\Gamma}{P} \subst{\sigma} \ctx{\Delta}{Q}
+  }
+  {
+    \ctx{\Gamma}{P} \vdash M[\sigma] : A
+  }
+\]
+
+Our task is to define $\ctx{\Gamma}{P} \subst{\sigma} \ctx{\Delta}{Q}$.
+Intuitively, we can consider separately the production of typed terms required
+and usage constraints.
+Doing this, the first part is standard --- we require a term in $\Gamma$ for
+each variable in $\Delta$.
+We then need to consider the usage constraints on these terms, and the
+relationship between $\resctx P$ and $\resctx Q$.
+
+We will start by looking at the variables in the substituting terms (the terms
+in $\Gamma$ that are substituted in for variables in $\Delta$).
+Suppose that $\Gamma$ has variables $x_1, \ldots, x_m$ and $\Delta$ has
+variables $y_1, \ldots, y_n$, with terms $N_1, \ldots, N_n$ being substituted in
+for these variables.
+Then, how $x_i$ is used in $M[\sigma]$ depends on two things:
+
+\begin{enumerate}
+\item How $x_i$ is used in each $N_j$
+\item How each $y_j$ being substituted is used in $M$
+\end{enumerate}
+
+More precisely, how $x_i$ is used is a sum of how it is used in each $N_j$,
+weighted by how $y_j$ is used in $M$.
+If we let $x_i$ be used in $N_j$ according to annotation $\resmat S_{ji}$ and
+allow for subusaging, this is captured by the constraint
+$\resctx P \subres \resctx Q \resmat S$.
+
+%
+
+\subsection{Linear combinations of usage contexts}
+
+%
+
+\subsection{Binding}
+
+\subsection{Substitution}
+
+\subsection{Single substitution}
+
+\end{document}

@@ -30,6 +30,7 @@
 \newcommand{\rescommentperm}[1]{{\color{resperm}#1}}
 \newcommand{\resctx}[1]{\rescomment{\mathcal{#1}}}
 \newcommand{\resctxperm}[1]{\rescommentperm{\mathcal{#1}}}
+\newcommand{\resmat}[1]{\rescomment{#1}}
 
 
 \newcommand{\ann}[2]{#1 : #2}
@@ -102,6 +103,9 @@
 
 \newcommand{\subres}{\trianglelefteq}
 \newcommand{\subrctx}[2]{{#1} \subres {#2}}
+\makeatletter
+\newcommand{\subst}[2][]{\ext@arrow 0359\Rightarrowfill@{#1}{#2}}
+\makeatother
 
 
 \newenvironment{eqns}{\begin{array}{r@{\hspace{0.3em}}c@{\hspace{0.3em}}l}}{\end{array}}
