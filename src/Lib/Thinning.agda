@@ -8,6 +8,7 @@ module Lib.Thinning where
   open import Lib.Product
   open import Lib.Sum
   open import Lib.Sum.Pointwise
+  open import Lib.Two
   open import Lib.Zero
 
   infix 4 _≤_ _<_ _≤?_ _<?_
@@ -176,7 +177,7 @@ module Lib.Thinning where
     with diff (th +≤+ ph) | diff-+≤+ th ph | (th +≤+ ph) ᶜ | complement-+≤+ th ph
   ... | ._ | refl | _ | ih = cong os ih
 
-  infix 4 _⊆_ _⊆?_
+  infix 4 _⊆_ _⊆?_ _⊆?2_
 
   data _⊆_ : ∀ {m m′ n} → m ≤ n → m′ ≤ n → Set where
     ozz : oz ⊆ oz
@@ -190,6 +191,36 @@ module Lib.Thinning where
   o′ th ⊆? os ph = mapDec o′s (λ where (o′s sub) → sub) (th ⊆? ph)
   os th ⊆? o′ ph = no (λ ())
   o′ th ⊆? o′ ph = mapDec o′′ (λ where (o′′ sub) → sub) (th ⊆? ph)
+
+  -- Boolean version has better behaviour under decidable equality
+  _⊆?2_ : ∀ {m m′ n} (th : m ≤ n) (ph : m′ ≤ n) → Two
+  oz ⊆?2 oz = ttt
+  os th ⊆?2 os ph = th ⊆?2 ph
+  o′ th ⊆?2 os ph = th ⊆?2 ph
+  os th ⊆?2 o′ ph = fff
+  o′ th ⊆?2 o′ ph = th ⊆?2 ph
+
+  -- _⊆?′_ : ∀ {m m′ n} (th : m ≤ n) (ph : m′ ≤ n) → One ⊎ One
+  -- oz ⊆?′ oz = yes <>
+  -- os th ⊆?′ os ph = th ⊆?′ ph
+  -- o′ th ⊆?′ os ph = th ⊆?′ ph
+  -- os th ⊆?′ o′ ph = no <>
+  -- o′ th ⊆?′ o′ ph = th ⊆?′ ph
+
+  ⊆?2-≡ : ∀ {m m′ n} (th : m ≤ n) (ph : m′ ≤ n) → floor (th ⊆? ph) ≡ (th ⊆?2 ph)
+  ⊆?2-≡ oz oz = refl
+  ⊆?2-≡ (os th) (os ph) = trans (floor-mapDec _ _ _) (⊆?2-≡ th ph)
+  ⊆?2-≡ (o′ th) (os ph) = trans (floor-mapDec _ _ _) (⊆?2-≡ th ph)
+  ⊆?2-≡ (os th) (o′ ph) = refl
+  ⊆?2-≡ (o′ th) (o′ ph) = trans (floor-mapDec _ _ _) (⊆?2-≡ th ph)
+
+  -- ⊆?′-agree : ∀ {m m′ n} (th : m ≤ n) (ph : m′ ≤ n) →
+  --             Agree (th ⊆?′ ph) (th ⊆? ph)
+  -- ⊆?′-agree oz oz = inl <>
+  -- ⊆?′-agree (os th) (os ph) = {!⊆?′-agree th ph!}
+  -- ⊆?′-agree (o′ th) (os ph) = {!!}
+  -- ⊆?′-agree (os th) (o′ ph) = inr <>
+  -- ⊆?′-agree (o′ th) (o′ ph) = {!!}
 
   empty-⊆ : ∀ {m n} (e : 0 ≤ n) (th : m ≤ n) → e ⊆ th
   empty-⊆ oz oz = ozz

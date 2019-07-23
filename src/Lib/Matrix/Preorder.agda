@@ -45,6 +45,7 @@ module Lib.Matrix.Preorder {c l l′} (PreO : ΣPreorder c l l′) where
              ; ≤-trans to ≤M-trans; isPreorder to isPreorderM
              )
 
+  infixl 5 _+↓-mono_
   _+↓-mono_ : ∀ {m m′ n} {M M′ : Mat (m , n)} {N N′ : Mat (m′ , n)} →
               M ≤M M′ → N ≤M N′ → M +↓ N ≤M M′ +↓ N′
   _+↓-mono_ {m} {m′} {n} MM NN .get (i , j) with part m′ i

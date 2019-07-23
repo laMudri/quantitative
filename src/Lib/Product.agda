@@ -2,14 +2,9 @@ module Lib.Product where
   open import Lib.Dec
   open import Lib.Level
 
-  infixr 1 _,_
-
-  record Σ {a b} (A : Set a) (B : A → Set b) : Set (a ⊔ b) where
-    constructor _,_
-    field
-      fst : A
-      snd : B fst
-  open Σ public
+  open import Data.Product public
+    using (Σ; module Σ; _,_)
+    renaming (proj₁ to fst; proj₂ to snd)
 
   infixr 2 _×_ _×?_
 

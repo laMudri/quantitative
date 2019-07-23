@@ -239,26 +239,146 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
 
 \begin{figure}
   \begin{displaymath}
-    \begin{array}{rl}
-      \textrm{Constants} & c \\
-      \textrm{Variables} & x \\
-      \textrm{Terms} & M, N
-                       \begin{array}[t]{rlcl}
-                         \Coloneqq & c & \mid & x \\
-                         \mid & \lam{x}{A} & \mid & \app{M}{N} \\
-                         \mid & \unit & \mid & \del{C}{M}{N} \\
-                         \mid & \ten{M}{N} & \mid & \prm{C}{M}{x}{y}{N} \\
-                         \mid & \eat & & \\
-                         \mid & \wth{M}{N} & \mid & \proj{i}{M} \\
-                                   & & \mid & \exf{C}{M} \\ 
-                         \mid & \inj{i}{M} & \mid & \cse{C}{M}{x}{N_0}{y}{N_1} \\
-                         \mid & \bang{M} & \mid & \bm{C}{M}{x}{N} \\
-                         \mid & \nil \mid \cons{M}{N} & \mid & \fold{M}{N_n}{x}{y}{N_c}
-                       \end{array}
+    \begin{array}{l}
+      \textrm{Constants}~c \quad \textrm{Variables}~x \\
+      \begin{array}{rrl}
+        \textrm{Terms}~M, N & \Coloneqq & c \mid x \mid \lam{x}{A} \mid
+                                          \app{M}{N} \mid \unit \mid
+                                          \del{C}{M}{N} \mid \ten{M}{N} \\
+                            & \mid & \prm{C}{M}{x}{y}{N} \mid \eat \mid
+                                     \wth{M}{N} \mid \proj{i}{M} \mid
+                                     \exf{C}{M} \\
+                            & \mid & \inj{i}{M} \mid \cse{C}{M}{x}{N_0}{y}{N_1}
+                                     \mid \bang{M} \\
+                            & \mid & \bm{C}{M}{x}{N} \mid \nil \mid \cons{M}{N}
+                                     \mid \fold{M}{N_n}{x}{y}{N_c}
+      \end{array}
     \end{array}
   \end{displaymath}
   \caption{Term syntax}
   \label{fig:terms}
+\end{figure}
+
+\begin{figure}
+  \begin{mathpar}
+    \inferrule*[right=var]
+    {(x : A) \in \Gamma
+      \\ \subrctx{\basis x}{\resctx R}
+    }
+    {\ctx{\Gamma}{R} \vdash x : A}
+    \and
+    \inferrule*[right=const]
+    {\subrctx{\vct 0}{\resctx R}}
+    {\ctx{\Gamma}{R} \vdash c : A_c}
+    \and
+    \inferrule*[right=$\multimap$-I]
+    {\ctx{\Gamma}{R}, \ctxvar{x}{A}{1} \vdash M : B}
+    {\ctx{\Gamma}{R} \vdash \lam{x}{M} : \fun{A}{B}}
+    \and
+    \inferrule*[right=$\multimap$-E]
+    {\ctx{\Gamma}{P} \vdash M : \fun{A}{B}
+      \\ \ctx{\Gamma}{Q} \vdash N : A
+      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+    }
+    {\ctx{\Gamma}{R} \vdash \app{M}{N} : B}
+    \and
+    \inferrule*[right=$\otimes$-I]
+    {\ctx{\Gamma}{P} \vdash M : A
+      \\ \ctx{\Gamma}{Q} \vdash N : B
+      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+    }
+    {\ctx{\Gamma}{R} \vdash \ten{M}{N} : \tensor{A}{B}}
+    \and
+    \inferrule*[right=$\otimes$-E]
+    {\ctx{\Gamma}{P} \vdash M : \tensor{A}{B}
+      \\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1}, \ctxvar{y}{B}{1} \vdash N : C
+      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+    }
+    {\ctx{\Gamma}{R} \vdash \prm{C}{M}{x}{y}{N} : C}
+    \and
+    \inferrule*[right=$\&$-I]
+    {\ctx{\Gamma}{R} \vdash M : A
+      \\ \ctx{\Gamma}{R} \vdash N : B
+    }
+    {\ctx{\Gamma}{R} \vdash \wth{M}{N} : \withT{A}{B}}
+    \and
+    \inferrule*[right=$\&$-E$_i$]
+    {\ctx{\Gamma}{R} \vdash M : \withT{A_0}{A_1}}
+    {\ctx{\Gamma}{R} \vdash \proj{i}{M} : A_i}
+    \and
+    \inferrule*[right=$1$-I]
+    {\subrctx{\vct 0}{\resctx R}}
+    {\ctx{\Gamma}{R} \vdash \unit : \tensorOne}
+    \and
+    \inferrule*[right=$1$-E]
+    {\ctx{\Gamma}{P} \vdash M : \tensorOne
+      \\ \ctx{\Gamma}{Q} \vdash N : A
+      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+    }
+    {\ctx{\Gamma}{R} \vdash \del{A}{M}{N} : A}
+    \and
+    \inferrule*[right=$\top$-I]
+    { }
+    {\ctx{\Gamma}{R} \vdash \eat : \withTOne}
+    \and
+    \text{(no $\top$-E)}
+    \and
+    \text{(no $0$-I)}
+    \and
+    \inferrule*[right=$0$-E$_i$]
+    {\ctx{\Gamma}{P} \vdash M : \sumTZero
+      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+    }
+    {\ctx{\Gamma}{R} \vdash \exf{A}{M} : A}
+    \and
+    \inferrule*[right=$\oplus$-I]
+    {\ctx{\Gamma}{R} \vdash M : A_i}
+    {\ctx{\Gamma}{R} \vdash \inj{i}{M} : \sumT{A_0}{A_1}}
+    \and
+    \inferrule*[right=$\oplus$-E]
+    {\ctx{\Gamma}{P} \vdash M : \sumT{A}{B}
+      \\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1} \vdash N_0 : C
+      \\ \ctx{\Gamma}{Q}, \ctxvar{y}{B}{1} \vdash N_1 : C
+      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+    }
+    {\ctx{\Gamma}{R} \vdash \cse{C}{M}{x}{N_0}{y}{N_1} : C}
+    \and
+    \inferrule*[right=$\excl{\rho}{}$-I]
+    {\ctx{\Gamma}{P} \vdash M : A
+      \\ \subrctx{\rescomment \rho * \resctx P}{\resctx R}
+    }
+    {\ctx{\Gamma}{R} \vdash \bang{M} : \excl{\rho}{A}}
+    \and
+    \inferrule*[right=$\excl{\rho}{}$-E]
+    {\ctx{\Gamma}{P} \vdash M : \excl{\rho}{A}
+      \\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{\rho} \vdash N : B
+      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+    }
+    {\ctx{\Gamma}{R} \vdash \bm{B}{M}{x}{N} : B}
+    \and
+    \inferrule*[right=$\listT{}$-Inil]
+    {\subrctx{\vct 0}{\resctx R}}
+    {\ctx{\Gamma}{R} \vdash \nil : \listT A}
+    \and
+    \inferrule*[right=$\listT{}$-Icons]
+    {\ctx{\Gamma}{P} \vdash M : A
+      \\ \ctx{\Gamma}{Q} \vdash N : \listT A
+      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+    }
+    {\ctx{\Gamma}{R} \vdash \cons{M}{N} : \listT A}
+    \and
+    \inferrule*[right=$\listT{}$-E]
+    {\ctx{\Gamma}{P} \vdash M : \listT A
+      \\ \ctx{\Gamma}{Q} \vdash N_n : C
+      \\ \ctx{\Gamma}{Q}, \ctxvar{h}{A}{1}, \ctxvar{r}{\listT A}{1} \vdash N_c : C
+      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+      \\ \subrctx{\vct 0}{\resctx Q}
+      \\ \subrctx{\resctx Q + \resctx Q}{\resctx Q}
+    }
+    {\ctx{\Gamma}{R} \vdash \fold{M}{N_n}{h}{r}{N_c} : C}
+  \end{mathpar}
+  \caption{Typing rules for \name}
+  \label{fig:typing-rules}
 \end{figure}
 
 Typing judgements are of the form $\ctx{\Gamma}{R} \vdash M : A$, which, when
@@ -269,31 +389,23 @@ is taken to always have annotation $1$.
 Such a restriction is important to keep substitution admissible, as shown in
 \cite{quantitative-type-theory}. \fixmeBA{probably drop the reference here (but keep it later on)}
 
-A summary of the term syntax is given in \autoref{fig:terms}.
+A summary of the term syntax is given in \autoref{fig:terms}, and typing and
+provisioning are defined together in \autoref{fig:typing-rules}.
 As well as variables, and constructors and destructors for each type former, we
 have a set of constants.
 Constants are intended to give a way of producing and manipulating values of the
 base type $\base$.
 
-Let $\basis x$ be the $x$th basis vector $\vec 0, x^1, \vec 0$ --- that is, the
-usage context in which every variable is annotated with $0$ except for $x$,
-which is annotated with $1$.
+We write usage contexts $\resctx P$, $\resctx Q$, $\resctx R$ alone as
+$\rescomment{\rho_1}x_1, \ldots, \rescomment{\rho_n}x_n$.
+We understand a usage context as a row vector in a semimodule of which the
+variables in scope form a basis.
+As such, when writing a usage context, we may omit variables with annotation
+$0$.
+Using this convention, we write the $x$th basis vector as $1x$.
 Such a context describes the restriction that semantically all variables except
 $x$ are unused, while $x$ is used plainly.
 This makes it the principle usage of the variable rule.
-
-\[
-  \inferrule*[right=var]
-  {(x : A) \in \Gamma
-    \\ \subrctx{\basis x}{\resctx R}
-  }
-  {\ctx{\Gamma}{R} \vdash x : A}
-\]
-
-Allowing $\basis x \subres \resctx R$, rather than $\basis x = \resctx R$,
-allows less restrictive provisionings.
-For example, we are free to use $x$ if its use is unrestricted, and similarly we
-are free to discard any variables with unrestricted use. \fixmeBA{fwd ref to the subusaging lemma}
 
 Constants $c$ can have arbitrary type $A_c$, but not arbitrary usage
 restrictions.
@@ -301,147 +413,17 @@ Constants should have a global character, and not be able to depend on the
 context in which they are used, so it makes sense to say that they are well
 provisioned only in a context where all variables can be discarded. \fixmeBA{maybe an example?}
 
-\[
-  \inferrule*[right=const]
-  {\subrctx{\vct 0}{\resctx R}}
-  {\ctx{\Gamma}{R} \vdash c : A_c}
-\]
-
-The following are the rules for $\lambda$-abstractions and application.
-$\multimap$-I is standard, except for the restriction that we use the bound
-variable plainly.
-In $\multimap$-E, the condition $\resctx P + \resctx Q \subres \resctx R$
-means that we must be able to distribute the usage permitted by $\resctx R$ into
-what the function uses ($\resctx P$) and what the argument uses ($\resctx Q$).
-sub-usaging is allowed here to maintain the admissibility of sub-usaging
-as a general rule, stated in \autoref{sec:admissible}, \lemref{lem:subres}.
-\fixmeBA{comment about subusaging is valid throughout?}
-
-\begin{mathpar}
-  \inferrule*[right=$\multimap$-I]
-  {\ctx{\Gamma}{R}, \ctxvar{x}{A}{1} \vdash M : B}
-  {\ctx{\Gamma}{R} \vdash \lam{x}{M} : \fun{A}{B}}
-  \and
-  \inferrule*[right=$\multimap$-E]
-  {\ctx{\Gamma}{P} \vdash M : \fun{A}{B}
-    \\ \ctx{\Gamma}{Q} \vdash N : A
-    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
-  }
-  {\ctx{\Gamma}{R} \vdash \app{M}{N} : B}
-\end{mathpar}
-
-In general\fixmeBA{``In the presence of resources''}, we distinguish between tensor products ($\otimes$) and with products
-($\&$).
-A similar distinction between two types of product can be seen in various
-existing systems: our tensor and with products are respectively products
-eliminated by pattern matching and projection, or equivalently positive and
-negative formulations of products \fixme{refs here}. \fixmeBA{This needs rewording: mention sharing vs not sharing usage; and forward ref to collapse lemma in next subsection}
-
-\begin{mathpar}
-  \inferrule*[right=$\otimes$-I]
-  {\ctx{\Gamma}{P} \vdash M : A
-    \\ \ctx{\Gamma}{Q} \vdash N : B
-    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
-  }
-  {\ctx{\Gamma}{R} \vdash \ten{M}{N} : \tensor{A}{B}}
-  \and
-  \inferrule*[right=$\otimes$-E]
-  {\ctx{\Gamma}{P} \vdash M : \tensor{A}{B}
-    \\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1}, \ctxvar{y}{B}{1} \vdash N : C
-    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
-  }
-  {\ctx{\Gamma}{R} \vdash \prm{C}{M}{x}{y}{N} : C}
-
-  \and
-
-  \inferrule*[right=$\&$-I]
-  {\ctx{\Gamma}{R} \vdash M : A
-    \\ \ctx{\Gamma}{R} \vdash N : B
-  }
-  {\ctx{\Gamma}{R} \vdash \wth{M}{N} : \withT{A}{B}}
-  \and
-  \inferrule*[right=$\&$-E$_i$]
-  {\ctx{\Gamma}{R} \vdash M : \withT{A_0}{A_1}}
-  {\ctx{\Gamma}{R} \vdash \proj{i}{M} : A_i}
-\end{mathpar}
-
-To derive the units for each of the products, we turn what was then binary into
-what is now nullary.
-
-\begin{mathpar}
-  \inferrule*[right=$1$-I]
-  {\subrctx{\vct 0}{\resctx R}}
-  {\ctx{\Gamma}{R} \vdash \unit : \tensorOne}
-  \and
-  \inferrule*[right=$1$-E]
-  {\ctx{\Gamma}{P} \vdash M : \tensorOne
-    \\ \ctx{\Gamma}{Q} \vdash N : A
-    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
-  }
-  {\ctx{\Gamma}{R} \vdash \del{A}{M}{N} : A}
-
-  \and
-
-  \inferrule*[right=$\top$-I]
-  { }
-  {\ctx{\Gamma}{R} \vdash \eat : \withTOne}
-  \and
-  \text{(no $\top$-E)}
-\end{mathpar}
-
-Sums are dual to $\withT{}{}$-products.
-\fixmeBA{either quote ``with'', or replace with symbol. Makes grammar weird.}
-The behaviour of sums is familiar from standard type theory, except for the
-splitting of usages in the elimination rules between the term being
-eliminated and the continuation terms.
-Notice that this splitting also happens for $0$-E ($\exf{}{}$), even though the
-usage context $\resctx Q$ is not used in any premises.
-The addition of the extra $\resctx Q$ can be seen as saying that when we are in
-an impossible case (having created an expression of type $\sumTZero$), we can
-ignore the restrictions imposed by the presence of remaining free variables.\fixme{Maybe needs a demonstration in the next section}
-
-\begin{mathpar}
-  \text{(no $0$-I)}
-  \and
-  \inferrule*[right=$0$-E$_i$]
-  {\ctx{\Gamma}{P} \vdash M : \sumTZero
-    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
-  }
-  {\ctx{\Gamma}{R} \vdash \exf{A}{M} : A}
-
-  \inferrule*[right=$\oplus$-I]
-  {\ctx{\Gamma}{R} \vdash M : A_i}
-  {\ctx{\Gamma}{R} \vdash \inj{i}{M} : \sumT{A_0}{A_1}}
-  \and
-  \inferrule*[right=$\oplus$-E]
-  {\ctx{\Gamma}{P} \vdash M : \sumT{A}{B}
-    \\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1} \vdash N_0 : C
-    \\ \ctx{\Gamma}{Q}, \ctxvar{y}{B}{1} \vdash N_1 : C
-    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
-  }
-  {\ctx{\Gamma}{R} \vdash \cse{C}{M}{x}{N_0}{y}{N_1} : C}
-\end{mathpar}
-
-All of the previous rules have only allowed us to bind variables with usage
-annotation $1$.
-In order to abstract over variables with different usage annotations, we
-introduce a bang type former, with $\excl{\rho}{A}$ bundling up a value of type
-$A$ used in accordance with $\rescomment \rho$.\fixmeBA{Forward ref to a demonstration of this}
-
-\begin{mathpar}
-  \inferrule*[right=$\excl{\rho}{}$-I]
-  {\ctx{\Gamma}{P} \vdash M : A
-    \\ \subrctx{\rescomment \rho * \resctx P}{\resctx R}
-  }
-  {\ctx{\Gamma}{R} \vdash \bang{M} : \excl{\rho}{A}}
-  \and
-  \inferrule*[right=$\excl{\rho}{}$-E]
-  {\ctx{\Gamma}{P} \vdash M : \excl{\rho}{A}
-    \\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{\rho} \vdash N : B
-    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
-  }
-  {\ctx{\Gamma}{R} \vdash \bm{B}{M}{x}{N} : B}
-\end{mathpar}
+Among the other rules, notable features are the distinction between
+\emph{tensor} ($\tensorOne$, $\tensor{}{}$) and \emph{with} ($\withTOne$,
+$\withT{}{}$) products, and the presence of graded bangs ($\excl{\rho}{}$) and
+lists.
+A \emph{tensor} product is a pair in which both halves are present, so usages
+add up, whereas a \emph{with} product is a pair for which the consumer can
+choose which half they will use.
+Lists are essentially \emph{tensor} products of their elements.
+The graded bang encapsulates scaled usage of a value --- a value of type
+$\excl{\rho}{A}$ is used by pattern matching, turning it into a variable of type
+$A$ and annotation $\rho$.
 
 Finally, we include a polymorphic type of lists.
 Usage-wise, lists are a tensoring together of their elements, meaning that
@@ -452,29 +434,6 @@ eliminators, but also require that both continuations use only discardable
 and duplicable variables.
 This ensures that, for example, the continuation that deals with $\cons{-}{-}$
 can be invoked as many times as necessary.
-
-\begin{mathpar}
-  \inferrule*[right=$\listT{}$-Inil]
-  {\subrctx{\vct 0}{\resctx R}}
-  {\ctx{\Gamma}{R} \vdash \nil : \listT A}
-  \and
-  \inferrule*[right=$\listT{}$-Icons]
-  {\ctx{\Gamma}{P} \vdash M : A
-    \\ \ctx{\Gamma}{Q} \vdash N : \listT A
-    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
-  }
-  {\ctx{\Gamma}{R} \vdash \cons{M}{N} : \listT A}
-  \and
-  \inferrule*[right=$\listT{}$-E]
-  {\ctx{\Gamma}{P} \vdash M : \listT A
-    \\ \ctx{\Gamma}{Q} \vdash N_n : C
-    \\ \ctx{\Gamma}{Q}, \ctxvar{h}{A}{1}, \ctxvar{r}{\listT A}{1} \vdash N_c : C
-    \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
-    \\ \subrctx{\vct 0}{\resctx Q}
-    \\ \subrctx{\resctx Q + \resctx Q}{\resctx Q}
-  }
-  {\ctx{\Gamma}{R} \vdash \fold{M}{N_n}{h}{r}{N_c} : C}
-\end{mathpar}
 
 \fixmeBA{Could have separate $\resctx Q$ and $\resctx Q'$ for the nil and cons cases, and let the condition be $\subrctx{\resctx Q + \resctx Q'}{\resctx Q'}$?}
 
@@ -663,6 +622,36 @@ graded comonad in our category of types and functions.
 \subsection{Admissible rules}
 \label{sec:admissible}
 
+\begin{figure}
+  \begin{mathpar}
+    \inferrule*[right=subuse]{
+      \ctx{\Gamma}{P} \vdash M : A
+      \\ \resctx P \subres \resctx Q
+    }
+    {
+      \ctx{\Gamma}{Q} \vdash M : A
+    }
+    \and
+    \inferrule*[right=weak]{
+      \ctx{\Gamma}{P} \vdash M : A
+      \\ \vct 0 \subres \resctx Q
+    }
+    {
+      \ctx{\Gamma}{P}, \ctx{\Delta}{Q} \vdash M : A
+    }
+    \and
+    \inferrule*[right=subst]{
+      \ctx{\Delta}{Q} \vdash N : A
+      \\ \ctx{\Gamma}{P} \stackrel\sigma\Rightarrow \ctx{\Delta}{Q}
+    }
+    {
+      \ctx{\Gamma}{P} \vdash N[\sigma] : A
+    }
+  \end{mathpar}
+  \caption{Admissible rules}
+  \label{fig:admissible-rules}
+\end{figure}
+
 \fixmeBA{An introductory sentence to summarise this section.}
 
 Recalling from \autoref{sec:annotations}, $\rescomment \pi \subres \rescomment
@@ -674,16 +663,7 @@ $\resctx Q$ is a more liberal context than $\resctx
 provisioned in $\resctx Q$.
 
 \begin{lemma}[sub-usaging]
-  \label{lem:subres}
-  \[
-    \inferrule*[right=subres]{
-      \ctx{\Gamma}{P} \vdash M : A
-      \\ \resctx P \subres \resctx Q
-    }
-    {
-      \ctx{\Gamma}{Q} \vdash M : A
-    }
-  \]
+  \autoref{fig:admissible-rules}: \TirName{subuse}
 \end{lemma}
 \begin{proof}
   By induction on the provisioning derivation until a rule with splitting is
@@ -720,15 +700,7 @@ can be applied to any variable.
   \label{lem:weak}
   We can add unmentioned free variables if those variables are annotated with a
   weakenable annotation.
-  \[
-    \inferrule*[right=weak]{
-      \ctx{\Gamma}{P} \vdash M : A
-      \\ \vct 0 \subres \resctx Q
-    }
-    {
-      \ctx{\Gamma}{P}, \ctx{\Delta}{Q} \vdash M : A
-    }
-  \]
+  \autoref{fig:admissible-rules}: \TirName{weak}
 \end{lemma}
 
 When $0$ is the bottom element of the subusaging order, the condition $\vct 0
@@ -767,15 +739,7 @@ requirements for the whole simultaneous substitution are a sum of the rows of
 $\mat \Sigma$ weighted by $\resctx Q$.
 
 \begin{lemma}[Substitution]
-  \[
-    \inferrule*[right=subst]{
-      \ctx{\Delta}{Q} \vdash N : A
-      \\ \sigma : \ctx{\Gamma}{P} \Rightarrow \ctx{\Delta}{Q}
-    }
-    {
-      \ctx{\Gamma}{P} \vdash N[\sigma] : A
-    }
-  \]
+  \autoref{fig:admissible-rules}: \TirName{subst}
 \end{lemma}
 \renewcommand{\proofname}{Proof sketch}
 \begin{proof}

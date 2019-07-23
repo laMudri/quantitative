@@ -492,6 +492,43 @@ module Lib.Category where
           (α.η X >> β.η X) >> H.arr $E f  QED
         }
 
+  module _ {oc od oe ac ad ae ec ed ee} {C : Category oc ac ec}
+           {D : Category od ad ed} {E : Category oe ae ee}
+           {F0 G0 : Functor C D} {F1 G1 : Functor D E} where
+    private
+      open Category E
+      module C = Category C
+      module D = Category D
+
+    infixr 5 _⋆N_
+    _⋆N_ : NatTrans F0 G0 → NatTrans F1 G1 → NatTrans (F0 >>F F1) (G0 >>F G1)
+    α ⋆N β = record
+      { η = λ X → F1 .arr $E (α .η X) >> β .η (G0 .obj X)
+      ; square = λ {X} {Y} f →
+        let open SetoidReasoning (Arr (F1 .obj (F0 .obj X))
+                                      (G1 .obj (G0 .obj Y))) in
+        F1 .arr $E (F0 .arr $E f) >> (F1 .arr $E α .η Y >> β .η (G0 .obj Y))
+          ≈[ refl >>-cong β .square (α .η Y) ]≈
+        F1 .arr $E (F0 .arr $E f) >> (β .η (F0 .obj Y) >> G1 .arr $E α .η Y)
+          ≈[ sym (>>->> _ _ _) ]≈
+        (F1 .arr $E (F0 .arr $E f) >> β .η (F0 .obj Y)) >> G1 .arr $E α .η Y
+          ≈[ β .square (F0 .arr $E f) >>-cong refl ]≈
+        (β .η (F0 .obj X) >> G1 .arr $E (F0 .arr $E f)) >> G1 .arr $E α .η Y
+          ≈[ >>->> _ _ _ ]≈
+        β .η (F0 .obj X) >> (G1 .arr $E (F0 .arr $E f) >> G1 .arr $E α .η Y)
+          ≈[ refl >>-cong sym (G1 .isFunctor .arr->>) ]≈
+        β .η (F0 .obj X) >> (G1 .arr $E (F0 .arr $E f D.>> α .η Y))
+          ≈[ refl >>-cong G1 .arr $E= α .square f ]≈
+        β .η (F0 .obj X) >> (G1 .arr $E (α .η X D.>> G0 .arr $E f))
+          ≈[ refl >>-cong G1 .isFunctor .arr->> ]≈
+        β .η (F0 .obj X) >> (G1 .arr $E α .η X >> G1 .arr $E (G0 .arr $E f))
+          ≈[ sym (>>->> _ _ _) ]≈
+        (β .η (F0 .obj X) >> G1 .arr $E α .η X) >> G1 .arr $E (G0 .arr $E f)
+          ≈[ sym (β .square (α .η X)) >>-cong refl ]≈
+        (F1 .arr $E α .η X >> β .η (G0 .obj X)) >> G1 .arr $E (G0 .arr $E f)
+          QED
+      }
+
   module _ {oc od ac ad ec ed}
            (C : Category oc ac ec) (D : Category od ad ed) where
     private
