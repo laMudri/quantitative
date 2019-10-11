@@ -1,10 +1,6 @@
 module Lib.List where
 
-  infixr 5 _∷_
-
-  data List {a} (A : Set a) : Set a where
-   [] : List A
-   _∷_ : (x : A) (xs : List A) → List A
+  open import Data.List public using (List; []; _∷_)
 
   -- Bidirectional order of arguments
   fold : ∀ {a b} {A : Set a} → List A → (B : Set b) (n : B) (c : A → B → B) → B
