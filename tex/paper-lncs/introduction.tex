@@ -72,3 +72,37 @@ Our main contributions are:
 \item A Kripke-indexed relational semantics providing strong free theorems
 \item A formalisation of this work in Agda
 \end{itemize}
+
+\subsection{Related work}
+
+We follow closely and extend the approaches of Petricek, Orchard, and Mycroft,
+and Ghica and Smith \cite{PetricekOM14,GhicaS14}.
+In particular, our framework is generic in a partially ordered semiring of
+\emph{usage constraints}, which are placed on each variable in the context.
+This is distinct from the approach taken by Brunel et al and the Granule project
+\cite{BrunelGMZ14,Granule18}, where \emph{unannotated} variables also exist, and
+are treated linearly.
+Both of the latter systems contain a \emph{dereliction} rule, stating that a
+variable annotated $\rescomment 1$ can be coerced to an unannotated variable.
+This rule can be justified by the graded comonad unit law
+$\fun{\excl{1}{A}}{A}$, so adds no new axioms to be met when we want to produce
+semantics.
+However, the distinction between annotated and unannotated variables does cause
+complexity in the syntax.
+For one thing, the dereliction rule is not syntax-directed.
+For another, the operation of merging contexts is now partial, and the scaling
+operation is not uniform or also partial.
+
+Beyond previous work that assumed all variables were annotated, we allow a full
+complement of propositional intuitionistic linear logic connectives.
+Particularly, we have tensor products, with products, sums, and the bang
+modality, as opposed to just functions.
+In contrast to this previous work, our functions are not annotated with a usage
+constraint; we prefer a combination of the function arrow and the bang modality
+so as to improve modularity of the connectives.
+
+Our main novel language feature compared to previous work on usage-constrained
+typing is an account of an inductive type (tensor lists) in both syntax and
+semantics.
+We believe that this account could be generalised to cover all strictly positive
+inductive types in a relatively straightforward manner.

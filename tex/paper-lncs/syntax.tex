@@ -53,21 +53,23 @@ proving simultaneous substitution in \autoref{sec:admissible}.
 We assume that our set of annotations $\mathscr R$ forms a partially ordered
 semiring $(\mathscr{R}, \subres, 0, +, 1, *)$.
 These annotations adorn free variables.
-$0$ represents non-usage, and $+$ the combination of separate usages.
-$(\mathscr{R}, 0, +)$ forms a commutative monoid.
+$0$ represents non-usage, and $+$ represents the combination of separate usages.
+We require $(\mathscr{R}, 0, +)$ to be a commutative monoid.
 $1$ represents a single or plain usage, and $*$ applies a transformation upon
 the type of usage allowed.
-$(\mathscr{R}, 1, *)$ forms a monoid that is annihilated by and distributes over
-the additive structure.
+We require $(\mathscr{R}, 1, *)$ to be a monoid that is annihilated by and
+distributes over the additive structure.
 The order $\subres$ describes a sub-usaging relation.
-We have $\pi \subres \rho$ if and only if the annotation $\pi$ allows use in at
-most as many situations as the annotation $\rho$ allows.
-This acts a lot like a subtyping relation.\fixmeBA{In what way? It induces one?}
-$(\mathscr{R}, \subres)$ forms a partial order, and addition and multiplication
-are monotonic with respect to $\subres$.
+We have $\pi \subres \rho$ if and only if $\pi$ is at most as permissive as
+$\rho$.
+This acts a lot like a subtyping relation; in particular, knowing
+$\pi \subres \rho$ gives us a function of type
+$\fun{\excl{\pi}{A}}{\excl{\rho}{A}}$.
+We require $(\mathscr{R}, \subres)$ to be a partial order, and addition and
+multiplication to be monotonic with respect to $\subres$.
 
-In many cases of interest, $0$ and $+$ are respectively the bottom and join of
-the sub-usaging order, turning it into a join semilattice.
+In many cases of interest, $0$ and $+$ are respectively the top and meet of the
+sub-usaging order, turning it into a bounded meet semilattice.
 In these cases, with products ($\withT{A}{B}$) coincide with tensor products
 ($\tensor{A}{B}$), and usage inference is significantly simplified.
 \fixme{rntz reference?} \fixmeBA{Don't mention inference here if we aren't going to do it in detail}
@@ -112,8 +114,8 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
     \hspace{0.5in}%
     \(
     \begin{tikzcd}[arrows=dash,row sep=0.5cm,column sep=0.5cm]
-      & \omega & \\
-      0 \arrow[ur] && 1 \arrow[ul]
+      0 \arrow[dr] && 1 \arrow[dl] \\
+      & \omega &
     \end{tikzcd}
     \)
   \end{center}
@@ -144,43 +146,52 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
 
 \begin{example}[Monotonicity]
   Usage annotations track which ``way up'' we can use a free variable.
-  A variable can be used covariantly ($\uparrow$), contravariantly
-  ($\downarrow$), invariantly ($=$), or unrestrictedly ($?$).
+  % A variable can be used covariantly ($\uparrow$), contravariantly
+  % ($\downarrow$), invariantly ($=$), or unrestrictedly ($?$).
+  We require that the interpretation of an open term increases, with four
+  possible conditions on the perturbations of the values plugged in to the free
+  variables.
+  We consider the valuation increasing ($\uparrow$), decreasing ($\downarrow$),
+  changing arbitrarily ($0$), or staying the same ($=$).
+  Note that the value always increases when the valuation stays the same ($=$),
+  and the only way for the value to increase irrespective of the valuation ($0$)
+  is for the value to be constant in the valuation (for example, the variable
+  does not appear in the term at all).
 
   \begin{center}
     \begin{tabular}{>{$}c<{$}}
-      0 \coloneqq {=} \\
+      0 \coloneqq {0} \\
       1 \coloneqq {\uparrow}
     \end{tabular}%
     \hspace{0.5in}%
     \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}>{$}l<{$}}
-      +          & =          & \uparrow & \downarrow & ? \\
+      +          & 0          & \uparrow & \downarrow & \equiv \\
       \hline
-      =          & =          & \uparrow & \downarrow & ? \\
-      \uparrow   & \uparrow   & \uparrow & ?          & ? \\
-      \downarrow & \downarrow & ?        & \downarrow & ? \\
-      ?          & ?          & ?        & ?          & ? \\
+      0          & 0          & \uparrow & \downarrow & \equiv \\
+      \uparrow   & \uparrow   & \uparrow & \equiv     & \equiv \\
+      \downarrow & \downarrow & \equiv   & \downarrow & \equiv \\
+      \equiv     & \equiv     & \equiv   & \equiv     & \equiv \\
     \end{tabular}%
     \hspace{0.5in}%
     \begin{tabular}{>{$}r<{$}|>{$}l<{$}>{$}l<{$}>{$}l<{$}>{$}l<{$}}
-      *          & = & \uparrow   & \downarrow & ? \\
+      *          & 0 & \uparrow   & \downarrow & \equiv \\
       \hline
-      =          & = & =          & =          & = \\
-      \uparrow   & = & \uparrow   & \downarrow & ? \\
-      \downarrow & = & \downarrow & \uparrow   & ? \\
-      ?          & = & ?          & ?          & ? \\
+      0          & 0 & 0          & 0          & 0      \\
+      \uparrow   & 0 & \uparrow   & \downarrow & \equiv \\
+      \downarrow & 0 & \downarrow & \uparrow   & \equiv \\
+      \equiv     & 0 & \equiv     & \equiv     & \equiv \\
     \end{tabular}%
     \hspace{0.5in}%
     \(
     \begin{tikzcd}[arrows=dash,row sep=0.5cm,column sep=0.5cm]
-      & ? & \\
+      & 0 & \\
       \uparrow \arrow[ur] && \downarrow \arrow[ul] \\
-      & = \arrow[ul]\arrow[ur] &
+      & \equiv \arrow[ul]\arrow[ur] &
     \end{tikzcd}
     \)
   \end{center}
 
-  Notice that $+$ is the join of the sub-usaging order.
+  Notice that $+$ is the meet of the sub-usaging order.
 \end{example}
 
 \begin{example}[Security levels]
@@ -192,13 +203,13 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
     \(\mathscr R \coloneqq \mathcal L\)
     \hspace{0.5in}%
     \begin{tabular}{>{$}c<{$}}
-      0 \coloneqq \bot \\
-      1 \coloneqq \top
+      0 \coloneqq \top \\
+      1 \coloneqq \bot
     \end{tabular}%
     \hspace{0.5in}%
     \begin{tabular}{>{$}c<{$}}
-      {+} \coloneqq {\vee} \\
-      {*} \coloneqq {\wedge}
+      {+} \coloneqq {\wedge} \\
+      {*} \coloneqq {\vee}
     \end{tabular}%
     \hspace{0.5in}%
     \(x \subres y \iff x \leq y\)
@@ -263,12 +274,12 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
   \begin{mathpar}
     \inferrule*[right=var]
     {(x : A) \in \Gamma
-      \\ \subrctx{\basis x}{\resctx R}
+      \\ \subrctx{\resctx R}{\basis x}
     }
     {\ctx{\Gamma}{R} \vdash x : A}
     \and
     \inferrule*[right=const]
-    {\subrctx{\vct 0}{\resctx R}}
+    {\subrctx{\resctx R}{\vct 0}}
     {\ctx{\Gamma}{R} \vdash c : A_c}
     \and
     \inferrule*[right=$\multimap$-I]
@@ -278,21 +289,21 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
     \inferrule*[right=$\multimap$-E]
     {\ctx{\Gamma}{P} \vdash M : \fun{A}{B}
       \\ \ctx{\Gamma}{Q} \vdash N : A
-      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+      \\ \subrctx{\resctx R}{\resctx P + \resctx Q}
     }
     {\ctx{\Gamma}{R} \vdash \app{M}{N} : B}
     \and
     \inferrule*[right=$\otimes$-I]
     {\ctx{\Gamma}{P} \vdash M : A
       \\ \ctx{\Gamma}{Q} \vdash N : B
-      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+      \\ \subrctx{\resctx R}{\resctx P + \resctx Q}
     }
     {\ctx{\Gamma}{R} \vdash \ten{M}{N} : \tensor{A}{B}}
     \and
     \inferrule*[right=$\otimes$-E]
     {\ctx{\Gamma}{P} \vdash M : \tensor{A}{B}
       \\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1}, \ctxvar{y}{B}{1} \vdash N : C
-      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+      \\ \subrctx{\resctx R}{\resctx P + \resctx Q}
     }
     {\ctx{\Gamma}{R} \vdash \prm{C}{M}{x}{y}{N} : C}
     \and
@@ -307,13 +318,13 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
     {\ctx{\Gamma}{R} \vdash \proj{i}{M} : A_i}
     \and
     \inferrule*[right=$1$-I]
-    {\subrctx{\vct 0}{\resctx R}}
+    {\subrctx{\resctx R}{\vct 0}}
     {\ctx{\Gamma}{R} \vdash \unit : \tensorOne}
     \and
     \inferrule*[right=$1$-E]
     {\ctx{\Gamma}{P} \vdash M : \tensorOne
       \\ \ctx{\Gamma}{Q} \vdash N : A
-      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+      \\ \subrctx{\resctx R}{\resctx P + \resctx Q}
     }
     {\ctx{\Gamma}{R} \vdash \del{A}{M}{N} : A}
     \and
@@ -327,7 +338,7 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
     \and
     \inferrule*[right=$0$-E$_i$]
     {\ctx{\Gamma}{P} \vdash M : \sumTZero
-      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+      \\ \subrctx{\resctx R}{\resctx P + \resctx Q}
     }
     {\ctx{\Gamma}{R} \vdash \exf{A}{M} : A}
     \and
@@ -339,41 +350,38 @@ In these cases, with products ($\withT{A}{B}$) coincide with tensor products
     {\ctx{\Gamma}{P} \vdash M : \sumT{A}{B}
       \\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1} \vdash N_0 : C
       \\ \ctx{\Gamma}{Q}, \ctxvar{y}{B}{1} \vdash N_1 : C
-      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+      \\ \subrctx{\resctx R}{\resctx P + \resctx Q}
     }
     {\ctx{\Gamma}{R} \vdash \cse{C}{M}{x}{N_0}{y}{N_1} : C}
     \and
     \inferrule*[right=$\excl{\rho}{}$-I]
     {\ctx{\Gamma}{P} \vdash M : A
-      \\ \subrctx{\rescomment \rho * \resctx P}{\resctx R}
+      \\ \subrctx{\resctx R}{\rescomment \rho * \resctx P}
     }
     {\ctx{\Gamma}{R} \vdash \bang{M} : \excl{\rho}{A}}
     \and
     \inferrule*[right=$\excl{\rho}{}$-E]
     {\ctx{\Gamma}{P} \vdash M : \excl{\rho}{A}
       \\ \ctx{\Gamma}{Q}, \ctxvar{x}{A}{\rho} \vdash N : B
-      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+      \\ \subrctx{\resctx R}{\resctx P + \resctx Q}
     }
     {\ctx{\Gamma}{R} \vdash \bm{B}{M}{x}{N} : B}
     \and
     \inferrule*[right=$\listT{}$-Inil]
-    {\subrctx{\vct 0}{\resctx R}}
+    {\subrctx{\resctx R}{\vct 0}}
     {\ctx{\Gamma}{R} \vdash \nil : \listT A}
     \and
     \inferrule*[right=$\listT{}$-Icons]
     {\ctx{\Gamma}{P} \vdash M : A
       \\ \ctx{\Gamma}{Q} \vdash N : \listT A
-      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
+      \\ \subrctx{\resctx R}{\resctx P + \resctx Q}
     }
     {\ctx{\Gamma}{R} \vdash \cons{M}{N} : \listT A}
     \and
     \inferrule*[right=$\listT{}$-E]
-    {\ctx{\Gamma}{P} \vdash M : \listT A
-      \\ \ctx{\Gamma}{Q} \vdash N_n : C
-      \\ \ctx{\Gamma}{Q}, \ctxvar{h}{A}{1}, \ctxvar{r}{\listT A}{1} \vdash N_c : C
-      \\ \subrctx{\resctx P + \resctx Q}{\resctx R}
-      \\ \subrctx{\vct 0}{\resctx Q}
-      \\ \subrctx{\resctx Q + \resctx Q}{\resctx Q}
+    {\ctx{\Gamma}{R} \vdash M : \listT A
+      \\ \ctx{\Gamma}{\vct 0} \vdash N_n : C
+      \\ \ctx{\Gamma}{\vct 0}, \ctxvar{h}{A}{1}, \ctxvar{r}{\listT A}{1} \vdash N_c : C
     }
     {\ctx{\Gamma}{R} \vdash \fold{M}{N_n}{h}{r}{N_c} : C}
   \end{mathpar}
@@ -429,11 +437,20 @@ Finally, we include a polymorphic type of lists.
 Usage-wise, lists are a tensoring together of their elements, meaning that
 $\nil$ requires its context to be discarded and $\cons{-}{-}$ requires the
 context to be split between the head and the tail.
-To eliminate a list, we split the context as in other pattern matching
-eliminators, but also require that both continuations use only discardable
-and duplicable variables.
-This ensures that, for example, the continuation that deals with $\cons{-}{-}$
-can be invoked as many times as necessary.
+To eliminate a list, we will need the continuation handling
+$\cons{-}{-}$ to be usable an arbitrary number of times.
+The simplest way to achieve this irrespective of the usage algebra used is to
+force all of the variables in the global context $\Gamma$ to have annotation
+$0$.
+For consistency, we put the same constraint on the continuation handling
+$\nil{}$.
+We believe that these restrictions could be loosened, allowing any deletable and
+duplicable annotations to be on $\Gamma$, but have not worked out this variant.
+% we split the context as in other pattern matching
+% eliminators, but also require that both continuations use only discardable
+% and duplicable variables.
+% This ensures that, for example, the continuation that deals with $\cons{-}{-}$
+% can be invoked as many times as necessary.
 
 \fixmeBA{Could have separate $\resctx Q$ and $\resctx Q'$ for the nil and cons cases, and let the condition be $\subrctx{\resctx Q + \resctx Q'}{\resctx Q'}$?}
 
@@ -453,13 +470,13 @@ can be invoked as many times as necessary.
     \inferrule*[Right=$\tensor{}{}$-I]
     {
       \inferrule*[Right=var]
-      {\rescomment{1 \subres \omega}}
+      {\rescomment{\omega \subres 1}}
       {\ctxvar{x}{\base}{\omega} \vdash x : \base}
       \\
       \inferrule*[Right=var]
-      {\rescomment{1 \subres \omega}}
+      {\rescomment{\omega \subres 1}}
       {\ctxvar{x}{\base}{\omega} \vdash x : \base}
-      \\ \rescomment{\omega + \omega \subres \omega}
+      \\ \rescomment{\omega \subres \omega + \omega}
     }
     {\ctxvar{x}{\base}{\omega} \vdash \ten{x}{x} : \tensor{\base}{\base}}
   \]
@@ -481,7 +498,7 @@ can be invoked as many times as necessary.
         {\nabla \\\\
           \ctxvar{b_x}{\excl{\omega}{\base}}{0}, \ctxvar{x}{\base}{\omega}
           \vdash \ten{x}{x} : \tensor{\base}{\base}}
-        \\ \rescomment{1 + 0 \subres 1}
+        \\ \rescomment{1 \subres 1 + 0}
       }
       {\ctxvar{b_x}{\excl{\omega}{\base}}{1} \vdash \bm{}{b_x}{x}{\ten{x}{x}}
         : \tensor{\base}{\base}}
@@ -527,8 +544,8 @@ matching has been done and we are ready to start building the result.
 
 \[
   \inferrule*[right=$\excl{\rho}{}$-I]{
-    \rho * x_{bcbd}^0, b_c^0, b_d^0, c^1, d^1
-    \subres x_{bcbd}^0, b_c^0, b_d^0, c^\rho, d^\rho
+    x_{bcbd}^0, b_c^0, b_d^0, c^\rho, d^\rho
+    \subres \rho * x_{bcbd}^0, b_c^0, b_d^0, c^1, d^1
     \\
     \ctxvar{x_{bcbd}}{\tensor{\excl{\rho}{C}}{\excl{\rho}{D}}}{0},
     \ctxvar{b_c}{\excl{\rho}{C}}{0}, \ctxvar{b_d}{\excl{\rho}{D}}{0},
@@ -625,16 +642,16 @@ graded comonad in our category of types and functions.
 \begin{figure}
   \begin{mathpar}
     \inferrule*[right=subuse]{
-      \ctx{\Gamma}{P} \vdash M : A
+      \ctx{\Gamma}{Q} \vdash M : A
       \\ \resctx P \subres \resctx Q
     }
     {
-      \ctx{\Gamma}{Q} \vdash M : A
+      \ctx{\Gamma}{P} \vdash M : A
     }
     \and
     \inferrule*[right=weak]{
       \ctx{\Gamma}{P} \vdash M : A
-      \\ \vct 0 \subres \resctx Q
+      \\ \resctx Q \subres \vct 0
     }
     {
       \ctx{\Gamma}{P}, \ctx{\Delta}{Q} \vdash M : A
@@ -680,11 +697,11 @@ provisioned in $\resctx Q$.
   were given, except with the updated splitting premise.
 \end{proof}
 
-If addition is the join of the sub-usaging order, then the distinction
-between tensor and with products collapses.
+If addition is the meet of the sub-usaging order, then the distinction between
+tensor and with products collapses.
 This fact can be seen clearly in the introduction rules, where the condition
-$\resctx P + \resctx Q \subres \resctx R$ is equivalent to the conjunction of
-$\resctx P \subres \resctx R$ and $\resctx Q \subres \resctx R$.
+$\resctx R \subres \resctx P + \resctx Q$ is equivalent to the conjunction of
+$\resctx R \subres \resctx P$ and $\resctx R \subres \resctx Q$.
 With these and the admissibility of sub-usaging, we get the equivalence.
 \fixmeBA{Can this be turned into a proposition? E.g., there are terms translating back and forth between both types of product? This observation might make more sense in the previous subsection. Also, it extends to the units too?}
 
@@ -703,8 +720,8 @@ can be applied to any variable.
   \autoref{fig:admissible-rules}: \TirName{weak}
 \end{lemma}
 
-When $0$ is the bottom element of the subusaging order, the condition $\vct 0
-\subres \resctx Q$ is trivial, so arbitrary weakening is allowed.
+When $0$ is the top element of the subusaging order, the condition
+$\resctx Q \subres \vct 0$ is trivial, so arbitrary weakening is allowed.
 
 Our main syntactic lemma is substitution.
 To state and prove substitution, the key insight is that semirings give rise to
@@ -727,7 +744,7 @@ matrices denotes multiplication.
 
   \begin{itemize}
   \item a $|\resctx Q| \times |\resctx P|$ matrix of usage annotations $\mat
-    \Sigma$ such that $\resctx Q \mat \Sigma \subres \resctx P$
+    \Sigma$ such that $\resctx P \subres \resctx Q \mat \Sigma$
   \item for each $(x:A) \in \Delta$, a term $M_x$ such that
     $\Gamma^{\vct e_x \mat \Sigma} \vdash M_x : A$
   \end{itemize}
@@ -744,9 +761,9 @@ $\mat \Sigma$ weighted by $\resctx Q$.
 \renewcommand{\proofname}{Proof sketch}
 \begin{proof}
   By induction on the provisioning derivation.
-  Wherever a context is split, by any of $\vct 0 \subres \resctx R$,
-  $\resctx P + \resctx Q \subres \resctx R$, or
-  $\rescomment \rho * \resctx P \subres \resctx R$, the linearity of vector-matrix
+  Wherever a context is split, by any of $\resctx R \subres \vct 0$,
+  $\resctx R \subres \resctx P + \resctx Q$, or
+  $\resctx R \subres \rescomment \rho * \resctx P$, the linearity of vector-matrix
   multiplication means that $\mat \Sigma$ can stay the same.
   When going under a binder, the new substitution matrix will be constructed
   from the given $\mat \Sigma$ as the following.
@@ -837,8 +854,8 @@ These additive type formers present no additional difficulty to the translation.
 \end{proposition}
 \begin{proof}
   By induction on the derivation.
-  We have $0 \subres \omega$, which allows us to discard intuitionistic
-  variables at the var rules, and both $1 \subres 1$ and $1 \subres \omega$,
+  We have $\omega \subres 0$, which allows us to discard intuitionistic
+  variables at the var rules, and both $1 \subres 1$ and $\omega \subres 1$,
   which allow us to use both linear and intuitionistic variables.
 
   Weakening is used when splitting linear variables between two premises.

@@ -101,7 +101,7 @@
 \newcommand\tobar{\mathrel{\ooalign{\hfil$\mapstochar\mkern5mu$\hfil\cr$\to$\cr}}}
 
 
-\newcommand{\subres}{\trianglelefteq}
+\newcommand{\subres}{\sqsubseteq}
 \newcommand{\subrctx}[2]{{#1} \subres {#2}}
 \makeatletter
 \newcommand{\subst}[2][]{\ext@arrow 0359\Rightarrowfill@{#1}{#2}}
@@ -113,7 +113,7 @@
 
 \newcommand{\mat}[1]{\mathbf{#1}}
 \newcommand{\vct}[1]{\mathbf{#1}}
-\newcommand{\basis}[1]{\vct e_{#1}}
+\DeclarePairedDelimiter\basis{\langle}{\rvert}
 
 
 \newcommand{\name}{\ensuremath{\lambda \resctxperm R}}
