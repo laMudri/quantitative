@@ -190,7 +190,7 @@ $M_T$, and the application of a linear map $T(v)$ is represented by $vM_T$.
 \section{Metatheory}
 
 We prove all of our main syntactic lemmas via McBride's kits and traversals
-method \cite{mcbride2005type}.
+method \cite{rensub05}.
 Our main modifications are the following.
 \begin{itemize}
   \item Kits need not support arbitrary weakening, but rather weakening by the
@@ -225,10 +225,11 @@ An inhabitant of $\ctx{\Gamma}{P} \kitrel A$ is described as
 
 \subsection{Environment}
 
-In simple intuitionistic type theory, what we call the ``environment'' is just a
-type-preserving function from variables in the old context $\Delta$ to stuff in
-the new context $\Gamma$.
-That is, the environment is an inhabitant of $\Delta \ni A \to \Gamma \kitrel A$.
+In simple intuitionistic type theory, an environment is just a type-preserving
+function from variables in the old context $\Delta$ to stuff in the new context
+$\Gamma$.
+That is, the environment is an inhabitant of
+$\Delta \ni A \to \Gamma \kitrel A$.
 The traversal function $\mathit{trav}$ turns such an environment into a map
 between terms, $\Delta \vdash A \to \Gamma \vdash A$.
 
@@ -241,20 +242,131 @@ $\resctx Q$ is compatible with a basis vector, so our environment would be
 trivial in more general cases.
 Instead, we care about non-usage-checked variables $\Delta \ni A$.
 
-On the other hand, the purpose of the environment is that we will eventually
-apply it to variables from the term language, which are usage-checked variables.
-In other words, the usage context $\resctx Q$ of the entire term we're
-traversing over will be whittled away until we get a $\resctx{Q'}$
-such that $\ctx{\Delta}{Q'} \ni A$.
+Our understanding of an environment is that it should simultaneously map all of
+the usage-checked variables in $\ctx{\Delta}{Q}$ to stuff in $\ctx{\Gamma}{P}$
+in a way that preserves usage.
+As such, we want to map each variable $j : \Delta \ni A$ not to $A$-stuff in
+$\ctx{\Gamma}{P}$, but rather $A$-stuff in $\ctx{\Gamma}{P_j}$, where $P_j$ is
+some fragment of $\resctx P$.
+Precisely, when weighted by $\resctx Q\lvert j \rangle$, we want these
+$\resctx P_j$ to sum to $\resctx P$, so as to provide ``enough'' usage to cover
+all of the variables $j$.
+When we collect all of the $\resctx P_j$ into a matrix $\rescomment\Psi$, we
+notice that the condition just described is stated succinctly via a
+vector-matrix multiplication $\resctx Q\rescomment\Psi$.
+
+% On the other hand, the purpose of the environment is that we will eventually
+% apply it to variables from the term language, which are usage-checked variables.
+% In other words, the usage context $\resctx Q$ of the entire term we're
+% traversing over will be whittled away until we get a $\resctx{Q'}$
+% such that $\ctx{\Delta}{Q'} \ni A$.
+% Correspondingly,
 
 This culminates to give us the following requirements.
 
 \begin{itemize}
   \item $\rescomment\Psi : \mathscr R^{n \times m}$
   \item $\mathit{act} :
-    (j : (\Delta \ni A)) \to (\langle j \rvert\rescomment\Psi)\Gamma$
+    (j : (\Delta \ni A)) \to (\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$
   \item such that $\resctx P \subres \resctx Q \rescomment\Psi$.
 \end{itemize}
+
+We shall write the type of such bundles as
+$\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$.
+%$\env{\ctx{\Gamma}{P}}{\kitrel}{\ctx{\Delta}{Q}}$.
+
+\subsection{Traversal}
+
+\begin{lemma}[bind]\label{lem:bind}
+  Given a kit on $\kitrel$, we can extend an environment of type
+  $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$, to an environment of type
+  $\ctx{\Gamma}{P}, \ctx{\Theta}{R} \subst{\kitrel}
+  \ctx{\Delta}{Q}, \ctx{\Theta}{R}$.
+\end{lemma}
+\begin{proof}
+  Let the environment we are given be
+  $(\rescomment\Psi : \mathscr R^{n \times m},
+  \mathit{act} : (j : \Delta \ni A) \to (\langle j \rvert\rescomment\Psi)\Gamma \kitrel A)$,
+  with $\resctx P \subres \resctx Q \rescomment\Psi$.
+  We are trying to construct
+  $(\rescomment{\Psi'} : \mathscr R^{(n + o) \times (m + o)},
+  \mathit{act'} : (j : \Delta, \Theta \ni A) \to
+  (\langle j \rvert\rescomment\Psi')(\Gamma, \Theta) \kitrel A)$,
+  with $\resctx P, \resctx R \subres (\resctx Q, \resctx R) \rescomment\Psi'$.
+
+  Let \(
+    \rescomment\Psi' := \left(\begin{array}{c|c}
+                                \rescomment\Psi & \rescomment{\mat 0}
+                                \\ \hline
+                                \rescomment{\mat 0} & \rescomment{\mat I}
+                              \end{array}\right).
+  \)
+  With this definition, our required condition splits into the following easily
+  checked conditions.
+  \begin{itemize}
+    \item
+      $\resctx P \subres
+      \resctx Q\rescomment\Psi + \resctx R\rescomment{\mat 0}$
+    \item
+      $\resctx R \subres
+      \resctx Q\rescomment{\mat 0} + \resctx R\rescomment{\mat I}$
+  \end{itemize}
+
+  For $\mathit{act'}$, we take cases on whether $j$ is from $\Delta$ or from
+  $\Theta$.
+
+  In the $\Delta$ case, $\mathit{act}$ gets us an inhabitant of
+  $(\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$.
+  Notice that
+  $\langle j \rvert\rescomment\Psi' =
+  \langle j \rvert\rescomment\Psi, \rescomment{\vct 0}$,
+  so we want to get from $(\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$ to
+  $(\langle j \rvert\rescomment\Psi)\Gamma, \rescomment{\vct 0}\Theta
+  \kitrel A$.
+  We can get this using $\mathit{wk}$ from our kit.
+
+  In the $\Theta$ case, notice that
+  $\langle j \rvert\rescomment\Psi' = \rescomment{\vct 0}, \langle j \rvert$.
+  In other words, $\langle j \rvert\rescomment\Psi'$ is a basis vector, so we
+  actually have usage-checked
+  $(\langle j \rvert\rescomment\Psi')(\Gamma, \Theta) \ni A$.
+  Thus, we can use $\mathit{vr}$ from our kit to get
+  $(\langle j \rvert\rescomment\Psi')(\Gamma, \Theta) \kitrel A$, as required.
+\end{proof}
+
+\begin{lemma}[traversal]\label{lem:trav}
+  Given a kit on $\kitrel$ and an environment
+  $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$, we can transform a term
+  $\ctx{\Delta}{Q} \vdash A$ into a term $\ctx{\Gamma}{P} \vdash A$.
+  %There exists an $M'$ calculated from the surrounding data such that the
+  %following rule is admissible.
+  %\[
+  %  \inferrule*[right=trav]{
+  %    \mathrm{Kit}~{\kitrel}
+  %    \\ \ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}
+  %    \\ \ctx{\Delta}{Q} \vdash M : A
+  %  }
+  %  {
+  %    \ctx{\Gamma}{P} \vdash M' : A
+  %  }
+  %\]
+\end{lemma}
+\begin{proof}
+  By induction on the syntax of $M$. (This is really important!)
+  \begin{description}
+    \item[variable $x : \ctx{\Delta}{Q} \ni A$:]
+      By definition of $\ni$, we have that $\resctx Q \subres \langle j \rvert$
+      for some $j$.
+      Applying the action of the environment, we have
+      $(\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$.
+      We then have
+      $\resctx P \subres \resctx Q\rescomment\Psi \subres \langle j \rvert\rescomment\Psi$,
+      so using the fact that stuff appropriately respects subusaging
+      ($\mathit{psh}$), we have $\ctx{\Gamma}{P} \kitrel A$.
+      Finally, using $\mathit{tm}$, we get a term $\ctx{\Gamma}{P} \vdash A$, as
+      required.
+  \end{description}
+\end{proof}
 
 \subsection{Subusaging}
 
