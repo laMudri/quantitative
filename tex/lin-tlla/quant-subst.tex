@@ -195,7 +195,7 @@ Our main modifications are the following.
 \begin{itemize}
   \item Kits need not support arbitrary weakening, but rather weakening by the
     introduction of $0$-use variables.
-  \item The action map is made linear by equipping it with a matrix (linear map)
+  \item The environment is made linear by equipping it with a matrix (linear map)
     mediating between the input and output usage annotations.
 \end{itemize}
 
@@ -223,25 +223,25 @@ universally quantified.
 An inhabitant of $\ctx{\Gamma}{P} \kitrel A$ is described as
 \emph{stuff in $\ctx{\Gamma}{P}$ of type $A$}.
 
-\subsection{Action map}
+\subsection{Environment}
 
-In simple intuitionistic type theory, what we call the ``action map'' is just a
+In simple intuitionistic type theory, what we call the ``environment'' is just a
 type-preserving function from variables in the old context $\Delta$ to stuff in
 the new context $\Gamma$.
-That is, the action map is an inhabitant of $\Delta \ni A \to \Gamma \kitrel A$.
-The traversal function $\mathit{trav}$ turns such an action map into a map
+That is, the environment is an inhabitant of $\Delta \ni A \to \Gamma \kitrel A$.
+The traversal function $\mathit{trav}$ turns such an environment into a map
 between terms, $\Delta \vdash A \to \Gamma \vdash A$.
 
 In \name, we want inhabitants of
 $\ctx{\Delta}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.
-We can see that an action map of type
+We can see that an environment of type
 $\ctx{\Delta}{Q} \ni A \to \ctx{\Gamma}{P} \kitrel A$ would
 be insufficient --- $\ctx{\Delta}{Q} \ni A$ can only be inhabited when
-$\resctx Q$ is compatible with a basis vector, so our action map would be
+$\resctx Q$ is compatible with a basis vector, so our environment would be
 trivial in more general cases.
 Instead, we care about non-usage-checked variables $\Delta \ni A$.
 
-On the other hand, the purpose of the action map is that we will eventually
+On the other hand, the purpose of the environment is that we will eventually
 apply it to variables from the term language, which are usage-checked variables.
 In other words, the usage context $\resctx Q$ of the entire term we're
 traversing over will be whittled away until we get a $\resctx{Q'}$
