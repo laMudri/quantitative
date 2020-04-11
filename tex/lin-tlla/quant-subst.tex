@@ -28,6 +28,8 @@
 \def\multnotation{1}
 \input{../macros.tex}
 
+\newcommand{\kitrel}{\mathbin{\blacklozenge}}
+
 \title{An Algebraically Structured Approach to Substructural Substitution}
 \author{Robert Atkey
 \institute{University of Strathclyde\\ Glasgow, United Kingdom}
@@ -187,18 +189,72 @@ $M_T$, and the application of a linear map $T(v)$ is represented by $vM_T$.
 
 \section{Metatheory}
 
-Our proof of the admissibility of substitution follows a mostly standard
-structure for a typed $\lambda$-calculus formalised using de Bruijn indexes.
-After a particular lemma about the action of subusaging, we prove the
-admissibility of weakening, show how to push a substitution under a binder, and
-finally prove substitution.
+We prove all of our main syntactic lemmas via McBride's kits and traversals
+method \cite{mcbride2005type}.
+Our main modifications are the following.
+\begin{itemize}
+  \item Kits need not support arbitrary weakening, but rather weakening by the
+    introduction of $0$-use variables.
+  \item The action map is made linear by equipping it with a matrix (linear map)
+    mediating between the input and output usage annotations.
+\end{itemize}
 
-The main deviation from the standard structure is the addition of usage
-constraints expressed as matrices --- in other words, linear maps between the
-finite-dimensional semimodules in which usage contexts live.
-Generally, our lemmas will require, in addition to their usual premises, the
-provision of a matrix satisfying a certain relationship between the premises and
-the conclusion.
+\subsection{Kit}
+
+A kit is a structure on relations
+$\kitrel : \mathrm{Ctx} \times \mathrm{Ty} \to \mathrm{Set}$, intuitively
+giving a way in which $\kitrel$ lives between the usage-checked variable
+judgement $\ni$ and the typing judgement $\vdash$.
+We require the following functions, where all undefined variables are
+universally quantified.
+
+\begin{itemize}
+  \item
+    $\mathit{psh} : \resctx P \subres \resctx Q \to
+    \ctx{\Gamma}{Q} \kitrel A \to \ctx{\Gamma}{P} \kitrel A$
+  \item $\mathit{vr} : \ctx{\Gamma}{P} \ni A \to
+    \ctx{\Gamma}{P} \kitrel A$
+  \item $\mathit{tm} : \ctx{\Gamma}{P} \kitrel A \to
+    \ctx{\Gamma}{P} \vdash A$
+  \item $\mathit{wk} : \ctx{\Gamma}{P} \kitrel A \to
+    \ctx{\Gamma}{P}, \ctx{\Delta}{\vct 0} \kitrel A$
+\end{itemize}
+
+An inhabitant of $\ctx{\Gamma}{P} \kitrel A$ is described as
+\emph{stuff in $\ctx{\Gamma}{P}$ of type $A$}.
+
+\subsection{Action map}
+
+In simple intuitionistic type theory, what we call the ``action map'' is just a
+type-preserving function from variables in the old context $\Delta$ to stuff in
+the new context $\Gamma$.
+That is, the action map is an inhabitant of $\Delta \ni A \to \Gamma \kitrel A$.
+The traversal function $\mathit{trav}$ turns such an action map into a map
+between terms, $\Delta \vdash A \to \Gamma \vdash A$.
+
+In \name, we want inhabitants of
+$\ctx{\Delta}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.
+We can see that an action map of type
+$\ctx{\Delta}{Q} \ni A \to \ctx{\Gamma}{P} \kitrel A$ would
+be insufficient --- $\ctx{\Delta}{Q} \ni A$ can only be inhabited when
+$\resctx Q$ is compatible with a basis vector, so our action map would be
+trivial in more general cases.
+Instead, we care about non-usage-checked variables $\Delta \ni A$.
+
+On the other hand, the purpose of the action map is that we will eventually
+apply it to variables from the term language, which are usage-checked variables.
+In other words, the usage context $\resctx Q$ of the entire term we're
+traversing over will be whittled away until we get a $\resctx{Q'}$
+such that $\ctx{\Delta}{Q'} \ni A$.
+
+This culminates to give us the following requirements.
+
+\begin{itemize}
+  \item $\rescomment\Psi : \mathscr R^{n \times m}$
+  \item $\mathit{act} :
+    (j : (\Delta \ni A)) \to (\langle j \rvert\rescomment\Psi)\Gamma$
+  \item such that $\resctx P \subres \resctx Q \rescomment\Psi$.
+\end{itemize}
 
 \subsection{Subusaging}
 
