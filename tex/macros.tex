@@ -9,7 +9,7 @@
 \newcommand{\fixmeBA}[1]{{\color{red}{[Bob:{\em #1}]}}}
 
 
-\newcommand{\bind}[2]{#2}
+\newcommand{\bind}[2]{{#2}\{{#1}\}}
 \newcommand{\ctx}[2]{%
   \if\multnotation0%
   #1^{\resctx{#2}}%
@@ -51,7 +51,7 @@
 \fi}
 
 \newcommand{\tensorOne}[0]{1}
-\newcommand{\unit}[0]{{*}_\otimes}
+\newcommand{\unit}[0]{(\mathbin{_\otimes})}
 \newcommand{\del}[3]{\if\newelims0%
 \operatorname{del}_{#1}(#2, #3)%
 \else%
@@ -59,7 +59,7 @@
 \fi}
 
 \newcommand{\tensor}[2]{#1 \otimes #2}
-\newcommand{\ten}[2]{(#1, #2)_{\otimes}}
+\newcommand{\ten}[2]{(#1 \mathbin{_{\otimes}} #2)}
 \newcommand{\prm}[5]{\if\newelims0%
 \operatorname{pm}_{#1}(#2, \bind{#3, #4}{#5})%
 \else%
@@ -67,10 +67,10 @@
 \fi}
 
 \newcommand{\withTOne}[0]{\top}
-\newcommand{\eat}[0]{{*}_{\with}}
+\newcommand{\eat}[0]{(\mathbin{_{\with}})}
 
 \newcommand{\withT}[2]{#1 \with #2}
-\newcommand{\wth}[2]{(#1, #2)_{\with}}
+\newcommand{\wth}[2]{(#1 \mathbin{_\with} #2)}
 \newcommand{\proj}[2]{\operatorname{proj}_{#1} #2}
 
 \newcommand{\sumTZero}[0]{0}
@@ -81,7 +81,8 @@
 \newcommand{\cse}[6]{\if\newelims0%
 \operatorname{case}_{#1}(#2, \bind{#3}{#4}, \bind{#5}{#6})%
 \else%
-\mathrm{case}~#2~\mathrm{of}~\inj{0}{#3} \mapsto #4 ~;~ \inj{1}{#5} \mapsto #6%
+\mathrm{case}~#2~\mathrm{of}~\inj{L}{#3} \mapsto #4
+                         ~;~ \inj{R}{#5} \mapsto #6%
 \fi}
 
 \newcommand{\listT}[1]{\operatorname{List} #1}
@@ -118,6 +119,14 @@
 
 
 \newcommand{\name}{\ensuremath{\lambda \resctxperm R}}
+
+
+\DeclareMathOperator\kit{Kit}
+\newcommand{\kitrel}{\mathbin{\blacklozenge}}
+
+
+\DeclareMathOperator\inl{inl}
+\DeclareMathOperator\inr{inr}
 
 
 \newcommand{\zero}{\ensuremath{\rescomment 0}}

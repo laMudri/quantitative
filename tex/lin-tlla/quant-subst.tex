@@ -16,6 +16,11 @@
 \usepackage{tabularx}
 \usepackage{tikz-cd}
 
+\DeclareFontFamily{U}{cal}{}
+\DeclareFontShape{U}{cal}{m}{n}{<->cmsy10}{}
+\DeclareSymbolFont{rcal}{U}{cal}{m}{n}
+\DeclareSymbolFontAlphabet{\mathcal}{rcal}
+
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{conjecture}[theorem]{Conjecture}
 \newtheorem{proposition}[theorem]{Proposition}
@@ -27,8 +32,6 @@
 \def\newelims{1}
 \def\multnotation{1}
 \input{../macros.tex}
-
-\newcommand{\kitrel}{\mathbin{\blacklozenge}}
 
 \title{An Algebraically Structured Approach to Substructural Substitution}
 \author{Robert Atkey
@@ -187,6 +190,128 @@ $M_T$, and the application of a linear map $T(v)$ is represented by $vM_T$.
 
 \section{Syntax}
 
+\subsection{Variables}
+
+\begin{definition}[intuitionistic variable]
+  We write $\Gamma \ni A$ as the type of variables in $\Gamma$ with type $A$.
+\end{definition}
+
+\begin{definition}[usage-tracked variable]
+  We write $\ctx{\Gamma}{R} \lvar A$ as the type of $i : \Gamma \ni A$ such that
+  $\resctx R \subres \langle i \rvert$.
+\end{definition}
+
+\subsection{Terms}
+
+\begin{mathpar}
+  \inferrule*[right=var]
+  {x : \ctx{\Gamma}{R} \lvar A}
+  {x : \ctx{\Gamma}{R} \vdash A}
+
+  \and
+
+  \inferrule*[right=$\fun{}{}$-E]
+  {M : \ctx{\Gamma}{P} \vdash \fun{A}{B}
+    \\ N : \ctx{\Gamma}{Q} \vdash A
+    \\ \resctx R \subres \resctx P + \resctx Q
+  }
+  {\app{M}{N} : \ctx{\Gamma}{R} \vdash B}
+  \and
+  \inferrule*[right=$\fun{}{}$-I]
+  {\bind{x}M : \ctx{\Gamma}{R}, \ctxvar{x}{A}{1} \vdash B}
+  {\lam{x}{\bind{x}M} : \ctx{\Gamma}{R} \vdash \fun{A}{B}}
+
+  \and
+
+  \inferrule*[right=$\tensorOne$-E]
+  {M : \ctx{\Gamma}{P} \vdash \tensorOne{}
+    \\ N : \ctx{\Gamma}{Q} \vdash C
+    \\ \resctx R \subres \resctx P + \resctx Q
+  }
+  {\del{C}{M}{N} : \ctx{\Gamma}{R} \vdash C}
+  \and
+  \inferrule*[right=$\tensorOne$-I]
+  {\resctx R \subres \rescomment{\vct 0}}
+  {\unit{} : \ctx{\Gamma}{R} \vdash \tensorOne{}}
+  \and
+  \inferrule*[right=$\tensor{}{}$-E]
+  {M : \ctx{\Gamma}{P} \vdash \tensor{A}{B}
+    \\ \bind{x,y}N : \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1}, \ctxvar{y}{B}{1} \vdash C
+    \\ \resctx R \subres \resctx P + \resctx Q
+  }
+  {\prm{C}{M}{x}{y}{\bind{x,y}N} : \ctx{\Gamma}{R} \vdash C}
+  \and
+  \inferrule*[right=$\tensor{}{}$-I]
+  {M : \ctx{\Gamma}{P} \vdash A
+    \\ N : \ctx{\Gamma}{Q} \vdash B
+    \\ \resctx R \subres \resctx P + \resctx Q
+  }
+  {\ten{M}{N} : \ctx{\Gamma}{R} \vdash \tensor{A}{B}}
+
+  \and
+
+  \inferrule*[right=$\sumTZero$-E]
+  {M : \ctx{\Gamma}{P} \vdash \sumTZero{}
+    \\ \resctx R \subres \resctx P + \resctx Q
+  }
+  {\exf{C}{M} : \ctx{\Gamma}{R} \vdash C}
+  \and
+  (\textrm{no }\TirName{$\sumTZero$-I})
+  \and
+  \inferrule*[right=$\sumT{}{}$-E]
+  {M : \ctx{\Gamma}{P} \vdash \sumT{A}{B}
+    \\ \bind{x}N : \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1} \vdash C
+    \\ \bind{y}O : \ctx{\Gamma}{Q}, \ctxvar{y}{B}{1} \vdash C
+    \\ \resctx R \subres \resctx P + \resctx Q
+  }
+  {\cse{C}{M}{x}{\bind{x}N}{y}{\bind{y}O} : \ctx{\Gamma}{R} \vdash C}
+  \and
+  \inferrule*[right=$\sumT{}{}$-Il]
+  {M : \ctx{\Gamma}{R} \vdash A}
+  {\inj{L}{M} : \ctx{\Gamma}{R} \vdash \sumT{A}{B}}
+  \and
+  \inferrule*[right=$\sumT{}{}$-Ir]
+  {M : \ctx{\Gamma}{R} \vdash B}
+  {\inj{R}{M} : \ctx{\Gamma}{R} \vdash \sumT{A}{B}}
+
+  \and
+
+  (\textrm{no }\TirName{$\withTOne$-E})
+  \and
+  \inferrule*[right=$\withTOne$-I]
+  { }
+  {\eat{} : \ctx{\Gamma}{R} \vdash \withTOne}
+  \and
+  \inferrule*[right=$\withT{}{}$-El]
+  {M : \ctx{\Gamma}{R} \vdash \withT{A}{B}}
+  {\proj{L}{M} : \ctx{\Gamma}{R} \vdash A}
+  \and
+  \inferrule*[right=$\withT{}{}$-Er]
+  {M : \ctx{\Gamma}{R} \vdash \withT{A}{B}}
+  {\proj{R}{M} : \ctx{\Gamma}{R} \vdash B}
+  \and
+  \inferrule*[right=$\withT{}{}$-I]
+  {M : \ctx{\Gamma}{R} \vdash A
+    \\ N : \ctx{\Gamma}{R} \vdash B
+  }
+  {\wth{M}{N} : \ctx{\Gamma}{R} \vdash \withT{A}{B}}
+
+  \and
+
+  \inferrule*[right=$\excl{\rho}{}$-E]
+  {M : \ctx{\Gamma}{P} \vdash \excl{\rho}{A}
+    \\ \bind{x}N : \ctx{\Gamma}{Q}, \ctxvar{x}{A}{\rho} \vdash C
+    \\ \resctx R \subres \resctx P + \resctx Q
+  }
+  {\bm{C}{M}{x}{\bind{x}N} : \ctx{\Gamma}{R} \vdash C}
+  \and
+  \inferrule*[right=$\excl{\rho}{}$-I]
+  {M : \ctx{\Gamma}{P} \vdash A
+    \\ \resctx R \subres \rescomment\rho\resctx P
+  }
+  {\bang{M} : \ctx{\Gamma}{R} \vdash \excl{\rho}{A}}
+\end{mathpar}
+
 \section{Metatheory}
 
 We prove all of our main syntactic lemmas via McBride's kits and traversals
@@ -195,8 +320,8 @@ Our main modifications are the following.
 \begin{itemize}
   \item Kits need not support arbitrary weakening, but rather weakening by the
     introduction of $0$-use variables.
-  \item The environment is made linear by equipping it with a matrix (linear map)
-    mediating between the input and output usage annotations.
+  \item The environment is made linear by equipping it with a matrix (linear
+    map) mediating between the input and output usage annotations.
 \end{itemize}
 
 \subsection{Kit}
@@ -246,8 +371,8 @@ Our understanding of an environment is that it should simultaneously map all of
 the usage-checked variables in $\ctx{\Delta}{Q}$ to stuff in $\ctx{\Gamma}{P}$
 in a way that preserves usage.
 As such, we want to map each variable $j : \Delta \ni A$ not to $A$-stuff in
-$\ctx{\Gamma}{P}$, but rather $A$-stuff in $\ctx{\Gamma}{P_j}$, where $P_j$ is
-some fragment of $\resctx P$.
+$\ctx{\Gamma}{P}$, but rather $A$-stuff in $\resctx P_j\Gamma$,
+where $\resctx P_j$ is some fragment of $\resctx P$.
 Precisely, when weighted by $\resctx Q\lvert j \rangle$, we want these
 $\resctx P_j$ to sum to $\resctx P$, so as to provide ``enough'' usage to cover
 all of the variables $j$.
@@ -273,9 +398,87 @@ This culminates to give us the following requirements.
 
 We shall write the type of such bundles as
 $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$.
-%$\env{\ctx{\Gamma}{P}}{\kitrel}{\ctx{\Delta}{Q}}$.
 
 \subsection{Traversal}
+
+We shall prove the following result in \autoref{sec:proof-of-traversal}.
+We state it now so as to derive renaming and substitution as quickly as
+possible.
+
+\newcommand{\thmtrav}{%
+  Given a kit on $\kitrel$ and an environment
+  $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$, we can transform a term
+  $\ctx{\Delta}{Q} \vdash A$ into a term $\ctx{\Gamma}{P} \vdash A$.%
+}
+\begin{theorem}[traversal]\label{thm:trav}
+  \thmtrav
+\end{theorem}
+
+\subsection{Renaming}
+
+\begin{definition}
+  Let $\lvar\textrm{-kit} : \kit(\lvar)$ be defined with the following
+  fields.
+  \begin{description}
+    \item[$\mathit{psh}~(\mathit{PQ} : \resctx P \subres \resctx Q)
+      : \ctx{\Gamma}{Q} \lvar A \to \ctx{\Gamma}{P} \lvar A$:]
+      Notice that the only occurrence of the usage context in the definition of
+      $\lvar$ is to the left of a $\subres$.
+      Thus, applying transitivity in this place gets us the required term.
+    \item[$\mathit{vr} : \ctx{\Gamma}{P} \lvar A \to \ctx{\Gamma}{P} \lvar A
+      := \mathrm{id}$].
+    \item[$\mathit{tm} : \ctx{\Gamma}{P} \lvar A \to \ctx{\Gamma}{P} \vdash A
+      := \TirName{var}$].
+    \item[$\mathit{wk} : \ctx{\Gamma}{P} \lvar A
+      \to \ctx{\Gamma}{P}, \ctx{\Delta}{\vct 0} \lvar A$:]
+      Notice that a basis vector extended by $\rescomment 0$s is still a basis
+      vector.
+      So, given that we have $\resctx P \subres \langle i \rvert$ for some $i$,
+      we also have
+      $\resctx P, \rescomment{\vct 0} \subres \langle \inl i \rvert$.
+  \end{description}
+\end{definition}
+
+Environments for renamings are special in that the matrix $\rescomment\Psi$ can
+be calculated from the action of the renaming on non-usage-checked variables.
+
+\begin{lemma}
+  Given a type-preserving mapping of intuitionistic variables
+  $f : \Delta \ni A \to \Gamma \ni A$ such that
+  $\resctx P \subres \resctx Q(\lambda ji.~\rescomment I_{(f~j)i})$,
+  we can produce a $\lvar$-environment of type
+  $\ctx{\Gamma}{P} \subst{\lvar} \ctx{\Delta}{Q}$.
+\end{lemma}
+\begin{proof}
+  \ldots
+\end{proof}
+
+\subsection{Substitution}
+
+\begin{definition}
+  Let $\vdash\textrm{-kit} : \kit(\vdash)$ be defined with the following
+  fields.
+  \begin{description}
+    \item[$\mathit{psh}~(\mathit{PQ} : \resctx P \subres \resctx Q)
+      : \ctx{\Gamma}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$:]
+      We can use a specialised version of renaming\ldots
+
+      Alternatively, we can note that in every rule for
+      $\ctx{\Gamma}{R} \vdash A$, $\resctx R$ only ever appears to the left of a
+      $\subres$, so $\ctx{\Gamma}{R} \vdash A$ must be contravariant in
+      $\resctx R$.
+    \item[$\mathit{vr} : \ctx{\Gamma}{P} \lvar A \to \ctx{\Gamma}{P} \vdash A
+      := \TirName{var}$].
+    \item[$\mathit{tm} : \ctx{\Gamma}{P} \vdash A \to \ctx{\Gamma}{P} \vdash A
+      := \mathrm{id}$].
+    \item[$\mathit{wk} : \ctx{\Gamma}{P} \vdash A
+      \to \ctx{\Gamma}{P}, \ctx{\Delta}{\vct 0} \vdash A$:]
+      Renaming\ldots
+  \end{description}
+\end{definition}
+
+\subsection{Proof of traversal}
+\label{sec:proof-of-traversal}
 
 \begin{lemma}[bind]\label{lem:bind}
   Given a kit on $\kitrel$, we can extend an environment of type
@@ -334,166 +537,132 @@ $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$.
   $(\langle j \rvert\rescomment\Psi')(\Gamma, \Theta) \kitrel A$, as required.
 \end{proof}
 
-\begin{lemma}[traversal]\label{lem:trav}
-  Given a kit on $\kitrel$ and an environment
-  $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$, we can transform a term
-  $\ctx{\Delta}{Q} \vdash A$ into a term $\ctx{\Gamma}{P} \vdash A$.
-  %There exists an $M'$ calculated from the surrounding data such that the
-  %following rule is admissible.
-  %\[
-  %  \inferrule*[right=trav]{
-  %    \mathrm{Kit}~{\kitrel}
-  %    \\ \ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}
-  %    \\ \ctx{\Delta}{Q} \vdash M : A
-  %  }
-  %  {
-  %    \ctx{\Gamma}{P} \vdash M' : A
-  %  }
-  %\]
-\end{lemma}
+\newtheorem*{thm:trav}{\autoref{thm:trav}}
+\begin{thm:trav}[traversal]
+  \thmtrav
+\end{thm:trav}
 \begin{proof}
-  By induction on the syntax of $M$. (This is really important!)
+  By induction on the syntax of $M$.
+  We give a selection of representitive cases first.
+  Non-\TirName{var} cases are all some combination of the following parts.
+  \begin{itemize}
+    \item If the input usage context $\resctx Q$ is split up into a linear
+      combination of zero or more usage contexts $\resctx Q_{i}$, obtain a
+      similar splitting of $\resctx P$ by setting
+      $\resctx P_{i} := \resctx Q_{i}\rescomment\Psi$.
+      This works out because of the linearity of matrix multiplication (in
+      particular, multiplication respects operations on the left).
+    \item If there are subterms, make sure that the above splitting gives rise
+      to new environments of type
+      $\resctx P_{i}\Gamma \subst{\kitrel} \resctx Q_{i}\Delta$.
+    \item If any subterms bind variables, apply Lemma \ref{lem:bind} as
+      appropriate.
+  \end{itemize}
   \begin{description}
-    \item[variable $x : \ctx{\Delta}{Q} \lvar A$:]
+    \item[\TirName{var} $x$, where $x : \ctx{\Delta}{Q} \lvar A$:]
       By definition of $\lvar$, we have that
       $\resctx Q \subres \langle j \rvert$ for some $j$.
       Applying the action of the environment, we have
       $(\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$.
       We then have
-      $\resctx P \subres \resctx Q\rescomment\Psi \subres \langle j \rvert\rescomment\Psi$,
+      $\resctx P \subres \resctx Q\rescomment\Psi
+      \subres \langle j \rvert\rescomment\Psi$,
       so using the fact that stuff appropriately respects subusaging
       ($\mathit{psh}$), we have $\ctx{\Gamma}{P} \kitrel A$.
       Finally, using $\mathit{tm}$, we get a term $\ctx{\Gamma}{P} \vdash A$, as
       required.
+    \item[\TirName{$\withTOne$-I} $\eat$]
+      We want to produce a term $\ctx{\Gamma}{P} \vdash \withTOne$, which is
+      trivial with the rule \TirName{$\withTOne$-I}.
+    \item[\TirName{$\withT{}{}$-I} $\wth{M}{N}$, where
+      $M : \ctx{\Delta}{Q} \vdash A$, $N : \ctx{\Delta}{Q} \vdash B$:]
+      Inductively, we get $M' : \ctx{\Gamma}{P} \vdash A$ and
+      $N' : \ctx{\Gamma}{P} \vdash B$ from
+      $M$ and $N$, respectively.
+      We can combine $M'$ and $N'$ with \TirName{$\withT{}{}$-I} to get
+      $\wth{M'}{N'} : \ctx{\Gamma}{P} \vdash \withT{A}{B}$, as required.
+    \item[\TirName{$\withT{}{}$-El}, \TirName{$\withT{}{}$-Er},
+      \TirName{$\sumT{}{}$-Il}, \TirName{$\sumT{}{}$-Ir}:]
+      These all follow simply like the last two cases.
+    \item[\TirName{$\tensorOne$-I} $\unit$, where
+      $\resctx Q \subres \rescomment{\vct 0}$:]
+      We want to use \TirName{$\tensorOne$-I} to conclude
+      $\unit : \ctx{\Gamma}{P}$.
+      To do this, we must show that $\resctx P \subres \rescomment{\vct 0}$.
+      From the environment, we know that
+      $\resctx P \subres \resctx Q\rescomment\Psi$.
+      But because $\resctx Q \subres \rescomment{\vct 0}$, we get
+      $\resctx P \subres \rescomment{\vct 0}\rescomment\Psi
+      \subres \rescomment{\vct 0}$, as required.
+    \item[\TirName{$\fun{}{}$-E} $\app{M}{N}$, where
+      $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash \fun{A}{B}$,
+      $N : \ctx{\Delta}{Q_{\mathnormal N}} \vdash A$,
+      $\resctx Q \subres \resctx Q_{\rescomment M} + \resctx Q_{\rescomment N}$:]
+      (Maybe do \TirName{$\tensor{}{}$-I} instead.)
+      We want to inductively traverse $M$ and $N$.
+      This will produce terms
+      $M' : \ctx{\Gamma}{P_{\mathnormal M}} \vdash \fun{A}{B}$ and
+      $N' : \ctx{\Gamma}{P_{\mathnormal N}} \vdash A$, for some choice of
+      $\resctx P_{\rescomment M}$ and $\resctx P_{\rescomment N}$.
+      Furthermore, we want
+      $\resctx P \subres \resctx P_{\rescomment M} + P_{\rescomment N}$, so that
+      we can combine $M'$ and $N'$ using \TirName{$\fun{}{}$-E}, getting
+      $\app{M'}{N'} : \ctx{\Gamma}{P} \vdash B$, as required.
+
+      Let
+      $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$
+      and
+      $\resctx P_{\rescomment N} := \resctx Q_{\rescomment N}\rescomment\Psi$,
+      where $\Psi$ comes from the environment.
+      We must make environments of types
+      $\ctx{\Gamma}{P_{\mathnormal M}}
+      \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal M}}$
+      and
+      $\ctx{\Gamma}{P_{\mathnormal N}}
+      \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal N}}$.
+      Notice that the data in these can be carried over from the environment we
+      were given, but we must recheck the usage condition in each case.
+      However, both of these just come down to the reflexivity of $\subres$.
+
+      Finally, in order to apply \TirName{$\fun{}{}$-E}, we must check that
+      $\resctx P \subres \resctx P_{\rescomment M} + \resctx P_{\rescomment N}$.
+      This follows by:
+      \[\begin{eqns}
+        \resctx P \subres & \resctx Q\rescomment\Psi \\
+        \subres & (\resctx Q_{\rescomment M} + \resctx Q_{\rescomment N})
+        \rescomment\Psi \\
+        \subres & \resctx Q_{\rescomment M}\rescomment\Psi +
+        \resctx Q_{\rescomment N}\rescomment\Psi \\
+        = & \resctx P_{\rescomment M} + \resctx P_{\rescomment N}
+      \end{eqns}\]
+    \item[\TirName{$\excl{\rho}{}$-I} $\bang{M}$, where
+      $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash A$,
+      $\resctx Q \subres \resctx \rho Q_{\rescomment M}$:]
+      Following a similar strategy to the case above, let
+      $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$.
+      If we get a term $M' : \ctx{\Gamma}{P_{\mathnormal M}} \vdash A$, we will
+      be able to apply \TirName{$\excl{\rho}{}$-I} to get the result because
+      \[\begin{eqns}
+          \resctx P_{\rescomment M} = & \resctx Q_{\rescomment M}\rescomment\Psi \\
+          \subres & (\rho\resctx Q)\rescomment\Psi \\
+          \subres & \rho(\resctx Q\rescomment\Psi) \\
+          \subres & \rho\resctx P.
+        \end{eqns}\]
+
+      To get $M'$, we traverse $M$ with the same environment at type
+      $\ctx{\Gamma}{P_{\mathnormal M}}
+      \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal M}}$.
+      The usage condition reduces to the definition of
+      $\resctx P_{\rescomment M}$.
+    \item[\TirName{$\fun{}{}$-I} $\lam{x}{M}$, where
+      $M : \ctx{\Delta}{Q}, \ctxvar{x}{A}{1} \vdash B$:]
+      We want to inductively traverse $M$, yielding a term
+      $M' : \ctx{\Gamma}{P}, \ctxvar{x}{A}{1}$, to which we apply
+      \TirName{$\fun{}{}$-I} to get the desired result.
+      The environment we use to traverse $M$ is the result of the bind lemma
+      (Lemma \ref{lem:bind}) applied to the environment we were given.
   \end{description}
 \end{proof}
-
-\subsection{Subusaging}
-
-Similar to subtyping, we have as an admissible rule that if subusaging holds
-pointwise between two annotation contexts, we can coerce any typing derivation.
-
-\begin{lemma}[sub-usaging]\label{lem:subuse}
-  The following rule is admissible.
-  \[
-    \inferrule*[right=subuse]{
-      \ctx{\Gamma}{Q} \vdash M : A
-      \\ \resctx P \subres \resctx Q
-    }
-    {
-      \ctx{\Gamma}{P} \vdash M : A
-    }
-  \]
-\end{lemma}
-\begin{proof}
-  By induction on the usage derivation until a rule with splitting is
-  encountered.
-  Here, we will just consider splitting by addition, but the other cases are
-  similar.
-  Suppose we are given a derivation of $\ctx{\Gamma}{P} \vdash M : A$,
-  from which one of the premises is
-  $\resctx Q \subres \resctx Q_0 + \resctx Q_1$.
-  Then, because $\resctx P \subres \resctx Q$, we also have
-  $\resctx P \subres \resctx Q_0 + \resctx Q_1$.
-  Therefore, we can give a derivation for
-  $\ctx{\Gamma}{Q} \vdash M : A$ which is the same as the derivation we
-  were given, except with the updated splitting premise.
-\end{proof}
-
-\subsection{Weakening}
-
-The content of a weakening is an order-preserving embedding (OPE).
-An OPE $\theta$ from $m$ to $n$ yields an $m \times n$ matrix $\resmat S_\theta$
-mapping (via right-multiplication) the everywhere-$1$ row vector of length $m$
-to the bit vector describing the OPE (of length $n$).
-In this matrix, each row is either a basis vector or the $\vec 0$ vector, with
-basis vectors used in order.
-In the same way that weakening is a special case of substitution, we will see
-that where $\resmat S_\theta$ justifies a weakening, a matrix of arbitrary form
-may justify a substitution.
-
-\begin{lemma}[weakening]\label{lem:weak}
-  The following rule is admissible.
-  \[
-    \inferrule*[right=weak]{
-      \ctx{(\theta\Gamma)}{Q} \vdash M : A
-      \\ \resctx P \subres \resctx Q \resmat S_\theta
-    }
-    {
-      \ctx{\Gamma}{P} \vdash M[\theta] : A
-    }
-  \]
-\end{lemma}
-\begin{proof}
-  By structural induction\ldots
-\end{proof}
-
-\subsection{Definition of a substitution}
-
-Simultaneous substitution (henceforth just ``substitution'') is a generalisation
-of weakening.
-Where in weakening, variables are substituted by new variables, in substitution,
-variables are substituted by terms in a new context.
-Without the OPE $\theta$, we must decide what matrix specifies the relationship
-between the premises and the conclusion.
-
-Substitution is the most liberal notion of morphism between contexts one would
-typically consider.
-It allows arbitrary use of the type theory in order to state that one context
-can be derived from another.
-We take this as the motivation for allowing a linear transformation of arbitrary
-form to justify a substitution.
-
-In the abstract, our admissible rule for substitution is going to look like the
-following.
-
-\[
-  \inferrule*[right=subst]{
-    \ctx{\Delta}{Q} \vdash M : A
-    \\ \ctx{\Gamma}{P} \subst{\sigma} \ctx{\Delta}{Q}
-  }
-  {
-    \ctx{\Gamma}{P} \vdash M[\sigma] : A
-  }
-\]
-
-Our task is to define $\ctx{\Gamma}{P} \subst{\sigma} \ctx{\Delta}{Q}$.
-Intuitively, we can consider separately the production of typed terms required
-and usage constraints.
-Doing this, the first part is standard --- we require a term in $\Gamma$ for
-each variable in $\Delta$.
-We then need to consider the usage constraints on these terms, and the
-relationship between $\resctx P$ and $\resctx Q$.
-
-We will start by looking at the variables in the substituting terms (the terms
-in $\Gamma$ that are substituted in for variables in $\Delta$).
-Suppose that $\Gamma$ has variables $x_1, \ldots, x_m$ and $\Delta$ has
-variables $y_1, \ldots, y_n$, with terms $N_1, \ldots, N_n$ being substituted in
-for these variables.
-Then, how $x_i$ is used in $M[\sigma]$ depends on two things:
-
-\begin{enumerate}
-\item How $x_i$ is used in each $N_j$
-\item How each $y_j$ being substituted is used in $M$
-\end{enumerate}
-
-More precisely, how $x_i$ is used is a sum of how it is used in each $N_j$,
-weighted by how $y_j$ is used in $M$.
-If we let $x_i$ be used in $N_j$ according to annotation $\resmat S_{ji}$ and
-allow for subusaging, this is captured by the constraint
-$\resctx P \subres \resctx Q \resmat S$.
-
-%
-
-\subsection{Linear combinations of usage contexts}
-
-%
-
-\subsection{Binding}
-
-\subsection{Substitution}
-
-\subsection{Single substitution}
 
 \section{Conclusion}
 
