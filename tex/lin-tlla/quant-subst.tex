@@ -21,13 +21,28 @@
 \DeclareSymbolFont{rcal}{U}{cal}{m}{n}
 \DeclareSymbolFontAlphabet{\mathcal}{rcal}
 
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{conjecture}[theorem]{Conjecture}
-\newtheorem{proposition}[theorem]{Proposition}
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{corollary}[theorem]{Corollary}
-\newtheorem{example}[theorem]{Example}
-\newtheorem{definition}[theorem]{Definition}
+\usepackage{thmtools}
+\declaretheorem[numberwithin=section]{theorem}
+\declaretheorem[numberlike=theorem]{conjecture}
+\declaretheorem[numberlike=theorem]{proposition}
+\declaretheorem[numberlike=theorem]{lemma}
+\declaretheorem[numberlike=theorem]{corollary}
+\declaretheorem[numberlike=theorem]{example}
+\declaretheorem[numberlike=theorem]{definition}
+
+%\newtheorem{theorem}{Theorem}[section]
+%\newtheorem{conjecture}[theorem]{Conjecture}
+%\newcommand{\conjectureautorefname}{Conjecture}
+%\newtheorem{proposition}[theorem]{Proposition}
+%\newcommand{\propositionautorefname}{Proposition}
+%\newtheorem{lemma}[theorem]{Lemma}
+%\newcommand{\lemmaautorefname}{Lemma}
+%\newtheorem{corollary}[theorem]{Corollary}
+%\newcommand{\corollaryautorefname}{Corollary}
+%\newtheorem{example}[theorem]{Example}
+%\newcommand{\exampleautorefname}{Example}
+%\newtheorem{definition}[theorem]{Definition}
+%\newcommand{\definitionautorefname}{Definition}
 
 \def\newelims{1}
 \def\multnotation{1}
@@ -54,19 +69,46 @@ James Wood
 
 \section{Introduction}
 
-\section{Usage algebra}
+\section{Skew semirings}
 
-A \emph{usage algebra} can be summarised as a partially ordered semiring.
-A usage algebra $(\mathscr R, \subres, 0, +, 1, *)$ is a structure in which
-$(\mathscr R, \subres)$ forms a partial order, $(\mathscr R, 0, +, 1, *)$ forms
-a semiring, and $+$ and $*$ are monotonic with respect to $\subres$.
-Unpacking slightly more, we take a semiring to be a structure
-$(\mathscr R, 0, +, 1, *)$ such that $(\mathscr R, 0, +)$ is a commutative
-monoid, $(\mathscr R, 1, *)$ is a monoid, $*$ is annihilated by $0$, and $*$
-distributes over $+$.
+A \emph{(left) skew monoid} is a structure $(\mathscr R, \subres, 1, *)$ such
+that $(\mathscr R, \subres)$ forms a partial order, $*$ is monotonic with
+respect to $\subres$, and the following laws hold.
+\begin{mathpar}
+  1x \subres x
+  \and x \subres x1
+  \and (xy)z \subres x(yz)
+\end{mathpar}
 
-Elements of a usage algebra are called \emph{usage annotations}, and describe
-\emph{how} resources are used in a program.
+Skew-monoidal categories are due to Szlach\'anyi \cite{skew}, and the notion
+introduced here of a skew monoid is a decategorification of the notion of
+skew-monoidal category.
+
+A \emph{(left) skew semiring} is a structure $(\mathscr R, \subres, 0, +, 1, *)$
+such that $(\mathscr R, \subres)$ forms a partial order, $+$ and $*$ are
+monotonic with respect to $\subres$, $(\mathscr R, 0, +)$ forms a commutative
+monoid, $(\mathscr R, \subres, 1, *)$ forms a skew monoid, and we have the
+following distributivity laws.
+\begin{mathpar}
+  0z \subres 0
+  \and (x + y)z \subres xz + yz
+  \and 0 \subres x0
+  \and xy + xz \subres x(y + z)
+\end{mathpar}
+
+A mnemonic for skew semirings is ``multiplication respects operators on the left
+from left to right, and respects operators on the right from right to left''.
+One may also describe multiplication as ``respecting'' and ``corespecting''
+operators on the left and right, respectively.
+Skew semirings are a generalisation of semirings, which are in turn a
+generalisation of commutative semirings.
+As such, readers unfamiliar with the more general structures may wish to think
+in terms of the more specific structures.
+In this paper, we only speak of \emph{left} skew semirings, and thus generally
+omit the word ``left''.
+
+Elements of a skew semiring are used in this paper as \emph{usage annotations},
+and describe \emph{how} values are used in a program.
 In the syntax for \name, each assumption will have a usage annotation,
 describing how that assumption can be used in the derivation.
 The additive structure describes how to combine multiple usages of an
@@ -84,42 +126,46 @@ use it as $\pi$.
 \subsection{Vectors and matrices}
 
 \begin{definition}
-  A \emph{left semimodule} over a semiring $\mathscr R$ is a structure
-  $(\mathscr M, 0 : \mathscr M, + : \mathscr M \times \mathscr M \to \mathscr M,
+  A \emph{(left) semimodule} over a (left) skew semiring $\mathscr R$ is a
+  structure
+  $(\mathscr M, \subres,
+  0 : \mathscr M, + : \mathscr M \times \mathscr M \to \mathscr M,
   * : \mathscr R \times \mathscr M \to \mathscr M)$ such that
   \begin{itemize}
-  \item $(\mathscr M, 0, +)$ is a commutative monoid
-  \item Scaling of a fixed element $m$ respects all of the semiring structure
-    particularly:
-    \begin{itemize}
-    \item $0_\mathscr R * m = 0_\mathscr M$
-    \item $(\pi +_\mathscr R \rho) * m = \pi * m +_\mathscr M \rho * m$
-    \item $1_\mathscr R * m = m$
-    \item $(\pi *_\mathscr R \rho) * m = \pi * (\rho * m)$
-    \end{itemize}
-  \item Scaling by a fixed element $\pi$ respects the additive structure;
-    particularly:
-    \begin{itemize}
-    \item $\pi * 0_\mathscr M = 0_\mathscr M$
-    \item $\pi * (m +_\mathscr M n) = \pi * m +_\mathscr M \pi * n$
-    \end{itemize}
+    \item $+$ and $*$ are monotonic in both arguments.
+    \item $(\mathscr M, 0, +)$ is a commutative monoid
+    \item Scaling of a fixed element $m$ respects all of the skew semiring
+      structure particularly:
+      \begin{itemize}
+        \item $0_\mathscr R * m \subres 0_\mathscr M$
+        \item $(\pi +_\mathscr R \rho) * m \subres \pi * m +_\mathscr M \rho * m$
+        \item $1_\mathscr R * m \subres m$
+        \item $(\pi *_\mathscr R \rho) * m \subres \pi * (\rho * m)$
+      \end{itemize}
+    \item Scaling by a fixed element $\pi$ corespects the additive structure;
+      particularly:
+      \begin{itemize}
+        \item $0_\mathscr M \subres \pi * 0_\mathscr M$
+        \item $\pi * m +_\mathscr M \pi * n \subres \pi * (m +_\mathscr M n)$
+      \end{itemize}
   \end{itemize}
 \end{definition}
 
 \begin{definition}
-  A \emph{(left) semimodule homomorphism} or \emph{linear map} between
+  A \emph{(left) skew semimodule homomorphism} or \emph{linear map} between
   $\mathscr R$-left semimodules $\mathscr M$ and $\mathscr N$ is a function $T$
-  on the underlying sets such that all of the semimodule structure is preserved.
+  on the underlying sets written postfix such that all of the semimodule
+  structure is respected.
   Particularly,
   \begin{itemize}
-  \item $T(0_\mathscr M) = 0_\mathscr N$
-  \item $T(m +_\mathscr M n) = T(m) +_\mathscr N T(n)$
-  \item $T(\pi *_\mathscr M m) = \pi *_\mathscr N T(m)$
+  \item $(0_\mathscr M)T \subres 0_\mathscr N$
+  \item $(m +_\mathscr M n)T \subres (m)T +_\mathscr N (n)T$
+  \item $(\pi *_\mathscr M m)T \subres \pi *_\mathscr N (m)T$
   \end{itemize}
 \end{definition}
 
-A semiring is just about enough structure to let us talk about finite vectors,
-and let us represent linear maps as matrices.
+A skew semiring is just about enough structure to let us talk about finite
+vectors, and let us represent linear maps as matrices.
 To the standard operations of addition, scaling, and multiplication of vectors
 and matrices, we also say that the order lifts pointwise.
 
@@ -127,7 +173,7 @@ Conversely to standard practice, matrices will typically right-multiply vectors,
 rather than left-multiply.
 Following this practice, a linear transformation
 $T : \mathscr R^m \to \mathscr R^n$ is represented by an $m \times n$ matrix
-$M_T$, and the application of a linear map $T(v)$ is represented by $vM_T$.
+$M_T$, and the application of a linear map $(v)T$ is represented by $vM_T$.
 
 \begin{definition}[Standard basis]
   \begin{align*}
@@ -145,8 +191,8 @@ $M_T$, and the application of a linear map $T(v)$ is represented by $vM_T$.
       0_{ij} &= 0 \\
       + &: \mathrm{Mat}~m~n \times \mathrm{Mat}~m~n \to \mathrm{Mat}~m~n \\
       (M + N)_{ij} &= M_{ij} + N_{ij} \\
-      1 &: \mathrm{Mat}~m~m \\
-      1_{ij} &= \langle i \rvert_j \\
+      I &: \mathrm{Mat}~m~m \\
+      I_{ij} &= \langle i \rvert_j \\
       * &: \mathrm{Mat}~m~n \times \mathrm{Mat}~n~o \to \mathrm{Mat}~m~o \\
       (MN)_{ik} &= \sum_j M_{ij}N_{jk}
     \end{align*}
@@ -161,47 +207,71 @@ $M_T$, and the application of a linear map $T(v)$ is represented by $vM_T$.
   $T_M : \mathscr R^m \to \mathscr R^n$ by right-multiplication.
 \end{lemma}
 \begin{proof}
-  We observe the following equations:
+  We observe the following inequalities:
   \begin{itemize}
-  \item $\left(\vec 0M\right)_{k} = \sum_j 0M_{jk} = 0 = \vec 0_{k}$
-  \item $\left((u + v)M\right)_{k} = \sum_j \left(u_j + v_j\right)M_{jk} =
+  \item $\left(\vec 0M\right)_{k} = \sum_j 0M_{jk} \subres 0 = \vec 0_{k}$
+  \item $\left((u + v)M\right)_{k} = \sum_j \left(u_j + v_j\right)M_{jk} \subres
     \sum_j u_jM_{jk} + \sum_j v_jM_{jk} = (uM + vM)_{k}$
-  \item $\left((\pi u)M\right)_{k} = \sum_j \pi u_jM_{jk} =
+  \item $\left((\pi u)M\right)_{k} = \sum_j \pi u_jM_{jk} \subres
     \pi\sum_j u_jM_{jk} = \left(\pi(uM)\right)_{k}$
   \end{itemize}
 \end{proof}
 
 \begin{lemma}
   Each linear map $T : \mathscr R^m \to \mathscr R^n$ gives rise to a matrix
-  $M : \mathrm{Mat}~m~n$ with the same action.
+  $M : \mathrm{Mat}~m~n$ such that for each $u$, $uT \subres uM$.
 \end{lemma}
 \begin{proof}
   We construct $M$ as follows.
   \[
-    M_{jk} = T(\langle j \rvert)_k
+    M_{jk} = (\langle j \rvert)T_k
   \]
-  Then, consider $uM$.
+  Then, consider $uT_k$.
   \[
-    (uM)_k = \sum_j u_jM_{jk} = \sum_j u_jT\left(\langle j \rvert\right)_k
-    = T\left(\sum_j u_j\langle j \rvert\right)_k
+    uT_k \subres \left(\sum_j u_j\langle j \rvert\right)T_k
+    \subres \sum_j u_j\langle j \rvert T_k
+    = \sum_j u_j M_{jk} = (uM)_k
   \]
-  Note that $\sum_j u_j\langle j \rvert$ is exactly $u$, so we are done.
 \end{proof}
+
+In what follows, matrices/linear maps will only appear to the right of a
+$\subres$, so when we ask for a matrix rather than a linear map, this is no loss
+of generality.
 
 \section{Syntax}
 
+We fixed skew semiring $\mathscr R$, of which all elements, and vectors and
+matrices thereof, are coloured \rescomment{green}.
+
 \subsection{Variables}
+
+We find it useful to distinguish between \emph{intuitionistic} variables, which
+are indices into a context with a specified type, and \emph{usage-cheked} or
+\emph{linear} variables, which describe the conditions under which a variable
+can be used in a context, subject to the constraints of usage annotations.
+Concerning the latter, a variable may be used in a context if its annotation is
+$\subres \rescomment 1$ (``usable''), and the annotation of every other variable
+is $\subres \rescomment 0$ (``discardable'').
 
 \begin{definition}[intuitionistic variable]
   We write $\Gamma \ni A$ as the type of variables in $\Gamma$ with type $A$.
 \end{definition}
 
-\begin{definition}[usage-tracked variable]
+\begin{definition}[usage-checked variable]
   We write $\ctx{\Gamma}{R} \lvar A$ as the type of $i : \Gamma \ni A$ such that
   $\resctx R \subres \langle i \rvert$.
 \end{definition}
 
 \subsection{Terms}
+
+Our calculus is a refinement of simply typed $\lambda$-calculus sporting usage
+annotations from $\mathscr R$ on variables in the context and constraints on
+term formation based on these annotations.
+Type formers are mostly standard from intuitionistic linear logic --- functions,
+multiplicative and additive products and their units, and additive sums and
+their unit.
+Additionally, we have an annotated bang ($\excl{\rho}{A}$), forming a graded
+comonad (assuming definitions tweaked to account for $\subres$ and skewness).
 
 \begin{mathpar}
   \inferrule*[right=var]
@@ -319,7 +389,8 @@ method \cite{rensub05}.
 Our main modifications are the following.
 \begin{itemize}
   \item Kits need not support arbitrary weakening, but rather weakening by the
-    introduction of $0$-use variables.
+    introduction of $\rescomment 0$-use variables.
+    They must also respect $\subres$.
   \item The environment is made linear by equipping it with a matrix (linear
     map) mediating between the input and output usage annotations.
 \end{itemize}
@@ -330,7 +401,7 @@ A kit is a structure on relations
 $\kitrel : \mathrm{Ctx} \times \mathrm{Ty} \to \mathrm{Set}$, intuitively
 giving a way in which $\kitrel$ lives between the usage-checked variable
 judgement $\lvar$ and the typing judgement $\vdash$.
-We require the following functions, where all undefined variables are
+We require the following functions, where all variables signified by letters are
 universally quantified.
 
 \begin{itemize}
@@ -380,20 +451,13 @@ When we collect all of the $\resctx P_j$ into a matrix $\rescomment\Psi$, we
 notice that the condition just described is stated succinctly via a
 vector-matrix multiplication $\resctx Q\rescomment\Psi$.
 
-% On the other hand, the purpose of the environment is that we will eventually
-% apply it to variables from the term language, which are usage-checked variables.
-% In other words, the usage context $\resctx Q$ of the entire term we're
-% traversing over will be whittled away until we get a $\resctx{Q'}$
-% such that $\ctx{\Delta}{Q'} \lvar A$.
-% Correspondingly,
-
 This culminates to give us the following requirements.
 
 \begin{itemize}
   \item $\rescomment\Psi : \mathscr R^{n \times m}$
   \item $\mathit{act} :
     (j : (\Delta \ni A)) \to (\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$
-  \item such that $\resctx P \subres \resctx Q \rescomment\Psi$.
+  \item with usage condition $\resctx P \subres \resctx Q \rescomment\Psi$.
 \end{itemize}
 
 We shall write the type of such bundles as
@@ -416,7 +480,7 @@ possible.
 
 \subsection{Renaming}
 
-\begin{definition}
+\begin{definition}\label{def:lvar-kit}
   Let $\lvar\textrm{-kit} : \kit(\lvar)$ be defined with the following
   fields.
   \begin{description}
@@ -442,26 +506,59 @@ possible.
 Environments for renamings are special in that the matrix $\rescomment\Psi$ can
 be calculated from the action of the renaming on non-usage-checked variables.
 
-\begin{lemma}
+\begin{lemma}\label{lem:ren-env}
   Given a type-preserving mapping of intuitionistic variables
   $f : \Delta \ni A \to \Gamma \ni A$ such that
-  $\resctx P \subres \resctx Q(\lambda ji.~\rescomment I_{(f~j)i})$,
+  $\resctx P \subres \resctx Q\rescomment I_{f\times\id}$,
   we can produce a $\lvar$-environment of type
   $\ctx{\Gamma}{P} \subst{\lvar} \ctx{\Delta}{Q}$.
 \end{lemma}
 \begin{proof}
-  \ldots
+  The environment has $\rescomment\Psi := \rescomment I_{f\times\id}$,
+  so the usage condition holds by assumption.
+  Now, $\mathit{act}$ is required to have type
+  $(j : \Delta \ni A) \to (\langle j \rvert\rescomment\Psi)\Gamma \lvar A$.
+  Take arbitrary $j : \Delta \ni A$.
+  Then, we have $f~j : \Gamma \ni A$, so all that is left is to show that $f~j$
+  forms a usage-checked variable of type
+  $(\langle j \rvert\rescomment\Psi)\Gamma \lvar A$.
+  This amounts to proving
+  $\langle j \rvert\rescomment\Psi \subres \langle f~j \rvert$.
+  We prove this pointwise.
+  Let $i : \Gamma \ni A$.
+  Then, we have the following.
+  \[\begin{eqns}
+      (\langle j \rvert\rescomment\Psi)_i
+      \subres & \rescomment\Psi_{j,i} \\
+      = & \rescomment I_{f~j,i} \\
+      = & \langle f~j \rvert_i \\
+    \end{eqns}\]
+\end{proof}
+
+\begin{corollary}[renaming]\label{cor:ren}
+  Given a type-preserving mapping of intuitionistic variables
+  $f : \Delta \ni A \to \Gamma \ni A$ such that
+  $\resctx P \subres \resctx Q\rescomment I_{f\times\id}$,
+  we can produce a function of type
+  $\ctx{\Delta}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.
+\end{corollary}
+\begin{proof}
+  By the lemmas from this subsection and \autoref{thm:trav}.
 \end{proof}
 
 \subsection{Substitution}
 
-\begin{definition}
+\begin{definition}\label{tm-kit}
   Let $\vdash\textrm{-kit} : \kit(\vdash)$ be defined with the following
   fields.
   \begin{description}
     \item[$\mathit{psh}~(\mathit{PQ} : \resctx P \subres \resctx Q)
       : \ctx{\Gamma}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$:]
-      We can use a specialised version of renaming\ldots
+      We can use a specialised version of \hyperref[cor:ren]{renaming} in which
+      the variable mapping $f$ is the identity function.
+      It remains to check that
+      $\resctx P \subres \resctx Q\rescomment I_{\id\times\id}$, which is
+      obvious from the assumption $\mathit{PQ}$.
 
       Alternatively, we can note that in every rule for
       $\ctx{\Gamma}{R} \vdash A$, $\resctx R$ only ever appears to the left of a
@@ -473,12 +570,51 @@ be calculated from the action of the renaming on non-usage-checked variables.
       := \mathrm{id}$].
     \item[$\mathit{wk} : \ctx{\Gamma}{P} \vdash A
       \to \ctx{\Gamma}{P}, \ctx{\Delta}{\vct 0} \vdash A$:]
-      Renaming\ldots
+      We use a standard \hyperref[cor:ren]{renaming}, with
+      $f : \Gamma \ni A \to \Gamma, \Delta \ni A$ being the embedding $\inl$.
+      It remains to check that
+      $(\resctx P, \rescomment{\vct 0}) \subres
+      \resctx P\rescomment I_{\inl\times\id}$.
+      We prove this pointwise.
+      Let $i : \Gamma, \Delta \ni A$, and take cases on whether $i$ is from
+      $\Gamma$ or from $\Delta$.
+      If $i = \inl i'$ for an $i' : \Gamma \ni A$, we must show that
+      $\resctx P_{i'} \subres
+      (\resctx P\rescomment I_{\inl\times\id})_{\inl i'}$.
+      But we have the following.
+      \[\begin{eqns}
+          \resctx P_{i'} \subres & (\resctx P\rescomment I)_{i'} \\
+          = & \sum_{j : \Gamma \ni A} \resctx P_j\rescomment I_{j,i'} \\
+          = & \sum_{j : \Gamma \ni A} \resctx P_j\rescomment I_{\inl j,\inl i'} \\
+          = & (\resctx P\rescomment I_{\inl\times\id})_{\inl i'}.
+        \end{eqns}\]
+      If $i = \inr i'$ for an $i' : \Delta \ni A$, we must show that
+      $\rescomment 0 \subres
+      (\resctx P\rescomment I_{\inl\times\id})_{\inr i'}$.
+      But we have the following.
+      \[\begin{eqns}
+          \rescomment 0 \subres & (\resctx P\rescomment{\vct 0})_{i'} \\
+          = & \sum_{j : \Gamma \ni A} \resctx P_j\rescomment{\vct 0}_{j,i'} \\
+          = & \sum_{j : \Gamma \ni A} \resctx P_j\rescomment I_{\inl j,\inr i'} \\
+          = & (\resctx P\rescomment I_{\inl\times\id})_{\inr i'}.
+        \end{eqns}\]
   \end{description}
 \end{definition}
 
+\begin{corollary}[substitution]\label{cor:sub}
+  Given an environment of type $\ctx{\Gamma}{P} \subst{\vdash} \ctx{\Delta}{Q}$,
+  we get a function of type
+  $\ctx{\Delta}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.
+\end{corollary}
+\begin{proof}
+  By \autoref{thm:trav} using \hyperref[tm-kit]{$\vdash\textrm{-kit}$}.
+\end{proof}
+
 \subsection{Proof of traversal}
 \label{sec:proof-of-traversal}
+
+The proof of the traversal theorem follows the same structure as in McBride's
+article, augmented with usage checking and more term formation rules.
 
 \begin{lemma}[bind]\label{lem:bind}
   Given a kit on $\kitrel$, we can extend an environment of type
@@ -555,7 +691,7 @@ be calculated from the action of the renaming on non-usage-checked variables.
     \item If there are subterms, make sure that the above splitting gives rise
       to new environments of type
       $\resctx P_{i}\Gamma \subst{\kitrel} \resctx Q_{i}\Delta$.
-    \item If any subterms bind variables, apply Lemma \ref{lem:bind} as
+    \item If any subterms bind variables, apply \autoref{lem:bind} as
       appropriate.
   \end{itemize}
   \begin{description}
@@ -594,20 +730,19 @@ be calculated from the action of the renaming on non-usage-checked variables.
       But because $\resctx Q \subres \rescomment{\vct 0}$, we get
       $\resctx P \subres \rescomment{\vct 0}\rescomment\Psi
       \subres \rescomment{\vct 0}$, as required.
-    \item[\TirName{$\fun{}{}$-E} $\app{M}{N}$, where
-      $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash \fun{A}{B}$,
-      $N : \ctx{\Delta}{Q_{\mathnormal N}} \vdash A$,
+    \item[\TirName{$\tensor{}{}$-I} $\ten{M}{N}$, where
+      $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash A$,
+      $N : \ctx{\Delta}{Q_{\mathnormal N}} \vdash B$,
       $\resctx Q \subres \resctx Q_{\rescomment M} + \resctx Q_{\rescomment N}$:]
-      (Maybe do \TirName{$\tensor{}{}$-I} instead.)
       We want to inductively traverse $M$ and $N$.
       This will produce terms
-      $M' : \ctx{\Gamma}{P_{\mathnormal M}} \vdash \fun{A}{B}$ and
-      $N' : \ctx{\Gamma}{P_{\mathnormal N}} \vdash A$, for some choice of
+      $M' : \ctx{\Gamma}{P_{\mathnormal M}} \vdash A$ and
+      $N' : \ctx{\Gamma}{P_{\mathnormal N}} \vdash B$, for some choice of
       $\resctx P_{\rescomment M}$ and $\resctx P_{\rescomment N}$.
       Furthermore, we want
       $\resctx P \subres \resctx P_{\rescomment M} + P_{\rescomment N}$, so that
-      we can combine $M'$ and $N'$ using \TirName{$\fun{}{}$-E}, getting
-      $\app{M'}{N'} : \ctx{\Gamma}{P} \vdash B$, as required.
+      we can combine $M'$ and $N'$ using \TirName{$\tensor{}{}$-I}, getting
+      $\ten{M'}{N'} : \ctx{\Gamma}{P} \vdash \tensor{A}{B}$, as required.
 
       Let
       $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$
@@ -624,7 +759,7 @@ be calculated from the action of the renaming on non-usage-checked variables.
       were given, but we must recheck the usage condition in each case.
       However, both of these just come down to the reflexivity of $\subres$.
 
-      Finally, in order to apply \TirName{$\fun{}{}$-E}, we must check that
+      Finally, in order to apply \TirName{$\tensor{}{}$-I}, we must check that
       $\resctx P \subres \resctx P_{\rescomment M} + \resctx P_{\rescomment N}$.
       This follows by:
       \[\begin{eqns}
@@ -635,6 +770,10 @@ be calculated from the action of the renaming on non-usage-checked variables.
         \resctx Q_{\rescomment N}\rescomment\Psi \\
         = & \resctx P_{\rescomment M} + \resctx P_{\rescomment N}
       \end{eqns}\]
+    \item[\TirName{$\fun{}{}$-E}, \TirName{$\tensorOne{}$-E},
+      \TirName{$\sumTZero$-E}:]
+      These all follow similarly to the above case (ignoring the lack of a
+      subterm $N$ in the \TirName{$\sumTZero$-E} case).
     \item[\TirName{$\excl{\rho}{}$-I} $\bang{M}$, where
       $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash A$,
       $\resctx Q \subres \resctx \rho Q_{\rescomment M}$:]
@@ -659,8 +798,20 @@ be calculated from the action of the renaming on non-usage-checked variables.
       We want to inductively traverse $M$, yielding a term
       $M' : \ctx{\Gamma}{P}, \ctxvar{x}{A}{1}$, to which we apply
       \TirName{$\fun{}{}$-I} to get the desired result.
-      The environment we use to traverse $M$ is the result of the bind lemma
-      (Lemma \ref{lem:bind}) applied to the environment we were given.
+      The environment we use to traverse $M$ is the result of the
+      \hyperref[lem:bind]{bind lemma} applied to the environment we were given.
+    \item[\TirName{$\sumT{}{}$-E}, where
+      $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash \sumT{A}{B}$,
+      $N : \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{x}{A}{1} \vdash C$,
+      $O : \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{y}{B}{1} \vdash C$:]
+      This is the most complex rule, combining splitting, sharing, and binding.
+      \ldots
+    \item[\TirName{$\tensor{}{}$-E}, \TirName{$\excl{\rho}{}$-E}:]
+      These both feature a similar combination of splitting and binding to the
+      previous case.
+      The \TirName{$\excl{\rho}{}$-E} rule involves binding a variable with
+      arbitrary annotation $\rescomment\rho$, but notice that the
+      \hyperref[lem:bind]{bind lemma} handles this perfectly well.
   \end{description}
 \end{proof}
 
