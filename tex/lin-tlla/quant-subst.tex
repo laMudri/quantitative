@@ -15,6 +15,7 @@
 \usepackage{mathtools}
 \usepackage{tabularx}
 \usepackage{tikz-cd}
+\usepackage[conor]{agda}
 
 \DeclareFontFamily{U}{cal}{}
 \DeclareFontShape{U}{cal}{m}{n}{<->cmsy10}{}
@@ -30,20 +31,6 @@
 \declaretheorem[numberlike=theorem]{example}
 \declaretheorem[numberlike=theorem]{definition}
 
-%\newtheorem{theorem}{Theorem}[section]
-%\newtheorem{conjecture}[theorem]{Conjecture}
-%\newcommand{\conjectureautorefname}{Conjecture}
-%\newtheorem{proposition}[theorem]{Proposition}
-%\newcommand{\propositionautorefname}{Proposition}
-%\newtheorem{lemma}[theorem]{Lemma}
-%\newcommand{\lemmaautorefname}{Lemma}
-%\newtheorem{corollary}[theorem]{Corollary}
-%\newcommand{\corollaryautorefname}{Corollary}
-%\newtheorem{example}[theorem]{Example}
-%\newcommand{\exampleautorefname}{Example}
-%\newtheorem{definition}[theorem]{Definition}
-%\newcommand{\definitionautorefname}{Definition}
-
 \def\newelims{1}
 \def\multnotation{1}
 \input{../macros.tex}
@@ -53,7 +40,7 @@
 \institute{University of Strathclyde\\ Glasgow, United Kingdom}
 \email{robert.atkey@strath.ac.uk}
 \and
-James Wood
+James Wood\thanks{James Wood is supported by an EPSRC Studentship.}
 \institute{University of Strathclyde\\ Glasgow, United Kingdom}
 \email{james.wood.100@strath.ac.uk}
 }
@@ -92,6 +79,34 @@ James Wood
   \end{itemize}
 \end{itemize}
 
+We build on previous work on coeffects
+\cite{BrunelGMZ14,GhicaS14,reed10distance,PetricekOM14} to produce a generic
+usage-constrained type system \name{}.
+In the process of formalising \name{}, we have been driven to find a clean
+statement and proof of substitution.
+
+Our definition of a substitution somewhat resembles the definition given in
+Petricek's thesis \cite[p. 137]{petricek-thesis}.
+However, our definition yields a simultaneous substitution in the style of
+Benton, Hur, Kennedy, and McBride \cite{bhkm12} by allowing for addition of
+annotations between substituting derivations.
+
+The paper proceeds as follows.
+In \autoref{sec:algebra}, we specify our requirements on the set of annotations
+that will track usage of variables.
+In \autoref{sec:syntax}, we use these annotations to define the type system
+\name{}.
+Then, in \autoref{sec:metatheory}, we prove that \name{} admits renaming and
+substitution.
+Finally, we conclude in \autoref{sec:conclusion}.
+
+The Agda formalisation of this work can be found at
+\url{https://github.com/laMudri/generic-lr/tree/specific/src/Specific}.
+% TODO: link to specific commit
+It contains the definition, operators, and properties required of vectors and
+matrices (approx. 790 lines) and the definition of \name{} and proofs of
+renaming and substitution (approx. 530 lines).
+
 \section{Related Work}
 
 \begin{itemize}
@@ -99,10 +114,10 @@ James Wood
     Fibrational Framework for Substructural and Modal Logics}
 \end{itemize}
 
-\section{Skew semirings}
+\section{Skew semirings}\label{sec:algebra}
 
-A \emph{(left) skew monoid} is a structure $(\mathscr R, \subres, 1, *)$ such
-that $(\mathscr R, \subres)$ forms a partial order, $*$ is monotonic with
+A \emph{(left) skew monoid} is a structure $(\mathbf R, \subres, 1, *)$ such
+that $(\mathbf R, \subres)$ forms a partial order, $*$ is monotonic with
 respect to $\subres$, and the following laws hold.
 \begin{mathpar}
   1x \subres x
@@ -114,10 +129,10 @@ Skew-monoidal categories are due to Szlach\'anyi \cite{skew}, and the notion
 introduced here of a skew monoid is a decategorification of the notion of
 skew-monoidal category.
 
-A \emph{(left) skew semiring} is a structure $(\mathscr R, \subres, 0, +, 1, *)$
-such that $(\mathscr R, \subres)$ forms a partial order, $+$ and $*$ are
-monotonic with respect to $\subres$, $(\mathscr R, 0, +)$ forms a commutative
-monoid, $(\mathscr R, \subres, 1, *)$ forms a skew monoid, and we have the
+A \emph{(left) skew semiring} is a structure $(\mathbf R, \subres, 0, +, 1, *)$
+such that $(\mathbf R, \subres)$ forms a partial order, $+$ and $*$ are
+monotonic with respect to $\subres$, $(\mathbf R, 0, +)$ forms a commutative
+monoid, $(\mathbf R, \subres, 1, *)$ forms a skew monoid, and we have the
 following distributivity laws.
 \begin{mathpar}
   0z \subres 0
@@ -143,7 +158,7 @@ omit the word ``left''.
 
 Elements of a skew semiring are used in this paper as \emph{usage annotations},
 and describe \emph{how} values are used in a program.
-In the syntax for \name, each assumption will have a usage annotation,
+In the syntax for \name{}, each assumption will have a usage annotation,
 describing how that assumption can be used in the derivation.
 The additive structure describes how to combine multiple usages of an
 assumption, and the multiplicative structure describes what happens when usage
@@ -155,7 +170,7 @@ If $\pi \subres \rho$, $\pi$ can be the annotation for a variable wherever
 $\rho$ can be.
 We can read this relation as ``$\textrm{supply} \subres \textrm{demand}$'' ---
 where we demand that a variable be used according to $\rho$, it is also fine to
-use it as $\pi$.
+use it if it is annotated $\pi$.
 
 \subsection{Vectors and matrices}
 
@@ -164,85 +179,93 @@ feel like readers may want to see what the calculus looks like as
 quickly as possible.
 
 \begin{definition}
-  A \emph{(left) semimodule} over a (left) skew semiring $\mathscr R$ is a
+  A \emph{(left) skew semimodule} over a (left) skew semiring $\mathbf R$ is a
   structure
-  $(\mathscr M, \subres,
-  0 : \mathscr M, + : \mathscr M \times \mathscr M \to \mathscr M,
-  * : \mathscr R \times \mathscr M \to \mathscr M)$ such that
+  $(\mathbf M, \subres,
+  0 : \mathbf M, + : \mathbf M \times \mathbf M \to \mathbf M,
+  * : \mathbf R \times \mathbf M \to \mathbf M)$ such that
   \begin{itemize}
     \item $+$ and $*$ are monotonic in both arguments.
-    \item $(\mathscr M, 0, +)$ is a commutative monoid
+    \item $(\mathbf M, 0, +)$ is a commutative monoid
     \item Scaling of a fixed element $m$ respects all of the skew semiring
-      structure particularly:
-      \begin{itemize}
-        \item $0_\mathscr R * m \subres 0_\mathscr M$
-        \item $(\pi +_\mathscr R \rho) * m \subres \pi * m +_\mathscr M \rho * m$
-        \item $1_\mathscr R * m \subres m$
-        \item $(\pi *_\mathscr R \rho) * m \subres \pi * (\rho * m)$
-      \end{itemize}
+      structure; particularly:
+      \begin{mathpar}
+        0_\mathbf R * m \subres 0_\mathbf M
+        \and
+        (\pi +_\mathbf R \rho) * m \subres \pi * m +_\mathbf M \rho * m
+        \and
+        1_\mathbf R * m \subres m
+        \and
+        (\pi *_\mathbf R \rho) * m \subres \pi * (\rho * m)
+      \end{mathpar}
     \item Scaling by a fixed element $\pi$ corespects the additive structure;
       particularly:
-      \begin{itemize}
-        \item $0_\mathscr M \subres \pi * 0_\mathscr M$
-        \item $\pi * m +_\mathscr M \pi * n \subres \pi * (m +_\mathscr M n)$
-      \end{itemize}
+      \begin{mathpar}
+        0_\mathbf M \subres \pi * 0_\mathbf M
+        \and
+        \pi * m +_\mathbf M \pi * n \subres \pi * (m +_\mathbf M n)
+      \end{mathpar}
   \end{itemize}
 \end{definition}
 
 \begin{definition}
   A \emph{(left) skew semimodule homomorphism} or \emph{linear map} between
-  $\mathscr R$-left semimodules $\mathscr M$ and $\mathscr N$ is a function $T$
-  on the underlying sets written postfix such that all of the semimodule
-  structure is respected.
+  $\mathbf R$-left skew semimodules $\mathbf M$ and $\mathbf N$ is a monotone
+  function $T$ on the underlying sets written postfix such that all of the skew
+  semimodule structure is respected.
   Particularly,
-  \begin{itemize}
-  \item $(0_\mathscr M)T \subres 0_\mathscr N$
-  \item $(m +_\mathscr M n)T \subres (m)T +_\mathscr N (n)T$
-  \item $(\pi *_\mathscr M m)T \subres \pi *_\mathscr N (m)T$
-  \end{itemize}
+  \begin{mathpar}
+    (0_\mathbf M)T \subres 0_\mathbf N
+    \and
+    (m +_\mathbf M n)T \subres (m)T +_\mathbf N (n)T
+    \and
+    (\pi *_\mathbf M m)T \subres \pi *_\mathbf N (m)T
+  \end{mathpar}
 \end{definition}
+
+The last axiom motivates the postfix notation.
+If we take application of $T$ to be a form of multiplication (as justified later
+in this section), then we do not want to require $T$ to commute with $\pi$.
+This remains important for non-skew semirings, but not commutative semirings.
 
 A skew semiring is just about enough structure to let us talk about finite
 vectors, and let us represent linear maps as matrices.
 To the standard operations of addition, scaling, and multiplication of vectors
 and matrices, we also say that the order lifts pointwise.
 
-Conversely to standard practice, matrices will typically right-multiply vectors,
-rather than left-multiply.
-Following this practice, a linear transformation
-$T : \mathscr R^m \to \mathscr R^n$ is represented by an $m \times n$ matrix
-$M_T$, and the application of a linear map $(v)T$ is represented by $vM_T$.
-
-\begin{definition}[Standard basis]
-  \begin{align*}
+\begin{definition}[Vector and matrix operations]
+  \begin{mathpar}
     \langle i \rvert_j =
     \begin{cases}
       1, & \textrm{if }i = j \\
       0, & \textrm{otherwise} \\
     \end{cases}
-  \end{align*}
+    \and
+    \begin{matrix*}[l]
+      0 : \mathrm{Mat}~m~n \\
+      0_{ij} = 0
+    \end{matrix*}
+    \and
+    \begin{matrix*}[l]
+      + : \mathrm{Mat}~m~n \times \mathrm{Mat}~m~n \to \mathrm{Mat}~m~n \\
+      (M + N)_{ij} = M_{ij} + N_{ij}
+    \end{matrix*}
+    \and
+    \begin{matrix*}[l]
+      I : \mathrm{Mat}~m~m \\
+      I_{ij} = \langle i \rvert_j
+    \end{matrix*}
+    \and
+    \begin{matrix*}[l]
+      * : \mathrm{Mat}~m~n \times \mathrm{Mat}~n~o \to \mathrm{Mat}~m~o \\
+      (MN)_{ik} = \sum_j M_{ij}N_{jk}
+    \end{matrix*}
+  \end{mathpar}
 \end{definition}
-
-\begin{definition}[Matrix operations]
-    \begin{align*}
-      0 &: \mathrm{Mat}~m~n \\
-      0_{ij} &= 0 \\
-      + &: \mathrm{Mat}~m~n \times \mathrm{Mat}~m~n \to \mathrm{Mat}~m~n \\
-      (M + N)_{ij} &= M_{ij} + N_{ij} \\
-      I &: \mathrm{Mat}~m~m \\
-      I_{ij} &= \langle i \rvert_j \\
-      * &: \mathrm{Mat}~m~n \times \mathrm{Mat}~n~o \to \mathrm{Mat}~m~o \\
-      (MN)_{ik} &= \sum_j M_{ij}N_{jk}
-    \end{align*}
-\end{definition}
-
-\begin{lemma}
-  Natural numbers and matrices between them form a symmetric monoidal category.
-\end{lemma}
 
 \begin{lemma}
   Each matrix $M : \mathrm{Mat}~m~n$ gives rise to a linear map
-  $T_M : \mathscr R^m \to \mathscr R^n$ by right-multiplication.
+  $T_M : \mathbf R^m \to \mathbf R^n$ by right-multiplication.
 \end{lemma}
 \begin{proof}
   We observe the following inequalities:
@@ -256,14 +279,11 @@ $M_T$, and the application of a linear map $(v)T$ is represented by $vM_T$.
 \end{proof}
 
 \begin{lemma}
-  Each linear map $T : \mathscr R^m \to \mathscr R^n$ gives rise to a matrix
+  Each linear map $T : \mathbf R^m \to \mathbf R^n$ gives rise to a matrix
   $M : \mathrm{Mat}~m~n$ such that for each $u$, $uT \subres uM$.
 \end{lemma}
 \begin{proof}
-  We construct $M$ as follows.
-  \[
-    M_{jk} = (\langle j \rvert)T_k
-  \]
+  Let $M_{jk} = (\langle j \rvert)T_k$.
   Then, consider $uT_k$.
   \[
     uT_k \subres \left(\sum_j u_j\langle j \rvert\right)T_k
@@ -276,183 +296,203 @@ In what follows, matrices/linear maps will only appear to the right of a
 $\subres$, so when we ask for a matrix rather than a linear map, this is no loss
 of generality.
 
-\section{Syntax}
+\section{Syntax}\label{sec:syntax}
 
-We fixed skew semiring $\mathscr R$, of which all elements, and vectors and
+This section corresponds to the Agda module \AgdaModule{Specific.Syntax}.
+We fix a skew semiring $\mathbf R$, of which all elements, and vectors and
 matrices thereof, are coloured \rescomment{green}.
 
 \subsection{Variables}
 
-We find it useful to distinguish between \emph{intuitionistic} variables, which
-are indices into a context with a specified type, and \emph{usage-cheked} or
-\emph{linear} variables, which describe the conditions under which a variable
-can be used in a context, subject to the constraints of usage annotations.
+We find it useful to distinguish between \emph{plain} variables, which are
+indices into a context with a specified type, and \emph{usage-cheked} variables,
+which describe the conditions under which a variable can be used in a context,
+subject to the constraints of usage annotations.
 Concerning the latter, a variable may be used in a context if its annotation is
 $\subres \rescomment 1$ (``usable''), and the annotation of every other variable
 is $\subres \rescomment 0$ (``discardable'').
 
-\begin{definition}[intuitionistic variable]
+\begin{definition}[plain variable, \AgdaRecord{IVar}]
   We write $\Gamma \ni A$ as the type of variables in $\Gamma$ with type $A$.
 \end{definition}
 
-\begin{definition}[usage-checked variable]
+\begin{definition}[usage-checked variable, \AgdaRecord{LVar}]
   We write $\ctx{\Gamma}{R} \lvar A$ as the type of $i : \Gamma \ni A$ such that
   $\resctx R \subres \langle i \rvert$.
 \end{definition}
 
 \subsection{Terms}
 
-Our calculus is a refinement of simply typed $\lambda$-calculus sporting usage
-annotations from $\mathscr R$ on variables in the context and constraints on
-term formation based on these annotations.
+Our calculus is presented in \autoref{fig:rules}.
+The corresponding Agda definition is \AgdaDatatype{Tm}.
+It is a refinement of simply typed $\lambda$-calculus sporting usage annotations
+from $\mathbf R$ on variables in the context and constraints on term formation
+based on these annotations.
 Type formers are mostly standard from intuitionistic linear logic --- functions,
 multiplicative and additive products and their units, and additive sums and
 their unit.
 Additionally, we have an annotated bang ($\excl{\rho}{A}$), forming a graded
 comonad (assuming definitions tweaked to account for $\subres$ and skewness).
 
-\begin{mathpar}
-  \inferrule*[right=var]
-  {x : \ctx{\Gamma}{R} \lvar A}
-  {x : \ctx{\Gamma}{R} \vdash A}
+\begin{figure}
+  \caption{the typing rules of \name{}}
+  \label{fig:rules}
+  \begin{mathpar}
+    \inferrule*[right=var]
+    {x : \ctx{\Gamma}{R} \lvar A}
+    {x : \ctx{\Gamma}{R} \vdash A}
 
-  \and
+    \and
 
-  \inferrule*[right=$\fun{}{}$-E]
-  {M : \ctx{\Gamma}{P} \vdash \fun{A}{B}
-    \\ N : \ctx{\Gamma}{Q} \vdash A
-    \\ \resctx R \subres \resctx P + \resctx Q
-  }
-  {\app{M}{N} : \ctx{\Gamma}{R} \vdash B}
-  \and
-  \inferrule*[right=$\fun{}{}$-I]
-  {\bind{x}M : \ctx{\Gamma}{R}, \ctxvar{x}{A}{1} \vdash B}
-  {\lam{x}{\bind{x}M} : \ctx{\Gamma}{R} \vdash \fun{A}{B}}
+    \inferrule*[right=$\fun{}{}$-E]
+    {M : \ctx{\Gamma}{P} \vdash \fun{A}{B}
+      \\ N : \ctx{\Gamma}{Q} \vdash A
+      \\ \resctx R \subres \resctx P + \resctx Q
+    }
+    {\app{M}{N} : \ctx{\Gamma}{R} \vdash B}
+    \and
+    \inferrule*[right=$\fun{}{}$-I]
+    {\bind{x}M : \ctx{\Gamma}{R}, \ctxvar{x}{A}{1} \vdash B}
+    {\lam{x}{\bind{x}M} : \ctx{\Gamma}{R} \vdash \fun{A}{B}}
 
-  \and
+    \and
 
-  \inferrule*[right=$\tensorOne$-E]
-  {M : \ctx{\Gamma}{P} \vdash \tensorOne{}
-    \\ N : \ctx{\Gamma}{Q} \vdash C
-    \\ \resctx R \subres \resctx P + \resctx Q
-  }
-  {\del{C}{M}{N} : \ctx{\Gamma}{R} \vdash C}
-  \and
-  \inferrule*[right=$\tensorOne$-I]
-  {\resctx R \subres \rescomment{\vct 0}}
-  {\unit{} : \ctx{\Gamma}{R} \vdash \tensorOne{}}
-  \and
-  \inferrule*[right=$\tensor{}{}$-E]
-  {M : \ctx{\Gamma}{P} \vdash \tensor{A}{B}
-    \\ \bind{x,y}N : \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1}, \ctxvar{y}{B}{1} \vdash C
-    \\ \resctx R \subres \resctx P + \resctx Q
-  }
-  {\prm{C}{M}{x}{y}{\bind{x,y}N} : \ctx{\Gamma}{R} \vdash C}
-  \and
-  \inferrule*[right=$\tensor{}{}$-I]
-  {M : \ctx{\Gamma}{P} \vdash A
-    \\ N : \ctx{\Gamma}{Q} \vdash B
-    \\ \resctx R \subres \resctx P + \resctx Q
-  }
-  {\ten{M}{N} : \ctx{\Gamma}{R} \vdash \tensor{A}{B}}
+    \inferrule*[right=$\tensorOne$-E]
+    {M : \ctx{\Gamma}{P} \vdash \tensorOne{}
+      \\ N : \ctx{\Gamma}{Q} \vdash C
+      \\ \resctx R \subres \resctx P + \resctx Q
+    }
+    {\del{C}{M}{N} : \ctx{\Gamma}{R} \vdash C}
+    \and
+    \inferrule*[right=$\tensorOne$-I]
+    {\resctx R \subres \rescomment{\vct 0}}
+    {\unit{} : \ctx{\Gamma}{R} \vdash \tensorOne{}}
+    \and
+    \inferrule*[right=$\tensor{}{}$-E]
+    {M : \ctx{\Gamma}{P} \vdash \tensor{A}{B}
+      \\ \bind{x,y}N : \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1}, \ctxvar{y}{B}{1}
+      \vdash C
+      \\ \resctx R \subres \resctx P + \resctx Q
+    }
+    {\prm{C}{M}{x}{y}{\bind{x,y}N} : \ctx{\Gamma}{R} \vdash C}
+    \and
+    \inferrule*[right=$\tensor{}{}$-I]
+    {M : \ctx{\Gamma}{P} \vdash A
+      \\ N : \ctx{\Gamma}{Q} \vdash B
+      \\ \resctx R \subres \resctx P + \resctx Q
+    }
+    {\ten{M}{N} : \ctx{\Gamma}{R} \vdash \tensor{A}{B}}
 
-  \and
+    \and
 
-  \inferrule*[right=$\sumTZero$-E]
-  {M : \ctx{\Gamma}{P} \vdash \sumTZero{}
-    \\ \resctx R \subres \resctx P + \resctx Q
-  }
-  {\exf{C}{M} : \ctx{\Gamma}{R} \vdash C}
-  \and
-  (\textrm{no }\TirName{$\sumTZero$-I})
-  \and
-  \inferrule*[right=$\sumT{}{}$-E]
-  {M : \ctx{\Gamma}{P} \vdash \sumT{A}{B}
-    \\ \bind{x}N : \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1} \vdash C
-    \\ \bind{y}O : \ctx{\Gamma}{Q}, \ctxvar{y}{B}{1} \vdash C
-    \\ \resctx R \subres \resctx P + \resctx Q
-  }
-  {\cse{C}{M}{x}{\bind{x}N}{y}{\bind{y}O} : \ctx{\Gamma}{R} \vdash C}
-  \and
-  \inferrule*[right=$\sumT{}{}$-Il]
-  {M : \ctx{\Gamma}{R} \vdash A}
-  {\inj{L}{M} : \ctx{\Gamma}{R} \vdash \sumT{A}{B}}
-  \and
-  \inferrule*[right=$\sumT{}{}$-Ir]
-  {M : \ctx{\Gamma}{R} \vdash B}
-  {\inj{R}{M} : \ctx{\Gamma}{R} \vdash \sumT{A}{B}}
+    \inferrule*[right=$\sumTZero$-E]
+    {M : \ctx{\Gamma}{P} \vdash \sumTZero{}
+      \\ \resctx R \subres \resctx P + \resctx Q
+    }
+    {\exf{C}{M} : \ctx{\Gamma}{R} \vdash C}
+    \and
+    (\textrm{no }\TirName{$\sumTZero$-I})
+    \and
+    \inferrule*[right=$\sumT{}{}$-E]
+    {M : \ctx{\Gamma}{P} \vdash \sumT{A}{B}
+      \\ \bind{x}N : \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1} \vdash C
+      \\ \bind{y}O : \ctx{\Gamma}{Q}, \ctxvar{y}{B}{1} \vdash C
+      \\ \resctx R \subres \resctx P + \resctx Q
+    }
+    {\cse{C}{M}{x}{\bind{x}N}{y}{\bind{y}O} : \ctx{\Gamma}{R} \vdash C}
+    \and
+    \inferrule*[right=$\sumT{}{}$-Il]
+    {M : \ctx{\Gamma}{R} \vdash A}
+    {\inj{L}{M} : \ctx{\Gamma}{R} \vdash \sumT{A}{B}}
+    \and
+    \inferrule*[right=$\sumT{}{}$-Ir]
+    {M : \ctx{\Gamma}{R} \vdash B}
+    {\inj{R}{M} : \ctx{\Gamma}{R} \vdash \sumT{A}{B}}
 
-  \and
+    \and
 
-  (\textrm{no }\TirName{$\withTOne$-E})
-  \and
-  \inferrule*[right=$\withTOne$-I]
-  { }
-  {\eat{} : \ctx{\Gamma}{R} \vdash \withTOne}
-  \and
-  \inferrule*[right=$\withT{}{}$-El]
-  {M : \ctx{\Gamma}{R} \vdash \withT{A}{B}}
-  {\proj{L}{M} : \ctx{\Gamma}{R} \vdash A}
-  \and
-  \inferrule*[right=$\withT{}{}$-Er]
-  {M : \ctx{\Gamma}{R} \vdash \withT{A}{B}}
-  {\proj{R}{M} : \ctx{\Gamma}{R} \vdash B}
-  \and
-  \inferrule*[right=$\withT{}{}$-I]
-  {M : \ctx{\Gamma}{R} \vdash A
-    \\ N : \ctx{\Gamma}{R} \vdash B
-  }
-  {\wth{M}{N} : \ctx{\Gamma}{R} \vdash \withT{A}{B}}
+    (\textrm{no }\TirName{$\withTOne$-E})
+    \and
+    \inferrule*[right=$\withTOne$-I]
+    { }
+    {\eat{} : \ctx{\Gamma}{R} \vdash \withTOne}
+    \and
+    \inferrule*[right=$\withT{}{}$-El]
+    {M : \ctx{\Gamma}{R} \vdash \withT{A}{B}}
+    {\proj{L}{M} : \ctx{\Gamma}{R} \vdash A}
+    \and
+    \inferrule*[right=$\withT{}{}$-Er]
+    {M : \ctx{\Gamma}{R} \vdash \withT{A}{B}}
+    {\proj{R}{M} : \ctx{\Gamma}{R} \vdash B}
+    \and
+    \inferrule*[right=$\withT{}{}$-I]
+    {M : \ctx{\Gamma}{R} \vdash A
+      \\ N : \ctx{\Gamma}{R} \vdash B
+    }
+    {\wth{M}{N} : \ctx{\Gamma}{R} \vdash \withT{A}{B}}
 
-  \and
+    \and
 
-  \inferrule*[right=$\excl{\rho}{}$-E]
-  {M : \ctx{\Gamma}{P} \vdash \excl{\rho}{A}
-    \\ \bind{x}N : \ctx{\Gamma}{Q}, \ctxvar{x}{A}{\rho} \vdash C
-    \\ \resctx R \subres \resctx P + \resctx Q
-  }
-  {\bm{C}{M}{x}{\bind{x}N} : \ctx{\Gamma}{R} \vdash C}
-  \and
-  \inferrule*[right=$\excl{\rho}{}$-I]
-  {M : \ctx{\Gamma}{P} \vdash A
-    \\ \resctx R \subres \rescomment\rho\resctx P
-  }
-  {\bang{M} : \ctx{\Gamma}{R} \vdash \excl{\rho}{A}}
-\end{mathpar}
+    \inferrule*[right=$\excl{\rho}{}$-E]
+    {M : \ctx{\Gamma}{P} \vdash \excl{\rho}{A}
+      \\ \bind{x}N : \ctx{\Gamma}{Q}, \ctxvar{x}{A}{\rho} \vdash C
+      \\ \resctx R \subres \resctx P + \resctx Q
+    }
+    {\bm{C}{M}{x}{\bind{x}N} : \ctx{\Gamma}{R} \vdash C}
+    \and
+    \inferrule*[right=$\excl{\rho}{}$-I]
+    {M : \ctx{\Gamma}{P} \vdash A
+      \\ \resctx R \subres \rescomment\rho\resctx P
+    }
+    {\bang{M} : \ctx{\Gamma}{R} \vdash \excl{\rho}{A}}
+  \end{mathpar}
+\end{figure}
 
-\section{Metatheory}
+\section{Metatheory}\label{sec:metatheory}
 
-We prove all of our main syntactic lemmas via McBride's kits and traversals
-method \cite{rensub05}.
-Our main modifications are the following.
+We prove substitution via renaming in the style of Benton, Hur, Kennedy, and
+McBride \cite{bhkm12}.
+We take both renaming and substitution as corollaries of a \emph{traversal}
+principle, as given by McBride \cite{rensub05} (\autoref{thm:trav}).
+Our main modifications to McBride's method are the following.
 \begin{itemize}
   \item Kits need not support arbitrary weakening, but rather weakening by the
     introduction of $\rescomment 0$-use variables.
     They must also respect $\subres$.
-  \item The environment is made linear by equipping it with a matrix (linear
+  \item Environments are made linear by equipping them with a matrix (linear
     map) mediating between the input and output usage annotations.
 \end{itemize}
 
+The definitions of \emph{kit} and \emph{environment}, as well as the proof of
+\hyperref[thm:trav]{traversal}, all can be found in the module
+\AgdaModule{Specific.Syntax.Traversal}.
+
 \subsection{Kit}
 
-A kit is a structure on relations
-$\kitrel : \mathrm{Ctx} \times \mathrm{Ty} \to \mathrm{Set}$, intuitively
+A kit is a structure on $\vdash$-like relations $\kitrel$, intuitively
 giving a way in which $\kitrel$ lives between the usage-checked variable
 judgement $\lvar$ and the typing judgement $\vdash$.
-We require the following functions, where all variables signified by letters are
-universally quantified.
 
-\begin{itemize}
-  \item
-    $\mathit{psh} : \resctx P \subres \resctx Q \to
-    \ctx{\Gamma}{Q} \kitrel A \to \ctx{\Gamma}{P} \kitrel A$
-  \item $\mathit{vr} : \ctx{\Gamma}{P} \lvar A \to
-    \ctx{\Gamma}{P} \kitrel A$
-  \item $\mathit{tm} : \ctx{\Gamma}{P} \kitrel A \to
-    \ctx{\Gamma}{P} \vdash A$
-  \item $\mathit{wk} : \ctx{\Gamma}{P} \kitrel A \to
-    \ctx{\Gamma}{P}, \ctx{\Delta}{\vct 0} \kitrel A$
-\end{itemize}
+\begin{definition}[\AgdaRecord{Kit}]\label{def:kit}
+  For any $\kitrel : \mathrm{Ctx} \times \mathrm{Ty} \to \mathrm{Set}$, let
+  $\kit(\kitrel)$ denote the type of \emph{kits}.
+  A kit comprises the following functions for all $\resctx P$, $\resctx Q$,
+  $\Gamma$, $\Delta$, and $A$.
+
+  \begin{mathpar}
+    \mathit{psh} : \resctx P \subres \resctx Q \to
+    \ctx{\Gamma}{Q} \kitrel A \to \ctx{\Gamma}{P} \kitrel A
+    \and
+    \mathit{vr} : \ctx{\Gamma}{P} \lvar A \to
+    \ctx{\Gamma}{P} \kitrel A
+    \\
+    \mathit{tm} : \ctx{\Gamma}{P} \kitrel A \to
+    \ctx{\Gamma}{P} \vdash A
+    \and
+    \mathit{wk} : \ctx{\Gamma}{P} \kitrel A \to
+    \ctx{\Gamma}{P}, \ctx{\Delta}{\vct 0} \kitrel A
+  \end{mathpar}
+\end{definition}
 
 An inhabitant of $\ctx{\Gamma}{P} \kitrel A$ is described as
 \emph{stuff in $\ctx{\Gamma}{P}$ of type $A$}.
@@ -467,7 +507,7 @@ $\Delta \ni A \to \Gamma \kitrel A$.
 The traversal function $\mathit{trav}$ turns such an environment into a map
 between terms, $\Delta \vdash A \to \Gamma \vdash A$.
 
-In \name, we want inhabitants of
+In \name{}, we want inhabitants of
 $\ctx{\Delta}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.
 We can see that an environment of type
 $\ctx{\Delta}{Q} \lvar A \to \ctx{\Gamma}{P} \kitrel A$ would
@@ -491,15 +531,18 @@ vector-matrix multiplication $\resctx Q\rescomment\Psi$.
 
 This culminates to give us the following requirements.
 
+\begin{definition}[\AgdaRecord{Env}]\label{def:env}
+  For any $\kitrel$, $\resctx P$, $\resctx Q$, $\Gamma$, and $\Delta$, let
+  $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$ denote the type of
+  \emph{environments}.
+  An environment comprises the following.
 \begin{itemize}
-  \item $\rescomment\Psi : \mathscr R^{n \times m}$
+  \item $\rescomment\Psi : \mathbf R^{n \times m}$
   \item $\mathit{act} :
     (j : (\Delta \ni A)) \to (\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$
   \item with usage condition $\resctx P \subres \resctx Q \rescomment\Psi$.
 \end{itemize}
-
-We shall write the type of such bundles as
-$\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$.
+\end{definition}
 
 \subsection{Traversal}
 
@@ -512,13 +555,16 @@ possible.
   $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$, we can transform a term
   $\ctx{\Delta}{Q} \vdash A$ into a term $\ctx{\Gamma}{P} \vdash A$.%
 }
-\begin{theorem}[traversal]\label{thm:trav}
+\begin{theorem}[traversal, \AgdaFunction{trav}]\label{thm:trav}
   \thmtrav
 \end{theorem}
 
 \subsection{Renaming}
 
-\begin{definition}\label{def:lvar-kit}
+This subsection corresponds to the Agda module
+\AgdaModule{Specific.Syntax.Renaming}.
+
+\begin{definition}[\AgdaFunction{LVar-kit}]\label{def:lvar-kit}
   Let $\lvar\textrm{-kit} : \kit(\lvar)$ be defined with the following
   fields.
   \begin{description}
@@ -544,8 +590,8 @@ possible.
 Environments for renamings are special in that the matrix $\rescomment\Psi$ can
 be calculated from the action of the renaming on non-usage-checked variables.
 
-\begin{lemma}\label{lem:ren-env}
-  Given a type-preserving mapping of intuitionistic variables
+\begin{lemma}[\AgdaFunction{ren-env}]\label{lem:ren-env}
+  Given a type-preserving mapping of plain variables
   $f : \Delta \ni A \to \Gamma \ni A$ such that
   $\resctx P \subres \resctx Q\rescomment I_{f\times\id}$,
   we can produce a $\lvar$-environment of type
@@ -565,16 +611,16 @@ be calculated from the action of the renaming on non-usage-checked variables.
   We prove this pointwise.
   Let $i : \Gamma \ni A$.
   Then, we have the following.
-  \[\begin{eqns}
-      (\langle j \rvert\rescomment\Psi)_i
-      \subres & \rescomment\Psi_{j,i} \\
-      = & \rescomment I_{f~j,i} \\
-      = & \langle f~j \rvert_i \\
-    \end{eqns}\]
+  \[
+    (\langle j \rvert\rescomment\Psi)_i
+    \subres \rescomment\Psi_{j,i}
+    = \rescomment I_{f~j,i}
+    = \langle f~j \rvert_i
+  \]
 \end{proof}
 
-\begin{corollary}[renaming]\label{cor:ren}
-  Given a type-preserving mapping of intuitionistic variables
+\begin{corollary}[renaming, \AgdaFunction{ren}]\label{cor:ren}
+  Given a type-preserving mapping of plain variables
   $f : \Delta \ni A \to \Gamma \ni A$ such that
   $\resctx P \subres \resctx Q\rescomment I_{f\times\id}$,
   we can produce a function of type
@@ -586,7 +632,10 @@ be calculated from the action of the renaming on non-usage-checked variables.
 
 \subsection{Substitution}
 
-\begin{definition}\label{tm-kit}
+This subsection corresponds to the Agda module
+\AgdaModule{Specific.Syntax.Substitution}.
+
+\begin{definition}[\AgdaFunction{Tm-kit}]\label{tm-kit}
   Let $\vdash\textrm{-kit} : \kit(\vdash)$ be defined with the following
   fields.
   \begin{description}
@@ -597,6 +646,8 @@ be calculated from the action of the renaming on non-usage-checked variables.
       It remains to check that
       $\resctx P \subres \resctx Q\rescomment I_{\id\times\id}$, which is
       obvious from the assumption $\mathit{PQ}$.
+      This is the argument used in the Agda module
+      \AgdaModule{Specific.Syntax.Subuse}, definition \AgdaFunction{subuse}.
 
       Alternatively, we can note that in every rule for
       $\ctx{\Gamma}{R} \vdash A$, $\resctx R$ only ever appears to the left of a
@@ -620,26 +671,26 @@ be calculated from the action of the renaming on non-usage-checked variables.
       $\resctx P_{i'} \subres
       (\resctx P\rescomment I_{\inl\times\id})_{\inl i'}$.
       But we have the following.
-      \[\begin{eqns}
-          \resctx P_{i'} \subres & (\resctx P\rescomment I)_{i'} \\
-          = & \sum_{j : \Gamma \ni A} \resctx P_j\rescomment I_{j,i'} \\
-          = & \sum_{j : \Gamma \ni A} \resctx P_j\rescomment I_{\inl j,\inl i'} \\
-          = & (\resctx P\rescomment I_{\inl\times\id})_{\inl i'}.
-        \end{eqns}\]
+      \[
+      \resctx P_{i'} \subres (\resctx P\rescomment I)_{i'}
+      = \sum_{j : \Gamma \ni A} \resctx P_j\rescomment I_{j,i'}
+      = \sum_{j : \Gamma \ni A} \resctx P_j\rescomment I_{\inl j,\inl i'}
+      = (\resctx P\rescomment I_{\inl\times\id})_{\inl i'}.
+      \]
       If $i = \inr i'$ for an $i' : \Delta \ni A$, we must show that
       $\rescomment 0 \subres
       (\resctx P\rescomment I_{\inl\times\id})_{\inr i'}$.
       But we have the following.
-      \[\begin{eqns}
-          \rescomment 0 \subres & (\resctx P\rescomment{\vct 0})_{i'} \\
-          = & \sum_{j : \Gamma \ni A} \resctx P_j\rescomment{\vct 0}_{j,i'} \\
-          = & \sum_{j : \Gamma \ni A} \resctx P_j\rescomment I_{\inl j,\inr i'} \\
-          = & (\resctx P\rescomment I_{\inl\times\id})_{\inr i'}.
-        \end{eqns}\]
+      \[
+      \rescomment 0 \subres (\resctx P\rescomment{\vct 0})_{i'}
+      = \sum_{j : \Gamma \ni A} \resctx P_j\rescomment{\vct 0}_{j,i'}
+      = \sum_{j : \Gamma \ni A} \resctx P_j\rescomment I_{\inl j,\inr i'}
+      = (\resctx P\rescomment I_{\inl\times\id})_{\inr i'}.
+      \]
   \end{description}
 \end{definition}
 
-\begin{corollary}[substitution]\label{cor:sub}
+\begin{corollary}[substitution, \AgdaFunction{sub}]\label{cor:sub}
   Given an environment of type $\ctx{\Gamma}{P} \subst{\vdash} \ctx{\Delta}{Q}$,
   we get a function of type
   $\ctx{\Delta}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.
@@ -654,7 +705,7 @@ be calculated from the action of the renaming on non-usage-checked variables.
 The proof of the traversal theorem follows the same structure as in McBride's
 article, augmented with usage checking and more term formation rules.
 
-\begin{lemma}[bind]\label{lem:bind}
+\begin{lemma}[bind, \AgdaFunction{bind}]\label{lem:bind}
   Given a kit on $\kitrel$, we can extend an environment of type
   $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$, to an environment of type
   $\ctx{\Gamma}{P}, \ctx{\Theta}{R} \subst{\kitrel}
@@ -662,11 +713,11 @@ article, augmented with usage checking and more term formation rules.
 \end{lemma}
 \begin{proof}
   Let the environment we are given be
-  $(\rescomment\Psi : \mathscr R^{n \times m},
+  $(\rescomment\Psi : \mathbf R^{n \times m},
   \mathit{act} : (j : \Delta \ni A) \to (\langle j \rvert\rescomment\Psi)\Gamma \kitrel A)$,
   with $\resctx P \subres \resctx Q \rescomment\Psi$.
   We are trying to construct
-  $(\rescomment{\Psi'} : \mathscr R^{(n + o) \times (m + o)},
+  $(\rescomment{\Psi'} : \mathbf R^{(n + o) \times (m + o)},
   \mathit{act'} : (j : \Delta, \Theta \ni A) \to
   (\langle j \rvert\rescomment\Psi')(\Gamma, \Theta) \kitrel A)$,
   with $\resctx P, \resctx R \subres (\resctx Q, \resctx R) \rescomment\Psi'$.
@@ -678,16 +729,12 @@ article, augmented with usage checking and more term formation rules.
                                 \rescomment{\mat 0} & \rescomment{\mat I}
                               \end{array}\right).
   \)
-  With this definition, our required condition splits into the following easily
-  checked conditions.
-  \begin{itemize}
-    \item
-      $\resctx P \subres
-      \resctx Q\rescomment\Psi + \resctx R\rescomment{\mat 0}$
-    \item
-      $\resctx R \subres
-      \resctx Q\rescomment{\mat 0} + \resctx R\rescomment{\mat I}$
-  \end{itemize}
+  With this definition, our required condition splits into the easily checked
+  conditions
+  $\resctx P \subres \resctx Q\rescomment\Psi + \resctx R\rescomment{\mat 0}$
+  and
+  $\resctx R \subres
+  \resctx Q\rescomment{\mat 0} + \resctx R\rescomment{\mat I}$.
 
   For $\mathit{act'}$, we take cases on whether $j$ is from $\Delta$ or from
   $\Theta$.
@@ -712,7 +759,7 @@ article, augmented with usage checking and more term formation rules.
 \end{proof}
 
 \newtheorem*{thm:trav}{\autoref{thm:trav}}
-\begin{thm:trav}[traversal]
+\begin{thm:trav}[traversal, \AgdaFunction{trav}]
   \thmtrav
 \end{thm:trav}
 \begin{proof}
@@ -800,31 +847,32 @@ article, augmented with usage checking and more term formation rules.
       Finally, in order to apply \TirName{$\tensor{}{}$-I}, we must check that
       $\resctx P \subres \resctx P_{\rescomment M} + \resctx P_{\rescomment N}$.
       This follows by:
-      \[\begin{eqns}
-        \resctx P \subres & \resctx Q\rescomment\Psi \\
-        \subres & (\resctx Q_{\rescomment M} + \resctx Q_{\rescomment N})
-        \rescomment\Psi \\
-        \subres & \resctx Q_{\rescomment M}\rescomment\Psi +
-        \resctx Q_{\rescomment N}\rescomment\Psi \\
-        = & \resctx P_{\rescomment M} + \resctx P_{\rescomment N}
-      \end{eqns}\]
+      \[
+      \resctx P
+      \subres \resctx Q\rescomment\Psi
+      \subres (\resctx Q_{\rescomment M} + \resctx Q_{\rescomment N})
+      \rescomment\Psi
+      \subres \resctx Q_{\rescomment M}\rescomment\Psi +
+      \resctx Q_{\rescomment N}\rescomment\Psi
+      = \resctx P_{\rescomment M} + \resctx P_{\rescomment N}.
+      \]
     \item[\TirName{$\fun{}{}$-E}, \TirName{$\tensorOne{}$-E},
       \TirName{$\sumTZero$-E}:]
       These all follow similarly to the above case (ignoring the lack of a
       subterm $N$ in the \TirName{$\sumTZero$-E} case).
     \item[\TirName{$\excl{\rho}{}$-I} $\bang{M}$, where
       $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash A$,
-      $\resctx Q \subres \resctx \rho Q_{\rescomment M}$:]
+      $\resctx Q \subres \rescomment\rho \resctx Q_{\rescomment M}$:]
       Following a similar strategy to the case above, let
       $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$.
       If we get a term $M' : \ctx{\Gamma}{P_{\mathnormal M}} \vdash A$, we will
       be able to apply \TirName{$\excl{\rho}{}$-I} to get the result because
-      \[\begin{eqns}
-          \resctx P_{\rescomment M} = & \resctx Q_{\rescomment M}\rescomment\Psi \\
-          \subres & (\rho\resctx Q)\rescomment\Psi \\
-          \subres & \rho(\resctx Q\rescomment\Psi) \\
-          \subres & \rho\resctx P.
-        \end{eqns}\]
+      \[
+      \resctx P_{\rescomment M} = \resctx Q_{\rescomment M}\rescomment\Psi
+      \subres (\rescomment\rho\resctx Q)\rescomment\Psi
+      \subres \rescomment\rho(\resctx Q\rescomment\Psi)
+      \subres \rescomment\rho\resctx P.
+      \]
 
       To get $M'$, we traverse $M$ with the same environment at type
       $\ctx{\Gamma}{P_{\mathnormal M}}
@@ -841,9 +889,35 @@ article, augmented with usage checking and more term formation rules.
     \item[\TirName{$\sumT{}{}$-E}, where
       $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash \sumT{A}{B}$,
       $N : \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{x}{A}{1} \vdash C$,
-      $O : \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{y}{B}{1} \vdash C$:]
+      $O : \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{y}{B}{1} \vdash C$,
+      $\resctx Q \subres
+      \resctx Q_{\rescomment M} + \resctx Q_{\rescomment N}$:]
       This is the most complex rule, combining splitting, sharing, and binding.
-      \ldots
+      Let
+      $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$
+      and
+      $\resctx P_{\rescomment N} := \resctx Q_{\rescomment N}\rescomment\Psi$.
+      In order to traverse $M$, we repurpose the environment at type
+      $\ctx{\Gamma}{P_{\mathnormal M}}
+      \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal M}}$.
+      This amounts to checking that
+      $\resctx P_{\rescomment M} \subres
+      \resctx Q_{\rescomment M}\rescomment\Psi$, which is obvious.
+
+      In order to traverse $N$ and $O$, we do similar to produce an environment
+      at type
+      $\ctx{\Gamma}{P_{\mathnormal N}}
+      \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal N}}$.
+      Then, we use the \hyperref[lem:bind]{bind lemma} to extend this
+      (separately) to environments of type
+      $\ctx{\Gamma}{P_{\mathnormal N}}, \ctxvar{x}{A}{1}
+      \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{x}{A}{1}$ and
+      $\ctx{\Gamma}{P_{\mathnormal N}}, \ctxvar{y}{B}{1}
+      \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{y}{B}{1}$.
+      These are enough to traverse $N$ and $O$, respectively.
+
+      Finally, we apply \TirName{$\sumT{}{}$-E} to all of the traversed
+      derivations.
     \item[\TirName{$\tensor{}{}$-E}, \TirName{$\excl{\rho}{}$-E}:]
       These both feature a similar combination of splitting and binding to the
       previous case.
@@ -853,7 +927,7 @@ article, augmented with usage checking and more term formation rules.
   \end{description}
 \end{proof}
 
-\section{Conclusion}
+\section{Conclusion}\label{sec:conclusion}
 
 \section{Bibliography}
 
