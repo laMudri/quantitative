@@ -69,6 +69,36 @@ James Wood
 
 \section{Introduction}
 
+\begin{itemize}
+\item We present a generic and easily formalisable technique for
+  establishing metatheoretic facts about substructural calculi.
+\item FIXME: say why doing metatheory can be a bit tedious, especially
+  when trying to formalise it.
+\item The basic ideas:
+  \begin{itemize}
+  \item Annotate usages of variables with elements of a
+    \emph{skew}-semiring. By choosing the right semiring, we can
+    encode systems like Barber's Dual Intuitionistic Linear Logic
+    (DILL) and the Pfenning-Davis S4 modal calculus. (Also, probably,
+    variants of S4-modal logic as presented by G.A. Kavvos.)
+  \item We extend McBride's technique of defining Kits as a generic
+    notion of binding-preserving traversal of syntax so that it is
+    usage-respecting. To define what it means for a traversal
+    usage-respecting requires the development of elementatry linear
+    algebra for skew-semi-rings.
+  \item The payoff is that we can define several metatheoretic results
+    in terms of the single notion of usage respecting traversal:
+    including renaming and substitution.
+  \end{itemize}
+\end{itemize}
+
+\section{Related Work}
+
+\begin{itemize}
+\item Licata, Shulman, and Riley \cite{LicataSR17}: \emph{A
+    Fibrational Framework for Substructural and Modal Logics}
+\end{itemize}
+
 \section{Skew semirings}
 
 A \emph{(left) skew monoid} is a structure $(\mathscr R, \subres, 1, *)$ such
@@ -95,6 +125,10 @@ following distributivity laws.
   \and 0 \subres x0
   \and xy + xz \subres x(y + z)
 \end{mathpar}
+
+\begin{example}
+  TODO: some examples (are there any that are actually skew?)
+\end{example}
 
 A mnemonic for skew semirings is ``multiplication respects operators on the left
 from left to right, and respects operators on the right from right to left''.
@@ -124,6 +158,10 @@ where we demand that a variable be used according to $\rho$, it is also fine to
 use it as $\pi$.
 
 \subsection{Vectors and matrices}
+
+BOB: how much of this section could be left until after the syntax? I
+feel like readers may want to see what the calculus looks like as
+quickly as possible.
 
 \begin{definition}
   A \emph{(left) semimodule} over a (left) skew semiring $\mathscr R$ is a
