@@ -297,7 +297,7 @@ their unit.
 Additionally, we have an annotated bang ($\excl{\rho}{A}$), forming a graded
 comonad (assuming definitions tweaked to account for $\subres$ and skewness).
 
-\begin{figure}
+\begin{figure}[t]
   \caption{the typing rules of \name{}}
   \label{fig:rules}
   \begin{mathpar}
@@ -721,7 +721,7 @@ be calculated from the action of the renaming on non-usage-checked variables.
   \[
     (\langle j \rvert\rescomment\Psi)_i
     \subres \rescomment\Psi_{j,i}
-    = \rescomment I_{f~j,i}
+    = \rescomment I_{f\,j,i}
     = \langle f~j \rvert_i
   \]
 \end{proof}
@@ -826,15 +826,15 @@ article, augmented with usage checking and more term formation rules.
   We are trying to construct
   $(\rescomment{\Psi'} : \mathbf R^{(n + o) \times (m + o)},
   \mathit{act'} : (j : \Delta, \Theta \ni A) \to
-  (\langle j \rvert\rescomment\Psi')(\Gamma, \Theta) \kitrel A)$,
-  with $\resctx P, \resctx R \subres (\resctx Q, \resctx R) \rescomment\Psi'$.
+  (\langle j \rvert\rescomment{\Psi'})(\Gamma, \Theta) \kitrel A)$,
+  with $\resctx P, \resctx R \subres (\resctx Q, \resctx R) \rescomment{\Psi'}$.
 
   Let \(
-    \rescomment\Psi' := \left(\begin{array}{c|c}
-                                \rescomment\Psi & \rescomment{\mat 0}
-                                \\ \hline
-                                \rescomment{\mat 0} & \rescomment{\mat I}
-                              \end{array}\right).
+    \rescomment{\Psi'} := \left(\begin{array}{c|c}
+                                  \rescomment\Psi & \rescomment{\mat 0}
+                                  \\ \hline
+                                  \rescomment{\mat 0} & \rescomment{\mat I}
+                                \end{array}\right).
   \)
   With this definition, our required condition splits into the easily checked
   conditions
@@ -849,7 +849,7 @@ article, augmented with usage checking and more term formation rules.
   In the $\Delta$ case, $\mathit{act}$ gets us an inhabitant of
   $(\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$.
   Notice that
-  $\langle j \rvert\rescomment\Psi' =
+  $\langle j \rvert\rescomment{\Psi'} =
   \langle j \rvert\rescomment\Psi, \rescomment{\vct 0}$,
   so we want to get from $(\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$ to
   $(\langle j \rvert\rescomment\Psi)\Gamma, \rescomment{\vct 0}\Theta
@@ -857,12 +857,12 @@ article, augmented with usage checking and more term formation rules.
   We can get this using $\mathit{wk}$ from our kit.
 
   In the $\Theta$ case, notice that
-  $\langle j \rvert\rescomment\Psi' = \rescomment{\vct 0}, \langle j \rvert$.
-  In other words, $\langle j \rvert\rescomment\Psi'$ is a basis vector, so we
+  $\langle j \rvert\rescomment{\Psi'} = \rescomment{\vct 0}, \langle j \rvert$.
+  In other words, $\langle j \rvert\rescomment{\Psi'}$ is a basis vector, so we
   actually have usage-checked
-  $(\langle j \rvert\rescomment\Psi')(\Gamma, \Theta) \lvar A$.
+  $(\langle j \rvert\rescomment{\Psi'})(\Gamma, \Theta) \lvar A$.
   Thus, we can use $\mathit{vr}$ from our kit to get
-  $(\langle j \rvert\rescomment\Psi')(\Gamma, \Theta) \kitrel A$, as required.
+  $(\langle j \rvert\rescomment{\Psi'})(\Gamma, \Theta) \kitrel A$, as required.
 \end{proof}
 
 \newtheorem*{thm:trav}{\autoref{thm:trav}}
