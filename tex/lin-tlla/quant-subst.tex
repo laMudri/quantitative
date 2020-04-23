@@ -82,6 +82,9 @@ James Wood\thanks{James Wood is supported by an EPSRC Studentship.}
 We build on previous work on coeffects
 \cite{BrunelGMZ14,GhicaS14,reed10distance,PetricekOM14} to produce a generic
 usage-constrained type system \name{}.
+This system first appeared in our earlier abstract, which explores the
+relational semantics of \name{}, giving concrete examples of free theorems we
+can obtain \cite{context-constrained}.
 In the process of formalising \name{}, we have been driven to find a clean
 statement and proof of substitution.
 
@@ -129,13 +132,20 @@ renaming and substitution (approx. 530 lines).
 \section{Related Work}
 
 \begin{itemize}
-\item Licata, Shulman, and Riley \cite{LicataSR17}: \emph{A
-    Fibrational Framework for Substructural and Modal Logics}
-\item Guillaume Allais \cite{allais:LIPIcs:2018:10049}: \emph{Typing
-    with Leftovers}.
-\item Arjen's CPP paper on formalising session type calculi. Uses
-  separation logic / bunched implications.
+  \item Coeffects \cite{BrunelGMZ14,GhicaS14,reed10distance,PetricekOM14}
 \end{itemize}
+
+We follow a similar theme to the work of Licata, Shulman, and Riley
+\cite{LicataSR17}, which gives a proof of cut elimination for a large class of
+substructural single-conclusion sequent calculus systems.
+The class of natural deduction systems we consider here is similar, but not
+directly comparable.
+In particular, we focus on ``at least linear'' systems, and prove an inherently
+linear result.
+
+Comparable formalisations of linear type systems include Allais' Typing with
+Leftovers \cite{allais:LIPIcs:2018:10049} and the recent work of Rouvoet et al.
+\cite{RPKV20}.
 
 \section{Skew semirings}\label{sec:algebra}
 
@@ -952,7 +962,11 @@ article, augmented with usage checking and more term formation rules.
 
 \section{Conclusion}\label{sec:conclusion}
 
-\section{Bibliography}
+Future work includes comparing the results we achieve here with them of Licata,
+Shulman, and Riley \cite{LicataSR17}.
+We would also like to replicate the framework of Allais, Atkey, Chapman,
+McBride, and McKinna \cite{AACMM20}, which would allow us to abstract over common
+patterns in the proof of traversal.
 
 \bibliographystyle{eptcsalpha}
 \bibliography{../quantitative}
