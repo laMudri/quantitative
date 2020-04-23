@@ -107,11 +107,34 @@ It contains the definition, operators, and properties required of vectors and
 matrices (approx. 790 lines) and the definition of \name{} and proofs of
 renaming and substitution (approx. 530 lines).
 
+\paragraph{Contributions} Our main contributions are as follows:
+\begin{enumerate}
+\item We present a generic usage-accounted calculus, \name{}, where
+  variables are annotated with values from a \emph{skew} semiring
+  \autoref{sec:algebra}. The resulting calculus is similar to coeffect
+  calculi studied previously, but has several differences that we
+  explain below. By choosing the right semiring, we can embedded
+  several substructural and modal calculi from the literature,
+  including Barber's DILL and Pfenning and Davis' S4 modal
+  $\lambda$-calculus.
+\item To establish the usual metatheoretic properties of \name{}, we
+  extend McBride's \emph{Kits and traversals} technique to also
+  account for skew semiring usage annotations. To do so, we have to
+  develop some elementary linear algebra for skew semirings. Extending
+  McBride's formulation means that our technique is readily
+  formalisable in a proof assistant with dependent types, and indeed
+  we have done so in Agda.
+\end{enumerate}
+
 \section{Related Work}
 
 \begin{itemize}
 \item Licata, Shulman, and Riley \cite{LicataSR17}: \emph{A
     Fibrational Framework for Substructural and Modal Logics}
+\item Guillaume Allais \cite{allais:LIPIcs:2018:10049}: \emph{Typing
+    with Leftovers}.
+\item Arjen's CPP paper on formalising session type calculi. Uses
+  separation logic / bunched implications.
 \end{itemize}
 
 \section{Skew semirings}\label{sec:algebra}
