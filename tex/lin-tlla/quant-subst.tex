@@ -30,6 +30,7 @@
 \declaretheorem[numberlike=theorem]{corollary}
 \declaretheorem[numberlike=theorem]{example}
 \declaretheorem[numberlike=theorem]{definition}
+\declaretheorem[numberlike=theorem]{remark}
 
 \def\newelims{1}
 \def\multnotation{1}
@@ -149,55 +150,14 @@ Leftovers \cite{allais:LIPIcs:2018:10049} and the recent work of Rouvoet et al.
 
 \section{Skew semirings}\label{sec:algebra}
 
-A \emph{(left) skew monoid} is a structure $(\mathbf R, \subres, 1, *)$ such
-that $(\mathbf R, \subres)$ forms a partial order, $*$ is monotonic with
-respect to $\subres$, and the following laws hold.
-\begin{mathpar}
-  1x \subres x
-  \and x \subres x1
-  \and (xy)z \subres x(yz)
-\end{mathpar}
-
-Skew-monoidal categories are due to Szlach\'anyi \cite{skew}, and the notion
-introduced here of a skew monoid is a decategorification of the notion of
-skew-monoidal category.
-
-A \emph{(left) skew semiring} is a structure $(\mathbf R, \subres, 0, +, 1, *)$
-such that $(\mathbf R, \subres)$ forms a partial order, $+$ and $*$ are
-monotonic with respect to $\subres$, $(\mathbf R, 0, +)$ forms a commutative
-monoid, $(\mathbf R, \subres, 1, *)$ forms a skew monoid, and we have the
-following distributivity laws.
-\begin{mathpar}
-  0z \subres 0
-  \and (x + y)z \subres xz + yz
-  \and 0 \subres x0
-  \and xy + xz \subres x(y + z)
-\end{mathpar}
-
-\begin{example}
-  TODO: some examples (are there any that are actually skew?)
-\end{example}
-
-A mnemonic for skew semirings is ``multiplication respects operators on the left
-from left to right, and respects operators on the right from right to left''.
-One may also describe multiplication as ``respecting'' and ``corespecting''
-operators on the left and right, respectively.
-Skew semirings are a generalisation of semirings, which are in turn a
-generalisation of commutative semirings.
-As such, readers unfamiliar with the more general structures may wish to think
-in terms of the more specific structures.
-In this paper, we only speak of \emph{left} skew semirings, and thus generally
-omit the word ``left''.
-
-Elements of a skew semiring are used in this paper as \emph{usage annotations},
-and describe \emph{how} values are used in a program.
+We shall use skew semirings where authors have previously used partially ordered
+semirings (see, for example, the Granule definition of a \emph{usage algebra} \cite{Granule18}).
+Elements of a skew semiring are used as \emph{usage annotations}, and describe
+\emph{how} values are used in a program.
 In the syntax for \name{}, each assumption will have a usage annotation,
 describing how that assumption can be used in the derivation.
-The additive structure describes how to combine multiple usages of an
-assumption, and the multiplicative structure describes what happens when usage
-requirements are composed.
-In standard proof tree notation, addition can be seen as acting horizontally,
-whereas multiplication acts vertically.
+Addition describes how to combine multiple usages of an assumption, and
+multiplication describes the action our graded $\oc$-modality can have.
 The ordering describes the specificness of annotations.
 If $\pi \subres \rho$, $\pi$ can be the annotation for a variable wherever
 $\rho$ can be.
@@ -205,129 +165,99 @@ We can read this relation as ``$\textrm{supply} \subres \textrm{demand}$'' ---
 where we demand that a variable be used according to $\rho$, it is also fine to
 use it if it is annotated $\pi$.
 
-\subsection{Vectors and matrices}
-
-BOB: how much of this section could be left until after the syntax? I
-feel like readers may want to see what the calculus looks like as
-quickly as possible.
-
-\begin{definition}
-  A \emph{(left) skew semimodule} over a (left) skew semiring $\mathbf R$ is a
-  structure
-  $(\mathbf M, \subres,
-  0 : \mathbf M, + : \mathbf M \times \mathbf M \to \mathbf M,
-  * : \mathbf R \times \mathbf M \to \mathbf M)$ such that
-  \begin{itemize}
-    \item $+$ and $*$ are monotonic in both arguments.
-    \item $(\mathbf M, 0, +)$ is a commutative monoid
-    \item Scaling of a fixed element $m$ respects all of the skew semiring
-      structure; particularly:
-      \begin{mathpar}
-        0_\mathbf R * m \subres 0_\mathbf M
-        \and
-        (\pi +_\mathbf R \rho) * m \subres \pi * m +_\mathbf M \rho * m
-        \and
-        1_\mathbf R * m \subres m
-        \and
-        (\pi *_\mathbf R \rho) * m \subres \pi * (\rho * m)
-      \end{mathpar}
-    \item Scaling by a fixed element $\pi$ corespects the additive structure;
-      particularly:
-      \begin{mathpar}
-        0_\mathbf M \subres \pi * 0_\mathbf M
-        \and
-        \pi * m +_\mathbf M \pi * n \subres \pi * (m +_\mathbf M n)
-      \end{mathpar}
-  \end{itemize}
-\end{definition}
+Skew semirings are a generalisation of semirings, which are in turn a
+generalisation of commutative semirings.
+As such, readers unfamiliar with the more general structures may wish to think
+in terms of the more specific structures.
+Our formalisation was essential for noticing and sticking to the level of
+generality we have done.
 
 \begin{definition}
-  A \emph{(left) skew semimodule homomorphism} or \emph{linear map} between
-  $\mathbf R$-left skew semimodules $\mathbf M$ and $\mathbf N$ is a monotone
-  function $T$ on the underlying sets written postfix such that all of the skew
-  semimodule structure is respected.
-  Particularly,
+  A \emph{(left) skew monoid} is a structure $(\mathbf R, \subres, 1, *)$ such
+  that $(\mathbf R, \subres)$ forms a partial order, $*$ is monotonic with
+  respect to $\subres$, and the following laws hold.
   \begin{mathpar}
-    (0_\mathbf M)T \subres 0_\mathbf N
-    \and
-    (m +_\mathbf M n)T \subres (m)T +_\mathbf N (n)T
-    \and
-    (\pi *_\mathbf M m)T \subres \pi *_\mathbf N (m)T
+    1x \subres x
+    \and x \subres x1
+    \and (xy)z \subres x(yz)
   \end{mathpar}
 \end{definition}
 
-The last axiom motivates the postfix notation.
-If we take application of $T$ to be a form of multiplication (as justified later
-in this section), then we do not want to require $T$ to commute with $\pi$.
-This remains important for non-skew semirings, but not commutative semirings.
+\begin{remark}
+  A commutative skew monoid is just a commutative monoid.
+\end{remark}
 
-A skew semiring is just about enough structure to let us talk about finite
-vectors, and let us represent linear maps as matrices.
-To the standard operations of addition, scaling, and multiplication of vectors
-and matrices, we also say that the order lifts pointwise.
+Skew-monoidal categories are due to Szlach\'anyi \cite{skew}, and the notion
+introduced here of a skew monoid is a decategorification of the notion of
+skew-monoidal category.
 
-\begin{definition}[Vector and matrix operations]
+\begin{definition}
+  A \emph{(left) skew semiring} is a structure
+  $(\mathbf R, \subres, 0, +, 1, *)$ such that $(\mathbf R, \subres)$ forms a
+  partial order, $+$ and $*$ are monotonic with respect to $\subres$,
+  $(\mathbf R, 0, +)$ forms a commutative monoid, $(\mathbf R, \subres, 1, *)$
+  forms a skew monoid, and we have the following distributivity laws.
   \begin{mathpar}
-    \langle i \rvert_j =
-    \begin{cases}
-      1, & \textrm{if }i = j \\
-      0, & \textrm{otherwise} \\
-    \end{cases}
-    \and
-    \begin{matrix*}[l]
-      0 : \mathrm{Mat}~m~n \\
-      0_{ij} = 0
-    \end{matrix*}
-    \and
-    \begin{matrix*}[l]
-      + : \mathrm{Mat}~m~n \times \mathrm{Mat}~m~n \to \mathrm{Mat}~m~n \\
-      (M + N)_{ij} = M_{ij} + N_{ij}
-    \end{matrix*}
-    \and
-    \begin{matrix*}[l]
-      I : \mathrm{Mat}~m~m \\
-      I_{ij} = \langle i \rvert_j
-    \end{matrix*}
-    \and
-    \begin{matrix*}[l]
-      * : \mathrm{Mat}~m~n \times \mathrm{Mat}~n~o \to \mathrm{Mat}~m~o \\
-      (MN)_{ik} = \sum_j M_{ij}N_{jk}
-    \end{matrix*}
+    0z \subres 0
+    \and (x + y)z \subres xz + yz
+    \and 0 \subres x0
+    \and xy + xz \subres x(y + z)
   \end{mathpar}
 \end{definition}
 
-\begin{lemma}
-  Each matrix $M : \mathrm{Mat}~m~n$ gives rise to a linear map
-  $T_M : \mathbf R^m \to \mathbf R^n$ by right-multiplication.
-\end{lemma}
-\begin{proof}
-  We observe the following inequalities:
-  \begin{itemize}
-  \item $\left(\vec 0M\right)_{k} = \sum_j 0M_{jk} \subres 0 = \vec 0_{k}$
-  \item $\left((u + v)M\right)_{k} = \sum_j \left(u_j + v_j\right)M_{jk} \subres
-    \sum_j u_jM_{jk} + \sum_j v_jM_{jk} = (uM + vM)_{k}$
-  \item $\left((\pi u)M\right)_{k} = \sum_j \pi u_jM_{jk} \subres
-    \pi\sum_j u_jM_{jk} = \left(\pi(uM)\right)_{k}$
-  \end{itemize}
-\end{proof}
+\begin{example}
+  TODO: some examples (are there any that are actually skew?)
+\end{example}
 
-\begin{lemma}
-  Each linear map $T : \mathbf R^m \to \mathbf R^n$ gives rise to a matrix
-  $M : \mathrm{Mat}~m~n$ such that for each $u$, $uT \subres uM$.
-\end{lemma}
-\begin{proof}
-  Let $M_{jk} = (\langle j \rvert)T_k$.
-  Then, consider $uT_k$.
-  \[
-    uT_k \subres \left(\sum_j u_j\langle j \rvert\right)T_k
-    \subres \sum_j u_j\langle j \rvert T_k
-    = \sum_j u_j M_{jk} = (uM)_k
-  \]
-\end{proof}
+In this paper, we only speak of \emph{left} skew semirings, and thus generally
+omit the word ``left''.
+A mnemonic for (left) skew semirings is ``multiplication respects operators on
+the left from left to right, and respects operators on the right from right to
+left''.
+One may also describe multiplication as ``respecting'' and ``corespecting''
+operators on the left and right, respectively.
 
-In what follows, matrices/linear maps will only appear to the right of a
-$\subres$, so when we ask for a matrix rather than a linear map, this is no loss
-of generality.
+From a skew semiring $\mathbf R$, we can form finite vectors, which we notate
+as either $\mathrm{Vec}~n$ or $\mathbf R^n$.
+Where an element of $\mathbf R$ describes how a \emph{variable} can be used, an
+element of $\mathbf R^n$ describes how all of the variables in an $n$-length
+\emph{context} can be used.
+Therefore, we call such vectors \emph{usage contexts}, and take them to be row
+vectors.
+We use the following operations on usage contexts.
+
+\begin{definition}[Vector operations]
+  \begin{mathpar}
+    \begin{matrix*}[l]
+      {\subres} : \mathrm{Vec}~n \times \mathrm{Vec}~n \to \Omega \\
+      u \subres v := \forall i.~u_i \subres v_i
+    \end{matrix*}
+    \and
+    \begin{matrix*}[l]
+      \vct 0 : \mathrm{Vec}~n \\
+      \vct 0_i := 0
+    \end{matrix*}
+    \and
+    \begin{matrix*}[l]
+      + : \mathrm{Vec}~n \times \mathrm{Vec}~n \to \mathrm{Vec}~n \\
+      (u + v)_i := u_i + v_i
+    \end{matrix*}
+    \and
+    \begin{matrix*}[l]
+      * : \mathbf R \times \mathrm{Vec}~n \to \mathrm{Vec}~n \\
+      (\pi v)_i := \pi v_i
+    \end{matrix*}
+    \and
+    \begin{matrix*}[l]
+      \langle {-} \rvert : \mathrm{Idx}~n \to \mathrm{Vec}~n \\
+      \langle i \rvert_j :=
+      \begin{cases}
+        1, & \textrm{if }i = j \\
+        0, & \textrm{otherwise} \\
+      \end{cases}
+    \end{matrix*}
+  \end{mathpar}
+\end{definition}
 
 \section{Syntax}\label{sec:syntax}
 
@@ -480,6 +410,150 @@ comonad (assuming definitions tweaked to account for $\subres$ and skewness).
     {\bang{M} : \ctx{\Gamma}{R} \vdash \excl{\rho}{A}}
   \end{mathpar}
 \end{figure}
+
+\section{Skew linear algebra}
+
+\begin{definition}
+  A \emph{(left) skew semimodule} over a (left) skew semiring $\mathbf R$ is a
+  structure
+  $(\mathbf M, \subres,
+  0 : \mathbf M, + : \mathbf M \times \mathbf M \to \mathbf M,
+  * : \mathbf R \times \mathbf M \to \mathbf M)$ such that
+  \begin{itemize}
+    \item $+$ and $*$ are monotonic in both arguments.
+    \item $(\mathbf M, 0, +)$ is a commutative monoid
+    \item Scaling of a fixed element $m$ respects all of the skew semiring
+      structure; particularly:
+      \begin{mathpar}
+        0_\mathbf R m \subres 0_\mathbf M
+        \and
+        (\pi +_\mathbf R \rho) m \subres \pi m +_\mathbf M \rho m
+        \and
+        1_\mathbf R m \subres m
+        \and
+        (\pi *_\mathbf R \rho) m \subres \pi (\rho m)
+      \end{mathpar}
+    \item Scaling by a fixed element $\pi$ corespects the additive structure;
+      particularly:
+      \begin{mathpar}
+        0_\mathbf M \subres \pi 0_\mathbf M
+        \and
+        \pi m +_\mathbf M \pi n \subres \pi (m +_\mathbf M n)
+      \end{mathpar}
+  \end{itemize}
+\end{definition}
+
+\begin{definition}
+  A \emph{(left) skew semimodule homomorphism} or \emph{linear map} between
+  $\mathbf R$-left skew semimodules $\mathbf M$ and $\mathbf N$ is a monotone
+  function $T$ on the underlying sets written postfix such that all of the skew
+  semimodule structure is respected.
+  Particularly,
+  \begin{mathpar}
+    (0_\mathbf M)T \subres 0_\mathbf N
+    \and
+    (m +_\mathbf M n)T \subres (m)T +_\mathbf N (n)T
+    \and
+    (\pi *_\mathbf M m)T \subres \pi *_\mathbf N (m)T
+  \end{mathpar}
+\end{definition}
+
+The last axiom motivates the postfix notation.
+If we take application of $T$ to be a form of multiplication (as justified later
+in this section), then we do not want to require $T$ to commute with $\pi$.
+This remains important for non-skew semirings, but not commutative semirings.
+
+A concrete source of linear maps is matrices.
+We make use of the following operators, which we also take to work on vectors
+(for example, we often multiply a row vector by a matrix, in that order).
+
+\begin{definition}[Matrix operations]
+  \begin{mathpar}
+    \begin{matrix*}[l]
+      {\subres} : \mathrm{Mat}~m~n \times \mathrm{Mat}~m~n \to \Omega \\
+      M \subres N := \forall i j.~M_{ij} \subres N_{ij}
+    \end{matrix*}
+    \and
+    \begin{matrix*}[l]
+      \mat 0 : \mathrm{Mat}~m~n \\
+      \mat 0_{ij} := 0
+    \end{matrix*}
+    \and
+    \begin{matrix*}[l]
+      + : \mathrm{Mat}~m~n \times \mathrm{Mat}~m~n \to \mathrm{Mat}~m~n \\
+      (M + N)_{ij} := M_{ij} + N_{ij}
+    \end{matrix*}
+    \and
+    \begin{matrix*}[l]
+      \mat I : \mathrm{Mat}~m~m \\
+      \mat I_{ij} := \langle i \rvert_j
+    \end{matrix*}
+    \and
+    \begin{matrix*}[l]
+      * : \mathrm{Mat}~m~n \times \mathrm{Mat}~n~o \to \mathrm{Mat}~m~o \\
+      (MN)_{ik} := \sum_j M_{ij}N_{jk}
+    \end{matrix*}
+    \and
+    \begin{matrix*}[l]
+      {-}_{{-}\times{-}} : \mathrm{Mat}~m'~n'
+      \times (\mathrm{Idx}~m \to \mathrm{Idx}~m')
+      \times (\mathrm{Idx}~n \to \mathrm{Idx}~n')
+      \to \mathrm{Mat}~m~n \\
+      \left(M_{f \times g}\right)_{i,j} := M_{f\,i,g\,j}
+    \end{matrix*}
+  \end{mathpar}
+\end{definition}
+
+\begin{lemma}\label{lem:mat-to-map}
+  Each matrix $M : \mathrm{Mat}~m~n$ gives rise to a linear map
+  $T_M : \mathbf R^m \to \mathbf R^n$ by right-multiplication.
+\end{lemma}
+\begin{proof}
+  We observe the following inequalities.
+  Notice that in the last inequality, $M$ being on the right means that we do
+  not have to commute it past $\pi$.
+  To pull $\pi$ out of the sum, we use the fact that multiplication
+  \emph{corespects} the additive structure on the right.
+  \begin{itemize}
+    \item $\left(\vct 0M\right)_{k}
+      = \sum_j 0M_{jk}
+      \subres \sum_j 0
+      = 0
+      = \vct 0_{k}$
+    \item $\left((u + v)M\right)_{k}
+      = \sum_j \left(u_j + v_j\right)M_{jk}
+      \subres \sum_j \left(u_jM_{jk} + v_jM_{jk}\right)
+      = \sum_j u_jM_{jk} + \sum_j v_jM_{jk}
+      = (uM + vM)_{k}$
+    \item $\left((\pi u)M\right)_{k}
+      = \sum_j \left(\pi u_j\right)M_{jk}
+      \subres \sum_j \pi\left(u_jM_{jk}\right)
+      \subres \pi\sum_j u_jM_{jk}
+      = \left(\pi(uM)\right)_{k}$
+  \end{itemize}
+\end{proof}
+
+\begin{lemma}\label{lem:map-to-mat}
+  Each linear map $T : \mathbf R^m \to \mathbf R^n$ gives rise to a matrix
+  $M : \mathrm{Mat}~m~n$ such that for each $u$, $uT \subres uM$.
+\end{lemma}
+\begin{proof}
+  Let $M_{jk} = (\langle j \rvert)T_k$.
+  Then, consider $uT_k$.
+  \[
+    uT_k \subres \left(\sum_j u_j\langle j \rvert\right)T_k
+    \subres \sum_j \left(u_j\langle j \rvert\right) T_k
+    \subres \sum_j u_j\left(\langle j \rvert T_k\right)
+    = \sum_j u_j M_{jk} = (uM)_k
+  \]
+\end{proof}
+
+\autoref{lem:map-to-mat} is peculiar to the skew setting.
+Intuitively, when multiplication is involved, equations are hard to come by, so
+we instead settle for inequalities.
+In what follows, matrices/linear maps will only appear to the right of a
+$\subres$, so when we ask for a matrix rather than a linear map, it is no loss
+of generality.
 
 \section{Metatheory}\label{sec:metatheory}
 
@@ -964,9 +1038,8 @@ article, augmented with usage checking and more term formation rules.
 
 Future work includes comparing the results we achieve here with them of Licata,
 Shulman, and Riley \cite{LicataSR17}.
-We would also like to replicate the framework of Allais, Atkey, Chapman,
-McBride, and McKinna \cite{AACMM20}, which would allow us to abstract over common
-patterns in the proof of traversal.
+We would also like to replicate the framework of Allais et al. \cite{AACMM20},
+which would allow us to abstract over common patterns in the proof of traversal.
 
 \bibliographystyle{eptcsalpha}
 \bibliography{../quantitative}
