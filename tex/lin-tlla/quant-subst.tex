@@ -57,56 +57,73 @@ James Wood\thanks{James Wood is supported by an EPSRC Studentship.}
 
 \section{Introduction}
 
-% \begin{itemize}
-% \item We present a generic and easily formalisable technique for
-%   establishing metatheoretic facts about substructural calculi.
-% \item FIXME: say why doing metatheory can be a bit tedious, especially
-%   when trying to formalise it.
-% \item The basic ideas:
-%   \begin{itemize}
-%   \item Annotate usages of variables with elements of a
-%     \emph{skew}-semiring. By choosing the right semiring, we can
-%     encode systems like Barber's Dual Intuitionistic Linear Logic
-%     (DILL) and the Pfenning-Davis S4 modal calculus. (Also, probably,
-%     variants of S4-modal logic as presented by G.A. Kavvos.)
-%   \item We extend McBride's technique of defining Kits as a generic
-%     notion of binding-preserving traversal of syntax so that it is
-%     usage-respecting. To define what it means for a traversal
-%     usage-respecting requires the development of elementatry linear
-%     algebra for skew-semi-rings.
-%   \item The payoff is that we can define several metatheoretic results
-%     in terms of the single notion of usage respecting traversal:
-%     including renaming and substitution.
-%   \end{itemize}
-% \end{itemize}
+The basic metatheoretic results for typed $\lambda$-calculi, such as
+preservation of typing under renaming, weakening, substitution and so
+on, are crucial but quite boring to prove. In the case of calculi with
+substructural typing disciplines and modalities, it can also be quite
+easy to break these properties \cite{wadler91use}. It is desirable
+therefore to use a proof assistant to prove these properties. This has
+the double benefit of raising the level of confidence in the results,
+and in focusing on the essential properties required to obtain them.
 
-FIXME: something introductory here.
+In this paper, we adapt the generic \emph{kits and traversals}
+technique for proving admissibility of renaming and substitution due
+to McBride \cite{rensub05} to a linear typed $\lambda$-calculus where
+variables are annotated with values from a skew semiring denoting
+those variables' \emph{usage} by terms. Our calculus, \name{}, is a
+prototypical example of a linear ``quantitative'' or ``coeffect''
+calculus in the style of
+\cite{reed10distance,BrunelGMZ14,GhicaS14,PetricekOM14,Granule18}. By
+selecting different semirings, we obtain systems equivalent to
+Barber's Dual Intuitionistic Linear Logic \cite{Barber1996} or
+Pfenning and Davis' S4 modal type theory \cite{judgmental}.
 
-We build on previous work on coeffects
-\cite{BrunelGMZ14,GhicaS14,reed10distance,PetricekOM14} to produce a generic
-usage-constrained type system \name{}.
-This system first appeared in our earlier abstract, which explores the
-relational semantics of \name{}, giving concrete examples of free theorems we
-can obtain \cite{context-constrained}.
-In the process of formalising \name{}, we have been driven to find a clean
-statement and proof of substitution.
+McBride's kits and traversals technique isolates properties required
+to form binding respecting traversals of simply typed $\lambda$-terms,
+so that renaming and substitution arise as specific
+instantiations. Benton, Hur, Kennedy, and McBride \cite{bhkm12}
+implement the technique in Coq and extend the technique to polymorphic
+terms. Allais \emph{et al.}~\cite{AACMM20} generalise to a wider class
+of syntax with binding and show that more general notions of
+\emph{semantics} can be explored with the technique.
 
-Our definition of a substitution somewhat resembles the definition given in
-Petricek's thesis \cite[p. 137]{petricek-thesis}.
-However, our definition yields a simultaneous substitution in the style of
-Benton, Hur, Kennedy, and McBride \cite{bhkm12} by allowing for addition of
-annotations between substituting derivations.
+To adapt kits and traversals to linear usage annotated terms requires
+us to not only respect the binding structure, but to also respect the
+\emph{resource} structure. For instance, the resources associated with
+a term being substituted in must be correctly distributed across all
+the occurences of that term in the result. To aid us in tracking
+resources correctly, we employ the linear algebra of vectors and
+matrices induced by the skew semiring we are using. Usage annotations
+on contexts are vectors, resource preserving maps of contexts are
+matrices, and the linearity properties of the maps induced by matrices
+are exactly the lemmas we need for showing that traversals (and hence
+renaming, sub-usaging, and substitution) preserve typing.
 
-FIXME: make the point that renaming and substitution lemmas seem a mere annoyance before getting on to more interesting things, but they are surprising difficult to formulate, even in the simply typed case as the BHKMcB paper shows.
+
+
+% We build on previous work on coeffects
+% \cite{BrunelGMZ14,GhicaS14,reed10distance,PetricekOM14} to produce a generic
+% usage-constrained type system \name{}.
+% This system first appeared in our earlier abstract, which explores the
+% relational semantics of \name{}, giving concrete examples of free theorems we
+% can obtain \cite{context-constrained}.
+% In the process of formalising \name{}, we have been driven to find a clean
+% statement and proof of substitution.
+
+% Our definition of a substitution somewhat resembles the definition given in
+% Petricek's thesis \cite[p. 137]{petricek-thesis}.
+% However, our definition yields a simultaneous substitution in the style of
+% Benton, Hur, Kennedy, and McBride \cite{bhkm12} by allowing for addition of
+% annotations between substituting derivations.
 
 The paper proceeds as follows.
 In \autoref{sec:algebra}, we specify our requirements on the set of annotations
-that will track usage of variables.
-In \autoref{sec:syntax}, we use these annotations to define the type system
-\name{}.
-Then, in \autoref{sec:metatheory}, we prove that \name{} admits renaming and
-substitution.
-Finally, we conclude in \autoref{sec:conclusion}.
+that will track usage of variables. A consequence of our formalisation is that we learn that we only need \emph{skew} semirings, a weaker structure than the partially ordered semirings usually used.
+In \autoref{sec:syntax}, we use these annotations to define the system
+\name{} in an intrinsically typed style.
+Then, in \autoref{sec:metatheory}, we prove that \name{} admits renaming, sub-usaging, and
+substitution by our extension of McBride's kits and traversals technique.
+We conclude in \autoref{sec:conclusion} with some directions for future work.
 
 The Agda formalisation of this work can be found at
 \url{https://github.com/laMudri/generic-lr/tree/specific/src/Specific}.
@@ -114,43 +131,6 @@ The Agda formalisation of this work can be found at
 It contains the definition, operators, and properties required of vectors and
 matrices (approx. 790 lines) and the definition of \name{} and proofs of
 renaming and substitution (approx. 530 lines).
-
-\paragraph{Contributions} Our main contributions are as follows:
-\begin{enumerate}
-\item We present a generic usage-accounted calculus, \name{}, where
-  variables are annotated with values from a \emph{skew} semiring
-  \autoref{sec:algebra}. The resulting calculus is similar to coeffect
-  calculi studied previously, but has several differences that we
-  explain below. By choosing the right semiring, we can embedded
-  several substructural and modal calculi from the literature,
-  including Barber's DILL \cite{Barber1996} and Pfenning and Davis' S4 modal
-  $\lambda$-calculus \cite{judgmental}.
-\item To establish the usual metatheoretic properties of \name{}, we
-  extend McBride's \emph{Kits and traversals} technique to also
-  account for skew semiring usage annotations. To do so, we have to
-  develop some elementary linear algebra for skew semirings. Extending
-  McBride's formulation means that our technique is readily
-  formalisable in a proof assistant with dependent types, and indeed
-  we have done so in Agda.
-\end{enumerate}
-
-\section{Related Work}
-
-\begin{itemize}
-  \item Coeffects \cite{BrunelGMZ14,GhicaS14,reed10distance,PetricekOM14}
-\end{itemize}
-
-We follow a similar theme to the work of Licata, Shulman, and Riley
-\cite{LicataSR17}, which gives a proof of cut elimination for a large class of
-substructural single-conclusion sequent calculus systems.
-The class of natural deduction systems we consider here is similar, but not
-directly comparable.
-In particular, we focus on ``at least linear'' systems, and prove an inherently
-linear result.
-
-Other formalisations of linear type systems include Allais' Typing with
-Leftovers \cite{allais:LIPIcs:2018:10049}, the recent work of Rouvoet et al.
-\cite{RPKV20}, Polakow's work in Haskell \cite{polakow15}, and Crary's work in Twelf \cite{crary10}.
 
 \section{Skew semirings}\label{sec:algebra}
 
@@ -1090,6 +1070,18 @@ lemma that shows that environments can be pushed under binders.
 In this paper, we have presented \name{}, a simply typed calculus with usage
 constraints via annotations on variables.
 For it, we have extended McBride's method of kits \cite{rensub05}.
+
+We follow a similar theme to the work of Licata, Shulman, and Riley
+\cite{LicataSR17}, which gives a proof of cut elimination for a large class of
+substructural single-conclusion sequent calculus systems.
+The class of natural deduction systems we consider here is similar, but not
+directly comparable.
+In particular, we focus on ``at least linear'' systems, and prove an inherently
+linear result.
+
+Other formalisations of linear type systems include Allais' Typing with
+Leftovers \cite{allais:LIPIcs:2018:10049}, the recent work of Rouvoet et al.
+\cite{RPKV20}, Polakow's work in Haskell \cite{polakow15}, and Crary's work in Twelf \cite{crary10}.
 
 In future work, we plan to develop an equational theory for \name{},
 and using that prove strong equivalence results between existing
