@@ -511,42 +511,42 @@ We make use of the following operators, which we also take to work on vectors
 \begin{definition}[Matrix operations]
   \begin{mathpar}
     \begin{matrix*}[l]
-      {\subres} : \mathrm{Mat}~m~n \times \mathrm{Mat}~m~n \to \Omega \\
+      {\subres} : \mathbf R^{m \times n} \times \mathbf R^{m \times n} \to \Omega \\
       M \subres N := \forall i j.~M_{ij} \subres N_{ij}
     \end{matrix*}
     \and
     \begin{matrix*}[l]
-      \mat 0 : \mathrm{Mat}~m~n \\
+      \mat 0 : \mathbf R^{m \times n} \\
       \mat 0_{ij} := 0
     \end{matrix*}
     \and
     \begin{matrix*}[l]
-      + : \mathrm{Mat}~m~n \times \mathrm{Mat}~m~n \to \mathrm{Mat}~m~n \\
+      + : \mathbf R^{m \times n} \times \mathbf R^{m \times n} \to \mathbf R^{m \times n} \\
       (M + N)_{ij} := M_{ij} + N_{ij}
     \end{matrix*}
     \and
     \begin{matrix*}[l]
-      \mat I : \mathrm{Mat}~m~m \\
+      \mat I : \mathbf R^{m \times m} \\
       \mat I_{ij} := \langle i \rvert_j
     \end{matrix*}
     \and
     \begin{matrix*}[l]
-      * : \mathrm{Mat}~m~n \times \mathrm{Mat}~n~o \to \mathrm{Mat}~m~o \\
+      * : \mathbf R^{m \times n} \times \mathbf R^{n \times o} \to \mathbf R^{m \times o} \\
       (MN)_{ik} := \sum_j M_{ij}N_{jk}
     \end{matrix*}
     \and
     \begin{matrix*}[l]
-      {-}_{{-}\times{-}} : \mathrm{Mat}~m'~n'
+      {-}_{{-}\times{-}} : \mathbf R^{m' \times n'}
       \times (\mathrm{Idx}~m \to \mathrm{Idx}~m')
       \times (\mathrm{Idx}~n \to \mathrm{Idx}~n')
-      \to \mathrm{Mat}~m~n \\
+      \to \mathbf R^{m \times n} \\
       \left(M_{f \times g}\right)_{i,j} := M_{f\,i,g\,j}
     \end{matrix*}
   \end{mathpar}
 \end{definition}
 
 \begin{lemma}\label{lem:mat-to-map}
-  Each matrix $M : \mathrm{Mat}~m~n$ gives rise to a linear map
+  Each matrix $M : \mathbf R^{m \times n}$ gives rise to a linear map
   $T_M : \mathbf R^m \to \mathbf R^n$ by right-multiplication.
 \end{lemma}
 \begin{proof}
@@ -576,7 +576,7 @@ We make use of the following operators, which we also take to work on vectors
 
 \begin{lemma}\label{lem:map-to-mat}
   Each linear map $T : \mathbf R^m \to \mathbf R^n$ gives rise to a matrix
-  $M : \mathrm{Mat}~m~n$ such that for each $u$, $uT \subres uM$.
+  $M : \mathbf R^{m \times n}$ such that for each $u$, $uT \subres uM$.
 \end{lemma}
 \begin{proof}
   Let $M_{jk} = (\langle j \rvert)T_k$.
@@ -973,15 +973,16 @@ article, augmented with usage checking and more term formation rules.
       $N' : \ctx{\Gamma}{P_{\mathnormal N}} \vdash B$, for some choice of
       $\resctx P_{\rescomment M}$ and $\resctx P_{\rescomment N}$.
       Furthermore, we want
-      $\resctx P \subres \resctx P_{\rescomment M} + P_{\rescomment N}$, so that
-      we can combine $M'$ and $N'$ using \TirName{$\tensor{}{}$-I}, getting
-      $\ten{M'}{N'} : \ctx{\Gamma}{P} \vdash \tensor{A}{B}$, as required.
+      $\resctx P \subres \resctx P_{\rescomment M} + \resctx P_{\rescomment N}$,
+      so that we can combine $M'$ and $N'$ using \TirName{$\tensor{}{}$-I},
+      getting $\ten{M'}{N'} : \ctx{\Gamma}{P} \vdash \tensor{A}{B}$, as
+      required.
 
       Let
       $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$
       and
       $\resctx P_{\rescomment N} := \resctx Q_{\rescomment N}\rescomment\Psi$,
-      where $\Psi$ comes from the environment.
+      where $\rescomment\Psi$ comes from the environment.
       We must make environments of types
       $\ctx{\Gamma}{P_{\mathnormal M}}
       \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal M}}$
@@ -1077,10 +1078,19 @@ article, augmented with usage checking and more term formation rules.
 
 \section{Conclusion}\label{sec:conclusion}
 
+In this paper, we have presented \name{}, a symply typed calculus with usage
+constraints via annotations on variables.
+For it, we have extended McBride's method of kits \cite{rensub05}.
+
+In future work, we would like to further develop the syntax and semantics of
+\name{}.
+We plan to develop an equational theory, and using that prove strong equivalence
+results between existing systems and instances of our system.
+We are working on generalising the framework of Allais et al. \cite{AACMM20} to
+work with usage annotations, which would allow us to abstract over common
+patterns in the proof of traversal.
 Future work includes comparing the results we achieve here with them of Licata,
 Shulman, and Riley \cite{LicataSR17}.
-We would also like to replicate the framework of Allais et al. \cite{AACMM20},
-which would allow us to abstract over common patterns in the proof of traversal.
 
 \bibliographystyle{eptcsalpha}
 \bibliography{../quantitative}
