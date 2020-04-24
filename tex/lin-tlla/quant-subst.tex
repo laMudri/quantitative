@@ -263,61 +263,15 @@ $    \begin{matrix*}[l]
 
 \section{Syntax}\label{sec:syntax}
 
-We present the syntax of \name{} as an \emph{intrinsically} typed
-syntax, as it is in our Agda formalisation. Intrinisic typing means
-that we define well-typed terms as inhabitants of an inductive family
-$\ctx\Gamma{R} \vdash A$ indexed by typing contexts $\Gamma$, context
-usage annotations $\resctx{R}$ and types $A$. Context usage
-annotations $\resctx{R}$ are vectors of elements of some fixed skew
-semiring $\mathbf R$. To highlight how usage annotations are used in
-the syntax, we write all elements of $\mathbf R$, and vectors and
-matrices thereof, in \rescomment{green}. This section corresponds to
-the Agda module \AgdaModule{Specific.Syntax}.
-
-FIXME: define the types.
-
-\subsection{Variables}
-
-We distinguish between \emph{plain} variables, which are indices into
-a context with a specified type, and \emph{usage-checked} variables,
-which describe the conditions under which a variable can be used in a
-context, subject to the constraints of usage annotations.  Concerning
-the latter, a variable may be used in a context if its annotation is
-$\subres \rescomment 1$ (``usable''), and the annotation of every
-other variable is $\subres \rescomment 0$ (``discardable'').
-
-\begin{definition}[plain variable, \AgdaRecord{IVar}]
-  We write $\Gamma \ni A$ as the type of variables in $\Gamma$ with type $A$.
-\end{definition}
-
-\begin{definition}[usage-checked variable, \AgdaRecord{LVar}]
-  We write $\ctx{\Gamma}{R} \lvar A$ as the type of $i : \Gamma \ni A$ such that
-  $\resctx R \subres \langle i \rvert$.
-\end{definition}
-
-\subsection{Terms}
-
-Our calculus is presented in \autoref{fig:rules}.
-The corresponding Agda definition is \AgdaDatatype{Tm}.
-It is a refinement of simply typed $\lambda$-calculus sporting usage annotations
-from $\mathbf R$ on variables in the context and constraints on term formation
-based on these annotations.
-Type formers are mostly standard from intuitionistic linear logic --- functions,
-multiplicative and additive products and their units, and additive sums and
-their unit.
-Additionally, we have an annotated bang ($\excl{\rho}{A}$), forming a graded
-comonad (assuming definitions tweaked to account for $\subres$ and skewness).
-
-\begin{figure}[t]
-  \caption{the typing rules of \name{}}
+\begin{figure}[]
+  \caption{Typing rules of \name{}}
   \label{fig:rules}
   \begin{mathpar}
     \inferrule*[right=var]
     {x : \ctx{\Gamma}{R} \lvar A}
     {x : \ctx{\Gamma}{R} \vdash A}
-
-    \and
-
+  \end{mathpar}
+  \begin{mathpar}
     \inferrule*[right=$\fun{}{}$-E]
     {M : \ctx{\Gamma}{P} \vdash \fun{A}{B}
       \\ N : \ctx{\Gamma}{Q} \vdash A
@@ -365,8 +319,8 @@ comonad (assuming definitions tweaked to account for $\subres$ and skewness).
     }
     {\exf{C}{M} : \ctx{\Gamma}{R} \vdash C}
     \and
-    (\textrm{no }\TirName{$\sumTZero$-I})
-    \and
+    % (\textrm{no }\TirName{$\sumTZero$-I})
+    % \and
     \inferrule*[right=$\sumT{}{}$-E]
     {M : \ctx{\Gamma}{P} \vdash \sumT{A}{B}
       \\ \bind{x}N : \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1} \vdash C
@@ -385,8 +339,8 @@ comonad (assuming definitions tweaked to account for $\subres$ and skewness).
 
     \and
 
-    (\textrm{no }\TirName{$\withTOne$-E})
-    \and
+    % (\textrm{no }\TirName{$\withTOne$-E})
+    % \and
     \inferrule*[right=$\withTOne$-I]
     { }
     {\eat{} : \ctx{\Gamma}{R} \vdash \withTOne}
@@ -422,9 +376,82 @@ comonad (assuming definitions tweaked to account for $\subres$ and skewness).
   \end{mathpar}
 \end{figure}
 
+We present the syntax of \name{} as an \emph{intrinsically} typed
+syntax, as it is in our Agda formalisation. Intrinisic typing means
+that we define well-typed terms as inhabitants of an inductive family
+$\ctx\Gamma{R} \vdash A$ indexed by typing contexts $\Gamma$, usage
+contexts $\resctx{R}$, and types $A$. Typing contexts are lists of
+types. Usage contexts $\resctx{R}$ are vectors of elements of some
+fixed skew semiring $\mathbf R$, with the same number of elements as
+the typing context they are paired with. To highlight how usage
+annotations are used in the syntax, we write all elements of
+$\mathbf R$, and vectors and matrices thereof, in \rescomment{green}.
+
+% This section corresponds to the Agda module \AgdaModule{Specific.Syntax}\footnote{link?}.
+
+% \paragraph{Types}
+
+The types of \name{} are given by the grammar:
+\begin{displaymath}
+  A,B,C ::= \iota \mid A \multimap B \mid 1 \mid A \otimes B \mid 0 \mid A \oplus B \mid \top \mid A \with B \mid \excl{\rho} A
+\end{displaymath}
+We have a base type $\iota$, function types $A \multimap B$, tensor
+product types $A \otimes B$ with unit $1$, sum types $A \oplus B$ with
+unit $0$, ``with'' product types $A \with B$ with unit $\top$, and an
+exponential modality $\excl{\rho} A$ that is indexed by a usage
+annotation $\rescomment{\rho}$.
+
+We distinguish between \emph{plain} variables, values of type
+$\Gamma \ni A$, which are indices into a context with a specified
+type, and \emph{usage-checked} variables, values of type
+$\ctx{\Gamma}{R} \lvar A$, which describe the conditions under which a
+variable can be used in a context, subject to the constraints of usage
+annotations. Formally, a usage-checked variable is a pair of a plain
+variable $i : \Gamma \ni A$ and proof that
+$\resctx R \subres \langle i \rvert$. The force of the latter
+condition is that the selected variable $i$ must have a usage
+annotation $\subres \rescomment 1$ in $\resctx{R}$, and all other
+variables must have a usage annotation $\subres \rescomment 0$.
+
+% \begin{definition}[plain variable, \AgdaRecord{IVar}]
+%   We write $\Gamma \ni A$ as the type of variables in $\Gamma$ with type $A$.
+% \end{definition}
+
+% \begin{definition}[usage-checked variable, \AgdaRecord{LVar}]
+%   We write $\ctx{\Gamma}{R} \lvar A$ as the type of $i : \Gamma \ni A$ such that
+%   $\resctx R \subres \langle i \rvert$.
+% \end{definition}
+
+%\paragraph{Intrinsically Typed Terms}
+
+The constructors for our intrinsically typed terms are presented in \autoref{fig:rules}.
+In keeping with our intrinsic typing methodology, terms of \name{} are presented as constructors of the inductive family $\ctx\Gamma{R} \vdash A$, hence the notation $M : \ctx\Gamma{R} \vdash A$ instead of the more usual $\ctx\Gamma{R} \vdash M : A$. 
+Our Agda formalisation uses de Bruijn indices to represent variables, but we have annotated the rules with variable names for ease of reading. 
+% The corresponding Agda definition is \AgdaDatatype{Tm}.
+Ignoring the resourced annotations in green, the typing rules all look
+like their simply typed counterparts; the only difference between the
+$\otimes$ and $\with$ products being their presentation in terms of
+pattern matching and projections, respectively. Thus the addition of
+usage contexts, and constraints on them refines the usual simple
+typing. For instance, in the \TirName{$\otimes$-I} rule, the usage
+context $\rescomment R$ on the conclusion is constrained to be able to
+supply the sum $\rescomment P + \rescomment Q$ of the usage contexts
+of the premises.
+
+% It is a refinement of simply typed $\lambda$-calculus sporting usage annotations
+% from $\mathbf R$ on variables in the context and constraints on term formation
+% based on these annotations.
+% Type formers are mostly standard from intuitionistic linear logic --- functions,
+% multiplicative and additive products and their units, and additive sums and
+% their unit.
+% Additionally, we have an annotated bang ($\excl{\rho}{A}$), forming a graded
+% comonad (assuming definitions tweaked to account for $\subres$ and skewness).
+
+FIXME: some justification that this syntax is reasonable.
+
 \section{Skew linear algebra}
 
-Elements and vectors of $\mathbf R$ suffice to state the syntax of
+Elements and vectors of $\mathbf R$ suffice to define the syntax of
 \name{}, but to formulate and prove renaming and substitution in
 \autoref{sec:metatheory}, we first need to develop some elementary
 skew linear algebra.
