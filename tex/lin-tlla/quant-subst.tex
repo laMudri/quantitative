@@ -79,7 +79,7 @@ Barber's Dual Intuitionistic Linear Logic \cite{Barber1996} or
 Pfenning and Davis' S4 modal type theory \cite{judgmental}.
 
 McBride's kits and traversals technique isolates properties required
-to form binding respecting traversals of simply typed $\lambda$-terms,
+to form binding-respecting traversals of simply typed $\lambda$-terms,
 so that renaming and substitution arise as specific
 instantiations. Benton, Hur, Kennedy, and McBride \cite{bhkm12}
 implement the technique in Coq and extend the technique to polymorphic
@@ -87,19 +87,17 @@ terms. Allais \emph{et al.}~\cite{AACMM20} generalise to a wider class
 of syntax with binding and show that more general notions of
 \emph{semantics} can be explored with the technique.
 
-To adapt kits and traversals to linear usage annotated terms requires
+To adapt kits and traversals to linear usage-annotated terms requires
 us to not only respect the binding structure, but to also respect the
 \emph{usage} annotations. For instance, the usages associated with a
 term being substituted in must be correctly distributed across all the
 occurences of that term in the result. To aid us in tracking usages
 correctly, we employ the linear algebra of vectors and matrices
 induced by the skew semiring we are using. Usage annotations on
-contexts are vectors, usage preserving maps of contexts are matrices,
+contexts are vectors, usage-preserving maps of contexts are matrices,
 and the linearity properties of the maps induced by matrices are
 exactly the lemmas we need for showing that traversals (and hence
 renaming, sub-usaging, and substitution) preserve typing and usages.
-
-
 
 % We build on previous work on coeffects
 % \cite{BrunelGMZ14,GhicaS14,reed10distance,PetricekOM14} to produce a generic
