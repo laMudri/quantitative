@@ -261,19 +261,28 @@ We use the following operations on usage contexts.
 
 \section{Syntax}\label{sec:syntax}
 
-This section corresponds to the Agda module \AgdaModule{Specific.Syntax}.
-We fix a skew semiring $\mathbf R$, of which all elements, and vectors and
-matrices thereof, are coloured \rescomment{green}.
+We present the syntax of \name{} as an \emph{intrinsically} typed
+syntax, as it is in our Agda formalisation. Intrinisic typing means
+that we define well-typed terms as inhabitants of an inductive family
+$\ctx\Gamma{R} \vdash A$ indexed by typing contexts $\Gamma$, context
+usage annotations $\resctx{R}$ and types $A$. Context usage
+annotations $\resctx{R}$ are vectors of elements of some fixed skew
+semiring $\mathbf R$. To highlight how usage annotations are used
+throughout our development, we write all elements of $\mathbf R$, and
+vectors and matrices thereof, in \rescomment{green}. This section
+corresponds to the Agda module \AgdaModule{Specific.Syntax}.
+
+FIXME: define the types.
 
 \subsection{Variables}
 
-We find it useful to distinguish between \emph{plain} variables, which are
-indices into a context with a specified type, and \emph{usage-cheked} variables,
-which describe the conditions under which a variable can be used in a context,
-subject to the constraints of usage annotations.
-Concerning the latter, a variable may be used in a context if its annotation is
-$\subres \rescomment 1$ (``usable''), and the annotation of every other variable
-is $\subres \rescomment 0$ (``discardable'').
+We distinguish between \emph{plain} variables, which are indices into
+a context with a specified type, and \emph{usage-cheked} variables,
+which describe the conditions under which a variable can be used in a
+context, subject to the constraints of usage annotations.  Concerning
+the latter, a variable may be used in a context if its annotation is
+$\subres \rescomment 1$ (``usable''), and the annotation of every
+other variable is $\subres \rescomment 0$ (``discardable'').
 
 \begin{definition}[plain variable, \AgdaRecord{IVar}]
   We write $\Gamma \ni A$ as the type of variables in $\Gamma$ with type $A$.
