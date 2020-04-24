@@ -220,48 +220,58 @@ and respects operators on the right from right to left''.  One may
 also describe multiplication as ``respecting'' and ``corespecting''
 operators on the left and right, respectively.
 
-From a skew semiring $\mathbf R$, we can form finite vectors, which we
-notate as $\mathbf R^n$. In Agda, we represent vectors in
+From a skew semiring $\mathbf R$, we form finite vectors, which we
+notate as $\mathbf R^n$, and matrices, which we notate as
+$\mathbf{R}^{m\times n}$. In Agda, we represent vectors in
 $\mathbf R^n$ as functions $\mathrm{Idx}~n \to \mathbf{R}$, where
-$\mathrm{Idx}~n$ is the type of valid indexes in an $n$-tuple.
-Whereas elements of $\mathbf R$ describe how individual
-\emph{variables} are used, elements of $\mathbf R^n$ describes how all
-of the variables in an $n$-length \emph{context} are used. We call
-such vectors \emph{usage contexts}, and take them to be row vectors.
-We use the following linear algebra operations on usage contexts.
+$\mathrm{Idx}~n$ is the type of valid indexes in an $n$-tuple, and
+matrices in $\mathbf{R}^{m\times n}$ as functions
+$\mathrm{Idx}~m \to \mathrm{Idx}~n \to \mathbf{R}$.  Whereas elements
+of $\mathbf R$ describe how individual \emph{variables} are used,
+elements of $\mathbf R^n$ describe how all of the variables in an
+$n$-length \emph{context} are used. We call such vectors \emph{usage
+  contexts}, and take them to be row vectors. Matrices in
+$\mathbf{R}^{m\times n}$ will be used to describe how usage contexts
+are transformed by renaming and substitution in
+\autoref{sec:metatheory}. We define $\subres$, $0$ and $+$ on vectors
+and matrices pointwise. Basis vectors $\langle i \rvert$ (used to
+represent usage contexts for individual variables), identity matrices
+$\mat I$, matrix multiplication $*$, and matrix reindexing
+${-}_{{-}\times{-}}$ are defined as follows:
+\begin{mathpar}
+  \begin{matrix*}[l]
+    \langle {-} \rvert : \mathrm{Idx}~n \to \mathbf{R}^n \\
+    \langle i \rvert_j :=
+    \begin{cases}
+      1, & \textrm{if }i = j \\
+      0, & \textrm{otherwise} \\
+    \end{cases}
+  \end{matrix*}
+  \and
+  \begin{matrix*}[l]
+    \mat I : \mathbf R^{m \times m} \\
+    \mat I_{ij} := \langle i \rvert_j
+  \end{matrix*}
+  \and
+  \begin{matrix*}[l]
+    * : \mathbf R^{m \times n} \times \mathbf R^{n \times o} \to \mathbf R^{m \times o} \\
+    (MN)_{ik} := \sum_j M_{ij}N_{jk}
+  \end{matrix*}
+  \and
+  \begin{matrix*}[l]
+    {-}_{{-}\times{-}} : \mathbf R^{m' \times n'}
+    \times (\mathrm{Idx}~m \to \mathrm{Idx}~m')
+    \times (\mathrm{Idx}~n \to \mathrm{Idx}~n')
+    \to \mathbf R^{m \times n} \\
+    \left(M_{f \times g}\right)_{i,j} := M_{f\,i,g\,j}
+  \end{matrix*}
+\end{mathpar}
 
-\begin{definition}[Vector operations]
-  ~\\
-$    \begin{matrix*}[l]
-      {\subres} : \mathbf{R}^n \times \mathbf{R}^n \to \Omega \\
-      u \subres v := \forall i.~u_i \subres v_i
-    \end{matrix*}
-    \qquad
-    \begin{matrix*}[l]
-      \vct 0 : \mathbf{R}^n \\
-      \vct 0_i := 0
-    \end{matrix*}
-    \qquad
-    \begin{matrix*}[l]
-      + : \mathbf{R}^n \times \mathbf{R}^n \to \mathbf{R}^n \\
-      (u + v)_i := u_i + v_i
-    \end{matrix*}
-    \qquad
-    \begin{matrix*}[l]
-      * : \mathbf R \times \mathbf{R}^n \to \mathbf{R}^n \\
-      (\pi v)_i := \pi v_i
-    \end{matrix*}
-    \quad
-    \begin{matrix*}[l]
-      \langle {-} \rvert : \mathrm{Idx}~n \to \mathbf{R}^n \\
-      \langle i \rvert_j :=
-      \begin{cases}
-        1, & \textrm{if }i = j \\
-        0, & \textrm{otherwise} \\
-      \end{cases}
-    \end{matrix*}$
-%  \end{mathpar}
-\end{definition}
+We define vector-matrix multiplication by treating vectors
+as$1$-height matrices.
+  
+% We make use of the following operators, which we also take to work on vectors
+% (for example, we often multiply a row vector by a matrix, in that order).
 
 \section{Syntax}\label{sec:syntax}
 
@@ -447,154 +457,115 @@ As an example of using \name{}, if we instantiate $\mathbf R$ to be the $\{0, 1,
 % Additionally, we have an annotated bang ($\excl{\rho}{A}$), forming a graded
 % comonad (assuming definitions tweaked to account for $\subres$ and skewness).
 
-\section{Skew linear algebra}
+% \section{Skew linear algebra}
 
-Elements and vectors of $\mathbf R$ suffice to define the syntax of
-\name{}, but to formally prove renaming and substitution admissible in
-\autoref{sec:metatheory}, we first need to develop some elementary
-skew linear algebra.
+% Elements and vectors of $\mathbf R$ suffice to define the syntax of
+% \name{}, but to formally prove renaming and substitution admissible in
+% \autoref{sec:metatheory}, we first need to develop some elementary
+% skew linear algebra.
 
-\begin{definition}
-  A \emph{(left) skew semimodule} over a (left) skew semiring $\mathbf R$ is a
-  structure
-  $(\mathbf M, \subres,
-  0 : \mathbf M, + : \mathbf M \times \mathbf M \to \mathbf M,
-  * : \mathbf R \times \mathbf M \to \mathbf M)$ such that
-  \begin{itemize}
-    \item $+$ and $*$ are monotonic in both arguments.
-    \item $(\mathbf M, 0, +)$ is a commutative monoid
-    \item Scaling of a fixed element $m$ respects all of the skew semiring
-      structure; particularly:
-      \begin{mathpar}
-        0_\mathbf R m \subres 0_\mathbf M
-        \and
-        (\pi +_\mathbf R \rho) m \subres \pi m +_\mathbf M \rho m
-        \and
-        1_\mathbf R m \subres m
-        \and
-        (\pi *_\mathbf R \rho) m \subres \pi (\rho m)
-      \end{mathpar}
-    \item Scaling by a fixed element $\pi$ corespects the additive structure;
-      particularly:
-      \begin{mathpar}
-        0_\mathbf M \subres \pi 0_\mathbf M
-        \and
-        \pi m +_\mathbf M \pi n \subres \pi (m +_\mathbf M n)
-      \end{mathpar}
-  \end{itemize}
-\end{definition}
+% \begin{definition}
+%   A \emph{(left) skew semimodule} over a (left) skew semiring $\mathbf R$ is a
+%   structure
+%   $(\mathbf M, \subres,
+%   0 : \mathbf M, + : \mathbf M \times \mathbf M \to \mathbf M,
+%   * : \mathbf R \times \mathbf M \to \mathbf M)$ such that
+%   \begin{itemize}
+%     \item $+$ and $*$ are monotonic in both arguments.
+%     \item $(\mathbf M, 0, +)$ is a commutative monoid
+%     \item Scaling of a fixed element $m$ respects all of the skew semiring
+%       structure; particularly:
+%       \begin{mathpar}
+%         0_\mathbf R m \subres 0_\mathbf M
+%         \and
+%         (\pi +_\mathbf R \rho) m \subres \pi m +_\mathbf M \rho m
+%         \and
+%         1_\mathbf R m \subres m
+%         \and
+%         (\pi *_\mathbf R \rho) m \subres \pi (\rho m)
+%       \end{mathpar}
+%     \item Scaling by a fixed element $\pi$ corespects the additive structure;
+%       particularly:
+%       \begin{mathpar}
+%         0_\mathbf M \subres \pi 0_\mathbf M
+%         \and
+%         \pi m +_\mathbf M \pi n \subres \pi (m +_\mathbf M n)
+%       \end{mathpar}
+%   \end{itemize}
+% \end{definition}
 
-\begin{definition}
-  A \emph{(left) skew semimodule homomorphism} or \emph{linear map} between
-  $\mathbf R$-left skew semimodules $\mathbf M$ and $\mathbf N$ is a monotone
-  function $T$ on the underlying sets written postfix such that all of the skew
-  semimodule structure is respected.
-  Particularly,
-  \begin{mathpar}
-    (0_\mathbf M)T \subres 0_\mathbf N
-    \and
-    (m +_\mathbf M n)T \subres (m)T +_\mathbf N (n)T
-    \and
-    (\pi *_\mathbf M m)T \subres \pi *_\mathbf N (m)T
-  \end{mathpar}
-\end{definition}
+% \begin{definition}
+%   A \emph{(left) skew semimodule homomorphism} or \emph{linear map} between
+%   $\mathbf R$-left skew semimodules $\mathbf M$ and $\mathbf N$ is a monotone
+%   function $T$ on the underlying sets written postfix such that all of the skew
+%   semimodule structure is respected.
+%   Particularly,
+%   \begin{mathpar}
+%     (0_\mathbf M)T \subres 0_\mathbf N
+%     \and
+%     (m +_\mathbf M n)T \subres (m)T +_\mathbf N (n)T
+%     \and
+%     (\pi *_\mathbf M m)T \subres \pi *_\mathbf N (m)T
+%   \end{mathpar}
+% \end{definition}
 
-The last axiom motivates the postfix notation.
-If we take application of $T$ to be a form of multiplication (as justified later
-in this section), then we do not want to require $T$ to commute with $\pi$.
-This remains important for non-skew semirings, but not commutative semirings.
+% The last axiom motivates the postfix notation.
+% If we take application of $T$ to be a form of multiplication (as justified later
+% in this section), then we do not want to require $T$ to commute with $\pi$.
+% This remains important for non-skew semirings, but not commutative semirings.
 
-A concrete source of linear maps is matrices.
-We make use of the following operators, which we also take to work on vectors
-(for example, we often multiply a row vector by a matrix, in that order).
+% A concrete source of linear maps is matrices.
 
-\begin{definition}[Matrix operations]
-  \begin{mathpar}
-    \begin{matrix*}[l]
-      {\subres} : \mathbf R^{m \times n} \times \mathbf R^{m \times n} \to \Omega \\
-      M \subres N := \forall i j.~M_{ij} \subres N_{ij}
-    \end{matrix*}
-    \and
-    \begin{matrix*}[l]
-      \mat 0 : \mathbf R^{m \times n} \\
-      \mat 0_{ij} := 0
-    \end{matrix*}
-    \and
-    \begin{matrix*}[l]
-      + : \mathbf R^{m \times n} \times \mathbf R^{m \times n} \to \mathbf R^{m \times n} \\
-      (M + N)_{ij} := M_{ij} + N_{ij}
-    \end{matrix*}
-    \and
-    \begin{matrix*}[l]
-      \mat I : \mathbf R^{m \times m} \\
-      \mat I_{ij} := \langle i \rvert_j
-    \end{matrix*}
-    \and
-    \begin{matrix*}[l]
-      * : \mathbf R^{m \times n} \times \mathbf R^{n \times o} \to \mathbf R^{m \times o} \\
-      (MN)_{ik} := \sum_j M_{ij}N_{jk}
-    \end{matrix*}
-    \and
-    \begin{matrix*}[l]
-      {-}_{{-}\times{-}} : \mathbf R^{m' \times n'}
-      \times (\mathrm{Idx}~m \to \mathrm{Idx}~m')
-      \times (\mathrm{Idx}~n \to \mathrm{Idx}~n')
-      \to \mathbf R^{m \times n} \\
-      \left(M_{f \times g}\right)_{i,j} := M_{f\,i,g\,j}
-    \end{matrix*}
-  \end{mathpar}
-\end{definition}
+% \begin{lemma}\label{lem:mat-to-map}
+%   Each matrix $M : \mathbf R^{m \times n}$ gives rise to a linear map
+%   $T_M : \mathbf R^m \to \mathbf R^n$ by right-multiplication.
+% \end{lemma}
+% \begin{proof}
+%   We observe the following inequalities.
+%   Notice that in the last inequality, $M$ being on the right means that we do
+%   not have to commute it past $\pi$.
+%   To pull $\pi$ out of the sum, we use the fact that multiplication
+%   \emph{corespects} the additive structure on the right.
+%   \begin{itemize}
+%     \item $\left(\vct 0M\right)_{k}
+%       = \sum_j 0M_{jk}
+%       \subres \sum_j 0
+%       = 0
+%       = \vct 0_{k}$
+%     \item $\left((u + v)M\right)_{k}
+%       = \sum_j \left(u_j + v_j\right)M_{jk}
+%       \subres \sum_j \left(u_jM_{jk} + v_jM_{jk}\right)
+%       = \sum_j u_jM_{jk} + \sum_j v_jM_{jk}
+%       = (uM + vM)_{k}$
+%     \item $\left((\pi u)M\right)_{k}
+%       = \sum_j \left(\pi u_j\right)M_{jk}
+%       \subres \sum_j \pi\left(u_jM_{jk}\right)
+%       \subres \pi\sum_j u_jM_{jk}
+%       = \left(\pi(uM)\right)_{k}$
+%   \end{itemize}
+% \end{proof}
 
-\begin{lemma}\label{lem:mat-to-map}
-  Each matrix $M : \mathbf R^{m \times n}$ gives rise to a linear map
-  $T_M : \mathbf R^m \to \mathbf R^n$ by right-multiplication.
-\end{lemma}
-\begin{proof}
-  We observe the following inequalities.
-  Notice that in the last inequality, $M$ being on the right means that we do
-  not have to commute it past $\pi$.
-  To pull $\pi$ out of the sum, we use the fact that multiplication
-  \emph{corespects} the additive structure on the right.
-  \begin{itemize}
-    \item $\left(\vct 0M\right)_{k}
-      = \sum_j 0M_{jk}
-      \subres \sum_j 0
-      = 0
-      = \vct 0_{k}$
-    \item $\left((u + v)M\right)_{k}
-      = \sum_j \left(u_j + v_j\right)M_{jk}
-      \subres \sum_j \left(u_jM_{jk} + v_jM_{jk}\right)
-      = \sum_j u_jM_{jk} + \sum_j v_jM_{jk}
-      = (uM + vM)_{k}$
-    \item $\left((\pi u)M\right)_{k}
-      = \sum_j \left(\pi u_j\right)M_{jk}
-      \subres \sum_j \pi\left(u_jM_{jk}\right)
-      \subres \pi\sum_j u_jM_{jk}
-      = \left(\pi(uM)\right)_{k}$
-  \end{itemize}
-\end{proof}
+% \begin{lemma}\label{lem:map-to-mat}
+%   Each linear map $T : \mathbf R^m \to \mathbf R^n$ gives rise to a matrix
+%   $M : \mathbf R^{m \times n}$ such that for each $u$, $uT \subres uM$.
+% \end{lemma}
+% \begin{proof}
+%   Let $M_{jk} = (\langle j \rvert)T_k$.
+%   Then, consider $uT_k$.
+%   \[
+%     uT_k \subres \left(\sum_j u_j\langle j \rvert\right)T_k
+%     \subres \sum_j \left(u_j\langle j \rvert\right) T_k
+%     \subres \sum_j u_j\left(\langle j \rvert T_k\right)
+%     = \sum_j u_j M_{jk} = (uM)_k
+%   \]
+% \end{proof}
 
-\begin{lemma}\label{lem:map-to-mat}
-  Each linear map $T : \mathbf R^m \to \mathbf R^n$ gives rise to a matrix
-  $M : \mathbf R^{m \times n}$ such that for each $u$, $uT \subres uM$.
-\end{lemma}
-\begin{proof}
-  Let $M_{jk} = (\langle j \rvert)T_k$.
-  Then, consider $uT_k$.
-  \[
-    uT_k \subres \left(\sum_j u_j\langle j \rvert\right)T_k
-    \subres \sum_j \left(u_j\langle j \rvert\right) T_k
-    \subres \sum_j u_j\left(\langle j \rvert T_k\right)
-    = \sum_j u_j M_{jk} = (uM)_k
-  \]
-\end{proof}
-
-\autoref{lem:map-to-mat} is peculiar to the skew setting; normally one would expect there to be a 1-1 relationship between linear maps and matrices.
-Intuitively, when multiplication is involved, equations are hard to come by, so
-we instead settle for inequalities.
-In what follows, matrices/linear maps will only appear to the right of a
-$\subres$, so when we ask for a matrix rather than a linear map, it is no loss
-of generality.
+% \autoref{lem:map-to-mat} is peculiar to the skew setting; normally one would expect there to be a 1-1 relationship between linear maps and matrices.
+% Intuitively, when multiplication is involved, equations are hard to come by, so
+% we instead settle for inequalities.
+% In what follows, matrices/linear maps will only appear to the right of a
+% $\subres$, so when we ask for a matrix rather than a linear map, it is no loss
+% of generality.
 
 \section{Metatheory}\label{sec:metatheory}
 
