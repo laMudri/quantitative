@@ -598,6 +598,17 @@ of generality.
 
 \section{Metatheory}\label{sec:metatheory}
 
+\paragraph{Admissible rules via Kits} 1. McBride defines Kits, which
+provide a general method for defining admissible rules via a generic
+traversal. When we define a kit, we define a relation between contexts
+and types and explain how to inject variables, how to generate terms
+from the relation, and how to go under binders. In return, we get a
+function between typed terms, the intrinsic typing version of an
+admissible rule.
+
+2. Given a kit and an ``environment'', we obtain a generic
+traversal. To make this work for our usage accounted system, we need to (a) 
+
 We prove substitution via renaming in the style of Benton, Hur, Kennedy, and
 McBride \cite{bhkm12}.
 We take both renaming and substitution as corollaries of a \emph{traversal}
@@ -614,6 +625,14 @@ Our main modifications to McBride's method are the following.
 The definitions of \emph{kit} and \emph{environment}, as well as the proof of
 \hyperref[thm:trav]{traversal}, all can be found in the module
 \AgdaModule{Specific.Syntax.Traversal}.
+
+% Plan:
+% - Just define a kit, saying what it is used for (i.e. sketch the traversal we get)
+% - State that 'vr', 'tm' and 'wk' are also in Conor's version.
+% - Note that we are being careful with resources in the 'wk' bit
+% - 'psh' is new, to cope with sub-usaging
+
+% 
 
 \subsection{Kit}
 
