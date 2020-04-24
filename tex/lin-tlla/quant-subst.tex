@@ -73,6 +73,19 @@ therefore to use a proof assistant to prove these properties. This has
 the double benefit of confidence in the results, and in focusing on
 the essential properties required to obtain them.
 
+Mechanisation of the metatheory of substructural $\lambda$-calculi has
+not received the same level of attention as intuitionistic
+typing. ``Straightforward'' translations from paper presentations to
+formal presentations are difficult, due to incompatibilies between the
+standard de Bruijn representation of binding and the splitting of
+contexts. Allais' \emph{Typing with Leftovers}
+\cite{allais:LIPIcs:2018:10049} overcame this by tracking usage in an
+I/O style. Rouvoet et al.~\cite{RPKV20} and Crary \cite{crary10} offer
+other formalisations in Agda and Twelf respectively. Usage
+annotations, arising from the coeffect literature, in tandem with the
+linear algebraic approach we have presented here offer an approach
+that, in our experience, is amenable to formalisation.
+
 In this paper, we adapt the generic \emph{kits and traversals}
 technique for proving admissibility of renaming and substitution due
 to McBride \cite{rensub05} to a linear typed $\lambda$-calculus where
@@ -1096,19 +1109,6 @@ general, but not directly comparable. We leave a complete comparison
 to future work. They have not formalised their work.
 % In particular, we focus on ``at least linear'' systems, and prove an inherently
 % linear result.
-
-Mechanisation of the metatheory of substructural $\lambda$-calculi has
-not recieved the same level of attention as intuitionistic
-typing. ``Straightforward'' translations from paper presentations to
-formal presentations are difficult, due to incompatibilies between the
-standard de Bruijn representation of binding and the splitting of
-contexts. Allais' \emph{Typing with Leftovers}
-\cite{allais:LIPIcs:2018:10049} overcame this by tracking usage in an
-I/O style. Rouvoet et al.~\cite{RPKV20} and Crary \cite{crary10} offer
-other formalisations in Agda and Twelf respectively. Usage
-annotations, arising from the coeffect literature, in tandem with the
-linear algebraic approach we have presented here offer an approach
-that, in our experience, is amenable to formalisation.
 
 We plan to generalise the generic syntax with binding framework of
 Allais \emph{et al.}~\cite{AACMM20} to work with usage annotations,
