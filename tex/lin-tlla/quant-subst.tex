@@ -209,54 +209,54 @@ skew-monoidal category.
   TODO: some examples (are there any that are actually skew?)
 \end{example}
 
-In this paper, we only speak of \emph{left} skew semirings, and thus generally
-omit the word ``left''.
-A mnemonic for (left) skew semirings is ``multiplication respects operators on
-the left from left to right, and respects operators on the right from right to
-left''.
-One may also describe multiplication as ``respecting'' and ``corespecting''
+We will only speak of \emph{left} skew semirings, and thus generally
+omit the word ``left''.  A mnemonic for (left) skew semirings is
+``multiplication respects operators on the left from left to right,
+and respects operators on the right from right to left''.  One may
+also describe multiplication as ``respecting'' and ``corespecting''
 operators on the left and right, respectively.
 
-From a skew semiring $\mathbf R$, we can form finite vectors, which we notate
-as either $\mathrm{Vec}~n$ or $\mathbf R^n$.
-Where an element of $\mathbf R$ describes how a \emph{variable} can be used, an
-element of $\mathbf R^n$ describes how all of the variables in an $n$-length
-\emph{context} can be used.
-Therefore, we call such vectors \emph{usage contexts}, and take them to be row
-vectors.
-We use the following operations on usage contexts.
+From a skew semiring $\mathbf R$, we can form finite vectors, which we
+notate as $\mathbf R^n$. In Agda, we represent vectors in
+$\mathbf R^n$ as functions $\mathrm{Idx}~n \to \mathbf{R}$, where
+$\mathrm{Idx}~n$ is the type of valid indexes in an $n$-tuple.
+Whereas elements of $\mathbf R$ describe how individual
+\emph{variables} are used, elements of $\mathbf R^n$ describes how all
+of the variables in an $n$-length \emph{context} are used. We call
+such vectors \emph{usage contexts}, and take them to be row vectors.
+We use the following linear algebra operations on usage contexts.
 
 \begin{definition}[Vector operations]
-  \begin{mathpar}
-    \begin{matrix*}[l]
-      {\subres} : \mathrm{Vec}~n \times \mathrm{Vec}~n \to \Omega \\
+  ~\\
+$    \begin{matrix*}[l]
+      {\subres} : \mathbf{R}^n \times \mathbf{R}^n \to \Omega \\
       u \subres v := \forall i.~u_i \subres v_i
     \end{matrix*}
-    \and
+    \qquad
     \begin{matrix*}[l]
-      \vct 0 : \mathrm{Vec}~n \\
+      \vct 0 : \mathbf{R}^n \\
       \vct 0_i := 0
     \end{matrix*}
-    \and
+    \qquad
     \begin{matrix*}[l]
-      + : \mathrm{Vec}~n \times \mathrm{Vec}~n \to \mathrm{Vec}~n \\
+      + : \mathbf{R}^n \times \mathbf{R}^n \to \mathbf{R}^n \\
       (u + v)_i := u_i + v_i
     \end{matrix*}
-    \and
+    \qquad
     \begin{matrix*}[l]
-      * : \mathbf R \times \mathrm{Vec}~n \to \mathrm{Vec}~n \\
+      * : \mathbf R \times \mathbf{R}^n \to \mathbf{R}^n \\
       (\pi v)_i := \pi v_i
     \end{matrix*}
-    \and
+    \quad
     \begin{matrix*}[l]
-      \langle {-} \rvert : \mathrm{Idx}~n \to \mathrm{Vec}~n \\
+      \langle {-} \rvert : \mathrm{Idx}~n \to \mathbf{R}^n \\
       \langle i \rvert_j :=
       \begin{cases}
         1, & \textrm{if }i = j \\
         0, & \textrm{otherwise} \\
       \end{cases}
-    \end{matrix*}
-  \end{mathpar}
+    \end{matrix*}$
+%  \end{mathpar}
 \end{definition}
 
 \section{Syntax}\label{sec:syntax}
@@ -267,17 +267,17 @@ that we define well-typed terms as inhabitants of an inductive family
 $\ctx\Gamma{R} \vdash A$ indexed by typing contexts $\Gamma$, context
 usage annotations $\resctx{R}$ and types $A$. Context usage
 annotations $\resctx{R}$ are vectors of elements of some fixed skew
-semiring $\mathbf R$. To highlight how usage annotations are used
-throughout our development, we write all elements of $\mathbf R$, and
-vectors and matrices thereof, in \rescomment{green}. This section
-corresponds to the Agda module \AgdaModule{Specific.Syntax}.
+semiring $\mathbf R$. To highlight how usage annotations are used in
+the syntax, we write all elements of $\mathbf R$, and vectors and
+matrices thereof, in \rescomment{green}. This section corresponds to
+the Agda module \AgdaModule{Specific.Syntax}.
 
 FIXME: define the types.
 
 \subsection{Variables}
 
 We distinguish between \emph{plain} variables, which are indices into
-a context with a specified type, and \emph{usage-cheked} variables,
+a context with a specified type, and \emph{usage-checked} variables,
 which describe the conditions under which a variable can be used in a
 context, subject to the constraints of usage annotations.  Concerning
 the latter, a variable may be used in a context if its annotation is
