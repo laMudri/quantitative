@@ -89,15 +89,15 @@ of syntax with binding and show that more general notions of
 
 To adapt kits and traversals to linear usage annotated terms requires
 us to not only respect the binding structure, but to also respect the
-\emph{resource} structure. For instance, the resources associated with
-a term being substituted in must be correctly distributed across all
-the occurences of that term in the result. To aid us in tracking
-resources correctly, we employ the linear algebra of vectors and
-matrices induced by the skew semiring we are using. Usage annotations
-on contexts are vectors, resource preserving maps of contexts are
-matrices, and the linearity properties of the maps induced by matrices
-are exactly the lemmas we need for showing that traversals (and hence
-renaming, sub-usaging, and substitution) preserve typing.
+\emph{usage} annotations. For instance, the usages associated with a
+term being substituted in must be correctly distributed across all the
+occurences of that term in the result. To aid us in tracking usages
+correctly, we employ the linear algebra of vectors and matrices
+induced by the skew semiring we are using. Usage annotations on
+contexts are vectors, usage preserving maps of contexts are matrices,
+and the linearity properties of the maps induced by matrices are
+exactly the lemmas we need for showing that traversals (and hence
+renaming, sub-usaging, and substitution) preserve typing and usages.
 
 
 
