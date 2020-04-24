@@ -36,7 +36,7 @@
 \def\multnotation{1}
 \input{../macros.tex}
 
-\title{An Algebraically Structured Approach to Substructural Substitution}
+\title{A Linear Algebra Approach to Linear Metatheory}
 \author{Robert Atkey
 \institute{University of Strathclyde\\ Glasgow, United Kingdom}
 \email{robert.atkey@strath.ac.uk}
@@ -45,14 +45,21 @@ James Wood\thanks{James Wood is supported by an EPSRC Studentship.}
 \institute{University of Strathclyde\\ Glasgow, United Kingdom}
 \email{james.wood.100@strath.ac.uk}
 }
-\def\titlerunning{An Algebraically Structured Approach to Substructural
-  Substitution}
+\def\titlerunning{A Linear Algebra Approach to Linear Metatheory}
 \def\authorrunning{R. Atkey \& J. Wood}
 \begin{document}
 \maketitle
 
 \begin{abstract}
-  We present a nice way to prove syntactic lemmas for linear type theory.
+  Linear typed $\lambda$-calculi are more delicate than their simply
+  typed siblings when it comes to metatheoretic results like
+  preservation of typing under renaming and substitution. Tracking the
+  usage of variables in contexts places more constraints on how
+  variables may be renamed or substituted. We present a methodology
+  based on linear algebra over semirings, extending McBride's
+  \emph{kits and traversals} approach to the metatheory of syntax with
+  binding to linear usage-annotated terms. Our approach is readily
+  formalisable, and we have done so in Agda.
 \end{abstract}
 
 \section{Introduction}
