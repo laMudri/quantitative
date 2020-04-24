@@ -123,8 +123,8 @@ renaming and substitution (approx. 530 lines).
   calculi studied previously, but has several differences that we
   explain below. By choosing the right semiring, we can embedded
   several substructural and modal calculi from the literature,
-  including Barber's DILL and Pfenning and Davis' S4 modal
-  $\lambda$-calculus.
+  including Barber's DILL \cite{Barber1996} and Pfenning and Davis' S4 modal
+  $\lambda$-calculus \cite{judgmental}.
 \item To establish the usual metatheoretic properties of \name{}, we
   extend McBride's \emph{Kits and traversals} technique to also
   account for skew semiring usage annotations. To do so, we have to
@@ -148,9 +148,9 @@ directly comparable.
 In particular, we focus on ``at least linear'' systems, and prove an inherently
 linear result.
 
-Comparable formalisations of linear type systems include Allais' Typing with
-Leftovers \cite{allais:LIPIcs:2018:10049} and the recent work of Rouvoet et al.
-\cite{RPKV20}.
+Other formalisations of linear type systems include Allais' Typing with
+Leftovers \cite{allais:LIPIcs:2018:10049}, the recent work of Rouvoet et al.
+\cite{RPKV20}, Polakow's work in Haskell \cite{polakow15}, and Crary's work in Twelf \cite{crary10}.
 
 \section{Skew semirings}\label{sec:algebra}
 
@@ -1089,8 +1089,9 @@ results between existing systems and instances of our system.
 We are working on generalising the framework of Allais et al. \cite{AACMM20} to
 work with usage annotations, which would allow us to abstract over common
 patterns in the proof of traversal.
-Future work includes comparing the results we achieve here with them of Licata,
-Shulman, and Riley \cite{LicataSR17}.
+
+More future work includes comparing the results we achieve here with them of
+Licata, Shulman, and Riley \cite{LicataSR17}.
 
 \bibliographystyle{eptcsalpha}
 \bibliography{../quantitative}
