@@ -1067,30 +1067,44 @@ lemma that shows that environments can be pushed under binders.
 
 \section{Conclusion}\label{sec:conclusion}
 
-In this paper, we have presented \name{}, a simply typed calculus with usage
-constraints via annotations on variables.
-For it, we have extended McBride's method of kits \cite{rensub05}.
+We have extended McBride's method of kits and traversals to proving
+admissibility of renaming, sub-usaging and substitution to the linear
+usage-annotated calculus \name{}. In the course of doing so, we have
+discovered that only skew semirings are required, and the importance
+of linear algebra for stating and proving these results.
 
-We follow a similar theme to the work of Licata, Shulman, and Riley
-\cite{LicataSR17}, which gives a proof of cut elimination for a large class of
-substructural single-conclusion sequent calculus systems.
-The class of natural deduction systems we consider here is similar, but not
-directly comparable.
-In particular, we focus on ``at least linear'' systems, and prove an inherently
-linear result.
+% In this paper, we have presented \name{}, a simply typed calculus with usage
+% constraints via annotations on variables.
+% For it, we have extended McBride's method of kits \cite{rensub05}.
 
-Other formalisations of linear type systems include Allais' Typing with
-Leftovers \cite{allais:LIPIcs:2018:10049}, the recent work of Rouvoet et al.
-\cite{RPKV20}, Polakow's work in Haskell \cite{polakow15}, and Crary's work in Twelf \cite{crary10}.
 
-In future work, we plan to develop an equational theory for \name{},
-and using that prove strong equivalence results between existing
-systems and instances of our system.  We are working on generalising
-the generic syntax with binding framework of Allais et
-al. \cite{AACMM20} to work with usage annotations, which would allow
-us to prove admissible rules for an even wider class of substructural
-calculi.  We would like to compare the results we achieve here with
-the framework of Licata, Shulman, and Riley \cite{LicataSR17}.
+
+Our work is similar in spirit to the work of Licata, Shulman, and
+Riley \cite{LicataSR17}, which gives a proof of cut elimination for a
+large class of substructural single-conclusion sequent calculi.  The
+class of natural deduction systems we consider here is likely less
+general, but not directly comparable. We leave a complete comparison
+to future work. They have not formalised their work.
+% In particular, we focus on ``at least linear'' systems, and prove an inherently
+% linear result.
+
+Mechanisation of the metatheory of substructural $\lambda$-calculi has
+not recieved the same level of attention as intuitionistic
+typing. ``Straightforward'' translations from paper presentations to
+formal presentations are difficult, due to incompatibilies between the
+standard de Bruijn representation of binding and the splitting of
+contexts. Allais' \emph{Typing with Leftovers}
+\cite{allais:LIPIcs:2018:10049} overcame this by tracking usage in an
+I/O style. Rouvoet et al.~\cite{RPKV20} and Crary \cite{crary10} offer
+other formalisations in Agda and Twelf respectively. Usage
+annotations, arising from the coeffect literature, in tandem with the
+linear algebraic approach we have presented here offer an approach
+that, in our experience, is amenable to formalisation.
+
+We plan to generalise the generic syntax with binding framework of
+Allais \emph{et al.}~\cite{AACMM20} to work with usage annotations,
+which would allow us to prove admissible rules for an even wider class
+of substructural calculi.
 
 \bibliographystyle{eptcsalpha}
 \bibliography{../quantitative}
