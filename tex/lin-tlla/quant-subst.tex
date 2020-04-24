@@ -605,7 +605,7 @@ The definitions of \emph{kit} and \emph{environment}, as well as the proof of
 
 % 
 
-\subsection{Kit}
+\subsection{Kits, Environments, and Traversals}
 
 A kit is a structure on $\vdash$-like relations $\kitrel$, intuitively
 giving a way in which $\kitrel$ lives between the usage-checked variable
@@ -616,7 +616,6 @@ judgement $\lvar$ and the typing judgement $\vdash$.
   $\kit(\kitrel)$ denote the type of \emph{kits}.
   A kit comprises the following functions for all $\resctx P$, $\resctx Q$,
   $\Gamma$, $\Delta$, and $A$.
-
   \begin{mathpar}
     \mathit{psh} : \resctx P \subres \resctx Q \to
     \ctx{\Gamma}{Q} \kitrel A \to \ctx{\Gamma}{P} \kitrel A
@@ -635,15 +634,13 @@ judgement $\lvar$ and the typing judgement $\vdash$.
 An inhabitant of $\ctx{\Gamma}{P} \kitrel A$ is described as
 \emph{stuff in $\ctx{\Gamma}{P}$ of type $A$}.
 
-\subsection{Environment}
-
-In simple intuitionistic type theory, an environment is just a type-preserving
-function from variables in the old context $\Delta$ to stuff in the new context
-$\Gamma$.
-That is, the environment is an inhabitant of
-$\Delta \ni A \to \Gamma \kitrel A$.
-The traversal function $\mathit{trav}$ turns such an environment into a map
-between terms, $\Delta \vdash A \to \Gamma \vdash A$.
+\paragraph{Environments} In simple intuitionistic type theory, an
+environment is just a type-preserving function from variables in the
+old context $\Delta$ to stuff in the new context $\Gamma$.  That is,
+the environment is an inhabitant of
+$\Delta \ni A \to \Gamma \kitrel A$.  The traversal function
+$\mathit{trav}$ turns such an environment into a map between terms,
+$\Delta \vdash A \to \Gamma \vdash A$.
 
 In \name{}, we want inhabitants of
 $\ctx{\Delta}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.
@@ -670,28 +667,32 @@ vector-matrix multiplication $\resctx Q\rescomment\Psi$.
 This culminates to give us the following requirements.
 
 \begin{definition}[\AgdaRecord{Env}]\label{def:env}
-  For any $\kitrel$, $\resctx P$, $\resctx Q$, $\Gamma$, and $\Delta$, let
-  $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$ denote the type of
-  \emph{environments}.
-  An environment comprises the following.
-\begin{itemize}
-  \item $\rescomment\Psi : \mathbf R^{n \times m}$
-  \item $\mathit{act} :
-    (j : (\Delta \ni A)) \to (\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$
-  \item with usage condition $\resctx P \subres \resctx Q \rescomment\Psi$.
-\end{itemize}
+  For any $\kitrel$, $\resctx P$, $\resctx Q$, $\Gamma$, and $\Delta$,
+  where $\Gamma$ and $\Delta$ have lengths $m$ and $n$ respectively,
+  let $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$ denote the
+  type of \emph{environments}.  An environment comprises a pair of a
+  matrix $\rescomment\Psi : \mathbf R^{n \times m}$ and a mapping of
+  variables
+  $\mathit{act} : (j : (\Delta \ni A)) \to (\langle j
+  \rvert\rescomment\Psi)\Gamma \kitrel A$, such that
+  $\resctx P \subres \resctx Q \rescomment\Psi$.
+% \begin{itemize}
+%   \item $\rescomment\Psi : \mathbf R^{n \times m}$
+%   \item $\mathit{act} :
+%     (j : (\Delta \ni A)) \to (\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$
+%   \item with usage condition $\resctx P \subres \resctx Q \rescomment\Psi$.
+% \end{itemize}
 \end{definition}
 
-\subsection{Traversal}
-
-We shall prove the following result in \autoref{sec:proof-of-traversal}.
-We state it now so as to derive renaming and substitution as quickly as
-possible.
+Our main result is the following, which we will instantiate to prove
+admissibility of renaming (\autoref{cor:ren}), sub-usaging
+(\autoref{cor:subusage}), and substitution (\autoref{cor:sub}). The
+proof is in \autoref{sec:proof-of-traversal}.
 
 \newcommand{\thmtrav}{%
   Given a kit on $\kitrel$ and an environment
-  $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$, we can transform a term
-  $\ctx{\Delta}{Q} \vdash A$ into a term $\ctx{\Gamma}{P} \vdash A$.%
+  $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$, we get a function
+  $\ctx{\Delta}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.%
 }
 \begin{theorem}[traversal, \AgdaFunction{trav}]\label{thm:trav}
   \thmtrav
@@ -699,8 +700,9 @@ possible.
 
 \subsection{Renaming}
 
-This subsection corresponds to the Agda module
-\AgdaModule{Specific.Syntax.Renaming}.
+We now show how to use traversals to prove that renaming and
+sub-usaging are admissible. This subsection corresponds to the Agda
+module \AgdaModule{Specific.Syntax.Renaming}.
 
 \begin{definition}[\AgdaFunction{LVar-kit}]\label{def:lvar-kit}
   Let $\lvar\textrm{-kit} : \kit(\lvar)$ be defined with the following
@@ -708,18 +710,17 @@ This subsection corresponds to the Agda module
   \begin{description}
     \item[$\mathit{psh}~(\mathit{PQ} : \resctx P \subres \resctx Q)
       : \ctx{\Gamma}{Q} \lvar A \to \ctx{\Gamma}{P} \lvar A$:]
-      Notice that the only occurrence of the usage context in the definition of
+      The only occurrence of the usage context $\resctx Q$ in the definition of
       $\lvar$ is to the left of a $\subres$.
-      Thus, applying transitivity in this place gets us the required term.
+      Applying transitivity in this place gets us the required term.
     \item[$\mathit{vr} : \ctx{\Gamma}{P} \lvar A \to \ctx{\Gamma}{P} \lvar A
       := \mathrm{id}$].
     \item[$\mathit{tm} : \ctx{\Gamma}{P} \lvar A \to \ctx{\Gamma}{P} \vdash A
       := \TirName{var}$].
     \item[$\mathit{wk} : \ctx{\Gamma}{P} \lvar A
       \to \ctx{\Gamma}{P}, \ctx{\Delta}{\vct 0} \lvar A$:]
-      Notice that a basis vector extended by $\rescomment 0$s is still a basis
-      vector.
-      So, given that we have $\resctx P \subres \langle i \rvert$ for some $i$,
+      A basis vector extended by $\rescomment 0$s is still a basis
+      vector: if that we have $\resctx P \subres \langle i \rvert$ for some $i$,
       we also have
       $\resctx P, \rescomment{\vct 0} \subres \langle \inl i \rvert$.
   \end{description}
@@ -764,13 +765,20 @@ be calculated from the action of the renaming on non-usage-checked variables.
   we can produce a function of type
   $\ctx{\Delta}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.
 \end{corollary}
-\begin{proof}
-  By the lemmas from this subsection and \autoref{thm:trav}.
-\end{proof}
+% \begin{proof}
+%   By the lemmas from this subsection and \autoref{thm:trav}.
+% \end{proof}
+
+\begin{corollary}[sub-usaging, \AgdaFunction{subuse}]\label{cor:subusage}
+  Given $\resctx P \subres \resctx Q$, then we have a function
+  $\ctx{\Gamma}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.
+\end{corollary}
 
 \subsection{Substitution}
 
-This subsection corresponds to the Agda module
+Now that we have renaming, we can use it with traversals to prove that
+simultaneous well-usaged substitution is admissible. This subsection
+corresponds to the Agda module
 \AgdaModule{Specific.Syntax.Substitution}.
 
 \begin{definition}[\AgdaFunction{Tm-kit}]\label{tm-kit}
@@ -779,36 +787,35 @@ This subsection corresponds to the Agda module
   \begin{description}
     \item[$\mathit{psh}~(\mathit{PQ} : \resctx P \subres \resctx Q)
       : \ctx{\Gamma}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$:]
-      We can use a specialised version of \hyperref[cor:ren]{renaming} in which
-      the variable mapping $f$ is the identity function.
-      It remains to check that
-      $\resctx P \subres \resctx Q\rescomment I_{\id\times\id}$, which is
-      obvious from the assumption $\mathit{PQ}$.
-      This is the argument used in the Agda module
-      \AgdaModule{Specific.Syntax.Subuse}, definition \AgdaFunction{subuse}.
+      This is \hyperref[cor:subusage]{Corollary \ref*{cor:subusage} (sub-usaging)}.
+      
+      % We can use a specialised version of \hyperref[cor:ren]{renaming} in which
+      % the variable mapping $f$ is the identity function.
+      % It remains to check that
+      % $\resctx P \subres \resctx Q\rescomment I_{\id\times\id}$, which is
+      % obvious from the assumption $\mathit{PQ}$.
+      % This is the argument used in the Agda module
+      % \AgdaModule{Specific.Syntax.Subuse}, definition \AgdaFunction{subuse}.
 
-      Alternatively, we can note that in every rule for
-      $\ctx{\Gamma}{R} \vdash A$, $\resctx R$ only ever appears to the left of a
-      $\subres$, so $\ctx{\Gamma}{R} \vdash A$ must be contravariant in
-      $\resctx R$.
+      % Alternatively, we can note that in every rule for
+      % $\ctx{\Gamma}{R} \vdash A$, $\resctx R$ only ever appears to the left of a
+      % $\subres$, so $\ctx{\Gamma}{R} \vdash A$ must be contravariant in
+      % $\resctx R$.
     \item[$\mathit{vr} : \ctx{\Gamma}{P} \lvar A \to \ctx{\Gamma}{P} \vdash A
       := \TirName{var}$].
     \item[$\mathit{tm} : \ctx{\Gamma}{P} \vdash A \to \ctx{\Gamma}{P} \vdash A
       := \mathrm{id}$].
-    \item[$\mathit{wk} : \ctx{\Gamma}{P} \vdash A
-      \to \ctx{\Gamma}{P}, \ctx{\Delta}{\vct 0} \vdash A$:]
-      We use a standard \hyperref[cor:ren]{renaming}, with
-      $f : \Gamma \ni A \to \Gamma, \Delta \ni A$ being the embedding $\inl$.
-      It remains to check that
-      $(\resctx P, \rescomment{\vct 0}) \subres
-      \resctx P\rescomment I_{\inl\times\id}$.
-      We prove this pointwise.
-      Let $i : \Gamma, \Delta \ni A$, and take cases on whether $i$ is from
-      $\Gamma$ or from $\Delta$.
-      If $i = \inl i'$ for an $i' : \Gamma \ni A$, we must show that
-      $\resctx P_{i'} \subres
-      (\resctx P\rescomment I_{\inl\times\id})_{\inl i'}$.
-      But we have the following.
+    \item[$\mathit{wk} : \ctx{\Gamma}{P} \vdash A \to \ctx{\Gamma}{P},
+      \ctx{\Delta}{\vct 0} \vdash A$:] We use \hyperref[cor:ren]{Corollary \ref*{cor:ren} (renaming)}, with
+      $f : \Gamma \ni A \to \Gamma, \Delta \ni A$ being the embedding
+      $\inl$.  It remains to check that
+      $(\resctx P, \rescomment{\vct 0}) \subres \resctx P\rescomment
+      I_{\inl\times\id}$.  We prove this pointwise.  Let
+      $i : \Gamma, \Delta \ni A$, and take cases on whether $i$ is
+      from $\Gamma$ or from $\Delta$.  If $i = \inl i'$ for an
+      $i' : \Gamma \ni A$, we must show that
+      $\resctx P_{i'} \subres (\resctx P\rescomment
+      I_{\inl\times\id})_{\inl i'}$.  But we have the following.
       \[
       \resctx P_{i'} \subres (\resctx P\rescomment I)_{i'}
       = \sum_{j : \Gamma \ni A} \resctx P_j\rescomment I_{j,i'}
@@ -829,19 +836,22 @@ This subsection corresponds to the Agda module
 \end{definition}
 
 \begin{corollary}[substitution, \AgdaFunction{sub}]\label{cor:sub}
-  Given an environment of type $\ctx{\Gamma}{P} \subst{\vdash} \ctx{\Delta}{Q}$,
-  we get a function of type
+  Given an environment of type
+  $\ctx{\Gamma}{P} \subst{\vdash} \ctx{\Delta}{Q}$ (i.e., a
+  well-usaged simultaneous substitution), we get a function of type
   $\ctx{\Delta}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.
 \end{corollary}
-\begin{proof}
-  By \autoref{thm:trav} using \hyperref[tm-kit]{$\vdash\textrm{-kit}$}.
-\end{proof}
+% \begin{proof}
+%   By \autoref{thm:trav} using \hyperref[tm-kit]{$\vdash\textrm{-kit}$}.
+% \end{proof}
 
 \subsection{Proof of traversal}
 \label{sec:proof-of-traversal}
 
-The proof of the traversal theorem follows the same structure as in McBride's
-article, augmented with usage checking and more term formation rules.
+The proof of the traversal theorem follows the same structure as in
+McBride's article, extended with proof obligations to show that we are
+correctly respecting the usage annotations. We must first prove a
+lemma that shows that environments can be pushed under binders.
 
 \begin{lemma}[bind, \AgdaFunction{bind}]\label{lem:bind}
   Given a kit on $\kitrel$, we can extend an environment of type
@@ -859,7 +869,7 @@ article, augmented with usage checking and more term formation rules.
   \mathit{act'} : (j : \Delta, \Theta \ni A) \to
   (\langle j \rvert\rescomment{\Psi'})(\Gamma, \Theta) \kitrel A)$,
   with $\resctx P, \resctx R \subres (\resctx Q, \resctx R) \rescomment{\Psi'}$.
-
+%
   Let \(
     \rescomment{\Psi'} := \left(\begin{array}{c|c}
                                   \rescomment\Psi & \rescomment{\mat 0}
@@ -873,10 +883,10 @@ article, augmented with usage checking and more term formation rules.
   and
   $\resctx R \subres
   \resctx Q\rescomment{\mat 0} + \resctx R\rescomment{\mat I}$.
-
+%
   For $\mathit{act'}$, we take cases on whether $j$ is from $\Delta$ or from
   $\Theta$.
-
+%
   In the $\Delta$ case, $\mathit{act}$ gets us an inhabitant of
   $(\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$.
   Notice that
@@ -886,7 +896,7 @@ article, augmented with usage checking and more term formation rules.
   $(\langle j \rvert\rescomment\Psi)\Gamma, \rescomment{\vct 0}\Theta
   \kitrel A$.
   We can get this using $\mathit{wk}$ from our kit.
-
+%
   In the $\Theta$ case, notice that
   $\langle j \rvert\rescomment{\Psi'} = \rescomment{\vct 0}, \langle j \rvert$.
   In other words, $\langle j \rvert\rescomment{\Psi'}$ is a basis vector, so we
@@ -901,187 +911,191 @@ article, augmented with usage checking and more term formation rules.
   \thmtrav
 \end{thm:trav}
 \begin{proof}
-  By induction on the syntax of $M$.
-  We give a selection of representitive cases first.
-  Non-\TirName{var} cases are all some combination of the following parts.
-  \begin{itemize}
-    \item If the input usage context $\resctx Q$ is split up into a linear
-      combination of zero or more usage contexts $\resctx Q_{i}$, obtain a
-      similar splitting of $\resctx P$ by setting
-      $\resctx P_{i} := \resctx Q_{i}\rescomment\Psi$.
-      This works out because of the linearity of matrix multiplication (in
-      particular, multiplication respects operations on the left).
-    \item If there are subterms, make sure that the above splitting gives rise
-      to new environments of type
-      $\resctx P_{i}\Gamma \subst{\kitrel} \resctx Q_{i}\Delta$.
-    \item If any subterms bind variables, apply \autoref{lem:bind} as
-      appropriate.
-  \end{itemize}
-  \begin{description}
-    \item[\TirName{var} $x$, where $x : \ctx{\Delta}{Q} \lvar A$:]
-      By definition of $\lvar$, we have that
-      $\resctx Q \subres \langle j \rvert$ for some $j$.
-      Applying the action of the environment, we have
-      $(\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$.
-      We then have
-      $\resctx P \subres \resctx Q\rescomment\Psi
-      \subres \langle j \rvert\rescomment\Psi$,
-      so using the fact that stuff appropriately respects subusaging
-      ($\mathit{psh}$), we have $\ctx{\Gamma}{P} \kitrel A$.
-      Finally, using $\mathit{tm}$, we get a term $\ctx{\Gamma}{P} \vdash A$, as
-      required.
-    \item[\TirName{$\withTOne$-I} $\eat$]
-      We want to produce a term $\ctx{\Gamma}{P} \vdash \withTOne$, which is
-      trivial with the rule \TirName{$\withTOne$-I}.
-    \item[\TirName{$\withT{}{}$-I} $\wth{M}{N}$, where
-      $M : \ctx{\Delta}{Q} \vdash A$, $N : \ctx{\Delta}{Q} \vdash B$:]
-      Inductively, we get $M' : \ctx{\Gamma}{P} \vdash A$ and
-      $N' : \ctx{\Gamma}{P} \vdash B$ from
-      $M$ and $N$, respectively.
-      We can combine $M'$ and $N'$ with \TirName{$\withT{}{}$-I} to get
-      $\wth{M'}{N'} : \ctx{\Gamma}{P} \vdash \withT{A}{B}$, as required.
-    \item[\TirName{$\withT{}{}$-El}, \TirName{$\withT{}{}$-Er},
-      \TirName{$\sumT{}{}$-Il}, \TirName{$\sumT{}{}$-Ir}:]
-      These all follow simply like the last two cases.
-    \item[\TirName{$\tensorOne$-I} $\unit$, where
-      $\resctx Q \subres \rescomment{\vct 0}$:]
-      We want to use \TirName{$\tensorOne$-I} to conclude
-      $\unit : \ctx{\Gamma}{P}$.
-      To do this, we must show that $\resctx P \subres \rescomment{\vct 0}$.
-      From the environment, we know that
-      $\resctx P \subres \resctx Q\rescomment\Psi$.
-      But because $\resctx Q \subres \rescomment{\vct 0}$, we get
-      $\resctx P \subres \rescomment{\vct 0}\rescomment\Psi
-      \subres \rescomment{\vct 0}$, as required.
-    \item[\TirName{$\tensor{}{}$-I} $\ten{M}{N}$, where
-      $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash A$,
-      $N : \ctx{\Delta}{Q_{\mathnormal N}} \vdash B$,
-      $\resctx Q \subres \resctx Q_{\rescomment M} + \resctx Q_{\rescomment N}$:]
-      We want to inductively traverse $M$ and $N$.
-      This will produce terms
-      $M' : \ctx{\Gamma}{P_{\mathnormal M}} \vdash A$ and
-      $N' : \ctx{\Gamma}{P_{\mathnormal N}} \vdash B$, for some choice of
-      $\resctx P_{\rescomment M}$ and $\resctx P_{\rescomment N}$.
-      Furthermore, we want
-      $\resctx P \subres \resctx P_{\rescomment M} + \resctx P_{\rescomment N}$,
-      so that we can combine $M'$ and $N'$ using \TirName{$\tensor{}{}$-I},
-      getting $\ten{M'}{N'} : \ctx{\Gamma}{P} \vdash \tensor{A}{B}$, as
-      required.
+  By induction on the syntax of $M$. In the \TirName{var} $x$ case,
+  where $x : \ctx{\Delta}{Q} \lvar A$: By definition of $\lvar$, we
+  have that $\resctx Q \subres \langle j \rvert$ for some $j$.
+  Applying the action of the environment, we have
+  $(\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$.  We then have
+  $\resctx P \subres \resctx Q\rescomment\Psi \subres \langle j
+  \rvert\rescomment\Psi$, so using the fact that stuff appropriately
+  respects subusaging ($\mathit{psh}$), we have
+  $\ctx{\Gamma}{P} \kitrel A$.  Finally, using $\mathit{tm}$, we get a
+  term $\ctx{\Gamma}{P} \vdash A$, as required.
 
-      Let
-      $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$
-      and
-      $\resctx P_{\rescomment N} := \resctx Q_{\rescomment N}\rescomment\Psi$,
-      where $\rescomment\Psi$ comes from the environment.
-      We must make environments of types
-      $\ctx{\Gamma}{P_{\mathnormal M}}
-      \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal M}}$
-      and
-      $\ctx{\Gamma}{P_{\mathnormal N}}
-      \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal N}}$.
-      Notice that the data in these can be carried over from the environment we
-      were given, but we must recheck the usage condition in each case.
-      However, both of these just come down to the reflexivity of $\subres$.
-
-      Finally, in order to apply \TirName{$\tensor{}{}$-I}, we must check that
-      $\resctx P \subres \resctx P_{\rescomment M} + \resctx P_{\rescomment N}$.
-      This follows by:
-      \[
-      \resctx P
-      \subres \resctx Q\rescomment\Psi
-      \subres (\resctx Q_{\rescomment M} + \resctx Q_{\rescomment N})
-      \rescomment\Psi
-      \subres \resctx Q_{\rescomment M}\rescomment\Psi +
-      \resctx Q_{\rescomment N}\rescomment\Psi
-      = \resctx P_{\rescomment M} + \resctx P_{\rescomment N}.
-      \]
-    \item[\TirName{$\fun{}{}$-E}, \TirName{$\tensorOne{}$-E},
-      \TirName{$\sumTZero$-E}:]
-      These all follow similarly to the above case (ignoring the lack of a
-      subterm $N$ in the \TirName{$\sumTZero$-E} case).
-    \item[\TirName{$\excl{\rho}{}$-I} $\bang{M}$, where
-      $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash A$,
-      $\resctx Q \subres \rescomment\rho \resctx Q_{\rescomment M}$:]
-      Following a similar strategy to the case above, let
-      $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$.
-      If we get a term $M' : \ctx{\Gamma}{P_{\mathnormal M}} \vdash A$, we will
-      be able to apply \TirName{$\excl{\rho}{}$-I} to get the result because
-      \[
-      \resctx P_{\rescomment M} = \resctx Q_{\rescomment M}\rescomment\Psi
-      \subres (\rescomment\rho\resctx Q)\rescomment\Psi
-      \subres \rescomment\rho(\resctx Q\rescomment\Psi)
-      \subres \rescomment\rho\resctx P.
-      \]
-
-      To get $M'$, we traverse $M$ with the same environment at type
-      $\ctx{\Gamma}{P_{\mathnormal M}}
-      \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal M}}$.
-      The usage condition reduces to the definition of
-      $\resctx P_{\rescomment M}$.
-    \item[\TirName{$\fun{}{}$-I} $\lam{x}{M}$, where
-      $M : \ctx{\Delta}{Q}, \ctxvar{x}{A}{1} \vdash B$:]
-      We want to inductively traverse $M$, yielding a term
-      $M' : \ctx{\Gamma}{P}, \ctxvar{x}{A}{1}$, to which we apply
-      \TirName{$\fun{}{}$-I} to get the desired result.
-      The environment we use to traverse $M$ is the result of the
-      \hyperref[lem:bind]{bind lemma} applied to the environment we were given.
-    \item[\TirName{$\sumT{}{}$-E}, where
-      $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash \sumT{A}{B}$,
-      $N : \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{x}{A}{1} \vdash C$,
-      $O : \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{y}{B}{1} \vdash C$,
-      $\resctx Q \subres
-      \resctx Q_{\rescomment M} + \resctx Q_{\rescomment N}$:]
-      This is the most complex rule, combining splitting, sharing, and binding.
-      Let
-      $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$
-      and
-      $\resctx P_{\rescomment N} := \resctx Q_{\rescomment N}\rescomment\Psi$.
-      In order to traverse $M$, we repurpose the environment at type
-      $\ctx{\Gamma}{P_{\mathnormal M}}
-      \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal M}}$.
-      This amounts to checking that
-      $\resctx P_{\rescomment M} \subres
-      \resctx Q_{\rescomment M}\rescomment\Psi$, which is obvious.
-
-      In order to traverse $N$ and $O$, we do similar to produce an environment
-      at type
-      $\ctx{\Gamma}{P_{\mathnormal N}}
-      \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal N}}$.
-      Then, we use the \hyperref[lem:bind]{bind lemma} to extend this
-      (separately) to environments of type
-      $\ctx{\Gamma}{P_{\mathnormal N}}, \ctxvar{x}{A}{1}
-      \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{x}{A}{1}$ and
-      $\ctx{\Gamma}{P_{\mathnormal N}}, \ctxvar{y}{B}{1}
-      \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{y}{B}{1}$.
-      These are enough to traverse $N$ and $O$, respectively.
-
-      Finally, we apply \TirName{$\sumT{}{}$-E} to all of the traversed
-      derivations.
-    \item[\TirName{$\tensor{}{}$-E}, \TirName{$\excl{\rho}{}$-E}:]
-      These both feature a similar combination of splitting and binding to the
-      previous case.
-      The \TirName{$\excl{\rho}{}$-E} rule involves binding a variable with
-      arbitrary annotation $\rescomment\rho$, but notice that the
-      \hyperref[lem:bind]{bind lemma} handles this perfectly well.
-  \end{description}
+  Non-\TirName{var} cases are generally handled in the following way.
+  If the input usage context $\resctx Q$ is split up into a linear
+  combination of zero or more usage contexts $\resctx Q_{i}$, obtain a
+  similar splitting of $\resctx P$ by setting
+  $\resctx P_{i} := \resctx Q_{i}\rescomment\Psi$.  This works out
+  because of the linearity of matrix multiplication (in particular,
+  multiplication respects operations on the left). This yields
+  environments of type
+  $\resctx P_{i}\Gamma \subst{\kitrel} \resctx Q_{i}\Delta$ for the
+  subterms to use with the inductive hypothesis. If any subterms bind
+  variables, apply \autoref{lem:bind} as appropriate.
+  % \begin{description}
+  %   \item[\TirName{var} $x$, where $x : \ctx{\Delta}{Q} \lvar A$:]
+  %     By definition of $\lvar$, we have that
+  %     $\resctx Q \subres \langle j \rvert$ for some $j$.
+  %     Applying the action of the environment, we have
+  %     $(\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$.
+  %     We then have
+  %     $\resctx P \subres \resctx Q\rescomment\Psi
+  %     \subres \langle j \rvert\rescomment\Psi$,
+  %     so using the fact that stuff appropriately respects subusaging
+  %     ($\mathit{psh}$), we have $\ctx{\Gamma}{P} \kitrel A$.
+  %     Finally, using $\mathit{tm}$, we get a term $\ctx{\Gamma}{P} \vdash A$, as
+  %     required.
+    % \item[\TirName{$\withTOne$-I} $\eat$]
+    %   We want to produce a term $\ctx{\Gamma}{P} \vdash \withTOne$, which is
+    %   trivial with the rule \TirName{$\withTOne$-I}.
+    % \item[\TirName{$\withT{}{}$-I} $\wth{M}{N}$, where
+    %   $M : \ctx{\Delta}{Q} \vdash A$, $N : \ctx{\Delta}{Q} \vdash B$:]
+    %   Inductively, we get $M' : \ctx{\Gamma}{P} \vdash A$ and
+    %   $N' : \ctx{\Gamma}{P} \vdash B$ from
+    %   $M$ and $N$, respectively.
+    %   We can combine $M'$ and $N'$ with \TirName{$\withT{}{}$-I} to get
+    %   $\wth{M'}{N'} : \ctx{\Gamma}{P} \vdash \withT{A}{B}$, as required.
+    % \item[\TirName{$\withT{}{}$-El}, \TirName{$\withT{}{}$-Er},
+    %   \TirName{$\sumT{}{}$-Il}, \TirName{$\sumT{}{}$-Ir}:]
+    %   These all follow simply like the last two cases.
+    % \item[\TirName{$\tensorOne$-I} $\unit$, where
+    %   $\resctx Q \subres \rescomment{\vct 0}$:]
+    %   We want to use \TirName{$\tensorOne$-I} to conclude
+    %   $\unit : \ctx{\Gamma}{P}$.
+    %   To do this, we must show that $\resctx P \subres \rescomment{\vct 0}$.
+    %   From the environment, we know that
+    %   $\resctx P \subres \resctx Q\rescomment\Psi$.
+    %   But because $\resctx Q \subres \rescomment{\vct 0}$, we get
+    %   $\resctx P \subres \rescomment{\vct 0}\rescomment\Psi
+    %   \subres \rescomment{\vct 0}$, as required.
+    % \item[\TirName{$\tensor{}{}$-I} $\ten{M}{N}$, where
+    %   $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash A$,
+    %   $N : \ctx{\Delta}{Q_{\mathnormal N}} \vdash B$,
+    %   $\resctx Q \subres \resctx Q_{\rescomment M} + \resctx Q_{\rescomment N}$:]
+    %   We want to inductively traverse $M$ and $N$.
+    %   This will produce terms
+    %   $M' : \ctx{\Gamma}{P_{\mathnormal M}} \vdash A$ and
+    %   $N' : \ctx{\Gamma}{P_{\mathnormal N}} \vdash B$, for some choice of
+    %   $\resctx P_{\rescomment M}$ and $\resctx P_{\rescomment N}$.
+    %   Furthermore, we want
+    %   $\resctx P \subres \resctx P_{\rescomment M} + \resctx P_{\rescomment N}$,
+    %   so that we can combine $M'$ and $N'$ using \TirName{$\tensor{}{}$-I},
+    %   getting $\ten{M'}{N'} : \ctx{\Gamma}{P} \vdash \tensor{A}{B}$, as
+    %   required.
+%
+    %   Let
+    %   $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$
+    %   and
+    %   $\resctx P_{\rescomment N} := \resctx Q_{\rescomment N}\rescomment\Psi$,
+    %   where $\rescomment\Psi$ comes from the environment.
+    %   We must make environments of types
+    %   $\ctx{\Gamma}{P_{\mathnormal M}}
+    %   \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal M}}$
+    %   and
+    %   $\ctx{\Gamma}{P_{\mathnormal N}}
+    %   \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal N}}$.
+    %   Notice that the data in these can be carried over from the environment we
+    %   were given, but we must recheck the usage condition in each case.
+    %   However, both of these just come down to the reflexivity of $\subres$.
+%
+    %   Finally, in order to apply \TirName{$\tensor{}{}$-I}, we must check that
+    %   $\resctx P \subres \resctx P_{\rescomment M} + \resctx P_{\rescomment N}$.
+    %   This follows by:
+    %   \[
+    %   \resctx P
+    %   \subres \resctx Q\rescomment\Psi
+    %   \subres (\resctx Q_{\rescomment M} + \resctx Q_{\rescomment N})
+    %   \rescomment\Psi
+    %   \subres \resctx Q_{\rescomment M}\rescomment\Psi +
+    %   \resctx Q_{\rescomment N}\rescomment\Psi
+    %   = \resctx P_{\rescomment M} + \resctx P_{\rescomment N}.
+    %   \]
+    % \item[\TirName{$\fun{}{}$-E}, \TirName{$\tensorOne{}$-E},
+    %   \TirName{$\sumTZero$-E}:]
+    %   These all follow similarly to the above case (ignoring the lack of a
+    %   subterm $N$ in the \TirName{$\sumTZero$-E} case).
+    % \item[\TirName{$\excl{\rho}{}$-I} $\bang{M}$, where
+    %   $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash A$,
+    %   $\resctx Q \subres \rescomment\rho \resctx Q_{\rescomment M}$:]
+    %   Following a similar strategy to the case above, let
+    %   $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$.
+    %   If we get a term $M' : \ctx{\Gamma}{P_{\mathnormal M}} \vdash A$, we will
+    %   be able to apply \TirName{$\excl{\rho}{}$-I} to get the result because
+    %   \[
+    %   \resctx P_{\rescomment M} = \resctx Q_{\rescomment M}\rescomment\Psi
+    %   \subres (\rescomment\rho\resctx Q)\rescomment\Psi
+    %   \subres \rescomment\rho(\resctx Q\rescomment\Psi)
+    %   \subres \rescomment\rho\resctx P.
+    %   \]
+%
+    %   To get $M'$, we traverse $M$ with the same environment at type
+    %   $\ctx{\Gamma}{P_{\mathnormal M}}
+    %   \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal M}}$.
+    %   The usage condition reduces to the definition of
+    %   $\resctx P_{\rescomment M}$.
+    % \item[\TirName{$\fun{}{}$-I} $\lam{x}{M}$, where
+    %   $M : \ctx{\Delta}{Q}, \ctxvar{x}{A}{1} \vdash B$:]
+    %   We want to inductively traverse $M$, yielding a term
+    %   $M' : \ctx{\Gamma}{P}, \ctxvar{x}{A}{1}$, to which we apply
+    %   \TirName{$\fun{}{}$-I} to get the desired result.
+    %   The environment we use to traverse $M$ is the result of the
+    %   \hyperref[lem:bind]{bind lemma} applied to the environment we were given.
+    % \item[\TirName{$\sumT{}{}$-E}, where
+    %   $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash \sumT{A}{B}$,
+    %   $N : \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{x}{A}{1} \vdash C$,
+    %   $O : \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{y}{B}{1} \vdash C$,
+    %   $\resctx Q \subres
+    %   \resctx Q_{\rescomment M} + \resctx Q_{\rescomment N}$:]
+    %   This is the most complex rule, combining splitting, sharing, and binding.
+    %   Let
+    %   $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$
+    %   and
+    %   $\resctx P_{\rescomment N} := \resctx Q_{\rescomment N}\rescomment\Psi$.
+    %   In order to traverse $M$, we repurpose the environment at type
+    %   $\ctx{\Gamma}{P_{\mathnormal M}}
+    %   \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal M}}$.
+    %   This amounts to checking that
+    %   $\resctx P_{\rescomment M} \subres
+    %   \resctx Q_{\rescomment M}\rescomment\Psi$, which is obvious.
+%
+    %   In order to traverse $N$ and $O$, we do similar to produce an environment
+    %   at type
+    %   $\ctx{\Gamma}{P_{\mathnormal N}}
+    %   \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal N}}$.
+    %   Then, we use the \hyperref[lem:bind]{bind lemma} to extend this
+    %   (separately) to environments of type
+    %   $\ctx{\Gamma}{P_{\mathnormal N}}, \ctxvar{x}{A}{1}
+    %   \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{x}{A}{1}$ and
+    %   $\ctx{\Gamma}{P_{\mathnormal N}}, \ctxvar{y}{B}{1}
+    %   \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{y}{B}{1}$.
+    %   These are enough to traverse $N$ and $O$, respectively.
+%
+    %   Finally, we apply \TirName{$\sumT{}{}$-E} to all of the traversed
+    %   derivations.
+    % \item[\TirName{$\tensor{}{}$-E}, \TirName{$\excl{\rho}{}$-E}:]
+    %   These both feature a similar combination of splitting and binding to the
+    %   previous case.
+    %   The \TirName{$\excl{\rho}{}$-E} rule involves binding a variable with
+    %   arbitrary annotation $\rescomment\rho$, but notice that the
+    %   \hyperref[lem:bind]{bind lemma} handles this perfectly well.
+%  \end{description}
 \end{proof}
 
 \section{Conclusion}\label{sec:conclusion}
 
-In this paper, we have presented \name{}, a symply typed calculus with usage
+In this paper, we have presented \name{}, a simply typed calculus with usage
 constraints via annotations on variables.
 For it, we have extended McBride's method of kits \cite{rensub05}.
 
-In future work, we would like to further develop the syntax and semantics of
-\name{}.
-We plan to develop an equational theory, and using that prove strong equivalence
-results between existing systems and instances of our system.
-We are working on generalising the framework of Allais et al. \cite{AACMM20} to
-work with usage annotations, which would allow us to abstract over common
-patterns in the proof of traversal.
-
-More future work includes comparing the results we achieve here with them of
-Licata, Shulman, and Riley \cite{LicataSR17}.
+In future work, we plan to develop an equational theory for \name{},
+and using that prove strong equivalence results between existing
+systems and instances of our system.  We are working on generalising
+the generic syntax with binding framework of Allais et
+al. \cite{AACMM20} to work with usage annotations, which would allow
+us to prove admissible rules for an even wider class of substructural
+calculi.  We would like to compare the results we achieve here with
+the framework of Licata, Shulman, and Riley \cite{LicataSR17}.
 
 \bibliographystyle{eptcsalpha}
 \bibliography{../quantitative}
