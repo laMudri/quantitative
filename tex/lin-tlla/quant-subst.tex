@@ -569,29 +569,28 @@ As an example of using \name{}, if we instantiate $\mathbf R$ to be the $\{0, 1,
 
 \section{Metatheory}\label{sec:metatheory}
 
-\paragraph{Admissible rules via Kits} 1. McBride defines Kits, which
-provide a general method for defining admissible rules via a generic
-traversal. When we define a kit, we define a relation between contexts
-and types and explain how to inject variables, how to generate terms
-from the relation, and how to go under binders. In return, we get a
-function between typed terms, the intrinsic typing version of an
-admissible rule.
+McBride defines \emph{kits} \cite{rensub05,bhkm12}, which provide a general
+method for giving admissible rules which are usually proven by induction on the
+derivation.
+To produce a kit, we give an indexed family
+$\kitrel : \mathrm{Ctx} \times \mathrm{Ty} \to \mathrm{Set}$ and explain how to
+inject variables, extract terms, and weaken by new variables coming from
+binders.
+In return, given a type-preserving map from variables in one context to
+$\kitrel$-stuff in another (an \emph{environment}), we get a type-preserving
+function between terms in these contexts.
+Such a function is the intrinsic typing equivalent of an admissible rule.
 
-2. Given a kit and an ``environment'', we obtain a generic
-traversal. To make this work for our usage accounted system, we need to (a) 
+To make the kit-based approach work in our usage-constrained setting, we make
+modifications to both kits and environments.
+Kits need not support arbitrary weakening, but only weakening by the
+introduction of $\rescomment 0$-use variables.
+The family $\kitrel$ must also respect $\subres$ of usage contexts.
+Environments are equipped with a matrix mapping input usages to output usages.
 
-We prove substitution via renaming in the style of Benton, Hur, Kennedy, and
-McBride \cite{bhkm12}.
-We take both renaming and substitution as corollaries of a \emph{traversal}
-principle, as given by McBride \cite{rensub05} (\autoref{thm:trav}).
-Our main modifications to McBride's method are the following.
-\begin{itemize}
-  \item Kits need not support arbitrary weakening, but rather weakening by the
-    introduction of $\rescomment 0$-use variables.
-    They must also respect $\subres$.
-  \item Environments are made linear by equipping them with a matrix (linear
-    map) mediating between the input and output usage annotations.
-\end{itemize}
+We prove simultaneous substitution via renaming.
+We take both renaming and substitution as corollaries of the \emph{traversal}
+principle (\autoref{thm:trav}) yielded from kits and environments.
 
 The definitions of \emph{kit} and \emph{environment}, as well as the proof of
 \hyperref[thm:trav]{traversal}, all can be found in the module
@@ -603,13 +602,17 @@ The definitions of \emph{kit} and \emph{environment}, as well as the proof of
 % - Note that we are being careful with resources in the 'wk' bit
 % - 'psh' is new, to cope with sub-usaging
 
-% 
-
 \subsection{Kits, Environments, and Traversals}
 
 A kit is a structure on $\vdash$-like relations $\kitrel$, intuitively
 giving a way in which $\kitrel$ lives between the usage-checked variable
 judgement $\lvar$ and the typing judgement $\vdash$.
+The components $\mathit{vr}$ and $\mathit{tm}$ are basically unchanged from
+McBride's original kits.
+The component $\mathit{wk}$ only differs in that new variables are given
+annotation $\rescomment 0$, which intuitively marks them as weakenable.
+The requirement $\mathit{psh}$ is new, and allows us to fix up usage contexts
+via skew algebraic reasoning.
 
 \begin{definition}[\AgdaRecord{Kit}]\label{def:kit}
   For any $\kitrel : \mathrm{Ctx} \times \mathrm{Ty} \to \mathrm{Set}$, let
