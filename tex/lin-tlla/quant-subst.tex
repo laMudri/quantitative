@@ -153,7 +153,7 @@ renaming and substitution (approx. 530 lines).
 
 \section{Skew semirings}\label{sec:algebra}
 
-We shall use skew semirings where authors have previously used partially ordered
+We shall use skew semirings where other authors have previously used partially ordered
 semirings (see, for example, the Granule definition of a \emph{usage algebra} \cite{Granule18}).
 Elements of a skew semiring are used as \emph{usage annotations}, and describe
 \emph{how} values are used in a program.
@@ -168,12 +168,12 @@ We can read this relation as ``$\textrm{supply} \subres \textrm{demand}$'' ---
 where we demand that a variable be used according to $\rho$, it is also fine to
 use it if it is annotated $\pi$.
 
-Skew semirings are a generalisation of semirings, which are in turn a
+Skew semirings are a generalisation of partially ordered semirings, which are in turn a
 generalisation of commutative semirings.
 As such, readers unfamiliar with the more general structures may wish to think
 in terms of the more specific structures.
-Our formalisation was essential for noticing and sticking to the level of
-generality we have done.
+Our formalisation was essential for noticing and sticking to this level of
+generality.
 
 \begin{definition}
   A \emph{(left) skew monoid} is a structure $(\mathbf R, \subres, 1, *)$ such
@@ -271,7 +271,7 @@ ${-}_{{-}\times{-}}$ are defined as follows:
 \end{mathpar}
 
 We define vector-matrix multiplication by treating vectors
-as$1$-height matrices.
+as $1$-height matrices.
   
 % We make use of the following operators, which we also take to work on vectors
 % (for example, we often multiply a row vector by a matrix, in that order).
