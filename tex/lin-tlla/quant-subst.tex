@@ -71,21 +71,33 @@ on, are crucial but quite boring to prove. In the case of calculi with
 substructural typing disciplines and modalities, it can also be quite
 easy to break these properties \cite{wadler91use}. It is desirable
 therefore to use a proof assistant to prove these properties. This has
-the double benefit of confidence in the results, and in focusing on
-the essential properties required to obtain them.
+the double benefit of both confidence in the results and in focusing
+on the essential properties required to obtain them.
 
 Mechanisation of the metatheory of substructural $\lambda$-calculi has
 not received the same level of attention as intuitionistic
 typing. ``Straightforward'' translations from paper presentations to
-formal presentations are difficult, due to incompatibilies between the
-standard de Bruijn representation of binding and the splitting of
-contexts. Allais' \emph{Typing with Leftovers}
-\cite{allais:LIPIcs:2018:10049} overcame this by tracking usage in an
-I/O style. Rouvoet et al.~\cite{RPKV20} and Crary \cite{crary10} offer
-other formalisations in Agda and Twelf respectively. Usage
-annotations, arising from the coeffect literature, in tandem with the
-linear algebraic approach we present here offer an approach that, in
-our experience, is amenable to formalisation.
+formal presentations make metatheory difficult, due to incompatibilies
+between the standard de Bruijn representation of binding and the
+splitting of contexts. For formalisations of linear sequent calculi,
+sticking to the paper presentation using lists and permutations is
+common \cite{power99,XavierORN18,laurent18}, but explicit permutations
+make the resulting encodings difficult to use. Multisets for contexts
+are more convenient \cite{ChaudhuriLR19}, but do not work well for
+Curry-Howard uses, as noted by Laurent. For natural deduction, Allais
+\cite{allais:LIPIcs:2018:10049} uses an I/O model to track usage of
+variables, Rouvoet et al.~\cite{RPKV20} use a co-de Bruijn
+representation to distribute variables between subterms, and Crary
+uses mutually defined typing and linearity judgements with HOAS
+\cite{crary10}.
+
+% Allais' \emph{Typing with Leftovers}
+% \cite{allais:LIPIcs:2018:10049} overcame this by tracking usage in an
+% I/O style. Rouvoet et al.~\cite{RPKV20} and Crary \cite{crary10} offer
+% other formalisations in Agda and Twelf respectively. Usage
+% annotations, arising from the coeffect literature, in tandem with the
+% linear algebraic approach we present here offer an approach that, in
+% our experience, is amenable to formalisation.
 
 In this paper, we adapt the generic \emph{kits and traversals}
 technique for proving admissibility of renaming and substitution due
@@ -95,18 +107,21 @@ those variables' \emph{usage} by terms. Our calculus, \name{}, is a
 prototypical example of a linear ``quantitative'' or ``coeffect''
 calculus in the style of
 \cite{reed10distance,BrunelGMZ14,GhicaS14,PetricekOM14,Granule18}. By
-selecting different semirings, we obtain from \name{} systems equivalent to
-Barber's Dual Intuitionistic Linear Logic \cite{Barber1996} or
-Pfenning and Davis' S4 modal type theory \cite{judgmental}.
+selecting different semirings, we obtain from \name{} systems
+equivalent to Barber's Dual Intuitionistic Linear Logic
+\cite{Barber1996} or Pfenning and Davis' S4 modal type theory
+\cite{judgmental}. The key advantage of \name{} over the formalisations
+listed above is that the shape of typing contexts is maintained, so de
+Bruijn indices behave the same as in non-substructural calculi.
 
 McBride's kits and traversals technique isolates properties required
 to form binding-respecting traversals of simply typed $\lambda$-terms,
 so that renaming and substitution arise as specific
 instantiations. Benton, Hur, Kennedy, and McBride \cite{bhkm12}
-implement the technique in Coq and extend the technique to polymorphic
+implement the technique in Coq and extend it to polymorphic
 terms. Allais \emph{et al.}~\cite{AACMM20} generalise to a wider class
 of syntax with binding and show that more general notions of
-\emph{semantics} can be explored with the technique.
+\emph{semantics} can be handled.
 
 To adapt kits and traversals to linear usage-annotated terms requires
 us to not only respect the binding structure, but to also respect the
@@ -571,7 +586,7 @@ If we instantiate $\mathbf R$ to be the $\{0, 1, \omega\}$ semiring, then we obt
 \section{Metatheory}\label{sec:metatheory}
 
 McBride defines \emph{kits} \cite{rensub05,bhkm12}, which provide a general
-method for giving admissible rules which are usually proven by induction on the
+method for giving admissible rules that are usually proven by induction on the
 derivation.
 To produce a kit, we give an indexed family
 $\kitrel : \mathrm{Ctx} \times \mathrm{Ty} \to \mathrm{Set}$ and explain how to

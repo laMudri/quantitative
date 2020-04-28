@@ -115,7 +115,6 @@
             year = {2019},
          journal = {Proceedings of the ACM on Programming Languages},
         keywords = {graded modal types, linear types, coeffects, implementation},
-             url = {https://kar.kent.ac.uk/74450/},
         abstract = {In programming, data is often considered to be infinitely copiable, arbitrarily discardable, and universally unconstrained. However this view is naive: some data encapsulates resources that are subject to protocols (e.g., file and device handles, channels); some data should not be arbitrarily copied or communicated (e.g., private data). Linear types provide a partial remedy by delineating data in two camps: "resources" to be used but never copied or discarded, and unconstrained values. However, this binary distinction is too coarse-grained. Instead, we propose the general notion of graded modal types, which in combination with linear and indexed types, provides an expressive type theory for enforcing fine-grained resource-like properties of data. We present a type system drawing together these aspects (linear, graded, and indexed) embodied in a fully-fledged functional language implementation, called Granule. We detail the type system, including its metatheoretic properties, and explore examples in the concrete language. This work advances the wider goal of expanding the reach of type systems to capture and verify a broader set of program properties.}
 }
 
@@ -205,7 +204,7 @@
   numpages = {15},
   keywords = {type safety, linear types, mechanized semantics, separation logic, Agda, session types, definitional interpreters, dependent types},
   location = {New Orleans, LA, USA},
-  series = {CPP 2020}
+  booktitle = {CPP 2020}
 }
 
 @article{polakow15,
@@ -248,6 +247,50 @@
   title={There's no substitute for linear logic},
   author={Wadler, Philip},
   booktitle={8th International Workshop on the Mathematical Foundations of Programming Semantics},
-  year={1992},
-  organization={Citeseer}
-}}
+  year=1992}
+
+@unpublished{power99,
+ author={James Power and Caroline Webster},
+ title={Working with Linear Logic in Coq},
+ year = {1999},
+ note = {12th International Conference on Theorem Proving in Higher Order Logics (Work-in-progress paper)}}
+
+@unpublished{laurent18,
+ author={Olivier Laurent},
+ title={Preliminary Report on the Yalla Library},
+ year = {2018},
+ note = {Coq Workshop},
+ url = {https://perso.ens-lyon.fr/olivier.laurent/yalla/}}
+
+@article{ChaudhuriLR19,
+  author    = {Kaustuv Chaudhuri and
+               Leonardo Lima and
+               Giselle Reis},
+  title     = {Formalized meta-theory of sequent calculi for linear logics},
+  journal   = {Theor. Comput. Sci.},
+  volume    = 781,
+  pages     = {24--38},
+  year      = 2019,
+  doi       = {10.1016/j.tcs.2019.02.023},
+  timestamp = {Fri, 05 Jul 2019 09:39:48 +0200},
+  biburl    = {https://dblp.org/rec/journals/tcs/ChaudhuriLR19.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{XavierORN18,
+  author    = {Bruno Xavier and
+               Carlos Olarte and
+               Giselle Reis and
+               Vivek Nigam},
+  title     = {Mechanizing Focused Linear Logic in Coq},
+  booktitle = {12th Workshop on Logical and Semantic Frameworks, with Applications},
+  series    = {ENTCS},
+  volume    = {338},
+  pages     = {219--236},
+  publisher = {Elsevier},
+  year      = {2017},
+  doi       = {10.1016/j.entcs.2018.10.014},
+  timestamp = {Wed, 05 Feb 2020 13:49:05 +0100},
+  biburl    = {https://dblp.org/rec/journals/entcs/XavierORN18.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
