@@ -422,24 +422,26 @@ $\mathbf R$, and vectors and matrices thereof, in \rescomment{green}.
 % \paragraph{Types}
 
 The types of \name{} are given by the grammar:
-$  A,B,C ::= \iota \mid A \multimap B \mid 1 \mid A \otimes B \mid 0 \mid A \oplus B \mid \top \mid A \with B \mid \excl{\rho} A$. 
-We have a base type $\iota$, function types $A \multimap B$, tensor
-product types $A \otimes B$ with unit $1$, sum types $A \oplus B$ with
-unit $0$, ``with'' product types $A \with B$ with unit $\top$, and an
-exponential modality $\excl{\rho} A$ that is indexed by a usage
-annotation $\rescomment{\rho}$.
+$ A,B,C ::= \iota \mid A \multimap B \mid 1 \mid A \otimes B \mid 0
+\mid A \oplus B \mid \top \mid A \with B \mid \excl{\rho} A$.  We have
+a base type $\iota$, function types $A \multimap B$, tensor product
+types $A \otimes B$ with unit $1$, sum types $A \oplus B$ with unit
+$0$, ``with'' product types $A \with B$ with unit $\top$, and an
+exponential $\excl{\rho} A$ indexed by a usage $\rescomment{\rho}$.
 
 We distinguish between \emph{plain} variables, values of type
 $\Gamma \ni A$, which are indices into a context with a specified
 type, and \emph{usage-checked} variables, values of type
-$\ctx{\Gamma}{R} \lvar A$, which describe the conditions under which a
-variable can be used in a context, subject to the constraints of usage
-annotations. Formally, a usage-checked variable is a pair of a plain
-variable $i : \Gamma \ni A$ and proof that
+$\ctx{\Gamma}{R} \lvar A$ which are pairs of a plain variable
+$i : \Gamma \ni A$ and proof that
 $\resctx R \subres \langle i \rvert$. The force of the latter
 condition is that the selected variable $i$ must have a usage
 annotation $\subres \rescomment 1$ in $\resctx{R}$, and all other
 variables must have a usage annotation $\subres \rescomment 0$.
+
+% , which describe the conditions under which a
+% variable can be used in a context, subject to the constraints of usage
+% annotations. Formally, a usage-checked variable is a 
 
 % \begin{definition}[plain variable, \AgdaRecord{IVar}]
 %   We write $\Gamma \ni A$ as the type of variables in $\Gamma$ with type $A$.
@@ -653,7 +655,8 @@ via skew algebraic reasoning.
 An inhabitant of $\ctx{\Gamma}{P} \kitrel A$ is described as
 \emph{stuff in $\ctx{\Gamma}{P}$ of type $A$}.
 
-\paragraph{Environments} In simple intuitionistic type theory, an
+\paragraph{Environments}
+In simple intuitionistic type theory, an
 environment is a type-preserving function from variables in the old
 context $\Delta$ to stuff in the new context $\Gamma$: an inhabitant
 of $\Delta \ni A \to \Gamma \kitrel A$.  The traversal function turns
@@ -669,20 +672,18 @@ $\resctx Q$ is compatible with a basis vector, so our environment would be
 trivial in more general cases.
 Instead, we care about non-usage-checked variables $\Delta \ni A$.
 
-Our understanding of an environment is that it should simultaneously map all of
-the usage-checked variables in $\ctx{\Delta}{Q}$ to stuff in $\ctx{\Gamma}{P}$
-in a way that preserves usage.
-As such, we want to map each variable $j : \Delta \ni A$ not to $A$-stuff in
-$\ctx{\Gamma}{P}$, but rather $A$-stuff in $\resctx P_j\Gamma$,
-where $\resctx P_j$ is some fragment of $\resctx P$.
-Precisely, when weighted by $\resctx Q\lvert j \rangle$, we want these
-$\resctx P_j$ to sum to $\resctx P$, so as to provide ``enough'' usage to cover
-all of the variables $j$.
-When we collect all of the $\resctx P_j$ into a matrix $\rescomment\Psi$, we
-notice that the condition just described is stated succinctly via a
-vector-matrix multiplication $\resctx Q\rescomment\Psi$.
-
-This culminates to give us the following requirements.
+Our understanding of an environment is that it should simultaneously
+map all of the usage-checked variables in $\ctx{\Delta}{Q}$ to stuff
+in $\ctx{\Gamma}{P}$ in a way that preserves usage.  As such, we want
+to map each variable $j : \Delta \ni A$ not to $A$-stuff in
+$\ctx{\Gamma}{P}$, but rather $A$-stuff in $\resctx P_j\Gamma$, where
+$\resctx P_j$ is some fragment of $\resctx P$.  Precisely, when
+weighted by $\resctx Q\lvert j \rangle$, we want these $\resctx P_j$
+to sum to $\resctx P$, so as to provide ``enough'' usage to cover all
+of the variables $j$.  When we collect all of the $\resctx P_j$ into a
+matrix $\rescomment\Psi$, we notice that the condition just described
+is stated succinctly via a vector-matrix multiplication
+$\resctx Q\rescomment\Psi$. This culminates to give us the following:
 
 \begin{definition}[\AgdaRecord{Env}]\label{def:env}
   For any $\kitrel$, $\resctx P$, $\resctx Q$, $\Gamma$, and $\Delta$,
@@ -718,9 +719,9 @@ proof is in \autoref{sec:proof-of-traversal}.
 
 \subsection{Renaming}
 
-We now show how to use traversals to prove that renaming and
-sub-usaging are admissible. This subsection corresponds to the Agda
-module \AgdaModule{Specific.Syntax.Renaming}.
+We now show how to use traversals to prove that renaming (including
+weakening) and sub-usaging are admissible. This subsection corresponds
+to the Agda module \AgdaModule{Specific.Syntax.Renaming}.
 
 \begin{definition}[\AgdaFunction{LVar-kit}]\label{def:lvar-kit}
   Let $\lvar\textrm{-kit} : \kit(\lvar)$ be defined with the following
@@ -1103,10 +1104,12 @@ lemma that shows that environments can be pushed under binders.
 \section{Conclusion}\label{sec:conclusion}
 
 We have extended McBride's method of kits and traversals to proving
-admissibility of renaming, sub-usaging and substitution to the linear
-usage-annotated calculus \name{}. In the course of doing so, we have
-discovered that only skew semirings are required, and the importance
-of linear algebra for stating and proving these results.
+admissibility of renaming, sub-usaging and substitution to the
+usage-annotated calculus \name{}. In doing so, we have discovered that
+only skew semirings are required, and the importance of linear algebra
+for stating and proving these results. Though we have not had space to
+elaborate here, \name{} is capable of representing several well known
+linear and modal type theories by choice of semiring.
 
 % In this paper, we have presented \name{}, a simply typed calculus with usage
 % constraints via annotations on variables.
@@ -1123,10 +1126,10 @@ to future work. They have not formalised their work.
 % In particular, we focus on ``at least linear'' systems, and prove an inherently
 % linear result.
 
-We plan to generalise the generic syntax with binding framework of
-Allais \emph{et al.}~\cite{AACMM20} to work with usage annotations,
-which would allow us to prove admissible rules for an even wider class
-of substructural calculi.
+We plan to build on our work here to generalise the generic syntax
+with binding framework of Allais \emph{et al.}~\cite{AACMM20} to
+include usage annotations, allowing generic metatheory and semantics
+for an even wider class of substructural calculi.
 
 \bibliographystyle{eptcsalpha}
 \bibliography{../quantitative}
