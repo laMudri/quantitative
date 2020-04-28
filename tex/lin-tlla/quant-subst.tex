@@ -1,5 +1,5 @@
 \documentclass[submission,copyright,creativecommons]{eptcs}
-\providecommand{\event}{TLLA 2020} % Name of the event you are submitting to
+\providecommand{\event}{Linearity \& TLLA 2020} % Name of the event you are submitting to
 \usepackage{breakurl}             % Not needed if you use pdflatex only.
 \usepackage{underscore}           % Only needed if you use pdflatex.
 
@@ -106,13 +106,13 @@ variables are annotated with values from a skew semiring denoting
 those variables' \emph{usage} by terms. Our calculus, \name{}, is a
 prototypical example of a linear ``quantitative'' or ``coeffect''
 calculus in the style of
-\cite{reed10distance,BrunelGMZ14,GhicaS14,PetricekOM14,Granule18}. By
-selecting different semirings, we obtain from \name{} systems
-equivalent to Barber's Dual Intuitionistic Linear Logic
-\cite{Barber1996} or Pfenning and Davis' S4 modal type theory
-\cite{judgmental}. The key advantage of \name{} over the formalisations
-listed above is that the shape of typing contexts is maintained, so de
-Bruijn indices behave the same as in non-substructural calculi.
+\cite{reed10distance,BrunelGMZ14,GhicaS14,PetricekOM14,Granule18}. The
+key advantages of \name{} over the formalisations listed above are
+that the shape of typing contexts is maintained, so de Bruijn indices
+behave the same as in non-substructural calculi, and by selecting
+different semirings, we obtain from \name{} well known systems,
+including Barber's Dual Intuitionistic Linear Logic \cite{Barber1996}
+and Pfenning and Davis' S4 modal type theory \cite{judgmental}.
 
 McBride's kits and traversals technique isolates properties required
 to form binding-respecting traversals of simply typed $\lambda$-terms,
@@ -125,8 +125,8 @@ of syntax with binding and show that more general notions of
 
 To adapt kits and traversals to linear usage-annotated terms requires
 us to not only respect the binding structure, but to also respect the
-\emph{usage} annotations. For instance, the usages associated with a
-term being substituted in must be correctly distributed across all the
+usage annotations. For instance, the usages associated with a term
+being substituted in must be correctly distributed across all the
 occurrences of that term in the result. To aid us in tracking usages
 correctly, we employ the linear algebra of vectors and matrices
 induced by the skew semiring we are using. Usage annotations on
@@ -463,8 +463,8 @@ simply typed counterparts; the only difference between the $\otimes$
 and $\with$ products being their presentation in terms of pattern
 matching and projections, respectively.
 Thus the addition of usage contexts and constraints on them refines the usual simple typing to be usage constrained.
-For instance, in the \TirName{$\otimes$-I} rule, the usage context $\rescomment R$ on the conclusion is constrained to be able to supply the sum $\rescomment P + \rescomment Q$ of the usage contexts of the premises.
-If we instantiate $\mathbf R$ to be the $\{0, 1, \omega\}$ semiring, then we obtain a system that is equivalent to Barber's DILL \cite{Barber1996}.
+For instance, in the \TirName{$\otimes$-I} rule, the usage context $\resctx R$ on the conclusion is constrained to be able to supply the sum $\resctx P + \resctx Q$ of the usage contexts of the premises.
+If we instantiate $\mathbf R$ to be the $0 \triangleright 1 \triangleleft \omega$ semiring, then we obtain a system that is equivalent to Barber's DILL \cite{Barber1996}.
 
 % It is a refinement of simply typed $\lambda$-calculus sporting usage annotations
 % from $\mathbf R$ on variables in the context and constraints on term formation
