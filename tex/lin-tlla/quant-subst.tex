@@ -133,7 +133,7 @@ induced by the skew semiring we are using. Usage annotations on
 contexts are vectors, usage-preserving maps of contexts are matrices,
 and the linearity properties of the maps induced by matrices are
 exactly the lemmas we need for showing that traversals (and hence
-renaming, sub-usaging, and substitution) preserve typing and usages.
+renaming, subusaging, and substitution) preserve typing and usages.
 
 % We build on previous work on coeffects
 % \cite{BrunelGMZ14,GhicaS14,reed10distance,PetricekOM14} to produce a generic
@@ -155,7 +155,7 @@ In \autoref{sec:algebra}, we specify our requirements on the set of annotations
 that will track usage of variables. A consequence of our formalisation is that we learn that we only need \emph{skew} semirings, a weaker structure than the partially ordered semirings usually used.
 In \autoref{sec:syntax}, we use these annotations to define the system
 \name{} in an intrinsically typed style.
-Then, in \autoref{sec:metatheory}, we prove that \name{} admits renaming, sub-usaging, and
+Then, in \autoref{sec:metatheory}, we prove that \name{} admits renaming, subusaging, and
 substitution by our extension of McBride's kits and traversals technique.
 We conclude in \autoref{sec:conclusion} with some directions for future work.
 
@@ -619,7 +619,7 @@ Definition of \emph{kit}s, \emph{environment}s and
 % - Just define a kit, saying what it is used for (i.e. sketch the traversal we get)
 % - State that 'vr', 'tm' and 'wk' are also in Conor's version.
 % - Note that we are being careful with resources in the 'wk' bit
-% - 'psh' is new, to cope with sub-usaging
+% - 'psh' is new, to cope with subusaging
 
 \subsection{Kits, Environments, and Traversals}
 
@@ -705,7 +705,7 @@ $\resctx Q\rescomment\Psi$. This culminates to give us the following:
 \end{definition}
 
 Our main result is the following, which we will instantiate to prove
-admissibility of renaming (\autoref{cor:ren}), sub-usaging
+admissibility of renaming (\autoref{cor:ren}), subusaging
 (\autoref{cor:subusage}), and substitution (\autoref{cor:sub}). The
 proof is in \autoref{sec:proof-of-traversal}.
 
@@ -721,7 +721,7 @@ proof is in \autoref{sec:proof-of-traversal}.
 \subsection{Renaming}
 
 We now show how to use traversals to prove that renaming (including
-weakening) and sub-usaging are admissible. This subsection corresponds
+weakening) and subusaging are admissible. This subsection corresponds
 to the Agda module \AgdaModule{Specific.Syntax.Renaming}.
 
 \begin{definition}[\AgdaFunction{LVar-kit}]\label{def:lvar-kit}
@@ -789,7 +789,7 @@ be calculated from the action of the renaming on non-usage-checked variables.
 %   By the lemmas from this subsection and \autoref{thm:trav}.
 % \end{proof}
 
-\begin{corollary}[sub-usaging, \AgdaFunction{subuse}]\label{cor:subusage}
+\begin{corollary}[subusaging, \AgdaFunction{subuse}]\label{cor:subusage}
   Given $\resctx P \subres \resctx Q$, then we have a function
   $\ctx{\Gamma}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.
 \end{corollary}
@@ -807,7 +807,7 @@ corresponds to the Agda module
   \begin{description}
     \item[$\mathit{psh}~(\mathit{PQ} : \resctx P \subres \resctx Q)
       : \ctx{\Gamma}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$:]
-      This is \hyperref[cor:subusage]{Corollary \ref*{cor:subusage} (sub-usaging)}.
+      This is \hyperref[cor:subusage]{Corollary \ref*{cor:subusage} (subusaging)}.
       
       % We can use a specialised version of \hyperref[cor:ren]{renaming} in which
       % the variable mapping $f$ is the identity function.
@@ -1105,7 +1105,7 @@ lemma that shows that environments can be pushed under binders.
 \section{Conclusion}\label{sec:conclusion}
 
 We have extended McBride's method of kits and traversals to proving
-admissibility of renaming, sub-usaging and substitution to the
+admissibility of renaming, subusaging and substitution to the
 usage-annotated calculus \name{}. In doing so, we have discovered that
 only skew semirings are required, and the importance of linear algebra
 for stating and proving these results. Though we have not had space to
