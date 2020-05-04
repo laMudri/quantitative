@@ -288,6 +288,8 @@ ${-}_{{-}\times{-}}$ are defined as follows:
 
 We define vector-matrix multiplication by treating vectors
 as $1$-height matrices.
+We will sometimes silently cast between the types $\mathrm{Idx}~m$ and
+$\Gamma \ni A$, particularly when using the reindexing operation.
   
 % We make use of the following operators, which we also take to work on vectors
 % (for example, we often multiply a row vector by a matrix, in that order).
@@ -301,8 +303,7 @@ as $1$-height matrices.
     \inferrule*[right=var]
     {x : \ctx{\Gamma}{R} \lvar A}
     {x : \ctx{\Gamma}{R} \vdash A}
-  \end{mathpar}
-  \begin{mathpar}
+    \and
     \inferrule*[right=$\fun{}{}$-E]
     {M : \ctx{\Gamma}{P} \vdash \fun{A}{B}
       \\ N : \ctx{\Gamma}{Q} \vdash A
@@ -1131,6 +1132,9 @@ We plan to build on our work here to generalise the generic syntax
 with binding framework of Allais \emph{et al.}~\cite{AACMM20} to
 include usage annotations, allowing generic metatheory and semantics
 for an even wider class of substructural calculi.
+
+\paragraph{Acknowledgements}
+We are thankful for comments from Guillaume Alais.
 
 \bibliographystyle{eptcsalpha}
 \bibliography{../quantitative}
