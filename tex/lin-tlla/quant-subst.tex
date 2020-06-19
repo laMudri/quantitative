@@ -288,8 +288,6 @@ ${-}_{{-}\times{-}}$ are defined as follows:
 
 We define vector-matrix multiplication by treating vectors
 as $1$-height matrices.
-We will sometimes silently cast between the types $\mathrm{Idx}~m$ and
-$\Gamma \ni A$, particularly when using the reindexing operation.
   
 % We make use of the following operators, which we also take to work on vectors
 % (for example, we often multiply a row vector by a matrix, in that order).
@@ -439,7 +437,11 @@ $i : \Gamma \ni A$ and proof that
 $\resctx R \subres \langle i \rvert$. The force of the latter
 condition is that the selected variable $i$ must have a usage
 annotation $\subres \rescomment 1$ in $\resctx{R}$, and all other
-variables must have a usage annotation $\subres \rescomment 0$.
+variables must have a usage annotation $\subres \rescomment 0$. We
+will sometimes silently cast between the types $\mathrm{Idx}~m$ and
+$\Gamma \ni A$, particularly when using the reindexing operation
+${-}_{{-}\times{-}}$.
+
 
 % , which describe the conditions under which a
 % variable can be used in a context, subject to the constraints of usage
