@@ -134,27 +134,27 @@
     \ifnoncommercial
       \href{http://creativecommons.org}{Creative Commons}\\
       \ifnoderivs
-	\href{http://creativecommons.org/licenses/by-nc-nd/3.0/}
+	\href{http://creativecommons.org/licenses/by-nc-nd/4.0/}
 	{Attribution-Noncommercial-No Derivative Works} License.
       \else\ifsharealike
-	\href{http://creativecommons.org/licenses/by-nc-sa/3.0/}
+	\href{http://creativecommons.org/licenses/by-nc-sa/4.0/}
 	{Attribution-Noncommercial-Share Alike} License.
       \else
-	\href{http://creativecommons.org/licenses/by-nc/3.0/}
+	\href{http://creativecommons.org/licenses/by-nc/4.0/}
 	{Attribution-Noncommercial} License.
       \fi\fi
     \else
       \ifnoderivs
         \href{http://creativecommons.org}{Creative Commons}\\
-	\href{http://creativecommons.org/licenses/by-nd/3.0/}
+	\href{http://creativecommons.org/licenses/by-nd/4.0/}
 	{Attribution-No Derivative Works} License.
       \else\ifsharealike
         \href{http://creativecommons.org}{Creative Commons}\\
-	\href{http://creativecommons.org/licenses/by-sa/3.0/}
+	\href{http://creativecommons.org/licenses/by-sa/4.0/}
 	{Attribution-Share Alike} License.
       \else
         \\\href{http://creativecommons.org}{Creative Commons}
-	\href{http://creativecommons.org/licenses/by/3.0/}
+	\href{http://creativecommons.org/licenses/by/4.0/}
 	{Attribution} License.
       \fi\fi
     \fi
