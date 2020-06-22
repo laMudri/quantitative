@@ -9,7 +9,13 @@
 \newcommand{\fixmeBA}[1]{{\color{red}{[Bob:{\em #1}]}}}
 
 
-\newcommand{\bind}[2]{{#2}\{{#1}\}}
+\newcommand{\bind}[2]{%
+  \if\debruijn0%
+  {#2}\{{#1}\}%
+  \else%
+  {#2}%
+  \fi%
+}
 \newcommand{\ctx}[2]{%
   \if\multnotation0%
   #1^{\resctx{#2}}%
@@ -18,10 +24,14 @@
   \fi
 }
 \newcommand{\ctxvar}[3]{%
+  \if\debruijn0%
   \if\multnotation0%
   #1 \stackrel{\rescomment{#3}}: #2%
   \else%
   \rescomment{#3}#1 : #2%
+  \fi%
+  \else%
+  \rescomment{#3}#2%
   \fi%
 }
 \definecolor{res}{HTML}{008000}
@@ -39,16 +49,28 @@
 \newcommand{\base}[0]{\iota}
 
 \newcommand{\fun}[2]{#1 \multimap #2}
-\newcommand{\lam}[2]{\lambda #1.~#2}
+\newcommand{\lam}[2]{%
+  \if\debruijn0%
+  \lambda #1.~#2%
+  \else%
+  \lambda #2%
+  \fi%
+}
 \newcommand{\app}[2]{#1~#2}
 
 \newcommand{\excl}[2]{\oc_{\rescomment{#1}} #2}
 \newcommand{\bang}[1]{\left[#1\right]}
-\newcommand{\bm}[4]{\if\newelims0%
-\operatorname{bm}_{#1}(#2, \bind{#3}{#4})%
-\else%
-\mathrm{let}~\bang{#3} = #2~\mathrm{in}~#4%
-\fi}
+\newcommand{\bm}[4]{%
+  \if\newelims0%
+  \operatorname{bm}_{#1}(#2, \bind{#3}{#4})%
+  \else%
+  \if\debruijn0%
+  \mathrm{let}~\bang{#3} = #2~\mathrm{in}~#4%
+  \else%
+  \mathrm{let}~\bang{-} = #2~\mathrm{in}~#4%
+  \fi%
+  \fi%
+}
 
 \newcommand{\tensorOne}[0]{1}
 \newcommand{\unit}[0]{(\mathbin{_\otimes})}
@@ -60,11 +82,17 @@
 
 \newcommand{\tensor}[2]{#1 \otimes #2}
 \newcommand{\ten}[2]{(#1 \mathbin{_{\otimes}} #2)}
-\newcommand{\prm}[5]{\if\newelims0%
-\operatorname{pm}_{#1}(#2, \bind{#3, #4}{#5})%
-\else%
-\mathrm{let}~\ten{#3}{#4} = #2~\mathrm{in}~#5%
-\fi}
+\newcommand{\prm}[5]{%
+  \if\newelims0%
+  \operatorname{pm}_{#1}(#2, \bind{#3, #4}{#5})%
+  \else%
+  \if\debruijn0%
+  \mathrm{let}~\ten{#3}{#4} = #2~\mathrm{in}~#5%
+  \else%
+  \mathrm{let}~\ten{-}{-} = #2~\mathrm{in}~#5%
+  \fi%
+  \fi%
+}
 
 \newcommand{\withTOne}[0]{\top}
 \newcommand{\eat}[0]{(\mathbin{_{\with}})}
@@ -78,12 +106,18 @@
 
 \newcommand{\sumT}[2]{#1 \oplus #2}
 \newcommand{\inj}[2]{\operatorname{inj}_{#1} #2}
-\newcommand{\cse}[6]{\if\newelims0%
-\operatorname{case}_{#1}(#2, \bind{#3}{#4}, \bind{#5}{#6})%
-\else%
-\mathrm{case}~#2~\mathrm{of}~\inj{L}{#3} \mapsto #4
-                         ~;~ \inj{R}{#5} \mapsto #6%
-\fi}
+\newcommand{\cse}[6]{%
+  \if\newelims0%
+  \operatorname{case}_{#1}(#2, \bind{#3}{#4}, \bind{#5}{#6})%
+  \else%
+  \if\debruijn0%
+  \mathrm{case}~#2~\mathrm{of}~\inj{L}{#3} \mapsto #4
+                            ~;~ \inj{R}{#5} \mapsto #6%
+  \else%
+  \mathrm{case}~#2~\mathrm{of}~\inj{L}{-} \mapsto #4 ~;~ \inj{R}{-} \mapsto #6
+  \fi%
+  \fi%
+}
 
 \newcommand{\listT}[1]{\operatorname{List} #1}
 \newcommand{\nil}[0]{[]}

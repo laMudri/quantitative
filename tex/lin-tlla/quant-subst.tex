@@ -33,6 +33,7 @@
 \declaretheorem[numberlike=theorem]{remark}
 
 \def\newelims{1}
+\def\debruijn{1}
 \def\multnotation{1}
 \input{macros.tex}
 
@@ -122,13 +123,15 @@ implement the technique in Coq and extend it to polymorphic
 terms. Allais \emph{et al.}~\cite{AACMM20} generalise to a wider class
 of syntax with binding and show that more general notions of
 \emph{semantics} can be handled.
+Using methods like these can reduce the effort required to develop a new
+calculus and its metatheory.
 
 To adapt kits and traversals to linear usage-annotated terms requires
 us to not only respect the binding structure, but to also respect the
 usage annotations. For instance, the usages associated with a term
 being substituted in must be correctly distributed across all the
-occurrences of that term in the result. To aid us in tracking usages
-correctly, we employ the linear algebra of vectors and matrices
+occurrences of that term in the result. To aid us in tracking usages,
+we employ the linear algebra of vectors and matrices
 induced by the skew semiring we are using. Usage annotations on
 contexts are vectors, usage-preserving maps of contexts are matrices,
 and the linearity properties of the maps induced by matrices are
@@ -181,8 +184,8 @@ The ordering describes the specificness of annotations.
 If $\pi \subres \rho$, $\pi$ can be the annotation for a variable wherever
 $\rho$ can be.
 We can read this relation as ``$\textrm{supply} \subres \textrm{demand}$'' ---
-where we demand that a variable be used according to $\rho$, it is also fine to
-use it if it is annotated $\pi$.
+given a variable annotated $\pi$, we can coerce to treat it as if it has the
+desired annotation $\rho$.
 
 Skew semirings are a generalisation of partially ordered semirings, which are in turn a
 generalisation of commutative semirings.
@@ -194,7 +197,8 @@ generality.
 \begin{definition}
   A \emph{(left) skew monoid} is a structure $(\mathbf R, \subres, 1, *)$ such
   that $(\mathbf R, \subres)$ forms a partial order, $*$ is monotonic with
-  respect to $\subres$, and the following laws hold.
+  respect to $\subres$, and the following laws hold (with $x * y$ henceforth
+  being written as $xy$).
   \begin{mathpar}
     1x \subres x
     \and x \subres x1
@@ -288,9 +292,7 @@ ${-}_{{-}\times{-}}$ are defined as follows:
 
 We define vector-matrix multiplication by treating vectors
 as $1$-height matrices.
-We will sometimes silently cast between the types $\mathrm{Idx}~m$ and
-$\Gamma \ni A$, particularly when using the reindexing operation.
-  
+
 % We make use of the following operators, which we also take to work on vectors
 % (for example, we often multiply a row vector by a matrix, in that order).
 
@@ -440,6 +442,8 @@ $\resctx R \subres \langle i \rvert$. The force of the latter
 condition is that the selected variable $i$ must have a usage
 annotation $\subres \rescomment 1$ in $\resctx{R}$, and all other
 variables must have a usage annotation $\subres \rescomment 0$.
+We will sometimes silently cast between the types $\mathrm{Idx}~m$ and
+$\Gamma \ni A$.
 
 % , which describe the conditions under which a
 % variable can be used in a context, subject to the constraints of usage
