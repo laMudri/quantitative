@@ -207,7 +207,7 @@ generality.
 \end{definition}
 
 \begin{remark}
-  A commutative skew monoid is just a commutative monoid.
+  A commutative skew monoid is just a partially ordered commutative monoid.
 \end{remark}
 
 Skew-monoidal categories are due to Szlach\'anyi \cite{skew}, and the notion
@@ -473,6 +473,18 @@ Thus the addition of usage contexts and constraints on them refines the usual si
 For instance, in the \TirName{$\otimes$-I} rule, the usage context $\resctx R$ on the conclusion is constrained to be able to supply the sum $\resctx P + \resctx Q$ of the usage contexts of the premises.
 If we instantiate $\mathbf R$ to be the $0 \triangleright \omega \triangleleft 1$ semiring, then we obtain a system that is equivalent to Barber's DILL \cite{Barber1996}.
 
+For the sake of this paper, the precise rules chosen here are not too important.
+The salient point is that contexts can only be manipulated in specific ways.
+Typing contexts can only be modified by context extensions, i.e., binding new
+variables.
+Usage contexts can correspondingly be extended, but also can be
+\emph{linearly split}.
+A usage context $\resctx R$ can be split into zero pieces via constraint
+$\resctx R \subres \rescomment{\vct 0}$, into two pieces, $\resctx P$ and
+$\resctx Q$, via constraint $\resctx R \subres \resctx P + \resctx Q$, and an
+$\rescomment r$-scaled down piece $\resctx P$ via constraint
+$\resctx R \subres \rescomment r\resctx P$.
+
 % It is a refinement of simply typed $\lambda$-calculus sporting usage annotations
 % from $\mathbf R$ on variables in the context and constraints on term formation
 % based on these annotations.
@@ -593,6 +605,25 @@ If we instantiate $\mathbf R$ to be the $0 \triangleright \omega \triangleleft 1
 % of generality.
 
 \section{Metatheory}\label{sec:metatheory}
+
+The motivating result of the following section is the admissibility of the
+single substitution principle.
+We derive single substitution from simultaneous substitution
+(\autoref{cor:single-subst}), which we in turn derive from a generic traversal
+of syntax (\autoref{cor:sub}).
+Our statement of single substitution is somewhat standard, easy to intuit, and
+exactly what is called for to show preservation of typing by $\beta$ rules,
+whereas our statement of simultaneous substitution is novel and more abstract,
+but easier to work with.
+
+\begin{displaymath}
+  \inferrule*[right=SingleSubst]
+  {M : \ctx\Gamma P \vdash A
+    \\ N : \ctx\Gamma Q, \ctxvar x A r \vdash B
+    \\ \resctx R \subres \rescomment r \resctx P + \resctx Q
+  }
+  {N\{M\} : \ctx\Gamma R \vdash B}
+\end{displaymath}
 
 McBride defines \emph{kits} \cite{rensub05,bhkm12}, which provide a general
 method for giving admissible rules that are usually proven by induction on the
@@ -864,12 +895,38 @@ corresponds to the Agda module
 \begin{corollary}[substitution, \AgdaFunction{sub}]\label{cor:sub}
   Given an environment of type
   $\ctx{\Gamma}{P} \subst{\vdash} \ctx{\Delta}{Q}$ (i.e., a
-  well-usaged simultaneous substitution), we get a function of type
+  well usaged simultaneous substitution), we get a function of type
   $\ctx{\Delta}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.
 \end{corollary}
 % \begin{proof}
 %   By \autoref{thm:trav} using \hyperref[tm-kit]{$\vdash\textrm{-kit}$}.
 % \end{proof}
+
+\subsection{Single substitution}
+
+\begin{corollary}[single substitution]\label{cor:single-subst}
+  Given $\resctx R \subres \rescomment r \resctx P + \resctx Q$ and terms
+  $M : \ctx\Gamma P \vdash A$ and $N : \ctx\Gamma Q, \ctxvar x A r \vdash B$,
+  we can produce a term deriving $\ctx\Gamma R \vdash B$.
+\end{corollary}
+\begin{proof}
+  By traversal (specifically, simultaneous substitution, \autoref{cor:sub})
+  on $N$.
+  We must produce an environment of type
+  $\ctx\Gamma R \subst{\vdash} \ctx\Gamma Q, \ctxvar x A r$.
+  Let \(
+    \rescomment\Psi := \left(\begin{array}{c}
+                               \rescomment{\mat I}
+                               \\ \hline
+                               \resctx P
+                             \end{array}\right)
+  \)
+  and notice that $(\resctx Q, \rescomment r)\rescomment\Psi =
+  \resctx Q + \rescomment r \resctx P$, so our inequality assumption is enough
+  to prove the inequality requirement of environments.
+  For the terms to substitute in, we choose the first $\lvert\Gamma\rvert$ terms
+  to be their respective variables, and the last term to be $M$.
+\end{proof}
 
 \subsection{Proof of traversal}
 \label{sec:proof-of-traversal}
@@ -1139,7 +1196,7 @@ generic metatheory and semantics for an even wider class of
 substructural calculi.
 
 \paragraph{Acknowledgements}
-We are thankful for comments from Guillaume Allais.
+We are thankful for comments from Guillaume Allais and Michael Arntzenius.
 
 \bibliographystyle{eptcsalpha}
 \bibliography{../quantitative}
