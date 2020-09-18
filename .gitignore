@@ -20,3 +20,4 @@ presentation/auto
 *.prv
 *.pag
 .auctex-auto
+*.envrc
