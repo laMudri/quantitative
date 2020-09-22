@@ -1,0 +1,1332 @@
+\documentclass[submission,copyright,creativecommons]{eptcs}
+\providecommand{\event}{Linearity \& TLLA 2020} % Name of the event you are submitting to
+\usepackage{breakurl}             % Not needed if you use pdflatex only.
+\usepackage{underscore}           % Only needed if you use pdflatex.
+
+\usepackage{stmaryrd}
+\usepackage{mathpartir}
+\usepackage{amssymb}
+\usepackage{cmll}
+\usepackage{xcolor}
+\usepackage{paralist}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage{mathtools}
+\usepackage{tabularx}
+\usepackage{tikz-cd}
+\usepackage[conor]{agda}
+
+\DeclareFontFamily{U}{cal}{}
+\DeclareFontShape{U}{cal}{m}{n}{<->cmsy10}{}
+\DeclareSymbolFont{rcal}{U}{cal}{m}{n}
+\DeclareSymbolFontAlphabet{\mathcal}{rcal}
+
+\usepackage{thmtools}
+\declaretheorem[numberwithin=section]{theorem}
+\declaretheorem[numberlike=theorem]{conjecture}
+\declaretheorem[numberlike=theorem]{proposition}
+\declaretheorem[numberlike=theorem]{lemma}
+\declaretheorem[numberlike=theorem]{corollary}
+\declaretheorem[numberlike=theorem]{example}
+\declaretheorem[numberlike=theorem]{definition}
+\declaretheorem[numberlike=theorem]{remark}
+
+\def\newelims{1}
+\def\debruijn{1}
+\def\multnotation{1}
+\input{../macros.tex}
+
+\title{A Linear Algebra Approach to Linear Metatheory}
+\author{
+James Wood\thanks{James Wood is supported by an EPSRC Studentship.}
+\institute{University of Strathclyde\\ Glasgow, United Kingdom}
+\email{james.wood.100@strath.ac.uk}
+\and
+Robert Atkey
+\institute{University of Strathclyde\\ Glasgow, United Kingdom}
+\email{robert.atkey@strath.ac.uk}
+}
+\def\titlerunning{A Linear Algebra Approach to Linear Metatheory}
+\def\authorrunning{J. Wood \& R. Atkey}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+  Linear typed $\lambda$-calculi are more delicate than their simply
+  typed siblings when it comes to metatheoretic results like
+  preservation of typing under renaming and substitution. Tracking the
+  usage of variables in contexts places more constraints on how
+  variables may be renamed or substituted. We present a methodology
+  based on linear algebra over semirings, extending McBride's
+  \emph{kits and traversals} approach for the metatheory of syntax with
+  binding to linear usage-annotated terms. Our approach is readily
+  formalisable, and we have done so in Agda.
+\end{abstract}
+
+\section{Introduction}
+
+The basic metatheoretic results for typed $\lambda$-calculi, such as
+preservation of typing under renaming, weakening, substitution and so
+on, are crucial but quite boring to prove. In calculi with
+substructural typing disciplines and modalities, it can also be quite
+easy to break these properties \cite{wadler91use,BentonBPH93}. It is desirable
+therefore to use a proof assistant to prove these properties. This has
+the double benefit of both confidence in the results and in focusing
+on the essential properties required to obtain them.
+
+Mechanisation of the metatheory of substructural $\lambda$-calculi has
+not received the same level of attention as intuitionistic
+typing. ``Straightforward'' translations from paper presentations to
+formal presentations make metatheory difficult, due to incompatibilies
+between the standard de Bruijn representation of binding and the
+splitting of contexts. For formalisations of linear sequent calculi,
+sticking to the paper presentation using lists and permutations is
+common \cite{power99,XavierORN18,laurent18}, but explicit permutations
+make the resulting encodings difficult to use. Multisets for contexts
+are more convenient \cite{ChaudhuriLR19}, but do not work well for
+Curry-Howard uses, as noted by Laurent. For natural deduction, Allais
+\cite{allais:LIPIcs:2018:10049} uses an I/O model to track usage of
+variables, Rouvoet et al.~\cite{RPKV20} use a co-de Bruijn
+representation to distribute variables between subterms, and Crary
+uses mutually defined typing and linearity judgements with HOAS
+\cite{crary10}.
+
+% Allais' \emph{Typing with Leftovers}
+% \cite{allais:LIPIcs:2018:10049} overcame this by tracking usage in an
+% I/O style. Rouvoet et al.~\cite{RPKV20} and Crary \cite{crary10} offer
+% other formalisations in Agda and Twelf respectively. Usage
+% annotations, arising from the coeffect literature, in tandem with the
+% linear algebraic approach we present here offer an approach that, in
+% our experience, is amenable to formalisation.
+
+In this paper, we adapt the generic \emph{kits and traversals}
+technique for proving admissibility of renaming and substitution due
+to McBride \cite{rensub05} to a linear typed $\lambda$-calculus where
+variables are annotated with values from a skew semiring denoting
+those variables' \emph{usage} by terms. Our calculus, \name{}, is a
+prototypical example of a linear ``quantitative'' or ``coeffect''
+calculus in the style of
+\cite{reed10distance,BrunelGMZ14,GhicaS14,PetricekOM14,Granule18}. The
+key advantages of \name{} over the formalisations listed above are
+that the shape of typing contexts is maintained, so de Bruijn indices
+behave the same as in non-substructural calculi, and by selecting
+different semirings, we obtain from \name{} well known systems,
+including Barber's Dual Intuitionistic Linear Logic \cite{Barber1996}
+and Pfenning and Davis' S4 modal type theory \cite{judgmental}.
+
+McBride's kits and traversals technique isolates properties required
+to form binding-respecting traversals of simply typed $\lambda$-terms,
+so that renaming and substitution arise as specific
+instantiations. Benton, Hur, Kennedy, and McBride \cite{bhkm12}
+implement the technique in Coq and extend it to polymorphic
+terms. Allais \emph{et al.}~\cite{AACMM20} generalise to a wider class
+of syntax with binding and show that more general notions of
+\emph{semantics} can be handled.
+Using methods like these can reduce the effort required to develop a new
+calculus and its metatheory.
+
+To adapt kits and traversals to linear usage-annotated terms requires
+us to not only respect the binding structure, but to also respect the
+usage annotations. For instance, the usages associated with a term
+being substituted in must be correctly distributed across all the
+occurrences of that term in the result. To aid us in tracking usages,
+we employ the linear algebra of vectors and matrices
+induced by the skew semiring we are using. Usage annotations on
+contexts are vectors, usage-preserving maps of contexts are matrices,
+and the linearity properties of the maps induced by matrices are
+exactly the lemmas we need for showing that traversals (and hence
+renaming, subusaging, and substitution) preserve typing and usages.
+
+% We build on previous work on coeffects
+% \cite{BrunelGMZ14,GhicaS14,reed10distance,PetricekOM14} to produce a generic
+% usage-constrained type system \name{}.
+% This system first appeared in our earlier abstract, which explores the
+% relational semantics of \name{}, giving concrete examples of free theorems we
+% can obtain \cite{context-constrained}.
+% In the process of formalising \name{}, we have been driven to find a clean
+% statement and proof of substitution.
+
+% Our definition of a substitution somewhat resembles the definition given in
+% Petricek's thesis \cite[p. 137]{petricek-thesis}.
+% However, our definition yields a simultaneous substitution in the style of
+% Benton, Hur, Kennedy, and McBride \cite{bhkm12} by allowing for addition of
+% annotations between substituting derivations.
+
+The paper proceeds as follows.
+In \autoref{sec:algebra}, we specify our requirements on the set of annotations
+that will track usage of variables. A consequence of our formalisation is that we learn that we only need \emph{skew} semirings, a weaker structure than the partially ordered semirings usually used.
+In \autoref{sec:syntax}, we use these annotations to define the system
+\name{} in an intrinsically typed style.
+Then, in \autoref{sec:metatheory}, we prove that \name{} admits renaming, subusaging, and
+substitution by our extension of McBride's kits and traversals technique.
+We conclude in \autoref{sec:conclusion} with some directions for future work.
+
+The Agda formalisation of this work can be found at
+\url{https://github.com/laMudri/generic-lr/tree/master/src/Specific}.
+% TODO: link to specific commit
+It contains our formalisation of vectors and
+matrices (approx. 790 lines) and the definition of \name{} and proofs of
+renaming and substitution (approx. 530 lines).
+
+\section{Skew semirings}\label{sec:algebra}
+
+We shall use skew semirings where other authors have previously used partially ordered
+semirings (see, for example, the Granule definition of a \emph{resource algebra}
+\cite{Granule18}).
+Elements of a skew semiring are used as \emph{usage annotations}, and describe
+\emph{how} values are used in a program.
+In the syntax for \name{}, each assumption will have a usage annotation,
+describing how that assumption can be used in the derivation.
+Addition describes how to combine multiple usages of an assumption, and
+multiplication describes the action our graded $\oc$-modality can have.
+The ordering describes the specificness of annotations.
+If $\pi \subres \rho$, $\pi$ can be the annotation for a variable wherever
+$\rho$ can be.
+We can read this relation as ``$\textrm{supply} \subres \textrm{demand}$'' ---
+given a variable annotated $\pi$, we can coerce to treat it as if it has the
+desired annotation $\rho$.
+
+Skew semirings are a generalisation of partially ordered semirings, which are in turn a
+generalisation of commutative semirings.
+As such, readers unfamiliar with the more general structures may wish to think
+in terms of the more specific structures.
+Our formalisation was essential for noticing and sticking to this level of
+generality.
+
+\begin{definition}
+  A \emph{(left) skew monoid} is a structure $(\mathbf R, \subres, 1, *)$ such
+  that $(\mathbf R, \subres)$ forms a partial order, $*$ is monotonic with
+  respect to $\subres$, and the following laws hold (with $x * y$ henceforth
+  being written as $xy$).
+  \begin{mathpar}
+    1x \subres x
+    \and x \subres x1
+    \and (xy)z \subres x(yz)
+  \end{mathpar}
+\end{definition}
+
+\begin{remark}
+  A commutative skew monoid is just a partially ordered commutative monoid.
+\end{remark}
+
+Skew-monoidal categories are due to Szlach\'anyi \cite{skew}, and the notion
+introduced here of a skew monoid is a decategorification of the notion of
+skew-monoidal category.
+
+\begin{definition}
+  A \emph{(left) skew semiring} is a structure
+  $(\mathbf R, \subres, 0, +, 1, *)$ such that $(\mathbf R, \subres)$ forms a
+  partial order, $+$ and $*$ are monotonic with respect to $\subres$,
+  $(\mathbf R, 0, +)$ forms a commutative monoid, $(\mathbf R, \subres, 1, *)$
+  forms a skew monoid, and we have the following distributivity laws.
+  \begin{mathpar}
+    0z \subres 0
+    \and (x + y)z \subres xz + yz
+    \and 0 \subres x0
+    \and xy + xz \subres x(y + z)
+  \end{mathpar}
+\end{definition}
+
+\begin{example}
+  In light of the above remark, most ``skew'' semirings are actually
+  just partially ordered semirings. An example that yields a system
+  equivalent to Barber's DILL is the $0 \triangleright \omega \triangleleft 1$
+  semiring of ``unused'', ``unrestricted'', and ``linear'', respectively.
+  See \cite{Granule18} for more examples.
+\end{example}
+
+We will only speak of \emph{left} skew semirings, and thus generally
+omit the word ``left''.  A mnemonic for (left) skew semirings is
+``multiplication respects operators on the left from left to right,
+and respects operators on the right from right to left''.  One may
+also describe multiplication as ``respecting'' and ``corespecting''
+operators on the left and right, respectively.
+
+From a skew semiring $\mathbf R$, we form finite vectors, which we
+notate as $\mathbf R^n$, and matrices, which we notate as
+$\mathbf{R}^{m\times n}$. In Agda, we represent vectors in
+$\mathbf R^n$ as functions $\mathrm{Idx}~n \to \mathbf{R}$, where
+$\mathrm{Idx}~n$ is the type of valid indexes in an $n$-tuple, and
+matrices in $\mathbf{R}^{m\times n}$ as functions
+$\mathrm{Idx}~m \to \mathrm{Idx}~n \to \mathbf{R}$.  Whereas elements
+of $\mathbf R$ describe how individual \emph{variables} are used,
+elements of $\mathbf R^n$ describe how all of the variables in an
+$n$-length \emph{context} are used. We call such vectors \emph{usage
+  contexts}, and take them to be row vectors. Matrices in
+$\mathbf{R}^{m\times n}$ will be used to describe how usage contexts
+are transformed by renaming and substitution in
+\autoref{sec:metatheory}. We define $\subres$, $0$ and $+$ on vectors
+and matrices pointwise. Basis vectors $\langle i \rvert$ (used to
+represent usage contexts for individual variables), identity matrices
+$\mat I$, matrix multiplication $*$, and matrix reindexing
+${-}_{{-}\times{-}}$ are defined as follows:
+\begin{mathpar}
+  \begin{matrix*}[l]
+    \langle {-} \rvert : \mathrm{Idx}~n \to \mathbf{R}^n \\
+    \langle i \rvert_j :=
+    \begin{cases}
+      1, & \textrm{if }i = j \\
+      0, & \textrm{otherwise} \\
+    \end{cases}
+  \end{matrix*}
+  \and
+  \begin{matrix*}[l]
+    \mat I : \mathbf R^{m \times m} \\
+    \mat I_{ij} := \langle i \rvert_j
+  \end{matrix*}
+  \and
+  \begin{matrix*}[l]
+    * : \mathbf R^{m \times n} \times \mathbf R^{n \times o} \to \mathbf R^{m \times o} \\
+    (MN)_{ik} := \sum_j M_{ij}N_{jk}
+  \end{matrix*}
+  \and
+  \begin{matrix*}[l]
+    {-}_{{-}\times{-}} : \mathbf R^{m' \times n'}
+    \times (\mathrm{Idx}~m \to \mathrm{Idx}~m')
+    \times (\mathrm{Idx}~n \to \mathrm{Idx}~n')
+    \to \mathbf R^{m \times n} \\
+    \left(M_{f \times g}\right)_{i,j} := M_{f\,i,g\,j}
+  \end{matrix*}
+\end{mathpar}
+
+We define vector-matrix multiplication by treating vectors
+as $1$-height matrices.
+
+% We make use of the following operators, which we also take to work on vectors
+% (for example, we often multiply a row vector by a matrix, in that order).
+
+\section{Syntax}\label{sec:syntax}
+
+\begin{figure}[t]
+  \caption{Typing rules of \name{}}
+  \label{fig:rules}
+  \begin{mathpar}
+    \inferrule*[right=var]
+    {x : \ctx{\Gamma}{R} \lvar A}
+    {x : \ctx{\Gamma}{R} \vdash A}
+    \and
+    \inferrule*[right=$\fun{}{}$-E]
+    {M : \ctx{\Gamma}{P} \vdash \fun{A}{B}
+      \\ N : \ctx{\Gamma}{Q} \vdash A
+      \\ \resctx R \subres \resctx P + \resctx Q
+    }
+    {\app{M}{N} : \ctx{\Gamma}{R} \vdash B}
+    \and
+    \inferrule*[right=$\fun{}{}$-I]
+    {\bind{x}M : \ctx{\Gamma}{R}, \ctxvar{x}{A}{1} \vdash B}
+    {\lam{x}{\bind{x}M} : \ctx{\Gamma}{R} \vdash \fun{A}{B}}
+
+    \and
+
+    \inferrule*[right=$\tensorOne$-E]
+    {M : \ctx{\Gamma}{P} \vdash \tensorOne{}
+      \\ N : \ctx{\Gamma}{Q} \vdash C
+      \\ \resctx R \subres \resctx P + \resctx Q
+    }
+    {\del{C}{M}{N} : \ctx{\Gamma}{R} \vdash C}
+    \and
+    \inferrule*[right=$\tensorOne$-I]
+    {\resctx R \subres \rescomment{\vct 0}}
+    {\unit{} : \ctx{\Gamma}{R} \vdash \tensorOne{}}
+    \and
+    \inferrule*[right=$\tensor{}{}$-E]
+    {M : \ctx{\Gamma}{P} \vdash \tensor{A}{B}
+      \\ \bind{x,y}N : \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1}, \ctxvar{y}{B}{1}
+      \vdash C
+      \\ \resctx R \subres \resctx P + \resctx Q
+    }
+    {\prm{C}{M}{x}{y}{\bind{x,y}N} : \ctx{\Gamma}{R} \vdash C}
+    \and
+    \inferrule*[right=$\tensor{}{}$-I]
+    {M : \ctx{\Gamma}{P} \vdash A
+      \\ N : \ctx{\Gamma}{Q} \vdash B
+      \\ \resctx R \subres \resctx P + \resctx Q
+    }
+    {\ten{M}{N} : \ctx{\Gamma}{R} \vdash \tensor{A}{B}}
+
+    \and
+
+    \inferrule*[right=$\sumTZero$-E]
+    {M : \ctx{\Gamma}{P} \vdash \sumTZero{}
+      \\ \resctx R \subres \resctx P + \resctx Q
+    }
+    {\exf{C}{M} : \ctx{\Gamma}{R} \vdash C}
+    \and
+    % (\textrm{no }\TirName{$\sumTZero$-I})
+    % \and
+    \inferrule*[right=$\sumT{}{}$-E]
+    {M : \ctx{\Gamma}{P} \vdash \sumT{A}{B}
+      \\ \bind{x}N : \ctx{\Gamma}{Q}, \ctxvar{x}{A}{1} \vdash C
+      \\ \bind{y}O : \ctx{\Gamma}{Q}, \ctxvar{y}{B}{1} \vdash C
+      \\ \resctx R \subres \resctx P + \resctx Q
+    }
+    {\cse{C}{M}{x}{\bind{x}N}{y}{\bind{y}O} : \ctx{\Gamma}{R} \vdash C}
+    \and
+    \inferrule*[right=$\sumT{}{}$-Il]
+    {M : \ctx{\Gamma}{R} \vdash A}
+    {\inj{L}{M} : \ctx{\Gamma}{R} \vdash \sumT{A}{B}}
+    \and
+    \inferrule*[right=$\sumT{}{}$-Ir]
+    {M : \ctx{\Gamma}{R} \vdash B}
+    {\inj{R}{M} : \ctx{\Gamma}{R} \vdash \sumT{A}{B}}
+
+    \and
+
+    % (\textrm{no }\TirName{$\withTOne$-E})
+    % \and
+    \inferrule*[right=$\withTOne$-I]
+    { }
+    {\eat{} : \ctx{\Gamma}{R} \vdash \withTOne}
+    \and
+    \inferrule*[right=$\withT{}{}$-El]
+    {M : \ctx{\Gamma}{R} \vdash \withT{A}{B}}
+    {\proj{L}{M} : \ctx{\Gamma}{R} \vdash A}
+    \and
+    \inferrule*[right=$\withT{}{}$-Er]
+    {M : \ctx{\Gamma}{R} \vdash \withT{A}{B}}
+    {\proj{R}{M} : \ctx{\Gamma}{R} \vdash B}
+    \and
+    \inferrule*[right=$\withT{}{}$-I]
+    {M : \ctx{\Gamma}{R} \vdash A
+      \\ N : \ctx{\Gamma}{R} \vdash B
+    }
+    {\wth{M}{N} : \ctx{\Gamma}{R} \vdash \withT{A}{B}}
+
+    \and
+
+    \inferrule*[right=$\excl{\rho}{}$-E]
+    {M : \ctx{\Gamma}{P} \vdash \excl{\rho}{A}
+      \\ \bind{x}N : \ctx{\Gamma}{Q}, \ctxvar{x}{A}{\rho} \vdash C
+      \\ \resctx R \subres \resctx P + \resctx Q
+    }
+    {\bm{C}{M}{x}{\bind{x}N} : \ctx{\Gamma}{R} \vdash C}
+    \and
+    \inferrule*[right=$\excl{\rho}{}$-I]
+    {M : \ctx{\Gamma}{P} \vdash A
+      \\ \resctx R \subres \rescomment\rho\resctx P
+    }
+    {\bang{M} : \ctx{\Gamma}{R} \vdash \excl{\rho}{A}}
+  \end{mathpar}
+\end{figure}
+
+We present the syntax of \name{} as an \emph{intrinsically} typed
+syntax, as it is in our Agda formalisation. Intrinisic typing means
+that we define well-typed terms as inhabitants of an inductive family
+$\ctx\Gamma{R} \vdash A$ indexed by typing contexts $\Gamma$, usage
+contexts $\resctx{R}$, and types $A$. Typing contexts are lists of
+types. Usage contexts $\resctx{R}$ are vectors of elements of some
+fixed skew semiring $\mathbf R$, with the same number of elements as
+the typing context they are paired with. To highlight how usage
+annotations are used in the syntax, we write all elements of
+$\mathbf R$, and vectors and matrices thereof, in \rescomment{green}.
+
+% This section corresponds to the Agda module \AgdaModule{Specific.Syntax}\footnote{link?}.
+
+% \paragraph{Types}
+
+The types of \name{} are given by the grammar:
+$ A,B,C ::= \iota \mid A \multimap B \mid 1 \mid A \otimes B \mid 0
+\mid A \oplus B \mid \top \mid A \with B \mid \excl{\rho} A$.  We have
+a base type $\iota$, function types $A \multimap B$, tensor product
+types $A \otimes B$ with unit $1$, sum types $A \oplus B$ with unit
+$0$, ``with'' product types $A \with B$ with unit $\top$, and an
+exponential $\excl{\rho} A$ indexed by a usage $\rescomment{\rho}$.
+
+We distinguish between \emph{plain} variables, values of type
+$\Gamma \ni A$, which are indices into a context with a specified
+type, and \emph{usage-checked} variables, values of type
+$\ctx{\Gamma}{R} \lvar A$ which are pairs of a plain variable
+$i : \Gamma \ni A$ and proof that
+$\resctx R \subres \langle i \rvert$. The force of the latter
+condition is that the selected variable $i$ must have a usage
+annotation $\subres \rescomment 1$ in $\resctx{R}$, and all other
+variables must have a usage annotation $\subres \rescomment 0$. We
+will sometimes silently cast between the types $\mathrm{Idx}~m$ and
+$\Gamma \ni A$, particularly when using the reindexing operation
+${-}_{{-}\times{-}}$.
+
+% , which describe the conditions under which a
+% variable can be used in a context, subject to the constraints of usage
+% annotations. Formally, a usage-checked variable is a 
+
+% \begin{definition}[plain variable, \AgdaRecord{IVar}]
+%   We write $\Gamma \ni A$ as the type of variables in $\Gamma$ with type $A$.
+% \end{definition}
+
+% \begin{definition}[usage-checked variable, \AgdaRecord{LVar}]
+%   We write $\ctx{\Gamma}{R} \lvar A$ as the type of $i : \Gamma \ni A$ such that
+%   $\resctx R \subres \langle i \rvert$.
+% \end{definition}
+
+%\paragraph{Intrinsically Typed Terms}
+
+The constructors for our intrinsically typed terms are presented in \autoref{fig:rules}.
+In keeping with our intrinsic typing methodology, terms of \name{} are presented as constructors of the inductive family $\ctx\Gamma{R} \vdash A$, hence the notation $M : \ctx\Gamma{R} \vdash A$ instead of the more usual $\ctx\Gamma{R} \vdash M : A$. 
+Our Agda formalisation uses de Bruijn indices to represent variables, but we have annotated the rules with variable names for ease of reading. 
+% The corresponding Agda definition is \AgdaDatatype{Tm}.
+Ignoring the \rescomment{usages}, the typing rules all look like their
+simply typed counterparts; the only difference between the $\otimes$
+and $\with$ products being their presentation in terms of pattern
+matching and projections, respectively.
+Thus the addition of usage contexts and constraints on them refines the usual simple typing to be usage constrained.
+For instance, in the \TirName{$\otimes$-I} rule, the usage context $\resctx R$ on the conclusion is constrained to be able to supply the sum $\resctx P + \resctx Q$ of the usage contexts of the premises.
+If we instantiate $\mathbf R$ to be the $0 \triangleright \omega \triangleleft 1$ semiring, then we obtain a system that is equivalent to Barber's DILL \cite{Barber1996}.
+
+For the sake of this paper, the precise rules chosen here are not too important.
+The salient point is that contexts can only be manipulated in specific ways.
+Typing contexts can only be modified by context extensions, i.e., binding new
+variables.
+Usage contexts can correspondingly be extended, but also can be
+\emph{linearly split}.
+A usage context $\resctx R$ can be split into zero pieces via constraint
+$\resctx R \subres \rescomment{\vct 0}$, into two pieces, $\resctx P$ and
+$\resctx Q$, via constraint $\resctx R \subres \resctx P + \resctx Q$, and an
+$\rescomment r$-scaled down piece $\resctx P$ via constraint
+$\resctx R \subres \rescomment r\resctx P$.
+
+% It is a refinement of simply typed $\lambda$-calculus sporting usage annotations
+% from $\mathbf R$ on variables in the context and constraints on term formation
+% based on these annotations.
+% Type formers are mostly standard from intuitionistic linear logic --- functions,
+% multiplicative and additive products and their units, and additive sums and
+% their unit.
+% Additionally, we have an annotated bang ($\excl{\rho}{A}$), forming a graded
+% comonad (assuming definitions tweaked to account for $\subres$ and skewness).
+
+% \section{Skew linear algebra}
+
+% Elements and vectors of $\mathbf R$ suffice to define the syntax of
+% \name{}, but to formally prove renaming and substitution admissible in
+% \autoref{sec:metatheory}, we first need to develop some elementary
+% skew linear algebra.
+
+% \begin{definition}
+%   A \emph{(left) skew semimodule} over a (left) skew semiring $\mathbf R$ is a
+%   structure
+%   $(\mathbf M, \subres,
+%   0 : \mathbf M, + : \mathbf M \times \mathbf M \to \mathbf M,
+%   * : \mathbf R \times \mathbf M \to \mathbf M)$ such that
+%   \begin{itemize}
+%     \item $+$ and $*$ are monotonic in both arguments.
+%     \item $(\mathbf M, 0, +)$ is a commutative monoid
+%     \item Scaling of a fixed element $m$ respects all of the skew semiring
+%       structure; particularly:
+%       \begin{mathpar}
+%         0_\mathbf R m \subres 0_\mathbf M
+%         \and
+%         (\pi +_\mathbf R \rho) m \subres \pi m +_\mathbf M \rho m
+%         \and
+%         1_\mathbf R m \subres m
+%         \and
+%         (\pi *_\mathbf R \rho) m \subres \pi (\rho m)
+%       \end{mathpar}
+%     \item Scaling by a fixed element $\pi$ corespects the additive structure;
+%       particularly:
+%       \begin{mathpar}
+%         0_\mathbf M \subres \pi 0_\mathbf M
+%         \and
+%         \pi m +_\mathbf M \pi n \subres \pi (m +_\mathbf M n)
+%       \end{mathpar}
+%   \end{itemize}
+% \end{definition}
+
+% \begin{definition}
+%   A \emph{(left) skew semimodule homomorphism} or \emph{linear map} between
+%   $\mathbf R$-left skew semimodules $\mathbf M$ and $\mathbf N$ is a monotone
+%   function $T$ on the underlying sets written postfix such that all of the skew
+%   semimodule structure is respected.
+%   Particularly,
+%   \begin{mathpar}
+%     (0_\mathbf M)T \subres 0_\mathbf N
+%     \and
+%     (m +_\mathbf M n)T \subres (m)T +_\mathbf N (n)T
+%     \and
+%     (\pi *_\mathbf M m)T \subres \pi *_\mathbf N (m)T
+%   \end{mathpar}
+% \end{definition}
+
+% The last axiom motivates the postfix notation.
+% If we take application of $T$ to be a form of multiplication (as justified later
+% in this section), then we do not want to require $T$ to commute with $\pi$.
+% This remains important for non-skew semirings, but not commutative semirings.
+
+% A concrete source of linear maps is matrices.
+
+% \begin{lemma}\label{lem:mat-to-map}
+%   Each matrix $M : \mathbf R^{m \times n}$ gives rise to a linear map
+%   $T_M : \mathbf R^m \to \mathbf R^n$ by right-multiplication.
+% \end{lemma}
+% \begin{proof}
+%   We observe the following inequalities.
+%   Notice that in the last inequality, $M$ being on the right means that we do
+%   not have to commute it past $\pi$.
+%   To pull $\pi$ out of the sum, we use the fact that multiplication
+%   \emph{corespects} the additive structure on the right.
+%   \begin{itemize}
+%     \item $\left(\vct 0M\right)_{k}
+%       = \sum_j 0M_{jk}
+%       \subres \sum_j 0
+%       = 0
+%       = \vct 0_{k}$
+%     \item $\left((u + v)M\right)_{k}
+%       = \sum_j \left(u_j + v_j\right)M_{jk}
+%       \subres \sum_j \left(u_jM_{jk} + v_jM_{jk}\right)
+%       = \sum_j u_jM_{jk} + \sum_j v_jM_{jk}
+%       = (uM + vM)_{k}$
+%     \item $\left((\pi u)M\right)_{k}
+%       = \sum_j \left(\pi u_j\right)M_{jk}
+%       \subres \sum_j \pi\left(u_jM_{jk}\right)
+%       \subres \pi\sum_j u_jM_{jk}
+%       = \left(\pi(uM)\right)_{k}$
+%   \end{itemize}
+% \end{proof}
+
+% \begin{lemma}\label{lem:map-to-mat}
+%   Each linear map $T : \mathbf R^m \to \mathbf R^n$ gives rise to a matrix
+%   $M : \mathbf R^{m \times n}$ such that for each $u$, $uT \subres uM$.
+% \end{lemma}
+% \begin{proof}
+%   Let $M_{jk} = (\langle j \rvert)T_k$.
+%   Then, consider $uT_k$.
+%   \[
+%     uT_k \subres \left(\sum_j u_j\langle j \rvert\right)T_k
+%     \subres \sum_j \left(u_j\langle j \rvert\right) T_k
+%     \subres \sum_j u_j\left(\langle j \rvert T_k\right)
+%     = \sum_j u_j M_{jk} = (uM)_k
+%   \]
+% \end{proof}
+
+% \autoref{lem:map-to-mat} is peculiar to the skew setting; normally one would expect there to be a 1-1 relationship between linear maps and matrices.
+% Intuitively, when multiplication is involved, equations are hard to come by, so
+% we instead settle for inequalities.
+% In what follows, matrices/linear maps will only appear to the right of a
+% $\subres$, so when we ask for a matrix rather than a linear map, it is no loss
+% of generality.
+
+\section{Translation to and from existing systems}
+\label{sec:translation}
+
+In this section, we shall assume the admissibility of weakening (TODO: define),
+which we shall prove in \autoref{sec:metatheory}.
+
+Dual Intuitionistic Linear Logic is a particular formulation of intuitionistic
+linear logic \cite{Barber1996}.
+Its key feature, which simplifies the metatheory of linear logic, is the use of
+separate contexts for linear and intuitionistic free variables.
+Here we show that DILL is a fragment of the instantiation of \name{} at the
+linearity semiring $\{0,1,\omega\}$.
+
+The types of DILL are the same as the types of \name, except for the
+restriction of $\excl{\rho}{}$ to just $\excl{\omega}{}$.
+We will write the latter simply as $\oc$ when it appears in DILL.
+We add sums and with products to the calculus of \cite{Barber1996}, with the
+obvious rules.
+\fixmeBA{should put the rules for the precise variant of DILL we are using in an appendix}
+These additive type formers present no additional difficulty to the translation.
+
+\fixmeBA{Should give the translation on terms}
+
+%\begin{figure}
+%  \begin{displaymath}
+%    \begin{eqns}
+%      \mathrm{DILL} &\hookrightarrow& \name \\
+%      Y &\mapsto& \base_Y \\
+%      I &\mapsto& \tensorOne \\
+%      A \multimap B &\mapsto& \fun{A}{B} \\
+%      A \otimes B &\mapsto& \tensor{A}{B} \\
+%      \oc A &\mapsto& \excl{\omega}{A}
+%    \end{eqns}
+%  \end{displaymath}
+%  \label{fig:dill}
+%  \caption{Embedding of DILL types into \name}
+%\end{figure}
+
+\begin{proposition}[DILL $\to$ \name]
+  Given a DILL derivation of \[
+    \Gamma; \Delta \vdash t : A,
+  \] we can produce a $\name_{01\omega}$ derivation of \[
+    \ctx{\Gamma}{\vct \omega}, \ctx{\Delta}{\vct 1} \vdash
+    M_t : A
+  \] for some term $M_t$.
+\end{proposition}
+\begin{proof}
+  By induction on the derivation.
+  We have $\omega \subres 0$, which allows us to discard intuitionistic
+  variables at the var rules, and both $1 \subres 1$ and $\omega \subres 1$,
+  which allow us to use both linear and intuitionistic variables.
+
+  Weakening is used when splitting linear variables between two premises.
+  For example, \TirName{$\otimes$-I} is as follows.
+  \[
+    \inferrule*[right=$\otimes$-I]
+    {\Gamma; \Delta_t \vdash t : A \\ \Gamma; \Delta_u \vdash u : B}
+    {\Gamma; \Delta_t, \Delta_u \vdash t \otimes u : A \otimes B}
+  \]
+  From this, our new derivation is as follows.
+  \[
+    \inferrule*[right=$\tensor{}{}$-I]
+    {
+      \inferrule*[right=weak]
+      {\mathit{ih}_t \\\\
+        \ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 1} \vdash M_t : A}
+      {\ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 1}, \ctx{\Delta_u}{\vct 0}
+        \vdash M_t : A}
+      \\
+      \inferrule*[right=weak]
+      {\mathit{ih}_u \\\\
+        \ctx{\Gamma}{\vct \omega}, \ctx{\Delta_u}{\vct 1} \vdash M_u : A}
+      {\ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 0}, \ctx{\Delta_u}{\vct 1}
+        \vdash M_u : A}
+    }
+    {\ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 1}, \ctx{\Delta_u}{\vct 1}
+      \vdash \ten{M_t}{M_u} : \tensor{A}{B}}
+  \]
+\end{proof}
+
+\begin{proposition}[\name $\to$ DILL]
+  Given a $\name_{01\omega}$ derivation of \[
+    \ctx{\Gamma}{\vct \omega}, \ctx{\Delta}{\vct 1}, \ctx{\Theta}{\vct 0} \vdash
+    M : A,
+  \] which contains only types expressible in DILL, we can produce a DILL
+  derivation of \[
+    \Gamma; \Delta \vdash t_M : A
+  \] for some term $t_M$.
+\end{proposition}
+\begin{proof}
+  By induction on the derivation.
+
+  In the case of \TirName{var}, all of the unused variables have annotation
+  greater than $0$, i.e., $0$ or $\omega$.
+  Those annotated $0$ are absent from the DILL derivation, and those annotated
+  $\omega$ are in the intuitionistic context.
+  The used variable is annotated either $1$ or $\omega$.
+  In the first case, we use \TirName{Lin-Ax}, and in the second case,
+  \TirName{Int-Ax}.
+
+  All binding of variables in \name{} maps directly onto DILL.
+
+  For the \TirName{$\excl{\omega}{}$-I} rule, we are required to prove that the
+  following is admissible in DILL.
+  \[
+    \inferrule*
+    {\Gamma; \Delta \vdash t_M : A}
+    {\Gamma, \Delta; \cdot \vdash \oc t_M : \oc A}
+  \]
+  This follows from the Environment Weakening property from Lemma 3.1 of
+  \cite{Barber1996} applied to $\Delta$, followed by \TirName{$\oc$-I}.
+
+  Splitting of contexts is more involved.
+  We shall again take \TirName{$\tensor{}{}$-I} as our example.
+  We are trying to prove admissible \[
+    \inferrule*
+    {\Gamma_A; \Delta_A \vdash t_M : A \\ \Gamma_B; \Delta_B \vdash t_N}
+    {\Gamma; \Delta \vdash t_M \otimes t_N : A \otimes B}
+  \] given also that $\Delta$ consists of only (but not necessarily all)
+  variables that occur exactly once in $\Delta_A, \Delta_B$ and not at all in
+  $\Gamma_A, \Gamma_B$, and that $\Gamma$ consists of all of the other variables
+  from the premises.
+  To prove this rule admissible, on both premises we apply Environment Weakening
+  to all variables in $\Delta_A$ or $\Delta_B$ that are also in $\Gamma$.
+  This gives us $\Gamma; \Delta_A' \vdash t_M : A$ and $\Gamma; \Delta_B' \vdash
+  t_N : B$, with $\Delta_A', \Delta_B' = \Delta$.
+  At this point, we can apply \TirName{$\otimes$-I} and be done.
+\end{proof}
+
+\section{Metatheory}\label{sec:metatheory}
+
+The motivating result of the following section is the admissibility of the
+single substitution principle.
+We derive single substitution from simultaneous substitution
+(\autoref{cor:single-subst}), which we in turn derive from a generic traversal
+of syntax (\autoref{cor:sub}).
+Our statement of single substitution is somewhat standard, easy to intuit, and
+exactly what is called for to show preservation of typing by $\beta$ rules,
+whereas our statement of simultaneous substitution is novel and more abstract,
+but easier to work with.
+
+\begin{displaymath}
+  \inferrule*[right=SingleSubst]
+  {M : \ctx\Gamma P \vdash A
+    \\ N : \ctx\Gamma Q, \ctxvar x A r \vdash B
+    \\ \resctx R \subres \rescomment r \resctx P + \resctx Q
+  }
+  {N\{M\} : \ctx\Gamma R \vdash B}
+\end{displaymath}
+
+McBride defines \emph{kits} \cite{rensub05,bhkm12}, which provide a general
+method for giving admissible rules that are usually proven by induction on the
+derivation.
+To produce a kit, we give an indexed family
+$\kitrel : \mathrm{Ctx} \times \mathrm{Ty} \to \mathrm{Set}$ and explain how to
+inject variables, extract terms, and weaken by new variables coming from
+binders.
+In return, given a type-preserving map from variables in one context to
+$\kitrel$-stuff in another (an \emph{environment}), we get a type-preserving
+function between terms in these contexts.
+Such a function is the intrinsic typing equivalent of an admissible rule.
+
+To make the kit-based approach work in our usage-constrained setting, we make
+modifications to both kits and environments.
+Kits need not support arbitrary weakening, but only weakening by the
+introduction of $\rescomment 0$-use variables.
+The family $\kitrel$ must also respect $\subres$ of usage contexts.
+Environments are equipped with a matrix mapping input usages to output usages.
+
+We prove simultaneous substitution using renaming.
+We take both renaming and substitution as corollaries of the \emph{traversal}
+principle (\autoref{thm:trav}) yielded from kits and environments.
+
+Definition of \emph{kit}s, \emph{environment}s and
+\hyperref[thm:trav]{traversal} are in the module
+\AgdaModule{Specific.Syntax.Traversal}.
+
+% Plan:
+% - Just define a kit, saying what it is used for (i.e. sketch the traversal we get)
+% - State that 'vr', 'tm' and 'wk' are also in Conor's version.
+% - Note that we are being careful with resources in the 'wk' bit
+% - 'psh' is new, to cope with subusaging
+
+\subsection{Kits, Environments, and Traversals}
+
+A kit is a structure on $\vdash$-like relations $\kitrel$, intuitively
+giving a way in which $\kitrel$ lives between the usage-checked variable
+judgement $\lvar$ and the typing judgement $\vdash$.
+The components $\mathit{vr}$ and $\mathit{tm}$ are basically unchanged from
+McBride's original kits.
+The component $\mathit{wk}$ only differs in that new variables are given
+annotation $\rescomment 0$, which intuitively marks them as weakenable.
+The requirement $\mathit{psh}$ is new, and allows us to fix up usage contexts
+via skew algebraic reasoning.
+
+\begin{definition}[\AgdaRecord{Kit}]\label{def:kit}
+  For any $\kitrel : \mathrm{Ctx} \times \mathrm{Ty} \to \mathrm{Set}$, let
+  $\kit(\kitrel)$ denote the type of \emph{kits}.
+  A kit comprises the following functions for all $\resctx P$, $\resctx Q$,
+  $\Gamma$, $\Delta$, and $A$.
+  \begin{mathpar}
+    \mathit{psh} : \resctx P \subres \resctx Q \to
+    \ctx{\Gamma}{Q} \kitrel A \to \ctx{\Gamma}{P} \kitrel A
+    \and
+    \mathit{vr} : \ctx{\Gamma}{P} \lvar A \to
+    \ctx{\Gamma}{P} \kitrel A
+    \\
+    \mathit{tm} : \ctx{\Gamma}{P} \kitrel A \to
+    \ctx{\Gamma}{P} \vdash A
+    \and
+    \mathit{wk} : \ctx{\Gamma}{P} \kitrel A \to
+    \ctx{\Gamma}{P}, \ctx{\Delta}{\vct 0} \kitrel A
+  \end{mathpar}
+\end{definition}
+
+An inhabitant of $\ctx{\Gamma}{P} \kitrel A$ is described as
+\emph{stuff in $\ctx{\Gamma}{P}$ of type $A$}.
+
+\paragraph{Environments}
+In simple intuitionistic type theory, an
+environment is a type-preserving function from variables in the old
+context $\Delta$ to stuff in the new context $\Gamma$: an inhabitant
+of $\Delta \ni A \to \Gamma \kitrel A$.  The traversal function turns
+such an environment into a map between terms,
+$\Delta \vdash A \to \Gamma \vdash A$.
+
+For \name{}, we want maps of usaged terms
+$\ctx{\Delta}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.
+We can see that an environment of type
+$\ctx{\Delta}{Q} \lvar A \to \ctx{\Gamma}{P} \kitrel A$ would
+be insufficient --- $\ctx{\Delta}{Q} \lvar A$ can only be inhabited when
+$\resctx Q$ is compatible with a basis vector, so our environment would be
+trivial in more general cases.
+Instead, we care about non-usage-checked variables $\Delta \ni A$.
+
+Our understanding of an environment is that it should simultaneously
+map all of the usage-checked variables in $\ctx{\Delta}{Q}$ to stuff
+in $\ctx{\Gamma}{P}$ in a way that preserves usage.  As such, we want
+to map each variable $j : \Delta \ni A$ not to $A$-stuff in
+$\ctx{\Gamma}{P}$, but rather $A$-stuff in $\resctx P_j\Gamma$, where
+$\resctx P_j$ is some fragment of $\resctx P$.  Precisely, when
+weighted by $\resctx Q\lvert j \rangle$, we want these $\resctx P_j$
+to sum to $\resctx P$, so as to provide ``enough'' usage to cover all
+of the variables $j$.  When we collect all of the $\resctx P_j$ into a
+matrix $\rescomment\Psi$, we notice that the condition just described
+is stated succinctly via a vector-matrix multiplication
+$\resctx Q\rescomment\Psi$. This culminates to give us the following:
+
+\begin{definition}[\AgdaRecord{Env}]\label{def:env}
+  For any $\kitrel$, $\resctx P$, $\resctx Q$, $\Gamma$, and $\Delta$,
+  where $\Gamma$ and $\Delta$ have lengths $m$ and $n$ respectively,
+  let $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$ denote the
+  type of \emph{environments}.  An environment comprises a pair of a
+  matrix $\rescomment\Psi : \mathbf R^{n \times m}$ and a mapping of
+  variables
+  $\mathit{act} : (j : (\Delta \ni A)) \to (\langle j
+  \rvert\rescomment\Psi)\Gamma \kitrel A$, such that
+  $\resctx P \subres \resctx Q \rescomment\Psi$.
+% \begin{itemize}
+%   \item $\rescomment\Psi : \mathbf R^{n \times m}$
+%   \item $\mathit{act} :
+%     (j : (\Delta \ni A)) \to (\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$
+%   \item with usage condition $\resctx P \subres \resctx Q \rescomment\Psi$.
+% \end{itemize}
+\end{definition}
+
+Our main result is the following, which we will instantiate to prove
+admissibility of renaming (\autoref{cor:ren}), subusaging
+(\autoref{cor:subusage}), and substitution (\autoref{cor:sub}). The
+proof is in \autoref{sec:proof-of-traversal}.
+
+\newcommand{\thmtrav}{%
+  Given a kit on $\kitrel$ and an environment
+  $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$, we get a function
+  $\ctx{\Delta}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.%
+}
+\begin{theorem}[traversal, \AgdaFunction{trav}]\label{thm:trav}
+  \thmtrav
+\end{theorem}
+
+\subsection{Renaming}
+
+We now show how to use traversals to prove that renaming (including
+weakening) and subusaging are admissible. This subsection corresponds
+to the Agda module \AgdaModule{Specific.Syntax.Renaming}.
+
+\begin{definition}[\AgdaFunction{LVar-kit}]\label{def:lvar-kit}
+  Let $\lvar\textrm{-kit} : \kit(\lvar)$ be defined with the following
+  fields.
+  \begin{description}
+    \item[$\mathit{psh}~(\mathit{PQ} : \resctx P \subres \resctx Q)
+      : \ctx{\Gamma}{Q} \lvar A \to \ctx{\Gamma}{P} \lvar A$:]
+      The only occurrence of the usage context $\resctx Q$ in the definition of
+      $\lvar$ is to the left of a $\subres$.
+      Applying transitivity in this place gets us the required term.
+    \item[$\mathit{vr} : \ctx{\Gamma}{P} \lvar A \to \ctx{\Gamma}{P} \lvar A
+      := \mathrm{id}$].
+    \item[$\mathit{tm} : \ctx{\Gamma}{P} \lvar A \to \ctx{\Gamma}{P} \vdash A
+      := \TirName{var}$].
+    \item[$\mathit{wk} : \ctx{\Gamma}{P} \lvar A
+      \to \ctx{\Gamma}{P}, \ctx{\Delta}{\vct 0} \lvar A$:]
+      A basis vector extended by $\rescomment 0$s is still a basis
+      vector: if that we have $\resctx P \subres \langle i \rvert$ for some $i$,
+      we also have
+      $\resctx P, \rescomment{\vct 0} \subres \langle \inl i \rvert$.
+  \end{description}
+\end{definition}
+
+Environments for renamings are special in that the matrix $\rescomment\Psi$ can
+be calculated from the action of the renaming on non-usage-checked variables.
+
+\begin{lemma}[\AgdaFunction{ren-env}]\label{lem:ren-env}
+  Given a type-preserving mapping of plain variables
+  $f : \Delta \ni A \to \Gamma \ni A$ such that
+  $\resctx P \subres \resctx Q\rescomment I_{f\times\id}$,
+  we can produce a $\lvar$-environment of type
+  $\ctx{\Gamma}{P} \subst{\lvar} \ctx{\Delta}{Q}$.
+\end{lemma}
+\begin{proof}
+  The environment has $\rescomment\Psi := \rescomment I_{f\times\id}$,
+  so the usage condition holds by assumption.
+  Now, $\mathit{act}$ is required to have type
+  $(j : \Delta \ni A) \to (\langle j \rvert\rescomment\Psi)\Gamma \lvar A$.
+  Take arbitrary $j : \Delta \ni A$.
+  Then, we have $f~j : \Gamma \ni A$, so all that is left is to show that $f~j$
+  forms a usage-checked variable of type
+  $(\langle j \rvert\rescomment\Psi)\Gamma \lvar A$.
+  This amounts to proving
+  $\langle j \rvert\rescomment\Psi \subres \langle f~j \rvert$.
+%  We prove this pointwise.
+  Let $i : \Gamma \ni A$, then we have
+  % Then, we have the following.
+  % \[
+    $(\langle j \rvert\rescomment\Psi)_i
+    \subres \rescomment\Psi_{j,i}
+    = \rescomment I_{f\,j,i}
+    = \langle f~j \rvert_i$.
+%  \]
+\end{proof}
+
+\begin{corollary}[renaming, \AgdaFunction{ren}]\label{cor:ren}
+  Given a type-preserving mapping of plain variables
+  $f : \Delta \ni A \to \Gamma \ni A$ such that
+  $\resctx P \subres \resctx Q\rescomment I_{f\times\id}$,
+  we can produce a function of type
+  $\ctx{\Delta}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.
+\end{corollary}
+% \begin{proof}
+%   By the lemmas from this subsection and \autoref{thm:trav}.
+% \end{proof}
+
+\begin{corollary}[subusaging, \AgdaFunction{subuse}]\label{cor:subusage}
+  Given $\resctx P \subres \resctx Q$, then we have a function
+  $\ctx{\Gamma}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.
+\end{corollary}
+
+\subsection{Substitution}
+
+Now that we have renaming, we can use it with traversals to prove that
+simultaneous well-usaged substitution is admissible. This subsection
+corresponds to the Agda module
+\AgdaModule{Specific.Syntax.Substitution}.
+
+\begin{definition}[\AgdaFunction{Tm-kit}]\label{tm-kit}
+  Let $\vdash\textrm{-kit} : \kit(\vdash)$ be defined with the following
+  fields.
+  \begin{description}
+    \item[$\mathit{psh}~(\mathit{PQ} : \resctx P \subres \resctx Q)
+      : \ctx{\Gamma}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$:]
+      This is \hyperref[cor:subusage]{Corollary \ref*{cor:subusage} (subusaging)}.
+      
+      % We can use a specialised version of \hyperref[cor:ren]{renaming} in which
+      % the variable mapping $f$ is the identity function.
+      % It remains to check that
+      % $\resctx P \subres \resctx Q\rescomment I_{\id\times\id}$, which is
+      % obvious from the assumption $\mathit{PQ}$.
+      % This is the argument used in the Agda module
+      % \AgdaModule{Specific.Syntax.Subuse}, definition \AgdaFunction{subuse}.
+
+      % Alternatively, we can note that in every rule for
+      % $\ctx{\Gamma}{R} \vdash A$, $\resctx R$ only ever appears to the left of a
+      % $\subres$, so $\ctx{\Gamma}{R} \vdash A$ must be contravariant in
+      % $\resctx R$.
+    \item[$\mathit{vr} : \ctx{\Gamma}{P} \lvar A \to \ctx{\Gamma}{P} \vdash A
+      := \TirName{var}$].
+    \item[$\mathit{tm} : \ctx{\Gamma}{P} \vdash A \to \ctx{\Gamma}{P} \vdash A
+      := \mathrm{id}$].
+    \item[$\mathit{wk} : \ctx{\Gamma}{P} \vdash A \to \ctx{\Gamma}{P},
+      \ctx{\Delta}{\vct 0} \vdash A$:] We use \hyperref[cor:ren]{Corollary \ref*{cor:ren} (renaming)}, with
+      $f : \Gamma \ni A \to \Gamma, \Delta \ni A$ being the embedding
+      $\inl$.  It remains to check that
+      $(\resctx P, \rescomment{\vct 0}) \subres \resctx P\rescomment
+      I_{\inl\times\id}$.  We prove this pointwise.  Let
+      $i : \Gamma, \Delta \ni A$, and take cases on whether $i$ is
+      from $\Gamma$ or from $\Delta$.  If $i = \inl i'$ for an
+      $i' : \Gamma \ni A$, we must show that
+      $\resctx P_{i'} \subres (\resctx P\rescomment
+      I_{\inl\times\id})_{\inl i'}$.  But we have the following.
+      \[
+      \resctx P_{i'} \subres (\resctx P\rescomment I)_{i'}
+      = \sum_{j : \Gamma \ni A} \resctx P_j\rescomment I_{j,i'}
+      = \sum_{j : \Gamma \ni A} \resctx P_j\rescomment I_{\inl j,\inl i'}
+      = (\resctx P\rescomment I_{\inl\times\id})_{\inl i'}.
+      \]
+      If $i = \inr i'$ for an $i' : \Delta \ni A$, we must show that
+      $\rescomment 0 \subres
+      (\resctx P\rescomment I_{\inl\times\id})_{\inr i'}$.
+      But we have the following.
+      \[
+      \rescomment 0 \subres (\resctx P\rescomment{\vct 0})_{i'}
+      = \sum_{j : \Gamma \ni A} \resctx P_j\rescomment{\vct 0}_{j,i'}
+      = \sum_{j : \Gamma \ni A} \resctx P_j\rescomment I_{\inl j,\inr i'}
+      = (\resctx P\rescomment I_{\inl\times\id})_{\inr i'}.
+      \]
+  \end{description}
+\end{definition}
+
+\begin{corollary}[substitution, \AgdaFunction{sub}]\label{cor:sub}
+  Given an environment of type
+  $\ctx{\Gamma}{P} \subst{\vdash} \ctx{\Delta}{Q}$ (i.e., a
+  well usaged simultaneous substitution), we get a function of type
+  $\ctx{\Delta}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.
+\end{corollary}
+% \begin{proof}
+%   By \autoref{thm:trav} using \hyperref[tm-kit]{$\vdash\textrm{-kit}$}.
+% \end{proof}
+
+\subsection{Single substitution}
+
+\begin{corollary}[single substitution]\label{cor:single-subst}
+  Given $\resctx R \subres \rescomment r \resctx P + \resctx Q$ and terms
+  $M : \ctx\Gamma P \vdash A$ and $N : \ctx\Gamma Q, \ctxvar x A r \vdash B$,
+  we can produce a term deriving $\ctx\Gamma R \vdash B$.
+\end{corollary}
+\begin{proof}
+  By traversal (specifically, simultaneous substitution, \autoref{cor:sub})
+  on $N$.
+  We must produce an environment of type
+  $\ctx\Gamma R \subst{\vdash} \ctx\Gamma Q, \ctxvar x A r$.
+  Let \(
+    \rescomment\Psi := \left(\begin{array}{c}
+                               \rescomment{\mat I}
+                               \\ \hline
+                               \resctx P
+                             \end{array}\right)
+  \)
+  and notice that $(\resctx Q, \rescomment r)\rescomment\Psi =
+  \resctx Q + \rescomment r \resctx P$, so our inequality assumption is enough
+  to prove the inequality requirement of environments.
+  For the terms to substitute in, we choose the first $\lvert\Gamma\rvert$ terms
+  to be their respective variables, and the last term to be $M$.
+\end{proof}
+
+\subsection{Proof of traversal}
+\label{sec:proof-of-traversal}
+
+The proof of the traversal theorem follows the same structure as in
+McBride's article, extended with proof obligations to show that we are
+correctly respecting the usage annotations. We must first prove a
+lemma that shows that environments can be pushed under binders.
+
+\begin{lemma}[bind, \AgdaFunction{bind}]\label{lem:bind}
+  Given a kit on $\kitrel$, we can extend an environment of type
+  $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$, to an environment of type
+  $\ctx{\Gamma}{P}, \ctx{\Theta}{R} \subst{\kitrel}
+  \ctx{\Delta}{Q}, \ctx{\Theta}{R}$.
+\end{lemma}
+\begin{proof}
+  Let the environment we are given be
+  $(\rescomment\Psi : \mathbf R^{n \times m},
+  \mathit{act} : (j : \Delta \ni A) \to (\langle j \rvert\rescomment\Psi)\Gamma \kitrel A)$,
+  with $\resctx P \subres \resctx Q \rescomment\Psi$.
+  We are trying to construct
+  $(\rescomment{\Psi'} : \mathbf R^{(n + o) \times (m + o)},
+  \mathit{act'} : (j : \Delta, \Theta \ni A) \to
+  (\langle j \rvert\rescomment{\Psi'})(\Gamma, \Theta) \kitrel A)$,
+  with $\resctx P, \resctx R \subres (\resctx Q, \resctx R) \rescomment{\Psi'}$.
+%
+  Let \(
+    \rescomment{\Psi'} := \left(\begin{array}{c|c}
+                                  \rescomment\Psi & \rescomment{\mat 0}
+                                  \\ \hline
+                                  \rescomment{\mat 0} & \rescomment{\mat I}
+                                \end{array}\right).
+  \)
+  With this definition, our required condition splits into the easily checked
+  conditions
+  $\resctx P \subres \resctx Q\rescomment\Psi + \resctx R\rescomment{\mat 0}$
+  and
+  $\resctx R \subres
+  \resctx Q\rescomment{\mat 0} + \resctx R\rescomment{\mat I}$.
+%
+  For $\mathit{act'}$, we take cases on whether $j$ is from $\Delta$ or from
+  $\Theta$.
+%
+  In the $\Delta$ case, $\mathit{act}$ gets us an inhabitant of
+  $(\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$.
+  Notice that
+  $\langle j \rvert\rescomment{\Psi'} =
+  \langle j \rvert\rescomment\Psi, \rescomment{\vct 0}$,
+  so we want to get from $(\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$ to
+  $(\langle j \rvert\rescomment\Psi)\Gamma, \rescomment{\vct 0}\Theta
+  \kitrel A$.
+  We can get this using $\mathit{wk}$ from our kit.
+%
+  In the $\Theta$ case, notice that
+  $\langle j \rvert\rescomment{\Psi'} = \rescomment{\vct 0}, \langle j \rvert$.
+  In other words, $\langle j \rvert\rescomment{\Psi'}$ is a basis vector, so we
+  actually have usage-checked
+  $(\langle j \rvert\rescomment{\Psi'})(\Gamma, \Theta) \lvar A$.
+  Thus, we can use $\mathit{vr}$ from our kit to get
+  $(\langle j \rvert\rescomment{\Psi'})(\Gamma, \Theta) \kitrel A$, as required.
+\end{proof}
+
+\newtheorem*{thm:trav}{\autoref{thm:trav}}
+\begin{thm:trav}[traversal, \AgdaFunction{trav}]
+  \thmtrav
+\end{thm:trav}
+\begin{proof}
+  By induction on the syntax of $M$. In the \TirName{var} $x$ case,
+  where $x : \ctx{\Delta}{Q} \lvar A$: By definition of $\lvar$, we
+  have that $\resctx Q \subres \langle j \rvert$ for some $j$.
+  Applying the action of the environment, we have
+  $(\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$.  We then have
+  $\resctx P \subres \resctx Q\rescomment\Psi \subres \langle j
+  \rvert\rescomment\Psi$, so using the fact that stuff appropriately
+  respects subusaging ($\mathit{psh}$), we have
+  $\ctx{\Gamma}{P} \kitrel A$.  Finally, using $\mathit{tm}$, we get a
+  term $\ctx{\Gamma}{P} \vdash A$, as required.
+
+  Non-\TirName{var} cases are generally handled in the following way.
+  If the input usage context $\resctx Q$ is split up into a linear
+  combination of zero or more usage contexts $\resctx Q_{i}$, obtain a
+  similar splitting of $\resctx P$ by setting
+  $\resctx P_{i} := \resctx Q_{i}\rescomment\Psi$.  This works out
+  because of the linearity of matrix multiplication (in particular,
+  multiplication respects operations on the left). This yields
+  environments of type
+  $\resctx P_{i}\Gamma \subst{\kitrel} \resctx Q_{i}\Delta$ for the
+  subterms to use with the inductive hypothesis. If any subterms bind
+  variables, apply \autoref{lem:bind} as appropriate.
+  % \begin{description}
+  %   \item[\TirName{var} $x$, where $x : \ctx{\Delta}{Q} \lvar A$:]
+  %     By definition of $\lvar$, we have that
+  %     $\resctx Q \subres \langle j \rvert$ for some $j$.
+  %     Applying the action of the environment, we have
+  %     $(\langle j \rvert\rescomment\Psi)\Gamma \kitrel A$.
+  %     We then have
+  %     $\resctx P \subres \resctx Q\rescomment\Psi
+  %     \subres \langle j \rvert\rescomment\Psi$,
+  %     so using the fact that stuff appropriately respects subusaging
+  %     ($\mathit{psh}$), we have $\ctx{\Gamma}{P} \kitrel A$.
+  %     Finally, using $\mathit{tm}$, we get a term $\ctx{\Gamma}{P} \vdash A$, as
+  %     required.
+    % \item[\TirName{$\withTOne$-I} $\eat$]
+    %   We want to produce a term $\ctx{\Gamma}{P} \vdash \withTOne$, which is
+    %   trivial with the rule \TirName{$\withTOne$-I}.
+    % \item[\TirName{$\withT{}{}$-I} $\wth{M}{N}$, where
+    %   $M : \ctx{\Delta}{Q} \vdash A$, $N : \ctx{\Delta}{Q} \vdash B$:]
+    %   Inductively, we get $M' : \ctx{\Gamma}{P} \vdash A$ and
+    %   $N' : \ctx{\Gamma}{P} \vdash B$ from
+    %   $M$ and $N$, respectively.
+    %   We can combine $M'$ and $N'$ with \TirName{$\withT{}{}$-I} to get
+    %   $\wth{M'}{N'} : \ctx{\Gamma}{P} \vdash \withT{A}{B}$, as required.
+    % \item[\TirName{$\withT{}{}$-El}, \TirName{$\withT{}{}$-Er},
+    %   \TirName{$\sumT{}{}$-Il}, \TirName{$\sumT{}{}$-Ir}:]
+    %   These all follow simply like the last two cases.
+    % \item[\TirName{$\tensorOne$-I} $\unit$, where
+    %   $\resctx Q \subres \rescomment{\vct 0}$:]
+    %   We want to use \TirName{$\tensorOne$-I} to conclude
+    %   $\unit : \ctx{\Gamma}{P}$.
+    %   To do this, we must show that $\resctx P \subres \rescomment{\vct 0}$.
+    %   From the environment, we know that
+    %   $\resctx P \subres \resctx Q\rescomment\Psi$.
+    %   But because $\resctx Q \subres \rescomment{\vct 0}$, we get
+    %   $\resctx P \subres \rescomment{\vct 0}\rescomment\Psi
+    %   \subres \rescomment{\vct 0}$, as required.
+    % \item[\TirName{$\tensor{}{}$-I} $\ten{M}{N}$, where
+    %   $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash A$,
+    %   $N : \ctx{\Delta}{Q_{\mathnormal N}} \vdash B$,
+    %   $\resctx Q \subres \resctx Q_{\rescomment M} + \resctx Q_{\rescomment N}$:]
+    %   We want to inductively traverse $M$ and $N$.
+    %   This will produce terms
+    %   $M' : \ctx{\Gamma}{P_{\mathnormal M}} \vdash A$ and
+    %   $N' : \ctx{\Gamma}{P_{\mathnormal N}} \vdash B$, for some choice of
+    %   $\resctx P_{\rescomment M}$ and $\resctx P_{\rescomment N}$.
+    %   Furthermore, we want
+    %   $\resctx P \subres \resctx P_{\rescomment M} + \resctx P_{\rescomment N}$,
+    %   so that we can combine $M'$ and $N'$ using \TirName{$\tensor{}{}$-I},
+    %   getting $\ten{M'}{N'} : \ctx{\Gamma}{P} \vdash \tensor{A}{B}$, as
+    %   required.
+%
+    %   Let
+    %   $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$
+    %   and
+    %   $\resctx P_{\rescomment N} := \resctx Q_{\rescomment N}\rescomment\Psi$,
+    %   where $\rescomment\Psi$ comes from the environment.
+    %   We must make environments of types
+    %   $\ctx{\Gamma}{P_{\mathnormal M}}
+    %   \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal M}}$
+    %   and
+    %   $\ctx{\Gamma}{P_{\mathnormal N}}
+    %   \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal N}}$.
+    %   Notice that the data in these can be carried over from the environment we
+    %   were given, but we must recheck the usage condition in each case.
+    %   However, both of these just come down to the reflexivity of $\subres$.
+%
+    %   Finally, in order to apply \TirName{$\tensor{}{}$-I}, we must check that
+    %   $\resctx P \subres \resctx P_{\rescomment M} + \resctx P_{\rescomment N}$.
+    %   This follows by:
+    %   \[
+    %   \resctx P
+    %   \subres \resctx Q\rescomment\Psi
+    %   \subres (\resctx Q_{\rescomment M} + \resctx Q_{\rescomment N})
+    %   \rescomment\Psi
+    %   \subres \resctx Q_{\rescomment M}\rescomment\Psi +
+    %   \resctx Q_{\rescomment N}\rescomment\Psi
+    %   = \resctx P_{\rescomment M} + \resctx P_{\rescomment N}.
+    %   \]
+    % \item[\TirName{$\fun{}{}$-E}, \TirName{$\tensorOne{}$-E},
+    %   \TirName{$\sumTZero$-E}:]
+    %   These all follow similarly to the above case (ignoring the lack of a
+    %   subterm $N$ in the \TirName{$\sumTZero$-E} case).
+    % \item[\TirName{$\excl{\rho}{}$-I} $\bang{M}$, where
+    %   $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash A$,
+    %   $\resctx Q \subres \rescomment\rho \resctx Q_{\rescomment M}$:]
+    %   Following a similar strategy to the case above, let
+    %   $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$.
+    %   If we get a term $M' : \ctx{\Gamma}{P_{\mathnormal M}} \vdash A$, we will
+    %   be able to apply \TirName{$\excl{\rho}{}$-I} to get the result because
+    %   \[
+    %   \resctx P_{\rescomment M} = \resctx Q_{\rescomment M}\rescomment\Psi
+    %   \subres (\rescomment\rho\resctx Q)\rescomment\Psi
+    %   \subres \rescomment\rho(\resctx Q\rescomment\Psi)
+    %   \subres \rescomment\rho\resctx P.
+    %   \]
+%
+    %   To get $M'$, we traverse $M$ with the same environment at type
+    %   $\ctx{\Gamma}{P_{\mathnormal M}}
+    %   \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal M}}$.
+    %   The usage condition reduces to the definition of
+    %   $\resctx P_{\rescomment M}$.
+    % \item[\TirName{$\fun{}{}$-I} $\lam{x}{M}$, where
+    %   $M : \ctx{\Delta}{Q}, \ctxvar{x}{A}{1} \vdash B$:]
+    %   We want to inductively traverse $M$, yielding a term
+    %   $M' : \ctx{\Gamma}{P}, \ctxvar{x}{A}{1}$, to which we apply
+    %   \TirName{$\fun{}{}$-I} to get the desired result.
+    %   The environment we use to traverse $M$ is the result of the
+    %   \hyperref[lem:bind]{bind lemma} applied to the environment we were given.
+    % \item[\TirName{$\sumT{}{}$-E}, where
+    %   $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash \sumT{A}{B}$,
+    %   $N : \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{x}{A}{1} \vdash C$,
+    %   $O : \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{y}{B}{1} \vdash C$,
+    %   $\resctx Q \subres
+    %   \resctx Q_{\rescomment M} + \resctx Q_{\rescomment N}$:]
+    %   This is the most complex rule, combining splitting, sharing, and binding.
+    %   Let
+    %   $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$
+    %   and
+    %   $\resctx P_{\rescomment N} := \resctx Q_{\rescomment N}\rescomment\Psi$.
+    %   In order to traverse $M$, we repurpose the environment at type
+    %   $\ctx{\Gamma}{P_{\mathnormal M}}
+    %   \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal M}}$.
+    %   This amounts to checking that
+    %   $\resctx P_{\rescomment M} \subres
+    %   \resctx Q_{\rescomment M}\rescomment\Psi$, which is obvious.
+%
+    %   In order to traverse $N$ and $O$, we do similar to produce an environment
+    %   at type
+    %   $\ctx{\Gamma}{P_{\mathnormal N}}
+    %   \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal N}}$.
+    %   Then, we use the \hyperref[lem:bind]{bind lemma} to extend this
+    %   (separately) to environments of type
+    %   $\ctx{\Gamma}{P_{\mathnormal N}}, \ctxvar{x}{A}{1}
+    %   \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{x}{A}{1}$ and
+    %   $\ctx{\Gamma}{P_{\mathnormal N}}, \ctxvar{y}{B}{1}
+    %   \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal N}}, \ctxvar{y}{B}{1}$.
+    %   These are enough to traverse $N$ and $O$, respectively.
+%
+    %   Finally, we apply \TirName{$\sumT{}{}$-E} to all of the traversed
+    %   derivations.
+    % \item[\TirName{$\tensor{}{}$-E}, \TirName{$\excl{\rho}{}$-E}:]
+    %   These both feature a similar combination of splitting and binding to the
+    %   previous case.
+    %   The \TirName{$\excl{\rho}{}$-E} rule involves binding a variable with
+    %   arbitrary annotation $\rescomment\rho$, but notice that the
+    %   \hyperref[lem:bind]{bind lemma} handles this perfectly well.
+%  \end{description}
+\end{proof}
+
+\section{Conclusion}\label{sec:conclusion}
+
+We have extended McBride's method of kits and traversals to proving
+admissibility of renaming, subusaging and substitution to the
+usage-annotated calculus \name{}. In doing so, we have discovered that
+only skew semirings are required, and the importance of linear algebra
+for stating and proving these results. Though we have not had space to
+elaborate here, \name{} is capable of representing several well known
+linear and modal type theories by choice of semiring.
+
+% In this paper, we have presented \name{}, a simply typed calculus with usage
+% constraints via annotations on variables.
+% For it, we have extended McBride's method of kits \cite{rensub05}.
+
+
+
+Our work is similar in spirit to the work of Licata, Shulman, and
+Riley \cite{LicataSR17}, which gives a proof of cut elimination for a
+large class of substructural single-conclusion sequent calculi.  The
+class of natural deduction systems we consider here is likely less
+general, but not directly comparable. We leave a complete comparison
+to future work. They have not formalised their work.
+% In particular, we focus on ``at least linear'' systems, and prove an inherently
+% linear result.
+
+We plan to build on our work to generalise the framework of Allais
+\emph{et al.}~\cite{AACMM20} to include usage annotations, allowing
+generic metatheory and semantics for an even wider class of
+substructural calculi.
+
+\paragraph{Acknowledgements}
+We are thankful for comments from Guillaume Allais and Michael Arntzenius.
+
+\bibliographystyle{eptcsalpha}
+\bibliography{../quantitative}
+\end{document}
