@@ -604,6 +604,135 @@ $\resctx R \subres \rescomment r\resctx P$.
 % $\subres$, so when we ask for a matrix rather than a linear map, it is no loss
 % of generality.
 
+\section{Translation to and from existing systems}
+\label{sec:translation}
+
+In this section, we shall assume the admissibility of weakening (TODO: define),
+which we shall prove in \autoref{sec:metatheory}.
+
+Dual Intuitionistic Linear Logic is a particular formulation of intuitionistic
+linear logic \cite{Barber1996}.
+Its key feature, which simplifies the metatheory of linear logic, is the use of
+separate contexts for linear and intuitionistic free variables.
+Here we show that DILL is a fragment of the instantiation of \name{} at the
+linearity semiring $\{0,1,\omega\}$.
+
+The types of DILL are the same as the types of \name, except for the
+restriction of $\excl{\rho}{}$ to just $\excl{\omega}{}$.
+We will write the latter simply as $\oc$ when it appears in DILL.
+We add sums and with products to the calculus of \cite{Barber1996}, with the
+obvious rules.
+\fixmeBA{should put the rules for the precise variant of DILL we are using in an appendix}
+These additive type formers present no additional difficulty to the translation.
+
+\fixmeBA{Should give the translation on terms}
+
+%\begin{figure}
+%  \begin{displaymath}
+%    \begin{eqns}
+%      \mathrm{DILL} &\hookrightarrow& \name \\
+%      Y &\mapsto& \base_Y \\
+%      I &\mapsto& \tensorOne \\
+%      A \multimap B &\mapsto& \fun{A}{B} \\
+%      A \otimes B &\mapsto& \tensor{A}{B} \\
+%      \oc A &\mapsto& \excl{\omega}{A}
+%    \end{eqns}
+%  \end{displaymath}
+%  \label{fig:dill}
+%  \caption{Embedding of DILL types into \name}
+%\end{figure}
+
+\begin{proposition}[DILL $\to$ \name]
+  Given a DILL derivation of \[
+    \Gamma; \Delta \vdash t : A,
+  \] we can produce a $\name_{01\omega}$ derivation of \[
+    \ctx{\Gamma}{\vct \omega}, \ctx{\Delta}{\vct 1} \vdash
+    M_t : A
+  \] for some term $M_t$.
+\end{proposition}
+\begin{proof}
+  By induction on the derivation.
+  We have $\omega \subres 0$, which allows us to discard intuitionistic
+  variables at the var rules, and both $1 \subres 1$ and $\omega \subres 1$,
+  which allow us to use both linear and intuitionistic variables.
+
+  Weakening is used when splitting linear variables between two premises.
+  For example, \TirName{$\otimes$-I} is as follows.
+  \[
+    \inferrule*[right=$\otimes$-I]
+    {\Gamma; \Delta_t \vdash t : A \\ \Gamma; \Delta_u \vdash u : B}
+    {\Gamma; \Delta_t, \Delta_u \vdash t \otimes u : A \otimes B}
+  \]
+  From this, our new derivation is as follows.
+  \[
+    \inferrule*[right=$\tensor{}{}$-I]
+    {
+      \inferrule*[right=weak]
+      {\mathit{ih}_t \\\\
+        \ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 1} \vdash M_t : A}
+      {\ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 1}, \ctx{\Delta_u}{\vct 0}
+        \vdash M_t : A}
+      \\
+      \inferrule*[right=weak]
+      {\mathit{ih}_u \\\\
+        \ctx{\Gamma}{\vct \omega}, \ctx{\Delta_u}{\vct 1} \vdash M_u : A}
+      {\ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 0}, \ctx{\Delta_u}{\vct 1}
+        \vdash M_u : A}
+    }
+    {\ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 1}, \ctx{\Delta_u}{\vct 1}
+      \vdash \ten{M_t}{M_u} : \tensor{A}{B}}
+  \]
+\end{proof}
+
+\begin{proposition}[\name $\to$ DILL]
+  Given a $\name_{01\omega}$ derivation of \[
+    \ctx{\Gamma}{\vct \omega}, \ctx{\Delta}{\vct 1}, \ctx{\Theta}{\vct 0} \vdash
+    M : A,
+  \] which contains only types expressible in DILL, we can produce a DILL
+  derivation of \[
+    \Gamma; \Delta \vdash t_M : A
+  \] for some term $t_M$.
+\end{proposition}
+\begin{proof}
+  By induction on the derivation.
+
+  In the case of \TirName{var}, all of the unused variables have annotation
+  greater than $0$, i.e., $0$ or $\omega$.
+  Those annotated $0$ are absent from the DILL derivation, and those annotated
+  $\omega$ are in the intuitionistic context.
+  The used variable is annotated either $1$ or $\omega$.
+  In the first case, we use \TirName{Lin-Ax}, and in the second case,
+  \TirName{Int-Ax}.
+
+  All binding of variables in \name{} maps directly onto DILL.
+
+  For the \TirName{$\excl{\omega}{}$-I} rule, we are required to prove that the
+  following is admissible in DILL.
+  \[
+    \inferrule*
+    {\Gamma; \Delta \vdash t_M : A}
+    {\Gamma, \Delta; \cdot \vdash \oc t_M : \oc A}
+  \]
+  This follows from the Environment Weakening property from Lemma 3.1 of
+  \cite{Barber1996} applied to $\Delta$, followed by \TirName{$\oc$-I}.
+
+  Splitting of contexts is more involved.
+  We shall again take \TirName{$\tensor{}{}$-I} as our example.
+  We are trying to prove admissible \[
+    \inferrule*
+    {\Gamma_A; \Delta_A \vdash t_M : A \\ \Gamma_B; \Delta_B \vdash t_N}
+    {\Gamma; \Delta \vdash t_M \otimes t_N : A \otimes B}
+  \] given also that $\Delta$ consists of only (but not necessarily all)
+  variables that occur exactly once in $\Delta_A, \Delta_B$ and not at all in
+  $\Gamma_A, \Gamma_B$, and that $\Gamma$ consists of all of the other variables
+  from the premises.
+  To prove this rule admissible, on both premises we apply Environment Weakening
+  to all variables in $\Delta_A$ or $\Delta_B$ that are also in $\Gamma$.
+  This gives us $\Gamma; \Delta_A' \vdash t_M : A$ and $\Gamma; \Delta_B' \vdash
+  t_N : B$, with $\Delta_A', \Delta_B' = \Delta$.
+  At this point, we can apply \TirName{$\otimes$-I} and be done.
+\end{proof}
+
 \section{Metatheory}\label{sec:metatheory}
 
 The motivating result of the following section is the admissibility of the
