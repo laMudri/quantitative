@@ -181,11 +181,10 @@ describing how that assumption can be used in the derivation.
 Addition describes how to combine multiple usages of an assumption, and
 multiplication describes the action our graded $\oc$-modality can have.
 The ordering describes the specificness of annotations.
-If $\pi \subres \rho$, $\pi$ can be the annotation for a variable wherever
-$\rho$ can be.
+If $p \subres q$, $p$ can be the annotation for a variable wherever $q$ can be.
 We can read this relation as ``$\textrm{supply} \subres \textrm{demand}$'' ---
-given a variable annotated $\pi$, we can coerce to treat it as if it has the
-desired annotation $\rho$.
+given a variable annotated $p$, we can coerce to treat it as if it has the
+desired annotation $q$.
 
 Skew semirings are a generalisation of partially ordered semirings, which are in turn a
 generalisation of commutative semirings.
@@ -231,7 +230,8 @@ skew-monoidal category.
 \begin{example}
   In light of the above remark, most ``skew'' semirings are actually
   just partially ordered semirings. An example that yields a system
-  equivalent to Barber's DILL is the $0 \triangleright \omega \triangleleft 1$
+  equivalent to Barber's DILL is the
+  $\zero \triangleright \unrestricted \triangleleft \linear$
   semiring of ``unused'', ``unrestricted'', and ``linear'', respectively.
   See \cite{Granule18} for more examples.
 \end{example}
@@ -246,10 +246,10 @@ operators on the left and right, respectively.
 From a skew semiring $\mathbf R$, we form finite vectors, which we
 notate as $\mathbf R^n$, and matrices, which we notate as
 $\mathbf{R}^{m\times n}$. In Agda, we represent vectors in
-$\mathbf R^n$ as functions $\mathrm{Idx}~n \to \mathbf{R}$, where
-$\mathrm{Idx}~n$ is the type of valid indexes in an $n$-tuple, and
+$\mathbf R^n$ as functions $\Idx n \to \mathbf{R}$, where
+$\Idx n$ is the type of valid indexes in an $n$-tuple, and
 matrices in $\mathbf{R}^{m\times n}$ as functions
-$\mathrm{Idx}~m \to \mathrm{Idx}~n \to \mathbf{R}$.  Whereas elements
+$\Idx m \to \Idx n \to \mathbf{R}$.  Whereas elements
 of $\mathbf R$ describe how individual \emph{variables} are used,
 elements of $\mathbf R^n$ describe how all of the variables in an
 $n$-length \emph{context} are used. We call such vectors \emph{usage
@@ -263,7 +263,7 @@ $\mat I$, matrix multiplication $*$, and matrix reindexing
 ${-}_{{-}\times{-}}$ are defined as follows:
 \begin{mathpar}
   \begin{matrix*}[l]
-    \langle {-} \rvert : \mathrm{Idx}~n \to \mathbf{R}^n \\
+    \langle {-} \rvert : \Idx n \to \mathbf{R}^n \\
     \langle i \rvert_j :=
     \begin{cases}
       1, & \textrm{if }i = j \\
@@ -283,8 +283,8 @@ ${-}_{{-}\times{-}}$ are defined as follows:
   \and
   \begin{matrix*}[l]
     {-}_{{-}\times{-}} : \mathbf R^{m' \times n'}
-    \times (\mathrm{Idx}~m \to \mathrm{Idx}~m')
-    \times (\mathrm{Idx}~n \to \mathrm{Idx}~n')
+    \times (\Idx m \to \Idx m')
+    \times (\Idx n \to \Idx n')
     \to \mathbf R^{m \times n} \\
     \left(M_{f \times g}\right)_{i,j} := M_{f\,i,g\,j}
   \end{matrix*}
@@ -292,9 +292,12 @@ ${-}_{{-}\times{-}}$ are defined as follows:
 
 We define vector-matrix multiplication by treating vectors
 as $1$-height matrices.
-
-% We make use of the following operators, which we also take to work on vectors
-% (for example, we often multiply a row vector by a matrix, in that order).
+If $i : \Idx m$ and $j : \Idx n$, then $\inl i$ and $\inr j$ are both of type
+$\Idx(m + n)$.
+In prose, there will always be canonical choices for $m$ and $n$, whereas in the
+mechanisation, we work with the free pointed magma over the $1$-element set as
+opposed to the free monoid over the $1$-element set (i.e., the natural numbers),
+so it is unambiguous where there is a sum of dimensionalities.
 
 \section{Syntax}\label{sec:syntax}
 
@@ -395,18 +398,18 @@ as $1$-height matrices.
 
     \and
 
-    \inferrule*[right=$\excl{\rho}{}$-E]
-    {M : \ctx{\Gamma}{P} \vdash \excl{\rho}{A}
-      \\ \bind{x}N : \ctx{\Gamma}{Q}, \ctxvar{x}{A}{\rho} \vdash C
+    \inferrule*[right=$\excl{r}{}$-E]
+    {M : \ctx{\Gamma}{P} \vdash \excl{r}{A}
+      \\ \bind{x}N : \ctx{\Gamma}{Q}, \ctxvar{x}{A}{r} \vdash C
       \\ \resctx R \subres \resctx P + \resctx Q
     }
     {\bm{C}{M}{x}{\bind{x}N} : \ctx{\Gamma}{R} \vdash C}
     \and
-    \inferrule*[right=$\excl{\rho}{}$-I]
+    \inferrule*[right=$\excl{r}{}$-I]
     {M : \ctx{\Gamma}{P} \vdash A
-      \\ \resctx R \subres \rescomment\rho\resctx P
+      \\ \resctx R \subres \rescomment r\resctx P
     }
-    {\bang{M} : \ctx{\Gamma}{R} \vdash \excl{\rho}{A}}
+    {\bang{M} : \ctx{\Gamma}{R} \vdash \excl{r}{A}}
   \end{mathpar}
 \end{figure}
 
@@ -426,12 +429,12 @@ $\mathbf R$, and vectors and matrices thereof, in \rescomment{green}.
 % \paragraph{Types}
 
 The types of \name{} are given by the grammar:
-$ A,B,C ::= \iota \mid A \multimap B \mid 1 \mid A \otimes B \mid 0
-\mid A \oplus B \mid \top \mid A \with B \mid \excl{\rho} A$.  We have
-a base type $\iota$, function types $A \multimap B$, tensor product
-types $A \otimes B$ with unit $1$, sum types $A \oplus B$ with unit
-$0$, ``with'' product types $A \with B$ with unit $\top$, and an
-exponential $\excl{\rho} A$ indexed by a usage $\rescomment{\rho}$.
+$ A,B,C ::= \base \mid \fun A B \mid \tensorOne \mid \tensor A B \mid \sumTZero
+\mid \sumT A B \mid \withTOne \mid \withT A B \mid \excl{r} A$.
+We have a base type $\base$, function types $\fun A B$, tensor product types
+$\tensor A B$ with unit $\tensorOne$, sum types $\sumT A B$ with unit
+$\sumTZero$, ``with'' product types $\withT A B$ with unit $\withTOne$, and an
+exponential $\excl{r} A$ indexed by a usage $\rescomment{r}$.
 
 We distinguish between \emph{plain} variables, values of type
 $\Gamma \ni A$, which are indices into a context with a specified
@@ -442,7 +445,7 @@ $\resctx R \subres \langle i \rvert$. The force of the latter
 condition is that the selected variable $i$ must have a usage
 annotation $\subres \rescomment 1$ in $\resctx{R}$, and all other
 variables must have a usage annotation $\subres \rescomment 0$. We
-will sometimes silently cast between the types $\mathrm{Idx}~m$ and
+will sometimes silently cast between the types $\Idx m$ and
 $\Gamma \ni A$, particularly when using the reindexing operation
 ${-}_{{-}\times{-}}$.
 
@@ -471,9 +474,12 @@ and $\with$ products being their presentation in terms of pattern
 matching and projections, respectively.
 Thus the addition of usage contexts and constraints on them refines the usual simple typing to be usage constrained.
 For instance, in the \TirName{$\otimes$-I} rule, the usage context $\resctx R$ on the conclusion is constrained to be able to supply the sum $\resctx P + \resctx Q$ of the usage contexts of the premises.
-If we instantiate $\mathbf R$ to be the $0 \triangleright \omega \triangleleft 1$ semiring, then we obtain a system that is equivalent to Barber's DILL \cite{Barber1996}.
+If we instantiate $\mathbf R$ to be the
+$\zero \triangleright \unrestricted \triangleleft \linear$ semiring, then we
+obtain a system that is equivalent to Barber's DILL \cite{Barber1996}.
 
-For the sake of this paper, the precise rules chosen here are not too important.
+For the sake of \autoref{sec:metatheory}, the precise rules chosen here are
+not too important.
 The salient point is that contexts can only be manipulated in specific ways.
 Typing contexts can only be modified by context extensions, i.e., binding new
 variables.
@@ -485,13 +491,36 @@ $\resctx Q$, via constraint $\resctx R \subres \resctx P + \resctx Q$, and an
 $\rescomment r$-scaled down piece $\resctx P$ via constraint
 $\resctx R \subres \rescomment r\resctx P$.
 
+However, the rules chosen are important in \autoref{sec:translation}, as they
+correspond closely to the rules of Dual Intuitionistic Linear Logic and the
+modal calculus of Pfenning and Davies \cite{Barber1996,judgmental}.
+In fact, there are several similar calculi in the literature which do not
+embed intuitionistic linear logic, and thus do not translate in the same way as
+\name{}.
+For example, the system of Abel and Bernardy \cite{AbelBernardy2020}
+essentially replaces \TirName{$\tensor{}{}$-E} with the following stronger
+rule (in our notation, modified to include subusaging).
+This eliminator allows one to derive
+$\fun{\excl r{(\tensor A B)}}{\tensor{\excl r A}{\excl r B}}$ for any
+$\rescomment r$, $A$, and $B$, whereas linear logic has no such tautology.
+
+\[
+  \inferrule*[right=$\tensor{}{}$-E$'$]
+  {M : \ctx{\Gamma}{P} \vdash \tensor{A}{B}
+    \\ \bind{x,y}N : \ctx{\Gamma}{Q}, \ctxvar{x}{A}{q}, \ctxvar{y}{B}{q}
+    \vdash C
+    \\ \resctx R \subres \rescomment q\resctx P + \resctx Q
+  }
+  {\prm{C}{\rescomment qM}{x}{y}{\bind{x,y}N} : \ctx{\Gamma}{R} \vdash C}
+\]
+
 % It is a refinement of simply typed $\lambda$-calculus sporting usage annotations
 % from $\mathbf R$ on variables in the context and constraints on term formation
 % based on these annotations.
 % Type formers are mostly standard from intuitionistic linear logic --- functions,
 % multiplicative and additive products and their units, and additive sums and
 % their unit.
-% Additionally, we have an annotated bang ($\excl{\rho}{A}$), forming a graded
+% Additionally, we have an annotated bang ($\excl{r}{A}$), forming a graded
 % comonad (assuming definitions tweaked to account for $\subres$ and skewness).
 
 % \section{Skew linear algebra}
@@ -515,18 +544,18 @@ $\resctx R \subres \rescomment r\resctx P$.
 %       \begin{mathpar}
 %         0_\mathbf R m \subres 0_\mathbf M
 %         \and
-%         (\pi +_\mathbf R \rho) m \subres \pi m +_\mathbf M \rho m
+%         (p +_\mathbf R q) m \subres p m +_\mathbf M q m
 %         \and
 %         1_\mathbf R m \subres m
 %         \and
-%         (\pi *_\mathbf R \rho) m \subres \pi (\rho m)
+%         (p *_\mathbf R q) m \subres p (q m)
 %       \end{mathpar}
-%     \item Scaling by a fixed element $\pi$ corespects the additive structure;
+%     \item Scaling by a fixed element $p$ corespects the additive structure;
 %       particularly:
 %       \begin{mathpar}
-%         0_\mathbf M \subres \pi 0_\mathbf M
+%         0_\mathbf M \subres p 0_\mathbf M
 %         \and
-%         \pi m +_\mathbf M \pi n \subres \pi (m +_\mathbf M n)
+%         p m +_\mathbf M p n \subres p (m +_\mathbf M n)
 %       \end{mathpar}
 %   \end{itemize}
 % \end{definition}
@@ -542,13 +571,13 @@ $\resctx R \subres \rescomment r\resctx P$.
 %     \and
 %     (m +_\mathbf M n)T \subres (m)T +_\mathbf N (n)T
 %     \and
-%     (\pi *_\mathbf M m)T \subres \pi *_\mathbf N (m)T
+%     (p *_\mathbf M m)T \subres p *_\mathbf N (m)T
 %   \end{mathpar}
 % \end{definition}
 
 % The last axiom motivates the postfix notation.
 % If we take application of $T$ to be a form of multiplication (as justified later
-% in this section), then we do not want to require $T$ to commute with $\pi$.
+% in this section), then we do not want to require $T$ to commute with $p$.
 % This remains important for non-skew semirings, but not commutative semirings.
 
 % A concrete source of linear maps is matrices.
@@ -560,8 +589,8 @@ $\resctx R \subres \rescomment r\resctx P$.
 % \begin{proof}
 %   We observe the following inequalities.
 %   Notice that in the last inequality, $M$ being on the right means that we do
-%   not have to commute it past $\pi$.
-%   To pull $\pi$ out of the sum, we use the fact that multiplication
+%   not have to commute it past $p$.
+%   To pull $p$ out of the sum, we use the fact that multiplication
 %   \emph{corespects} the additive structure on the right.
 %   \begin{itemize}
 %     \item $\left(\vct 0M\right)_{k}
@@ -574,11 +603,11 @@ $\resctx R \subres \rescomment r\resctx P$.
 %       \subres \sum_j \left(u_jM_{jk} + v_jM_{jk}\right)
 %       = \sum_j u_jM_{jk} + \sum_j v_jM_{jk}
 %       = (uM + vM)_{k}$
-%     \item $\left((\pi u)M\right)_{k}
-%       = \sum_j \left(\pi u_j\right)M_{jk}
-%       \subres \sum_j \pi\left(u_jM_{jk}\right)
-%       \subres \pi\sum_j u_jM_{jk}
-%       = \left(\pi(uM)\right)_{k}$
+%     \item $\left((p u)M\right)_{k}
+%       = \sum_j \left(p u_j\right)M_{jk}
+%       \subres \sum_j p\left(u_jM_{jk}\right)
+%       \subres p\sum_j u_jM_{jk}
+%       = \left(p(uM)\right)_{k}$
 %   \end{itemize}
 % \end{proof}
 
@@ -610,7 +639,7 @@ $\resctx R \subres \rescomment r\resctx P$.
 A motivating reason to consider the system presented in this paper is that
 instances of it correspond to previously studied systems.
 In this section, we present translations from \name{} to Dual Intuitionistic
-Linear Logic \cite{Barber1996} and the modal system of Pfenning and Davis
+Linear Logic \cite{Barber1996} and the modal system of Pfenning and Davies
 \cite{judgmental}, and vice versa.
 These translations are not mechanised, as part of the reason for developing
 \name{} was to avoid mechanising these systems directly.
@@ -621,54 +650,60 @@ enough to do.
 In this section, we shall assume the admissibility of weakening (TODO: define),
 which we shall prove in \autoref{sec:metatheory}.
 
+\subsection{DILL}\label{sec:dill}
 Dual Intuitionistic Linear Logic is a particular formulation of intuitionistic
 linear logic \cite{Barber1996}.
 Its key feature, which simplifies the metatheory of linear logic, is the use of
 separate contexts for linear and intuitionistic free variables.
 Here we show that DILL is a fragment of the instantiation of \name{} at the
-linearity semiring $\{0,1,\omega\}$.
+linearity semiring $\{\zero, \linear, \unrestricted\}$.
 
 The types of DILL are the same as the types of \name, except for the
-restriction of $\excl{\rho}{}$ to just $\excl{\omega}{}$.
+restriction of $\excl{r}{}$ to just $\excl{\unrestricted}{}$.
 We will write the latter simply as $\oc$ when it appears in DILL.
 We add sums and with products to the calculus of \cite{Barber1996}, with the
 obvious rules.
 \fixmeBA{should put the rules for the precise variant of DILL we are using in an appendix}
 These additive type formers present no additional difficulty to the translation.
 
-\fixmeBA{Should give the translation on terms}
-
-%\begin{figure}
-%  \begin{displaymath}
-%    \begin{eqns}
-%      \mathrm{DILL} &\hookrightarrow& \name \\
-%      Y &\mapsto& \base_Y \\
-%      I &\mapsto& \tensorOne \\
-%      A \multimap B &\mapsto& \fun{A}{B} \\
-%      A \otimes B &\mapsto& \tensor{A}{B} \\
-%      \oc A &\mapsto& \excl{\omega}{A}
-%    \end{eqns}
-%  \end{displaymath}
-%  \label{fig:dill}
-%  \caption{Embedding of DILL types into \name}
-%\end{figure}
+\begin{figure}
+  \begin{mathpar}
+    \begin{eqns}
+      \mathrm{DILL} &\hookrightarrow& \name_\instDILL \\
+      Y &\mapsto& \base_Y \\
+      I &\mapsto& \tensorOne \\
+      A \multimap B &\mapsto& \fun{A}{B} \\
+      A \otimes B &\mapsto& \tensor{A}{B} \\
+      \oc A &\mapsto& \excl{\unrestricted}{A}
+    \end{eqns}
+    \and
+    \begin{eqns}
+      \mathrm{PD} &\hookrightarrow& \name_\instPD \\
+      Y &\mapsto& \base_Y \\
+      \top &\mapsto& \tensorOne \\
+      A \to B &\mapsto& \fun{A}{B} \\
+      A \wedge B &\mapsto& \withT{A}{B} \\
+      \Box A &\mapsto& \excl{\valid}{A}
+    \end{eqns}
+  \end{mathpar}
+  \label{fig:dill-pd}
+  \caption{Embedding of DILL and PD types into \name}
+\end{figure}
 
 \begin{proposition}[DILL $\to$ \name]
-  Given a DILL derivation of \[
-    \Gamma; \Delta \vdash t : A,
-  \] we can produce a $\name_{01\omega}$ derivation of \[
-    \ctx{\Gamma}{\vct \omega}, \ctx{\Delta}{\vct 1} \vdash
-    M_t : A
-  \] for some term $M_t$.
+  Given a DILL derivation of $\Gamma; \Delta \vdash A$, we can produce a
+  $\name_{\instDILL}$ derivation of
+  $\ctx{\Gamma}{\vct \unrestricted}, \ctx{\Delta}{\vct 1} \vdash A$.
 \end{proposition}
 \begin{proof}
   By induction on the derivation.
-  We have $\omega \subres 0$, which allows us to discard intuitionistic
-  variables at the var rules, and both $1 \subres 1$ and $\omega \subres 1$,
-  which allow us to use both linear and intuitionistic variables.
+  We have $\unrestricted \subres \zero$, which allows us to discard
+  intuitionistic variables at the var rules, and both
+  $\linear \subres \linear$ and $\unrestricted \subres \linear$, which allow
+  us to use both linear and intuitionistic variables.
 
   Weakening is used when splitting linear variables between two premises.
-  For example, \TirName{$\otimes$-I} is as follows.
+  For example, \TirName{$\otimes$-I} in DILL is as follows.
   \[
     \inferrule*[right=$\otimes$-I]
     {\Gamma; \Delta_t \vdash t : A \\ \Gamma; \Delta_u \vdash u : B}
@@ -680,69 +715,260 @@ These additive type formers present no additional difficulty to the translation.
     {
       \inferrule*[right=weak]
       {\mathit{ih}_t \\\\
-        \ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 1} \vdash M_t : A}
-      {\ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 1}, \ctx{\Delta_u}{\vct 0}
+        \ctx{\Gamma}{\vct\unrestricted}, \ctx{\Delta_t}{\vct\linear}
+        \vdash M_t : A}
+      {\ctx{\Gamma}{\vct\unrestricted}, \ctx{\Delta_t}{\vct\linear},
+        \ctx{\Delta_u}{\vct\zero}
         \vdash M_t : A}
       \\
       \inferrule*[right=weak]
       {\mathit{ih}_u \\\\
-        \ctx{\Gamma}{\vct \omega}, \ctx{\Delta_u}{\vct 1} \vdash M_u : A}
-      {\ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 0}, \ctx{\Delta_u}{\vct 1}
+        \ctx{\Gamma}{\vct\unrestricted}, \ctx{\Delta_u}{\vct\linear}
+        \vdash M_u : A}
+      {\ctx{\Gamma}{\vct\unrestricted}, \ctx{\Delta_t}{\vct\zero},
+        \ctx{\Delta_u}{\vct\linear}
         \vdash M_u : A}
     }
-    {\ctx{\Gamma}{\vct \omega}, \ctx{\Delta_t}{\vct 1}, \ctx{\Delta_u}{\vct 1}
+    {\ctx{\Gamma}{\vct\unrestricted}, \ctx{\Delta_t}{\vct\linear},
+      \ctx{\Delta_u}{\vct\linear}
       \vdash \ten{M_t}{M_u} : \tensor{A}{B}}
   \]
 \end{proof}
 
-\begin{proposition}[\name $\to$ DILL]
-  Given a $\name_{01\omega}$ derivation of \[
-    \ctx{\Gamma}{\vct \omega}, \ctx{\Delta}{\vct 1}, \ctx{\Theta}{\vct 0} \vdash
-    M : A,
-  \] which contains only types expressible in DILL, we can produce a DILL
-  derivation of \[
-    \Gamma; \Delta \vdash t_M : A
-  \] for some term $t_M$.
+In constructing DILL derivations, we make regular use of the following
+admissible rule, allowing intuitionistic assumptions to be turned into linear
+assumptions at any point in a derivation.
+
+\begin{lemma}[environment weakening]\label{lem:env-weak}
+  In DILL, $\Gamma; A, \Delta \vdash B$ implies $\Gamma, A; \Delta \vdash B$.
+\end{lemma}
+\begin{proof}
+  See \cite{Barber1996}, Lemma 2.5.
+\end{proof}
+
+\begin{proposition}[\name{} $\to$ DILL]
+  Given a $\name_{\instDILL}$ derivation of
+  $\ctx{\Gamma}{\vct\unrestricted}, \ctx{\Delta}{\vct\linear},
+  \ctx{\Theta}{\vct\zero} \vdash A$ which contains only types expressible
+  in DILL, we can produce a DILL derivation of $\Gamma; \Delta \vdash A$.
 \end{proposition}
 \begin{proof}
   By induction on the derivation.
 
   In the case of \TirName{var}, all of the unused variables have annotation
-  greater than $0$, i.e., $0$ or $\omega$.
-  Those annotated $0$ are absent from the DILL derivation, and those annotated
-  $\omega$ are in the intuitionistic context.
-  The used variable is annotated either $1$ or $\omega$.
+  greater than $\zero$, i.e., $\zero$ or $\unrestricted$.
+  Those annotated $\zero$ are absent from the DILL derivation, and those
+  annotated $\unrestricted$ are in the intuitionistic context.
+  The used variable is annotated either $\linear$ or $\unrestricted$.
   In the first case, we use \TirName{Lin-Ax}, and in the second case,
   \TirName{Int-Ax}.
 
   All binding of variables in \name{} maps directly onto DILL.
 
-  For the \TirName{$\excl{\omega}{}$-I} rule, we are required to prove that the
-  following is admissible in DILL.
+  For the \TirName{$\excl{\unrestricted}{}$-I} rule, we are required to prove
+  that the following is admissible in DILL.
   \[
     \inferrule*
-    {\Gamma; \Delta \vdash t_M : A}
-    {\Gamma, \Delta; \cdot \vdash \oc t_M : \oc A}
+    {\Gamma; \Delta \vdash A}
+    {\Gamma, \Delta; \cdot \vdash \oc A}
   \]
-  This follows from the Environment Weakening property from Lemma 3.1 of
-  \cite{Barber1996} applied to $\Delta$, followed by \TirName{$\oc$-I}.
+  This follows from \autoref{lem:env-weak} applied to $\Delta$, followed by
+  \TirName{$\oc$-I}.
 
   Splitting of contexts is more involved.
   We shall again take \TirName{$\tensor{}{}$-I} as our example.
-  We are trying to prove admissible \[
+  We shall assume, without loss of generality, that the inequality in the
+  \TirName{$\tensor{}{}$-I} rule is actually an equality, producing the rule
+  on the left below (to recover the full rule, apply environment weakening and intuitionistic weakening to the resultant DILL derivation).
+  After applying the inductive hypothesis to both halves of the pair, we are
+  required to prove the rule on the right admissible in DILL.
+  \begin{mathpar}
+    \inferrule*[right=$\tensor{}{}$-I$'$]
+    {\ctx\Gamma P \vdash A \\ \ctx\Gamma Q \vdash B}
+    {(\resctx P + \resctx Q)\Gamma \vdash \tensor A B}
+    \and
     \inferrule*
-    {\Gamma_A; \Delta_A \vdash t_M : A \\ \Gamma_B; \Delta_B \vdash t_N}
-    {\Gamma; \Delta \vdash t_M \otimes t_N : A \otimes B}
-  \] given also that $\Delta$ consists of only (but not necessarily all)
-  variables that occur exactly once in $\Delta_A, \Delta_B$ and not at all in
-  $\Gamma_A, \Gamma_B$, and that $\Gamma$ consists of all of the other variables
-  from the premises.
-  To prove this rule admissible, on both premises we apply Environment Weakening
-  to all variables in $\Delta_A$ or $\Delta_B$ that are also in $\Gamma$.
-  This gives us $\Gamma; \Delta_A' \vdash t_M : A$ and $\Gamma; \Delta_B' \vdash
-  t_N : B$, with $\Delta_A', \Delta_B' = \Delta$.
-  At this point, we can apply \TirName{$\otimes$-I} and be done.
+    {\Gamma_A; \Delta_A \vdash A \\ \Gamma_B; \Delta_B \vdash B}
+    {\Gamma_A \cup \Gamma_B \cup (\Delta_A \cap \Delta_B);
+      (\Delta_A \cup \Delta_B) - (\Delta_A \cap \Delta_B) - \Gamma_A - \Gamma_B
+      \vdash A \otimes B}
+  \end{mathpar}
+  To show this rule admissible in DILL, we simplify the contexts as follows:
+  let $\Gamma := \Gamma_A \cup \Gamma_B \cup (\Delta_A \cap \Delta_B)$,
+  $\Delta_A' := \Delta_A - \Delta_B - \Gamma_B$, and
+  $\Delta_B' := \Delta_B - \Delta_A - \Gamma_A$.
+  Notice that $\Delta_A'$ and $\Delta_B'$ are disjoint, and also that
+  $\Delta_A' \cup \Delta_B' =
+  (\Delta_A \cup \Delta_B) - (\Delta_A \cap \Delta_B) - \Gamma_A - \Gamma_B$
+  (using the fact that $\Gamma_A$ and $\Delta_A$ are disjoint, as are
+  $\Gamma_B$ and $\Delta_B$).
+  We can prove $\Gamma; \Delta_A' \vdash A$ and $\Gamma; \Delta_B' \vdash B$
+  using the two respective hypotheses and environment \& intuitionistic
+  weakening, and then apply \TirName{$\otimes$-I} to get the desired conclusion.
+  %We shall again take \TirName{$\tensor{}{}$-I} as our example.
+  %We are trying to prove admissible \[
+  %  \inferrule*
+  %  {\Gamma_A; \Delta_A \vdash A \\ \Gamma_B; \Delta_B \vdash B}
+  %  {\Gamma; \Delta \vdash A \otimes B}
+  %\] given also that $\Delta$ consists of only (but not necessarily all)
+  %variables that occur exactly once in $\Delta_A, \Delta_B$ and not at all in
+  %$\Gamma_A, \Gamma_B$, and that $\Gamma$ consists of all of the other variables
+  %from the premises.
+  %To prove this rule admissible, on both premises we apply
+  %\autoref{lem:env-weak} to all variables in $\Delta_A$ or $\Delta_B$ that are
+  %also in $\Gamma$.
+  %This gives us $\Gamma; \Delta_A' \vdash A$ and $\Gamma; \Delta_B' \vdash B$,
+  %with $\Delta_A', \Delta_B' = \Delta$.
+  %At this point, we can apply \TirName{$\otimes$-I} and be done.
 \end{proof}
+
+\subsection{PD}\label{sec:pd}
+
+The translation to and from the modal system of Pfenning and Davies
+\cite{judgmental} (henceforth \emph{PD}) is similar to the translation to and
+from DILL.
+The main difference is the algebra at which \name{} is instantiated.
+
+\begin{definition}
+  Let $\instPD$ denote the following skew semiring on the partially ordered set
+  $\{\valid \triangleleft \true \triangleleft \unused\}$.
+  \begin{itemize}
+    \item $0 := \unused$.
+    \item $+$ is the meet ($\wedge$) according to the subusaging order.
+    \item $1 := \true$.
+    \item
+      \begin{tabular}{c|ccc}
+        $*$ & \unused & \true & \valid \\ \hline
+        \unused & \unused & \unused & \unused \\
+        \true & \unused & \true & \valid \\
+        \valid & \unused & \valid & \valid \\
+      \end{tabular}
+  \end{itemize}
+\end{definition}
+
+\begin{lemma}\label{lem:turnstile-derivation}
+  If we can derive $\ctxvar x A 1 \vdash B$, then we also know that from
+  $\ctx\Gamma R \vdash A$ we can derive $\ctx\Gamma R \vdash B$.
+\end{lemma}
+\begin{proof}
+  Assuming the two hypotheses, we can make the following derivation.
+  \[
+    \inferrule*[right=SingleSubst]
+    {
+      \ctx\Gamma R \vdash A
+      \\
+      \inferrule*[right=weak]
+      {\ctxvar x A 1 \vdash B}
+      {\ctx\Gamma{\vct 0}, \ctxvar x A 1 \vdash B}
+      \\
+      \inferrule*{ }
+      {\rescomment 1\resctx R + \vct{\rescomment 0} \subres \resctx R}
+    }
+    {\ctx\Gamma R \vdash B}
+  \]
+\end{proof}
+
+By the following lemma, if we have a \name_\instPD derivation containing tensor
+products, we can convert it into a derivation instead using with products.
+
+\begin{lemma}
+  If \name{} is instantiated at a skew semiring such that $0$ is top and $+$ is
+  meet (with respect to the subusaging order), then $\withTOne$ and
+  $\tensorOne$ are interderivable, and $\withT A B$ and $\tensor A B$ are
+  interderivable. (TODO: should this lemma split in two?)
+\end{lemma}
+\begin{proof}
+  By \autoref{lem:turnstile-derivation}, following derivations suffice.
+  \begin{mathpar}\footnotesize
+    \inferrule*[right=$\withTOne$-I]
+    { }
+    {\ctxvar x \tensorOne 1 \vdash \withTOne}
+
+    \and
+
+    \inferrule*[right=$\tensorOne$-I]
+    {\inferrule*{ }{\rescomment 1 \subres \rescomment 0}}
+    {\ctxvar x \withTOne 1 \vdash \tensorOne}
+
+    \and
+
+    \inferrule*[right=$\tensor{}{}$-E]
+    {
+      \inferrule*[right=var]
+      {
+        \inferrule*{ }{(\rescomment 1) \subres (\rescomment 1)}
+      }
+      {\ctxvar x{(\tensor A B)}1 \vdash \tensor A B}
+      \\
+      \inferrule*[right=$\withT{}{}$-I]
+      {
+        \inferrule*[right=var]
+        {
+          \inferrule*{ }
+          {(\rescomment 0, \rescomment 1, \rescomment 1) \subres
+            (\rescomment 0, \rescomment 1, \rescomment 0)}
+        }
+        {\ctxvar x{(\tensor A B)}0, \ctxvar x A 1, \ctxvar y B 1 \vdash A}
+        \\
+        \inferrule*[right=var]
+        {
+          \inferrule*{ }
+          {(\rescomment 0, \rescomment 1, \rescomment 1) \subres
+            (\rescomment 0, \rescomment 0, \rescomment 1)}
+        }
+        {\ctxvar x{(\tensor A B)}0, \ctxvar x A 1, \ctxvar y B 1 \vdash B}
+      }
+      {\ctxvar x{(\tensor A B)}0, \ctxvar x A 1, \ctxvar y B 1
+        \vdash \withT A B}
+      \\
+      \inferrule*{ }{(\rescomment 1) + (\rescomment 0) \subres (\rescomment 1)}
+    }
+    {\ctxvar x{(\tensor A B)}1 \vdash \withT A B}
+
+    \and
+
+    \inferrule*[right=$\tensor{}{}$-I]
+    {
+      \inferrule*[right=$\withT{}{}$-El]
+      {
+        \inferrule*[right=var]
+        {\inferrule*{ }{(\rescomment 1) \subres (\rescomment 1)}}
+        {\ctxvar x {(\withT A B)}1 \vdash \withT A B}
+      }
+      {\ctxvar x {(\withT A B)}1 \vdash A}
+      \\
+      \inferrule*[right=$\withT{}{}$-Er]
+      {
+        \inferrule*[right=var]
+        {\inferrule*{ }{(\rescomment 1) \subres (\rescomment 1)}}
+        {\ctxvar x {(\withT A B)}1 \vdash \withT A B}
+      }
+      {\ctxvar x {(\withT A B)}1 \vdash B}
+      \\
+      \inferrule*{ }{(\rescomment 1) + (\rescomment 1) \subres (\rescomment 1)}
+    }
+    {\ctxvar x {(\withT A B)}1 \vdash \tensor A B}
+  \end{mathpar}
+\end{proof}
+
+To keep our notation consistent with that of DILL, we swap the roles of
+$\Gamma$ and $\Delta$ in PD compared to what they were in the original paper.
+Thus, our PD judgements are of the form $\Gamma; \Delta \vdash A~\mathit{true}$,
+where $\Gamma$ contains valid assumptions and $\Delta$ contains true
+assumptions.
+
+\begin{proposition}[PD $\to$ \name]
+  Given a PD derivation of $\Gamma; \Delta \vdash t : A~\mathit{true}$, we can
+  produce a $\name_{\instPD}$ derivation of
+  $\ctx{\Gamma}{\vct\valid}, \ctx{\Delta}{\vct\true} \vdash A$.
+\end{proposition}
+
+\begin{proposition}[\name{} $\to$ PD]
+  Given a $\name_{\instPD}$ derivation of
+  $\ctx{\Gamma}{\vct\valid}, \ctx{\Delta}{\vct\true}, \ctx{\Theta}{\vct\unused}
+  \vdash M : A$ which contains only types expressible in PD, we can produce a
+  PD derivation of $\Gamma; \Delta \vdash A~\mathit{true}$.
+\end{proposition}
 
 \section{Metatheory}\label{sec:metatheory}
 
@@ -1238,18 +1464,18 @@ lemma that shows that environments can be pushed under binders.
     %   \TirName{$\sumTZero$-E}:]
     %   These all follow similarly to the above case (ignoring the lack of a
     %   subterm $N$ in the \TirName{$\sumTZero$-E} case).
-    % \item[\TirName{$\excl{\rho}{}$-I} $\bang{M}$, where
+    % \item[\TirName{$\excl{r}{}$-I} $\bang{M}$, where
     %   $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash A$,
-    %   $\resctx Q \subres \rescomment\rho \resctx Q_{\rescomment M}$:]
+    %   $\resctx Q \subres \rescomment r \resctx Q_{\rescomment M}$:]
     %   Following a similar strategy to the case above, let
     %   $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$.
     %   If we get a term $M' : \ctx{\Gamma}{P_{\mathnormal M}} \vdash A$, we will
-    %   be able to apply \TirName{$\excl{\rho}{}$-I} to get the result because
+    %   be able to apply \TirName{$\excl{r}{}$-I} to get the result because
     %   \[
     %   \resctx P_{\rescomment M} = \resctx Q_{\rescomment M}\rescomment\Psi
-    %   \subres (\rescomment\rho\resctx Q)\rescomment\Psi
-    %   \subres \rescomment\rho(\resctx Q\rescomment\Psi)
-    %   \subres \rescomment\rho\resctx P.
+    %   \subres (\rescomment r\resctx Q)\rescomment\Psi
+    %   \subres \rescomment r(\resctx Q\rescomment\Psi)
+    %   \subres \rescomment r\resctx P.
     %   \]
 %
     %   To get $M'$, we traverse $M$ with the same environment at type
@@ -1296,11 +1522,11 @@ lemma that shows that environments can be pushed under binders.
 %
     %   Finally, we apply \TirName{$\sumT{}{}$-E} to all of the traversed
     %   derivations.
-    % \item[\TirName{$\tensor{}{}$-E}, \TirName{$\excl{\rho}{}$-E}:]
+    % \item[\TirName{$\tensor{}{}$-E}, \TirName{$\excl{r}{}$-E}:]
     %   These both feature a similar combination of splitting and binding to the
     %   previous case.
-    %   The \TirName{$\excl{\rho}{}$-E} rule involves binding a variable with
-    %   arbitrary annotation $\rescomment\rho$, but notice that the
+    %   The \TirName{$\excl{r}{}$-E} rule involves binding a variable with
+    %   arbitrary annotation $\rescomment r$, but notice that the
     %   \hyperref[lem:bind]{bind lemma} handles this perfectly well.
 %  \end{description}
 \end{proof}
