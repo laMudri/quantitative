@@ -735,15 +735,81 @@ These additive type formers present no additional difficulty to the translation.
   \]
 \end{proof}
 
-In constructing DILL derivations, we make regular use of the following
-admissible rule, allowing intuitionistic assumptions to be turned into linear
-assumptions at any point in a derivation.
+When translating from \name{} to DILL, we first coerce the \name{} derivation
+to be in a form easily amenable to translation into DILL.
+An example of a \name{} derivation with no direct translation into DILL is the
+following.
+In DILL terms, the intuitionistic variable of the conclusion becomes a linear
+variable in the premises.
+Such a move is admissible in DILL, but does not come naturally.
 
-\begin{lemma}[environment weakening]\label{lem:env-weak}
-  In DILL, $\Gamma; A, \Delta \vdash B$ implies $\Gamma, A; \Delta \vdash B$.
+\[
+  \inferrule*[right=$\tensor{}{}$-I]
+  {
+    \inferrule*[right=var]{ }
+    {\ctxvar{x}{A}{\linear} \vdash A}
+    \\
+    \inferrule*[right=var]{ }
+    {\ctxvar{x}{A}{\linear} \vdash A}
+    \\
+    \unrestricted \subres \linear + \linear
+  }
+  {\ctxvar{x}{A}{\unrestricted} \vdash \tensor A A}
+\]
+
+To avoid such situations, and therefore manipulations on DILL derivations, we
+show that all $\name_{\instDILL}$ derivations can be made in \emph{bottom-up}
+style.
+In bottom-up style, the algebraic facts we make use of are dictated by making
+most general choices based on the conclusions of rules.
+Bottom-up style corresponds to a (non-deterministic) form of
+\emph{usage checking}, and the following lemma can be understood as saying
+that that form of usage checking is sufficiently general.
+
+\begin{definition}
+  A derivation is said to be \emph{$\instDILL$-bottom-up} if only the following
+  facts about addition and multiplication are used, and all proofs of
+  inequalities not at leaves are by reflexivity (i.e, not using the facts that
+  $\unrestricted \subres \zero$ and $\unrestricted \subres \linear$).
+
+  \makebox[\textwidth][s]{
+    \begin{tabular}{c|ccc}
+      $+$ & \zero & \linear & \unrestricted \\ \hline
+      \zero & \zero & \linear & - \\
+      \linear & \linear & - & - \\
+      \unrestricted & - & - & \unrestricted \\
+    \end{tabular}
+    \begin{tabular}{c|ccc}
+      $*$ & \zero & \linear & \unrestricted \\ \hline
+      \zero & - & - & \zero \\
+      \linear & \zero & \linear & \unrestricted \\
+      \unrestricted & \zero & - & \unrestricted \\
+    \end{tabular}
+  }
+\end{definition}
+
+Bottom-up style enforces that whenever we split a context into two (for
+example, in the rule \TirName{$\tensor{}{}$-I}) all unused variables in the
+conclusion stay unused in the premises, intuitionistic variables stay
+intuitionistic, and linear variables go either left or right.
+Multiplication is only used in the rule \TirName{$\excl{r}{}$-I}, at which point
+both the result and left argument are available.
+Here, the bottom-up style enforces that linear variables never appear in the
+premise of \TirName{$\excl{\unrestricted}{}$-I}.
+
+\begin{lemma}
+  Every $\name_{\instDILL}$ derivation can be translated into a bottom-up
+  $\name_{\instDILL}$ derivation.
 \end{lemma}
 \begin{proof}
-  See \cite{Barber1996}, Lemma 2.5.
+  By induction on the shape of the derivation.
+  When we come across a non-bottom-up use of addition, it must be that the
+  corresponding variable in the conclusion has annotation $\unrestricted$.
+  By subusaging, we can give this variable annotation $\unrestricted$ in
+  the premises too, before translating the subderivations to bottom-up
+  style.
+  A similar argument applies to uses of multiplication, remembering that both
+  the left argument and result are fixed.
 \end{proof}
 
 \begin{proposition}[\name{} $\to$ DILL]
@@ -753,7 +819,7 @@ assumptions at any point in a derivation.
   in DILL, we can produce a DILL derivation of $\Gamma; \Delta \vdash A$.
 \end{proposition}
 \begin{proof}
-  By induction on the derivation.
+  By induction on the derivation having been translated to bottom-up form.
 
   In the case of \TirName{var}, all of the unused variables have annotation
   greater than $\zero$, i.e., $\zero$ or $\unrestricted$.
@@ -765,61 +831,20 @@ assumptions at any point in a derivation.
 
   All binding of variables in \name{} maps directly onto DILL.
 
-  For the \TirName{$\excl{\unrestricted}{}$-I} rule, we are required to prove
-  that the following is admissible in DILL.
-  \[
-    \inferrule*
-    {\Gamma; \Delta \vdash A}
-    {\Gamma, \Delta; \cdot \vdash \oc A}
-  \]
-  This follows from \autoref{lem:env-weak} applied to $\Delta$, followed by
-  \TirName{$\oc$-I}.
+  Because we translated to bottom-up form, additions, as seen in, for example,
+  the \TirName{$\tensor{}{}$-I} rule, can be handled straightforwardly.
+  Any intuitionistic variables in the conclusion correspond to intuitionistic
+  variables in both premises.
+  Any linear variables in the conclusion correspond to a linear variable in
+  exactly one of the premises, and is absent in the other premise.
 
-  Splitting of contexts is more involved.
-  We shall again take \TirName{$\tensor{}{}$-I} as our example.
-  We shall assume, without loss of generality, that the inequality in the
-  \TirName{$\tensor{}{}$-I} rule is actually an equality, producing the rule
-  on the left below (to recover the full rule, apply environment weakening and intuitionistic weakening to the resultant DILL derivation).
-  After applying the inductive hypothesis to both halves of the pair, we are
-  required to prove the rule on the right admissible in DILL.
-  \begin{mathpar}
-    \inferrule*[right=$\tensor{}{}$-I$'$]
-    {\ctx\Gamma P \vdash A \\ \ctx\Gamma Q \vdash B}
-    {(\resctx P + \resctx Q)\Gamma \vdash \tensor A B}
-    \and
-    \inferrule*
-    {\Gamma_A; \Delta_A \vdash A \\ \Gamma_B; \Delta_B \vdash B}
-    {\Gamma_A \cup \Gamma_B \cup (\Delta_A \cap \Delta_B);
-      (\Delta_A \cup \Delta_B) - (\Delta_A \cap \Delta_B) - \Gamma_A - \Gamma_B
-      \vdash A \otimes B}
-  \end{mathpar}
-  To show this rule admissible in DILL, we simplify the contexts as follows:
-  let $\Gamma := \Gamma_A \cup \Gamma_B \cup (\Delta_A \cap \Delta_B)$,
-  $\Delta_A' := \Delta_A - \Delta_B - \Gamma_B$, and
-  $\Delta_B' := \Delta_B - \Delta_A - \Gamma_A$.
-  Notice that $\Delta_A'$ and $\Delta_B'$ are disjoint, and also that
-  $\Delta_A' \cup \Delta_B' =
-  (\Delta_A \cup \Delta_B) - (\Delta_A \cap \Delta_B) - \Gamma_A - \Gamma_B$
-  (using the fact that $\Gamma_A$ and $\Delta_A$ are disjoint, as are
-  $\Gamma_B$ and $\Delta_B$).
-  We can prove $\Gamma; \Delta_A' \vdash A$ and $\Gamma; \Delta_B' \vdash B$
-  using the two respective hypotheses and environment \& intuitionistic
-  weakening, and then apply \TirName{$\otimes$-I} to get the desired conclusion.
-  %We shall again take \TirName{$\tensor{}{}$-I} as our example.
-  %We are trying to prove admissible \[
-  %  \inferrule*
-  %  {\Gamma_A; \Delta_A \vdash A \\ \Gamma_B; \Delta_B \vdash B}
-  %  {\Gamma; \Delta \vdash A \otimes B}
-  %\] given also that $\Delta$ consists of only (but not necessarily all)
-  %variables that occur exactly once in $\Delta_A, \Delta_B$ and not at all in
-  %$\Gamma_A, \Gamma_B$, and that $\Gamma$ consists of all of the other variables
-  %from the premises.
-  %To prove this rule admissible, on both premises we apply
-  %\autoref{lem:env-weak} to all variables in $\Delta_A$ or $\Delta_B$ that are
-  %also in $\Gamma$.
-  %This gives us $\Gamma; \Delta_A' \vdash A$ and $\Gamma; \Delta_B' \vdash B$,
-  %with $\Delta_A', \Delta_B' = \Delta$.
-  %At this point, we can apply \TirName{$\otimes$-I} and be done.
+  The only remaining rule is \TirName{$\excl{r}{}$-I}, of which we only cover
+  \TirName{$\excl{\unrestricted}{}$-I} (the other two targeting types not found
+  in DILL).
+  In this case, we know that every variable in the conclusion is annotated
+  either $\zero$ or $\unrestricted$, and every variable in the premise is
+  annotated the same way.
+  This corresponds exactly to the restrictions of DILL's \TirName{$\oc$-I}.
 \end{proof}
 
 \subsection{PD}\label{sec:pd}
