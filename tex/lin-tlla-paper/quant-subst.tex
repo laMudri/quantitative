@@ -988,12 +988,59 @@ assumptions.
   $\ctx{\Gamma}{\vct\valid}, \ctx{\Delta}{\vct\true} \vdash A$.
 \end{proposition}
 
+For translating from $\name_{\instPD}$ to PD, we introduce a similar notion of
+\emph{bottom-up} derivations as we did for DILL.
+Every $\name_{\instPD}$ derivation can be translated into bottom-up style, and
+then be directly translated into PD.
+
+\begin{definition}
+  A derivation is said to be \emph{$\instPD$-bottom-up} if only the following
+  facts about addition and multiplication are used, and all proofs of
+  inequalities not at leaves are by reflexivity.
+
+  \makebox[\textwidth][s]{
+    \begin{tabular}{c|ccc}
+      $+$ & \unused & \true & \valid \\ \hline
+      \unused & \unused & - & - \\
+      \true & - & \true & - \\
+      \valid & - & - & \valid \\
+    \end{tabular}
+    \begin{tabular}{c|ccc}
+      $*$ & \unused & \true & \valid \\ \hline
+      \unused & - & - & \unused \\
+      \true & \unused & \true & \valid \\
+      \valid & \unused & - & \valid \\
+    \end{tabular}
+  }
+\end{definition}
+
+\begin{lemma}
+  Every $\name_{\instPD}$ derivation can be translated into a bottom-up
+  $\name_{\instPD}$ derivation.
+\end{lemma}
+\begin{proof}
+  By induction on the shape of the derivation.
+  Given that addition is a meet, it is clear that any non-bottom-up uses of
+  addition come from one of the arguments being greater than the result.
+  Therefore, it is safe to make this argument smaller in the corresponding
+  premise (via subusaging), before translating that subderivation.
+  For multiplication, again, there is always a lesser value of the right
+  argument that will take us from a non-bottom-up fact to a bottom-up fact with
+  the same left argument and result.
+\end{proof}
+
 \begin{proposition}[\name{} $\to$ PD]
   Given a $\name_{\instPD}$ derivation of
   $\ctx{\Gamma}{\vct\valid}, \ctx{\Delta}{\vct\true}, \ctx{\Theta}{\vct\unused}
   \vdash M : A$ which contains only types expressible in PD, we can produce a
   PD derivation of $\Gamma; \Delta \vdash A~\mathit{true}$.
 \end{proposition}
+\begin{proof}
+  We translate away tensor products and tensor units, and translate the
+  resulting derivation to bottom-up form.
+  The proof proceeds by induction on the resulting derivation in the obvious
+  way.
+\end{proof}
 
 \section{Metatheory}\label{sec:metatheory}
 
@@ -1559,12 +1606,12 @@ lemma that shows that environments can be pushed under binders.
 \section{Conclusion}\label{sec:conclusion}
 
 We have extended McBride's method of kits and traversals to proving
-admissibility of renaming, subusaging and substitution to the
+admissibility of renaming, subusaging, and substitution for the
 usage-annotated calculus \name{}. In doing so, we have discovered that
 only skew semirings are required, and the importance of linear algebra
-for stating and proving these results. Though we have not had space to
-elaborate here, \name{} is capable of representing several well known
-linear and modal type theories by choice of semiring.
+for stating and proving these results.
+We have shown that \name{} is capable of representing several well known
+linear and modal type theories by instantiation to different semirings.
 
 % In this paper, we have presented \name{}, a simply typed calculus with usage
 % constraints via annotations on variables.
@@ -1574,14 +1621,20 @@ linear and modal type theories by choice of semiring.
 
 Our work is similar in spirit to the work of Licata, Shulman, and
 Riley \cite{LicataSR17}, which gives a proof of cut elimination for a
-large class of substructural single-conclusion sequent calculi.  The
-class of natural deduction systems we consider here is likely less
-general, but not directly comparable. We leave a complete comparison
-to future work. They have not formalised their work.
+large class of substructural single-conclusion sequent calculi.
+The class of natural deduction systems we consider here is likely less
+general, but is not directly comparable.
+In particular, we assume contexts form a commutative monoid up to admissible
+derivations, whereas Licata, Shulman, and Riley allow contexts to be composed
+of arbitrary finitiary operators.
+Our results are also different --- our simultaneous substitution as opposed to
+their cut elimination.
+We leave a complete comparison to future work.
+They have not mechanised their work.
 % In particular, we focus on ``at least linear'' systems, and prove an inherently
 % linear result.
 
-We plan to build on our work to generalise the framework of Allais
+We are currently building on this work to generalise the framework of Allais
 \emph{et al.}~\cite{AACMM20} to include usage annotations, allowing
 generic metatheory and semantics for an even wider class of
 substructural calculi.
