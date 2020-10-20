@@ -415,7 +415,7 @@ so it is unambiguous where there is a sum of dimensionalities.
 
 We present the syntax of \name{} as an \emph{intrinsically} typed
 syntax, as it is in our Agda formalisation. Intrinisic typing means
-that we define well-typed terms as inhabitants of an inductive family
+that we define well typed terms as inhabitants of an inductive family
 $\ctx\Gamma{R} \vdash A$ indexed by typing contexts $\Gamma$, usage
 contexts $\resctx{R}$, and types $A$. Typing contexts are lists of
 types. Usage contexts $\resctx{R}$ are vectors of elements of some
@@ -1054,14 +1054,33 @@ exactly what is called for to show preservation of typing by $\beta$ rules,
 whereas our statement of simultaneous substitution is novel and more abstract,
 but easier to work with.
 
-\begin{displaymath}
+\begin{mathpar}
   \inferrule*[right=SingleSubst]
   {M : \ctx\Gamma P \vdash A
     \\ N : \ctx\Gamma Q, \ctxvar x A r \vdash B
     \\ \resctx R \subres \rescomment r \resctx P + \resctx Q
   }
   {N\{M\} : \ctx\Gamma R \vdash B}
-\end{displaymath}
+  \and
+  \inferrule*[right=Subst]
+  {
+    \rho : \ctx\Gamma P \subst\vdash \ctx\Delta Q
+    \\
+    N : \ctx\Delta Q \vdash A
+  }
+  {N\{\rho\} : \ctx\Gamma P \vdash A}
+\end{mathpar}
+
+The notation $\ctx\Gamma P \subst\vdash \ctx\Delta Q$, which can be thought of
+as the type of linear assignments from variables in $\ctx\Delta Q$ to terms in
+$\ctx\Gamma P$, will be defined in the following section, and this definition
+can be seen as a key contribution of this paper.
+The overloaded notations $N\{M\}$ and $N\{\rho\}$ are hereby defined as
+operations on intrinsically typed and usage-checked syntax.
+Specifically, $N\{M\}$ denotes the term $N$ but with $M$ substituted in for the
+most recently bound variable, whereas $N\{\rho\}$ denotes the result of a
+generic traversal of $N$ in which its free variables have been replaced
+according to the environment $\rho$.
 
 McBride defines \emph{kits} \cite{rensub05,bhkm12}, which provide a general
 method for giving admissible rules that are usually proven by induction on the
@@ -1096,8 +1115,9 @@ Definition of \emph{kit}s, \emph{environment}s and
 % - Note that we are being careful with resources in the 'wk' bit
 % - 'psh' is new, to cope with subusaging
 
-\subsection{Kits, Environments, and Traversals}
+\subsection{Kits, Environments, and Traversal}
 
+\paragraph{Kits}
 A kit is a structure on $\vdash$-like relations $\kitrel$, intuitively
 giving a way in which $\kitrel$ lives between the usage-checked variable
 judgement $\lvar$ and the typing judgement $\vdash$.
@@ -1130,6 +1150,13 @@ via skew algebraic reasoning.
 
 An inhabitant of $\ctx{\Gamma}{P} \kitrel A$ is described as
 \emph{stuff in $\ctx{\Gamma}{P}$ of type $A$}.
+In a traversal (for example, simultaneous renaming and simultaneous
+substitution), we use $\mathit{tm}$ in \TirName{var} cases to convert stuff
+that has come from the environment into terms that replace variables.
+We use $\mathit{vr}$ and $\mathit{wk}$ when binding new variables: $\mathit{vr}$
+tells us what to add to the environment when it is being extended by a bound
+variable, and $\mathit{wk}$ allows us to weaken all the other stuff in the
+environment by such newly bound variables.
 
 \paragraph{Environments}
 In simple intuitionistic type theory, an
@@ -1272,7 +1299,7 @@ be calculated from the action of the renaming on non-usage-checked variables.
 \subsection{Substitution}
 
 Now that we have renaming, we can use it with traversals to prove that
-simultaneous well-usaged substitution is admissible. This subsection
+simultaneous well usaged substitution is admissible. This subsection
 corresponds to the Agda module
 \AgdaModule{Specific.Syntax.Substitution}.
 
@@ -1329,6 +1356,12 @@ corresponds to the Agda module
       \]
   \end{description}
 \end{definition}
+
+We define a simultaneous substitution as an environment of terms.
+Expanding definitions, this means that a simultaneous substitution from
+$\ctx\Gamma P$ to $\ctx\Delta Q$ is a matrix $\rescomment\Psi$ such that
+$\resctx P \subres \resctx Q \rescomment\Psi$, and for each variable $j$ of
+type $A$ in $\Delta$, a term $(\langle j \rvert\rescomment\Psi)\Gamma \vdash A$.
 
 \begin{corollary}[substitution, \AgdaFunction{sub}]\label{cor:sub}
   Given an environment of type
