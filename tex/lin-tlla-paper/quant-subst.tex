@@ -113,7 +113,7 @@ that the shape of typing contexts is maintained, so de Bruijn indices
 behave the same as in non-substructural calculi, and by selecting
 different semirings, we obtain from \name{} well known systems,
 including Barber's Dual Intuitionistic Linear Logic \cite{Barber1996}
-and Pfenning and Davis' S4 modal type theory \cite{judgmental}.
+and Pfenning and Davies' S4 modal type theory \cite{judgmental}.
 
 McBride's kits and traversals technique isolates properties required
 to form binding-respecting traversals of simply typed $\lambda$-terms,
@@ -650,7 +650,7 @@ enough to do.
 In this section, we shall assume the admissibility of weakening (TODO: define),
 which we shall prove in \autoref{sec:metatheory}.
 
-\subsection{DILL}\label{sec:dill}
+\subsection{Dual Intuitionistic Linear Logic}\label{sec:dill}
 Dual Intuitionistic Linear Logic is a particular formulation of intuitionistic
 linear logic \cite{Barber1996}.
 Its key feature, which simplifies the metatheory of linear logic, is the use of
@@ -847,7 +847,7 @@ premise of \TirName{$\excl{\unrestricted}{}$-I}.
   This corresponds exactly to the restrictions of DILL's \TirName{$\oc$-I}.
 \end{proof}
 
-\subsection{PD}\label{sec:pd}
+\subsection{Pfenning Davies}\label{sec:pd}
 
 The translation to and from the modal system of Pfenning and Davies
 \cite{judgmental} (henceforth \emph{PD}) is similar to the translation to and
@@ -855,7 +855,7 @@ from DILL.
 The main difference is the algebra at which \name{} is instantiated.
 
 \begin{definition}
-  Let $\instPD$ denote the following skew semiring on the partially ordered set
+  Let $\instPD$ denote the following semiring on the partially ordered set
   $\{\valid \triangleleft \true \triangleleft \unused\}$.
   \begin{itemize}
     \item $0 := \unused$.
@@ -870,6 +870,21 @@ The main difference is the algebra at which \name{} is instantiated.
       \end{tabular}
   \end{itemize}
 \end{definition}
+
+The $\unused$ annotation plays only a formal role in this example.
+Meanwhile, $\true$ and $\valid$ correspond to the judgement forms
+$\mathit{true}$ and $\mathit{valid}$ from PD.
+Addition being the meet makes it idempotent.
+Furthermore, it gives us that $\true + \valid = \valid$ --- if somewhere we
+require an assumption to be true, and elsewhere require it to be valid, then
+ultimately it must be valid (from which we can deduce that it is true).
+Multiplication is designed to make $\excl{\valid}{}$ act like PD's $\square$.
+In particular, $\valid * \valid = \valid$ says that the valid assumptions are
+available before and after \TirName{$\excl{\valid}{}$-I}, whereas
+$\valid * \true = \valid$ says that valid assumptions in the conclusion can be
+weakened to true assumptions in the premise.
+The latter fact does not appear in PD, and will be excluded from
+\emph{bottom-up} derivations.
 
 \begin{lemma}\label{lem:turnstile-derivation}
   If we can derive $\ctxvar x A 1 \vdash B$, then we also know that from
@@ -893,7 +908,7 @@ The main difference is the algebra at which \name{} is instantiated.
   \]
 \end{proof}
 
-By the following lemma, if we have a \name_\instPD derivation containing tensor
+By the following lemma, if we have a $\name_\instPD$ derivation containing tensor
 products, we can convert it into a derivation instead using with products.
 
 \begin{lemma}
