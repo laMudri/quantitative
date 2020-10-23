@@ -32,6 +32,8 @@
 \declaretheorem[numberlike=theorem]{definition}
 \declaretheorem[numberlike=theorem]{remark}
 
+\renewcommand{\sectionautorefname}{Section}
+
 \def\newelims{1}
 \def\debruijn{1}
 \def\multnotation{1}
@@ -87,7 +89,7 @@ make the resulting encodings difficult to use. Multisets for contexts
 are more convenient \cite{ChaudhuriLR19}, but do not work well for
 Curry-Howard uses, as noted by Laurent. For natural deduction, Allais
 \cite{allais:LIPIcs:2018:10049} uses an I/O model to track usage of
-variables, Rouvoet et al.~\cite{RPKV20} use a co-de Bruijn
+variables, Rouvoet et al.\ \cite{RPKV20} use a co-de Bruijn
 representation to distribute variables between subterms, and Crary
 uses mutually defined typing and linearity judgements with HOAS
 \cite{crary10}.
@@ -173,12 +175,20 @@ The paper proceeds as follows:
     work.
 \end{itemize}
 
+\autoref{sec:general} and \autoref{sec:translation} can be read as extended
+examples of the $\name$ syntax.
+Those two sections logically come after \autoref{sec:metatheory}, but we think
+it helpful for readers unfamiliar with semiring-annotated calculi to read them
+before proceeding to \autoref{sec:metatheory}.
+Conversely, a reader familiar with semiring-annotated calculi who is primarily
+interested in our metatheoretic methods may skip \autoref{sec:general} and
+\autoref{sec:translation} without issue.
+
 The Agda formalisation of this work can be found at
-\url{https://github.com/laMudri/generic-lr/tree/master/src/Specific}.
-% TODO: link to specific commit
+\url{https://github.com/laMudri/generic-lr/tree/lin/tlla-submission/src/Specific}.
 It contains our formalisation of vectors and
-matrices (approx. 790 lines) and the definition of \name{} and proofs of
-renaming and substitution (approx. 530 lines).
+matrices (approx.\ 790 lines) and the definition of \name{} and proofs of
+renaming and substitution (approx.\ 530 lines).
 
 \section{Skew semirings}\label{sec:algebra}
 
@@ -823,10 +833,79 @@ linearity semiring $\{\zero, \linear, \unrestricted\}$.
 The types of DILL are the same as the types of \name, except for the
 restriction of $\excl{r}{}$ to just $\excl{\unrestricted}{}$.
 We will write the latter simply as $\oc$ when it appears in DILL\@.
-We add sums and with products to the calculus of \cite{Barber1996}, with the
-obvious rules.
-\fixmeBA{should put the rules for the precise variant of DILL we are using in an appendix}
+We add sums and with-products to the calculus of \cite{Barber1996}, with the
+obvious rules (stated fully in \autoref{fig:dill}).
 These additive type formers present no additional difficulty to the translation.
+
+\begin{figure}
+  \begin{mathpar}
+    \inferrule*[right=Int-Ax]{ }
+    {\Gamma, A; \cdot \vdash A}
+    \and
+    \inferrule*[right=Lin-Ax]{ }
+    {\Gamma; A \vdash A}
+    \and
+    \inferrule*[right=$I$-I]{ }
+    {\Gamma; \cdot \vdash I}
+    \and
+    \inferrule*[right=$I$-E]
+    {\Gamma; \Delta_1 \vdash I \\ \Gamma; \Delta_2 \vdash A}
+    {\Gamma; \Delta_1, \Delta_2 \vdash A}
+    \and
+    \inferrule*[right=$\otimes$-I]
+    {\Gamma; \Delta_1 \vdash A \\ \Gamma, \Delta_2 \vdash B}
+    {\Gamma; \Delta_1, \Delta_2 \vdash A \otimes B}
+    \and
+    \inferrule*[right=$\otimes$-E]
+    {\Gamma; \Delta_1 \vdash A \otimes B \\ \Gamma; \Delta_2, A, B \vdash C}
+    {\Gamma; \Delta_1, \Delta_2 \vdash C}
+    \and
+    \inferrule*[right=$\multimap$-I]
+    {\Gamma; \Delta, A \vdash B}
+    {\Gamma; \Delta \vdash A \multimap B}
+    \and
+    \inferrule*[right=$\multimap$-E]
+    {\Gamma; \Delta_1 \vdash A \multimap B \\ \Gamma; \Delta_2 \vdash A}
+    {\Gamma; \Delta_1, \Delta_2 \vdash B}
+    \and
+    \inferrule*[right=$\oc$-I]
+    {\Gamma; \cdot \vdash A}
+    {\Gamma; \cdot \vdash \oc A}
+    \and
+    \inferrule*[right=$\oc$-E]
+    {\Gamma; \Delta_1 \vdash \oc A \\ \Gamma, A; \Delta_2 \vdash B}
+    {\Gamma; \Delta_1, \Delta_2 \vdash B}
+    \and
+    \inferrule*[right=$\top$-I]{ }
+    {\Gamma; \Delta \vdash \top}
+    \and
+    \inferrule*[right=$\with$-I]
+    {\Gamma; \Delta \vdash A \\ \Gamma, \Delta \vdash B}
+    {\Gamma; \Delta \vdash A \with B}
+    \and
+    \inferrule*[right=$\with$-E$_i$]
+    {\Gamma; \Delta \vdash A_0 \with A_1}
+    {\Gamma; \Delta \vdash A_i}
+    \and
+    \inferrule*[right=$0$-E]
+    {\Gamma; \Delta_1 \vdash 0}
+    {\Gamma; \Delta_1, \Delta_2 \vdash A}
+    \and
+    \inferrule*[right=$\oplus$-I$_i$]
+    {\Gamma; \Delta \vdash A_i}
+    {\Gamma; \Delta \vdash A_0 \oplus A_1}
+    \and
+    \inferrule*[right=$\oplus$-E]
+    {
+      \Gamma; \Delta_1 \vdash A \oplus B \\
+      \Gamma; \Delta_2, A \vdash C \\
+      \Gamma; \Delta_2, B \vdash C
+    }
+    {\Gamma; \Delta_1, \Delta_2 \vdash C}
+  \end{mathpar}
+  \label{fig:dill}
+  \caption{The rules of DILL, extended with additive connectives}
+\end{figure}
 
 \begin{figure}
   \begin{mathpar}
@@ -834,18 +913,24 @@ These additive type formers present no additional difficulty to the translation.
       \mathrm{DILL} &\hookrightarrow& \name_\instDILL \\
       Y &\mapsto& \base_Y \\
       I &\mapsto& \tensorOne \\
-      A \multimap B &\mapsto& \fun{A}{B} \\
       A \otimes B &\mapsto& \tensor{A}{B} \\
-      \oc A &\mapsto& \excl{\unrestricted}{A}
+      A \multimap B &\mapsto& \fun{A}{B} \\
+      \oc A &\mapsto& \excl{\unrestricted}{A} \\
+      0 &\mapsto& \sumTZero \\
+      A \oplus B &\mapsto& \sumT A B \\
+      \top &\mapsto& \withTOne \\
+      A \with B &\mapsto& \withT A B
     \end{eqns}
     \and
     \begin{eqns}
       \mathrm{PD} &\hookrightarrow& \name_\instPD \\
       Y &\mapsto& \base_Y \\
       \top &\mapsto& \tensorOne \\
-      A \to B &\mapsto& \fun{A}{B} \\
       A \wedge B &\mapsto& \withT{A}{B} \\
-      \Box A &\mapsto& \excl{\valid}{A}
+      A \supset B &\mapsto& \fun{A}{B} \\
+      \Box A &\mapsto& \excl{\valid}{A} \\
+      \bot &\mapsto& \sumTZero \\
+      A \vee B &\mapsto& \sumT{A}{B}
     \end{eqns}
   \end{mathpar}
   \label{fig:dill-pd}
@@ -1014,7 +1099,73 @@ premise of \TirName{$\excl{\unrestricted}{}$-I}.
 The translation to and from the modal system of Pfenning and Davies
 \cite{judgmental} (henceforth \emph{PD}) is similar to the translation to and
 from DILL.
+We present our variant of PD, again adding some common connectives, in
+\autoref{fig:pd}
 The main difference is the algebra at which \name{} is instantiated.
+
+\begin{figure}
+  \begin{mathpar}
+    \inferrule*[right=hyp]{ }
+    {\Gamma; \Delta, A\;\mathit{true} \vdash A\;\mathit{true}}
+    \and
+    \inferrule*[right=hyp*]{ }
+    {\Gamma, A\;\mathit{valid}; \Delta \vdash A\;\mathit{true}}
+    \and
+    \inferrule*[right=$\supset$I]
+    {\Gamma; \Delta, A\;\mathit{true} \vdash B\;\mathit{true}}
+    {\Gamma; \Delta \vdash A \supset B\;\mathit{true}}
+    \and
+    \inferrule*[right=$\supset$E]
+    {
+      \Gamma; \Delta \vdash A \supset B\;\mathit{true} \\
+      \Gamma; \Delta \vdash A\;\mathit{true}
+    }
+    {\Gamma; \Delta \vdash B\;\mathit{true}}
+    \and
+    \inferrule*[right=$\Box$I]
+    {\Gamma; \cdot \vdash A\;\mathit{true}}
+    {\Gamma; \Delta \vdash \Box A\;\mathit{true}}
+    \and
+    \inferrule*[right=$\Box$-E]
+    {
+      \Gamma; \Delta \vdash \Box A\;\mathit{true} \\
+      \Gamma, A\;\mathit{valid}; \Delta \vdash B\;\mathit{true}
+    }
+    {\Gamma; \Delta \vdash B\;\mathit{true}}
+    \and
+    \inferrule*[right=$\top$-I]{ }
+    {\Gamma; \Delta \vdash \top\;\mathit{true}}
+    \and
+    \inferrule*[right=$\wedge$-I]
+    {
+      \Gamma; \Delta \vdash A\;\mathit{true} \\
+      \Gamma, \Delta \vdash B\;\mathit{true}
+    }
+    {\Gamma; \Delta \vdash A \wedge B\;\mathit{true}}
+    \and
+    \inferrule*[right=$\wedge$-E$_i$]
+    {\Gamma; \Delta \vdash A_0 \wedge A_1\;\mathit{true}}
+    {\Gamma; \Delta \vdash A_i\;\mathit{true}}
+    \and
+    \inferrule*[right=$\bot$-E]
+    {\Gamma; \Delta \vdash \bot\;\mathit{true}}
+    {\Gamma; \Delta \vdash A\;\mathit{true}}
+    \and
+    \inferrule*[right=$\vee$-I$_i$]
+    {\Gamma; \Delta \vdash A_i\;\mathit{true}}
+    {\Gamma; \Delta \vdash A_0 \vee A_1\;\mathit{true}}
+    \and
+    \inferrule*[right=$\vee$-E]
+    {
+      \Gamma; \Delta \vdash A \vee B\;\mathit{true} \\
+      \Gamma; \Delta, A \vdash C\;\mathit{true} \\
+      \Gamma; \Delta, B \vdash C\;\mathit{true}
+    }
+    {\Gamma; \Delta \vdash C\;\mathit{true}}
+  \end{mathpar}
+  \label{fig:pd}
+  \caption{The rules of PD, extended with several standard connectives}
+\end{figure}
 
 \begin{definition}
   Let $\instPD$ denote the following semiring on the partially ordered set
@@ -1040,7 +1191,7 @@ Addition being the meet makes it idempotent.
 Furthermore, it gives us that $\true + \valid = \valid$ --- if somewhere we
 require an assumption to be true, and elsewhere require it to be valid, then
 ultimately it must be valid (from which we can deduce that it is true).
-Multiplication is designed to make $\excl{\valid}{}$ act like PD's $\square$.
+Multiplication is designed to make $\excl{\valid}{}$ act like PD's $\Box$.
 In particular, $\valid * \valid = \valid$ says that the valid assumptions are
 available before and after \TirName{$\excl{\valid}{}$-I}, whereas
 $\valid * \true = \valid$ says that valid assumptions in the conclusion can be
@@ -1059,6 +1210,25 @@ assumptions.
   produce a $\name_{\instPD}$ derivation of
   $\ctx{\Gamma}{\vct\valid}, \ctx{\Delta}{\vct\true} \vdash A$.
 \end{proposition}
+\begin{proof}
+  By induction on the PD derivation.
+  Most PD rules have direct $\name$ counterparts, noting that variables of any
+  annotation can be discarded and duplicated because we have both
+  $\rescomment r \subres \rescomment 0$ and
+  $\rescomment r \subres \rescomment r + \rescomment r$ for all
+  $\rescomment r$.
+
+  Care must be taken with the \TirName{$\Box$I} rule.
+  We have, from the induction hypothesis, a $\name$ derivation of
+  $\ctx\Gamma{\vct\Box} \vdash A$.
+  By \TirName{$\excl\valid{}$-I}, we have
+  $\ctx\Gamma{\vct\Box} \vdash \excl\valid A$.
+  To get the desired conclusion, we must use \TirName{Weak} to get
+  $\ctx\Gamma{\vct\Box}, \ctx\Delta{\vct\unused} \vdash \excl\valid A$, and
+  then \TirName{Subuse} on the variables we just introduced (noting that
+  $\true \subres \unused$) to get
+  $\ctx\Gamma{\vct\Box}, \ctx\Delta{\vct\true} \vdash \excl\valid A$.
+\end{proof}
 
 For translating from $\name_{\instPD}$ to PD, we introduce a similar notion of
 \emph{bottom-up} derivations as we did for DILL\@.
@@ -1104,8 +1274,9 @@ then be directly translated into PD.
 \begin{proposition}[\name{} $\to$ PD]
   Given a $\name_{\instPD}$ derivation of
   $\ctx{\Gamma}{\vct\valid}, \ctx{\Delta}{\vct\true}, \ctx{\Theta}{\vct\unused}
-  \vdash M : A$ which contains only types expressible in PD, we can produce a
-  PD derivation of $\Gamma; \Delta \vdash A~\mathit{true}$.
+  \vdash M : A$ which does not contain types using $\excl{\unused}{}$ or
+  $\excl{\true}{}$, we can produce a PD derivation of
+  $\Gamma; \Delta \vdash A~\mathit{true}$.
 \end{proposition}
 \begin{proof}
   We translate away tensor products and tensor units using
@@ -1118,8 +1289,10 @@ then be directly translated into PD.
 For similar reasons as explained at the end of \autoref{sec:syntax}, the
 system of Abel and Bernardy \cite{AbelBernardy2020} is unable to embed PD in
 this way, as it would prove
-$\square(A \wedge B) \to \square A \wedge \square B$, where PD and $\name$ do
-not.
+$\Box(A \wedge B) \to \Box A \wedge \Box B$, where PD and $\name$ do not.
+In fact, this example shows that, even when weakening and contraction are
+admissible, with- and tensor-products are distinct in their system in the
+presence of modalities.
 
 \section{Metatheory}\label{sec:metatheory}
 
@@ -1756,4 +1929,5 @@ We are thankful for comments from Guillaume Allais and Michael Arntzenius.
 
 \bibliographystyle{eptcsalpha}
 \bibliography{../quantitative}
+
 \end{document}
