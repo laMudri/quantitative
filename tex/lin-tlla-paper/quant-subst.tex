@@ -153,14 +153,25 @@ renaming, subusaging, and substitution) preserve typing and usages.
 % Benton, Hur, Kennedy, and McBride \cite{bhkm12} by allowing for addition of
 % annotations between substituting derivations.
 
-The paper proceeds as follows.
-In \autoref{sec:algebra}, we specify our requirements on the set of annotations
-that will track usage of variables. A consequence of our formalisation is that we learn that we only need \emph{skew} semirings, a weaker structure than the partially ordered semirings usually used.
-In \autoref{sec:syntax}, we use these annotations to define the system
-\name{} in an intrinsically typed style.
-Then, in \autoref{sec:metatheory}, we prove that \name{} admits renaming, subusaging, and
-substitution by our extension of McBride's kits and traversals technique.
-We conclude in \autoref{sec:conclusion} with some directions for future work.
+The paper proceeds as follows:
+\begin{itemize}
+  \item In \autoref{sec:algebra}, we specify our requirements on the set of
+    annotations that will track usage of variables. A consequence of our
+    formalisation is that we learn that we only need \emph{skew} semirings, a
+    weaker structure than the partially ordered semirings usually used.
+  \item In \autoref{sec:syntax}, we use these annotations to define the system
+    $\name$ in an intrinsically typed style.
+  \item In \autoref{sec:general}, we show some characteristics of $\name$ under
+    certain general conditions on the skew semiring of usage annotations.
+  \item In \autoref{sec:translation}, we show that, via choice of semiring, we
+    can embed Barber's Dual Intuitionistic Linear Logic \cite{Barber1996} and
+    Pfenning and Davies' modal calculus \cite{judgmental}.
+  \item In \autoref{sec:metatheory}, we prove that \name{} admits renaming,
+    subusaging, and substitution by our extension of McBride's kits and
+    traversals technique.
+  \item We conclude in \autoref{sec:conclusion} with some directions for future
+    work.
+\end{itemize}
 
 The Agda formalisation of this work can be found at
 \url{https://github.com/laMudri/generic-lr/tree/master/src/Specific}.
@@ -514,6 +525,55 @@ $\rescomment r$, $A$, and $B$, whereas linear logic has no such tautology.
   {\prm{C}{\rescomment qM}{x}{y}{\bind{x,y}N} : \ctx{\Gamma}{R} \vdash C}
 \]
 
+In \autoref{sec:metatheory}, we will show the admissibility of, amongst others,
+the rules shown in \autoref{fig:lemmas}.
+The rules in \autoref{fig:lemmas} will be required for the proofs in
+\autoref{sec:general} and \autoref{sec:translation}.
+Using these rules, we can also derive the following fact, which demonstrates
+a linear form of \emph{cut}.
+
+\begin{lemma}\label{lem:turnstile-derivation}
+  If we can derive $\ctxvar x A 1 \vdash B$, then we also know that from
+  $\ctx\Gamma R \vdash A$ we can derive $\ctx\Gamma R \vdash B$.
+\end{lemma}
+\begin{proof}
+  Assuming the two hypotheses, we can make the following derivation.
+  \[
+    \inferrule*[right=SingleSubst]
+    {
+      \ctx\Gamma R \vdash A
+      \\
+      \inferrule*[right=Weak]
+      {\ctxvar x A 1 \vdash B}
+      {\ctx\Gamma{\vct 0}, \ctxvar x A 1 \vdash B}
+      \\
+      \inferrule*{ }
+      {\rescomment 1\resctx R + \vct{\rescomment 0} \subres \resctx R}
+    }
+    {\ctx\Gamma R \vdash B}
+  \]
+\end{proof}
+
+
+\begin{figure}\label{fig:lemmas}
+  \begin{mathpar}
+    \inferrule*[right=SingleSubst]
+    {M : \ctx\Gamma P \vdash A
+      \\ N : \ctx\Gamma Q, \ctxvar x A r \vdash B
+      \\ \resctx R \subres \rescomment r \resctx P + \resctx Q
+    }
+    {N\{M\} : \ctx\Gamma R \vdash B}
+    \and
+    \inferrule*[right=Subuse]
+    {M : \ctx\Gamma Q \vdash A \\ \resctx P \subres \resctx Q}
+    {M : \ctx\Gamma P \vdash A}
+    \and
+    \inferrule*[right=Weak]
+    {\ctx\Gamma P \vdash A}
+    {\ctx\Gamma P, \ctx\Delta{\vct0} \vdash A}
+  \end{mathpar}
+\end{figure}
+
 % It is a refinement of simply typed $\lambda$-calculus sporting usage annotations
 % from $\mathbf R$ on variables in the context and constraints on term formation
 % based on these annotations.
@@ -633,6 +693,111 @@ $\rescomment r$, $A$, and $B$, whereas linear logic has no such tautology.
 % $\subres$, so when we ask for a matrix rather than a linear map, it is no loss
 % of generality.
 
+\section{Intuitionistic and modal instantiations}\label{sec:general}
+
+As we will show in \autoref{sec:dill}, $\name$ can be instantiated with
+a semiring which makes it capture linearity.
+However, with different choices of semiring, $\name$ can become a calculus
+satisfying more structural rules.
+
+\begin{lemma}
+  When instantiated with the 1-element (skew) semiring
+  $\{\rescomment{\bullet}\}$, $\name$ becomes a variant of intuitionistic
+  simply typed $\lambda$-calculus.
+\end{lemma}
+\begin{proof}
+  With only one possible usage annotation, usage contexts do not contain any
+  information.
+  Because $\rescomment{\bullet} \subres \rescomment{\bullet}$, all
+  $\subres$-constraints are satisfied.
+\end{proof}
+
+An important class of skew semirings is those for which $0$ is the top element
+of the $\subres$-order and $+$ acts as a meet (minimum).
+While $\name$ instantiated this way admits full weakening and contraction, the
+usage annotations can still play a part via the $\excl{r}{}$ modality.
+We will see an example of such an instantiation in \autoref{sec:pd}.
+
+\begin{lemma}\label{lem:top-meet}
+  If \name{} is instantiated at a skew semiring such that $0$ is top and $+$ is
+  meet (with respect to the subusaging order), then $\withTOne$ and
+  $\tensorOne$ are interderivable, and $\withT A B$ and $\tensor A B$ are
+  interderivable.
+\end{lemma}
+\begin{proof}
+  By \autoref{lem:turnstile-derivation}, following derivations suffice.
+  \begin{mathpar}\footnotesize
+    \inferrule*[right=$\withTOne$-I]
+    { }
+    {\ctxvar x \tensorOne 1 \vdash \withTOne}
+
+    \and
+
+    \inferrule*[right=$\tensorOne$-I]
+    {\inferrule*{ }{\rescomment 1 \subres \rescomment 0}}
+    {\ctxvar x \withTOne 1 \vdash \tensorOne}
+
+    \and
+
+    \inferrule*[right=$\tensor{}{}$-E]
+    {
+      \inferrule*[right=var]
+      {
+        \inferrule*{ }{(\rescomment 1) \subres (\rescomment 1)}
+      }
+      {\ctxvar x{(\tensor A B)}1 \vdash \tensor A B}
+      \\
+      \inferrule*[right=$\withT{}{}$-I]
+      {
+        \inferrule*[right=var]
+        {
+          \inferrule*{ }
+          {(\rescomment 0, \rescomment 1, \rescomment 1) \subres
+            (\rescomment 0, \rescomment 1, \rescomment 0)}
+        }
+        {\ctxvar x{(\tensor A B)}0, \ctxvar x A 1, \ctxvar y B 1 \vdash A}
+        \\
+        \inferrule*[right=var]
+        {
+          \inferrule*{ }
+          {(\rescomment 0, \rescomment 1, \rescomment 1) \subres
+            (\rescomment 0, \rescomment 0, \rescomment 1)}
+        }
+        {\ctxvar x{(\tensor A B)}0, \ctxvar x A 1, \ctxvar y B 1 \vdash B}
+      }
+      {\ctxvar x{(\tensor A B)}0, \ctxvar x A 1, \ctxvar y B 1
+        \vdash \withT A B}
+      \\
+      \inferrule*{ }{(\rescomment 1) + (\rescomment 0) \subres (\rescomment 1)}
+    }
+    {\ctxvar x{(\tensor A B)}1 \vdash \withT A B}
+
+    \and
+
+    \inferrule*[right=$\tensor{}{}$-I]
+    {
+      \inferrule*[right=$\withT{}{}$-El]
+      {
+        \inferrule*[right=var]
+        {\inferrule*{ }{(\rescomment 1) \subres (\rescomment 1)}}
+        {\ctxvar x {(\withT A B)}1 \vdash \withT A B}
+      }
+      {\ctxvar x {(\withT A B)}1 \vdash A}
+      \\
+      \inferrule*[right=$\withT{}{}$-Er]
+      {
+        \inferrule*[right=var]
+        {\inferrule*{ }{(\rescomment 1) \subres (\rescomment 1)}}
+        {\ctxvar x {(\withT A B)}1 \vdash \withT A B}
+      }
+      {\ctxvar x {(\withT A B)}1 \vdash B}
+      \\
+      \inferrule*{ }{(\rescomment 1) \subres (\rescomment 1) + (\rescomment 1)}
+    }
+    {\ctxvar x {(\withT A B)}1 \vdash \tensor A B}
+  \end{mathpar}
+\end{proof}
+
 \section{Translation to and from existing systems}
 \label{sec:translation}
 
@@ -647,9 +812,6 @@ We cannot prove that the translations form an equivalence, because we have not
 written down an equational theory for \name{}, but we expect this to be easy
 enough to do.
 
-In this section, we shall assume the admissibility of weakening (TODO: define),
-which we shall prove in \autoref{sec:metatheory}.
-
 \subsection{Dual Intuitionistic Linear Logic}\label{sec:dill}
 Dual Intuitionistic Linear Logic is a particular formulation of intuitionistic
 linear logic \cite{Barber1996}.
@@ -660,7 +822,7 @@ linearity semiring $\{\zero, \linear, \unrestricted\}$.
 
 The types of DILL are the same as the types of \name, except for the
 restriction of $\excl{r}{}$ to just $\excl{\unrestricted}{}$.
-We will write the latter simply as $\oc$ when it appears in DILL.
+We will write the latter simply as $\oc$ when it appears in DILL\@.
 We add sums and with products to the calculus of \cite{Barber1996}, with the
 obvious rules.
 \fixmeBA{should put the rules for the precise variant of DILL we are using in an appendix}
@@ -713,7 +875,7 @@ These additive type formers present no additional difficulty to the translation.
   \[
     \inferrule*[right=$\tensor{}{}$-I]
     {
-      \inferrule*[right=weak]
+      \inferrule*[right=Weak]
       {\mathit{ih}_t \\\\
         \ctx{\Gamma}{\vct\unrestricted}, \ctx{\Delta_t}{\vct\linear}
         \vdash M_t : A}
@@ -721,7 +883,7 @@ These additive type formers present no additional difficulty to the translation.
         \ctx{\Delta_u}{\vct\zero}
         \vdash M_t : A}
       \\
-      \inferrule*[right=weak]
+      \inferrule*[right=Weak]
       {\mathit{ih}_u \\\\
         \ctx{\Gamma}{\vct\unrestricted}, \ctx{\Delta_u}{\vct\linear}
         \vdash M_u : A}
@@ -873,7 +1035,7 @@ The main difference is the algebra at which \name{} is instantiated.
 
 The $\unused$ annotation plays only a formal role in this example.
 Meanwhile, $\true$ and $\valid$ correspond to the judgement forms
-$\mathit{true}$ and $\mathit{valid}$ from PD.
+$\mathit{true}$ and $\mathit{valid}$ from PD\@.
 Addition being the meet makes it idempotent.
 Furthermore, it gives us that $\true + \valid = \valid$ --- if somewhere we
 require an assumption to be true, and elsewhere require it to be valid, then
@@ -885,111 +1047,6 @@ $\valid * \true = \valid$ says that valid assumptions in the conclusion can be
 weakened to true assumptions in the premise.
 The latter fact does not appear in PD, and will be excluded from
 \emph{bottom-up} derivations.
-
-\begin{lemma}\label{lem:turnstile-derivation}
-  If we can derive $\ctxvar x A 1 \vdash B$, then we also know that from
-  $\ctx\Gamma R \vdash A$ we can derive $\ctx\Gamma R \vdash B$.
-\end{lemma}
-\begin{proof}
-  Assuming the two hypotheses, we can make the following derivation.
-  \[
-    \inferrule*[right=SingleSubst]
-    {
-      \ctx\Gamma R \vdash A
-      \\
-      \inferrule*[right=weak]
-      {\ctxvar x A 1 \vdash B}
-      {\ctx\Gamma{\vct 0}, \ctxvar x A 1 \vdash B}
-      \\
-      \inferrule*{ }
-      {\rescomment 1\resctx R + \vct{\rescomment 0} \subres \resctx R}
-    }
-    {\ctx\Gamma R \vdash B}
-  \]
-\end{proof}
-
-By the following lemma, if we have a $\name_\instPD$ derivation containing tensor
-products, we can convert it into a derivation instead using with products.
-
-\begin{lemma}
-  If \name{} is instantiated at a skew semiring such that $0$ is top and $+$ is
-  meet (with respect to the subusaging order), then $\withTOne$ and
-  $\tensorOne$ are interderivable, and $\withT A B$ and $\tensor A B$ are
-  interderivable. (TODO: should this lemma split in two?)
-\end{lemma}
-\begin{proof}
-  By \autoref{lem:turnstile-derivation}, following derivations suffice.
-  \begin{mathpar}\footnotesize
-    \inferrule*[right=$\withTOne$-I]
-    { }
-    {\ctxvar x \tensorOne 1 \vdash \withTOne}
-
-    \and
-
-    \inferrule*[right=$\tensorOne$-I]
-    {\inferrule*{ }{\rescomment 1 \subres \rescomment 0}}
-    {\ctxvar x \withTOne 1 \vdash \tensorOne}
-
-    \and
-
-    \inferrule*[right=$\tensor{}{}$-E]
-    {
-      \inferrule*[right=var]
-      {
-        \inferrule*{ }{(\rescomment 1) \subres (\rescomment 1)}
-      }
-      {\ctxvar x{(\tensor A B)}1 \vdash \tensor A B}
-      \\
-      \inferrule*[right=$\withT{}{}$-I]
-      {
-        \inferrule*[right=var]
-        {
-          \inferrule*{ }
-          {(\rescomment 0, \rescomment 1, \rescomment 1) \subres
-            (\rescomment 0, \rescomment 1, \rescomment 0)}
-        }
-        {\ctxvar x{(\tensor A B)}0, \ctxvar x A 1, \ctxvar y B 1 \vdash A}
-        \\
-        \inferrule*[right=var]
-        {
-          \inferrule*{ }
-          {(\rescomment 0, \rescomment 1, \rescomment 1) \subres
-            (\rescomment 0, \rescomment 0, \rescomment 1)}
-        }
-        {\ctxvar x{(\tensor A B)}0, \ctxvar x A 1, \ctxvar y B 1 \vdash B}
-      }
-      {\ctxvar x{(\tensor A B)}0, \ctxvar x A 1, \ctxvar y B 1
-        \vdash \withT A B}
-      \\
-      \inferrule*{ }{(\rescomment 1) + (\rescomment 0) \subres (\rescomment 1)}
-    }
-    {\ctxvar x{(\tensor A B)}1 \vdash \withT A B}
-
-    \and
-
-    \inferrule*[right=$\tensor{}{}$-I]
-    {
-      \inferrule*[right=$\withT{}{}$-El]
-      {
-        \inferrule*[right=var]
-        {\inferrule*{ }{(\rescomment 1) \subres (\rescomment 1)}}
-        {\ctxvar x {(\withT A B)}1 \vdash \withT A B}
-      }
-      {\ctxvar x {(\withT A B)}1 \vdash A}
-      \\
-      \inferrule*[right=$\withT{}{}$-Er]
-      {
-        \inferrule*[right=var]
-        {\inferrule*{ }{(\rescomment 1) \subres (\rescomment 1)}}
-        {\ctxvar x {(\withT A B)}1 \vdash \withT A B}
-      }
-      {\ctxvar x {(\withT A B)}1 \vdash B}
-      \\
-      \inferrule*{ }{(\rescomment 1) + (\rescomment 1) \subres (\rescomment 1)}
-    }
-    {\ctxvar x {(\withT A B)}1 \vdash \tensor A B}
-  \end{mathpar}
-\end{proof}
 
 To keep our notation consistent with that of DILL, we swap the roles of
 $\Gamma$ and $\Delta$ in PD compared to what they were in the original paper.
@@ -1004,7 +1061,7 @@ assumptions.
 \end{proposition}
 
 For translating from $\name_{\instPD}$ to PD, we introduce a similar notion of
-\emph{bottom-up} derivations as we did for DILL.
+\emph{bottom-up} derivations as we did for DILL\@.
 Every $\name_{\instPD}$ derivation can be translated into bottom-up style, and
 then be directly translated into PD.
 
@@ -1051,11 +1108,18 @@ then be directly translated into PD.
   PD derivation of $\Gamma; \Delta \vdash A~\mathit{true}$.
 \end{proposition}
 \begin{proof}
-  We translate away tensor products and tensor units, and translate the
-  resulting derivation to bottom-up form.
+  We translate away tensor products and tensor units using
+  \autoref{lem:top-meet}, and translate the resulting derivation to bottom-up
+  form.
   The proof proceeds by induction on the resulting derivation in the obvious
   way.
 \end{proof}
+
+For similar reasons as explained at the end of \autoref{sec:syntax}, the
+system of Abel and Bernardy \cite{AbelBernardy2020} is unable to embed PD in
+this way, as it would prove
+$\square(A \wedge B) \to \square A \wedge \square B$, where PD and $\name$ do
+not.
 
 \section{Metatheory}\label{sec:metatheory}
 
