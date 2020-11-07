@@ -1,0 +1,361 @@
+\documentclass[fleqn]{beamer}
+
+\usepackage{booktabs}
+\usepackage{subcaption}
+
+\usepackage{stmaryrd}
+\usepackage{mathpartir}
+\usepackage{amssymb}
+\usepackage{cmll}
+\usepackage{xcolor}
+\usepackage{paralist}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{mathrsfs}
+\usepackage{mathtools}
+\usepackage{tabularx}
+\usepackage{tikz-cd}
+\usepackage[conor]{agda}
+\usepackage[style=alphabetic,citestyle=authoryear]{biblatex}
+\addbibresource{../quantitative.bib}
+
+\usetikzlibrary{positioning}
+\usetikzlibrary{arrows}
+
+\DeclareFontFamily{U}{cal}{}
+\DeclareFontShape{U}{cal}{m}{n}{<->cmsy10}{}
+\DeclareSymbolFont{rcal}{U}{cal}{m}{n}
+\DeclareSymbolFontAlphabet{\mathcal}{rcal}
+
+\def\newelims{1}
+\def\debruijn{1}
+\def\multnotation{1}
+\input{../macros.tex}
+\newcommand{\foo}[2]{\rescomment{\mathcal #1_#2}}
+
+\title{A Linear Algebra Approach to Linear Metatheory}
+\author{James Wood\inst{1} \and Bob Atkey\inst{1}}
+\institute{\inst{1}University of Strathclyde}
+\date{TLLA/Linearity, June 2020}
+
+\begin{document}
+\frame{\titlepage}
+\begin{frame}
+  \frametitle{Outline}
+  \begin{itemize}
+    \item Formalised syntactic metatheory for linear $\lambda$-calculus
+    \item \ldots in an intuitionistic style
+    \item \ldots using standard linear algebra constructs
+  \end{itemize}
+\end{frame}
+\begin{frame}
+  \frametitle{Algebra}
+  \begin{itemize}
+    \item Fix a partially ordered semiring\footnote{We can get away with a skew
+      semiring --- a mild generalisation.}
+      $(\rescomment{\mathscr R}, \subres, 0, +, 1, *)$.
+      \begin{itemize}
+        \item $(\rescomment{\mathscr R}, \subres)$ is a partial order.
+          ``constraint strengthening''
+        \item $(\rescomment{\mathscr R}, 0, +)$ is a commutative monoid.
+          ``accumulation''
+        \item $(\rescomment{\mathscr R}, 1, *)$ is a monoid. ``modal
+          modification''
+        \item $0$ annihilates, $+$ distributes, $+$ and $*$ are monotonic.
+      \end{itemize}
+    \item Natural deduction
+      $M : \ctxvar{x_1}{A_1}{r_1}, \ldots, \ctxvar{x_n}{A_n}{r_n} \vdash B$
+    \item Let
+      $\resctx R = \begin{pmatrix}
+        \rescomment{r_1} & \cdots & \rescomment{r_n}
+      \end{pmatrix}$;
+      $\Gamma = \begin{pmatrix}A_1 & \cdots & A_n\end{pmatrix}$. \\
+      Then $M : \ctx{\Gamma}{R} \vdash B$.
+    \item $M$ is an intrinsically typed derivation of
+      $\ctx{\Gamma}{R} \vdash B$.
+  \end{itemize}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=0.5,baseline={(0,1)}]
+        \node (omega) at (0,0) {$\rescomment\omega$};
+        \node (zero) at (-2,2) {$\rescomment 0$};
+        \node (one) at (2,2) {$\rescomment 1$};
+        \draw (zero) -- (omega)
+              (one) -- (omega);
+      \end{tikzpicture} \\
+      \begin{tabular}{rcl}
+        $\rescomment 1$ & $\sim$ & linear variable \\
+        $\rescomment\omega$ & $\sim$ & intuitionistic variable
+      \end{tabular}
+    \end{column}
+    \begin{column}{0.25\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=1,baseline={(0,0)}]
+        \node (any) at (0,1) {$\rescomment\wn$};
+        \node (up) at (-1,0) {$\rescomment\uparrow$};
+        \node (down) at (1,0) {$\rescomment\downarrow$};
+        \node (const) at (0,-1) {$\rescomment\equiv$};
+        \draw (any) -- (up)
+              (any) -- (down)
+              (up) -- (const)
+              (down) -- (const);
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.25\textwidth}
+      \begin{flalign*}
+        0 &:= \rescomment\wn &\\
+        1 &:= \rescomment\uparrow &\\
+        + &:= \wedge &\\
+        \rescomment\downarrow * \rescomment\downarrow &:=
+        \rescomment\uparrow &
+      \end{flalign*}
+    \end{column}
+  \end{columns}
+\end{frame}
+\begin{frame}
+  \frametitle{Type system}
+  \begin{block}{Variables}
+    \begin{itemize}
+      \item $\Gamma \ni A$ --- variables in $\Gamma$ of type $A$
+      \item
+        \(
+        \inferrule
+        {i : \Gamma \ni A \\ \resctx R \subres \basis i}
+        {\ctx{\Gamma}{R} \lvar A}
+        \)
+    \end{itemize}
+  \end{block}
+  \vspace{-1em}
+  \begin{block}{Terms}
+    \vspace{-2em}
+    \begin{mathpar}
+      \inferrule*[right=var]
+      {x : \ctx{\Gamma}{R} \lvar A}
+      {x : \ctx{\Gamma}{R} \vdash A}
+      \and
+      \inferrule*[right=lam]
+      {\bind{x}M : \ctx{\Gamma}{R}, \ctxvar{x}{A}{r} \vdash B}
+      {\lam{x}{\bind{x}M} : \ctx{\Gamma}{R} \vdash \fun{\rescomment rA}{B}}
+      \and
+      \inferrule*[right=app]
+      {M : \ctx{\Gamma}{P} \vdash \fun{\rescomment rA}{B}
+        \\ N : \ctx{\Gamma}{Q} \vdash A
+        \\ \resctx R \subres \resctx P + \rescomment r\resctx Q
+      }
+      {\app{M}{N} : \ctx{\Gamma}{R} \vdash B}
+    \end{mathpar}
+    \vspace{-2em}
+  \end{block}
+  \begin{itemize}
+    \item Nameless --- de Bruijn indices
+    \item We can also have
+      $\excl{r}{A}$,
+      $\tensorOne{}$, $\tensor{\rescomment pA}{\rescomment qB}$,
+      $\withTOne{}$, $\withT{A}{B}$,
+      $\sumTZero{}$, $\sumT{\rescomment pA}{\rescomment qB}$,
+      bidirectional typing constructs\ldots
+  \end{itemize}
+\end{frame}
+\begin{frame}
+  \frametitle{Syntax-to-syntax traversals}
+  \begin{itemize}
+    \item Replacing variables by:
+      \begin{itemize}
+        \item Renaming --- \emph{variables} in the new context
+        \item Substitution --- \emph{terms} in the new context
+      \end{itemize}
+    \item Substitution generalises renaming, but its proof depends on renaming.
+    \item Our traversal lemma\footfullcite{rensub05} ($(-)\rescomment\Psi$ a
+      linear map):
+      \begin{mathpar}
+      \inferrule*[lab=trav]
+      {\forall C.~(j : \Delta \ni C) \to
+      (\basis j\rescomment\Psi)\Gamma \kitrel C
+      \\ \resctx P \subres \resctx Q\rescomment\Psi
+      \\ \ctx{\Delta}{Q} \vdash A}
+      {\ctx{\Gamma}{P} \vdash A}
+      \end{mathpar}
+  \end{itemize}
+\end{frame}
+\begin{frame}
+  \frametitle{Kits\only<2-3>{ --- }\only<2>{variables}\only<3>{terms}}
+  \newcommand\myrel{\only<1>\kitrel\only<2>\lvar\only<3>\vdash}
+  Thingies replacing variables should be $\ctx{\Gamma}{R} \myrel A$ such that:
+  \begin{itemize}
+    \item We respect weakening of constraints.
+      \[
+      \resctx P \subres \resctx Q \implies
+      \inferrule
+      {\ctx{\Gamma}{Q} \myrel A}
+      {\ctx{\Gamma}{P} \myrel A}
+      \:\TirName{psh}
+      \]
+    \item We can turn usage-tracked variables into thingies.
+    \item We can turn thingies into terms.
+    \item We can introduce new variables \emph{at $0$-use}.
+  \end{itemize}
+  \begin{mathpar}
+    \inferrule*[right=vr]
+    {\ctx{\Gamma}{R} \lvar A}
+    {\ctx{\Gamma}{R} \myrel A}
+    \and
+    \inferrule*[right=tm]
+    {\ctx{\Gamma}{R} \myrel A}
+    {\ctx{\Gamma}{R} \vdash A}
+    \and
+    \inferrule*[right=wk]
+    {\ctx{\Gamma}{R}\phantom{, 0\Theta} \myrel A}
+    {\ctx{\Gamma}{R}, 0\Theta \myrel A}
+  \end{mathpar}
+\end{frame}
+\begin{frame}
+  \frametitle{Traversal}
+  \begin{theorem}
+    \vspace{-1.5em}
+    \begin{mathpar}
+      \inferrule*[lab=trav]
+      {\forall C.~(j : \Delta \ni C) \to
+      (\basis j\rescomment\Psi)\Gamma \kitrel C
+      \\ \resctx P \subres \resctx Q\rescomment\Psi
+      \\ \ctx{\Delta}{Q} \vdash A}
+      {\ctx{\Gamma}{P} \vdash A}
+    \end{mathpar}
+    \vspace{-2.5em}
+  \end{theorem}
+  \begin{proof}
+  Let $\rho : \forall C.~(j : \Delta \ni C) \to
+  (\basis j\rescomment\Psi)\Gamma \kitrel C$;
+  $\resctx P \subres \resctx Q\rescomment\Psi$; and
+  $M : \ctx{\Delta}{Q} \vdash A$.
+  Induction on $M$:
+  \begin{itemize}
+    \item[\TirName{var}:]
+      Have $j : \Delta \ni A$, $\resctx Q \subres \basis j$.
+      Then, $\rho j : (\basis j\rescomment\Psi)\Gamma \kitrel A$, which can be
+      coerced to $\Gamma(\resctx Q\rescomment\Psi) \kitrel A$, then
+      $\ctx{\Gamma}{P} \kitrel A$.
+      \TirName{tm} gives $\ctx{\Gamma}{P} \vdash A$.
+    \item[\TirName{app}:]
+      \newcommand\QM{\foo{Q}{M}}
+      \newcommand\QN{\foo{Q}{N}}
+      \newcommand\PM{\foo{P}{M}}
+      \newcommand\PN{\foo{P}{N}}
+      Have $M : \QM\Delta \vdash \fun{\rescomment rA}{B}$,
+      $N : \QN\Delta \vdash A$,
+      $\resctx Q \subres \QM + \rescomment r\QN$.
+      Let $\PM := \QM\rescomment\Psi$, $\PN := \QN\rescomment\Psi$.
+      Notice $\resctx P \subres \PM + \rescomment r\PN$.
+      By induction, we get $\Gamma\PM \vdash \fun{\rescomment rA}{B}$ and
+      $\Gamma\PN \vdash A$.
+    \item[\TirName{lam}:]
+      Have $M : \ctx{\Delta}{Q}, \ctxvar{x}{A}{r} \vdash B$.
+      The bind lemma gives us $\rescomment{\Psi'}$ such that
+      $\rowcat{\resctx P}{\rescomment r} \subres
+      \rowcat{\resctx Q}{\rescomment r}\rescomment{\Psi'}$ and
+      $\rho' : \forall C.~(j : \rowcat{\Delta}{A} \ni C) \to
+      (\basis j\rescomment{\Psi'})\rowcat{\Gamma}{A} \kitrel C$.
+      Then, by induction, we can get
+      $\ctx{\Gamma}{P}, \ctxvar{x}{A}{r} \vdash B$, as required.
+  \end{itemize}
+  \end{proof}
+\end{frame}
+\begin{frame}
+  \frametitle{The bind lemma}
+  \begin{lemma}
+    Given $\rescomment\Psi$ such that $\resctx P \subres \resctx Q\rescomment\Psi$
+    and $\rho : \forall C.~(j : \Delta \ni C) \to
+    (\basis j\rescomment\Psi)\Gamma \kitrel C$, we can find $\rescomment{\Psi'}$
+    such that $\rowcat{\resctx P}{\resctx R} \subres
+    \rowcat{\resctx Q}{\resctx R}\rescomment{\Psi'}$ and
+    $\rho' : \forall C.~(j : \rowcat{\Delta}{\Theta} \ni C) \to
+    (\basis j\rescomment{\Psi'})\rowcat{\Gamma}{\Theta} \kitrel C$.
+  \end{lemma}
+  \begin{proof}
+    Let $\rescomment{\Psi'} := \rescomment\Psi \oplus I =
+    \left(\begin{array}{c|c}
+            \rescomment\Psi & 0 \\\hline 0 & I
+          \end{array}\right)$.
+    This satisfies the inequality.
+    To construct $\rho'$, take cases on $j$:
+    \begin{itemize}
+      \item[$\inl j$]
+        Have $j : \Delta \ni C$.
+        Use $\rho$ to get $(\basis j\rescomment\Psi)\Gamma \kitrel C$, then
+        \TirName{wk} to get
+        $(\basis j\rescomment\Psi)\Gamma, 0\Theta \kitrel C$.
+        By linear algebra, we can coerce this thingy as needed:
+        $\basis{\inl j}\rescomment{\Psi'}
+        = \rowcat{(\basis j)}{0}\rescomment{\Psi'}
+        \subres \rowcat{(\basis j\rescomment{\Psi})}{0}$.
+      \item[$\inr k$]
+        Have $k : \Theta \ni C$, thus a new
+        $\inr k : \rowcat{\Gamma}{\Theta} \ni C$.
+        We have $\basis{\inr k}\rescomment{\Psi'}
+        = \rowcat{0}{(\basis k)}\rescomment{\Psi'}
+        \subres \rowcat{0}{(\basis k)}
+        = \basis{\inr k}$, so we can get
+        $(\basis{\inr k}\rescomment{\Psi'})\rowcat{\Gamma}{\Theta} \lvar C$,
+        and by \TirName{vr}
+        $(\basis{\inr k}\rescomment{\Psi'})\rowcat{\Gamma}{\Theta} \kitrel C$.
+    \end{itemize}
+  \end{proof}
+\end{frame}
+\begin{frame}
+  \frametitle{Single substitution}
+  \begin{corollary}
+    \vspace{-1.5em}
+    \begin{mathpar}
+      \inferrule*[right=single-subst]
+      {M : \ctx{\Gamma}{P}, \ctxvar{x}{A}{r} \vdash B
+        \\ N : \ctx{\Gamma}{Q} \vdash A
+        \\ \resctx R \subres \resctx P + \rescomment r\resctx Q}
+      {M[N] : \ctx{\Gamma}{R} \vdash B}
+    \end{mathpar}
+    \vspace{-2em}
+  \end{corollary}
+  \begin{proof}
+    We want to apply traversal at the following type:
+    \begin{mathpar}
+      \inferrule*[right=trav]
+      {\forall C.~(j : \rowcat{\Gamma}{A} \ni C) \to
+      (\basis j\rescomment\Psi)\Gamma \vdash C
+      \\ \resctx R \subres \rowcat{\resctx P}{\rescomment r}\rescomment\Psi
+      \\ \ctx{\Gamma}{P}, \ctxvar{x}{A}{r} \vdash B}
+      {\ctx{\Gamma}{R} \vdash B}
+    \end{mathpar}
+    Let $\rescomment\Psi := [I, \resctx Q] = \colcat{I}{\resctx Q}$.
+    Construct $\rho$ by cases:
+    \begin{itemize}
+      \item[$\inl i$]
+        Have $i : \Gamma \ni C$. Notice that
+        $\basis{\inl i}\rescomment\Psi \subres \basis i$, so \TirName{var} on
+        $i$ suffices.
+      \item[$\inr{\bullet}$]
+        Have $A = C$. Notice that
+        $\basis{\inr{\bullet}}\rescomment\Psi \subres \resctx Q$, so it suffices
+        to give $N : \ctx{\Gamma}{Q} \vdash A$.
+    \end{itemize}
+  \end{proof}
+\end{frame}
+\begin{frame}
+  \frametitle{Conclusion}
+  \begin{block}{Contributions}
+    \begin{itemize}
+      \item Linear metatheory in an intuitionistic style
+      \item A novel definition of simultaneous substitution
+      \item Clarification of the (linear) algebra required
+      \item Easy to formalise (as done in Agda:
+        \url{https://github.com/laMudri/generic-lr})
+    \end{itemize}
+  \end{block}
+  \begin{block}{Future work}
+    \begin{itemize}
+      \item Semiring homomorphisms
+      \item Syntax-to-semantics traversals\footfullcite{ACMM17}
+      \item A notion of good graded syntax\footfullcite{AACMM20}
+      \item Partial/non-deterministic addition
+    \end{itemize}
+  \end{block}
+\end{frame}
+\end{document}
