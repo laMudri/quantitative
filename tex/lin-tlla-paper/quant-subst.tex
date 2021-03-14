@@ -322,9 +322,27 @@ so it is unambiguous where there is a sum of dimensionalities.
 
 \section{Syntax}\label{sec:syntax}
 
-\begin{figure}[t]
-  \caption{Typing rules of \name{}}
-  \label{fig:rules}
+\begin{figure}
+  \begin{displaymath}
+    A,B,C ::= \base \mid \fun A B \mid \tensorOne \mid \tensor A B
+    \mid \sumTZero \mid \sumT A B \mid \withTOne \mid \withT A B \mid \excl{r} A
+  \end{displaymath}
+  \caption{Types of \name{}}
+  \label{fig:types}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \begin{tabular}{c|c|c}
+    set of plain variables & set of usage-checked variables & set of terms
+    \\\hline
+    $\Gamma \ni A$ & $\ctx\Gamma R \lvar A$ & $\ctx\Gamma R \vdash A$
+  \end{tabular}
+  \caption{Judgement forms of \name{}}
+  \label{fig:judgements}
+\end{figure}
+
+\begin{figure}
   \begin{mathpar}
     \inferrule*[right=var]
     {x : \ctx{\Gamma}{R} \lvar A}
@@ -432,6 +450,8 @@ so it is unambiguous where there is a sum of dimensionalities.
     }
     {\bang{M} : \ctx{\Gamma}{R} \vdash \excl{r}{A}}
   \end{mathpar}
+  \caption{Typing rules of \name{}}
+  \label{fig:rules}
 \end{figure}
 
 We present the syntax of \name{} as an \emph{intrinsically} typed
@@ -449,14 +469,13 @@ $\mathbf R$, and vectors and matrices thereof, in \rescomment{green}.
 
 % \paragraph{Types}
 
-The types of \name{} are given by the grammar:
-$ A,B,C ::= \base \mid \fun A B \mid \tensorOne \mid \tensor A B \mid \sumTZero
-\mid \sumT A B \mid \withTOne \mid \withT A B \mid \excl{r} A$.
+The types of \name{} are given in \autoref{fig:types}.
 We have a base type $\base$, function types $\fun A B$, tensor product types
 $\tensor A B$ with unit $\tensorOne$, sum types $\sumT A B$ with unit
 $\sumTZero$, ``with'' product types $\withT A B$ with unit $\withTOne$, and an
 exponential $\excl{r} A$ indexed by a usage $\rescomment{r}$.
 
+% TODO: Could do with a wee table explaining \ni, \sqni, and \vdash.
 We distinguish between \emph{plain} variables, values of type
 $\Gamma \ni A$, which are indices into a context with a specified
 type, and \emph{usage-checked} variables, values of type
@@ -565,7 +584,7 @@ a linear form of \emph{cut}.
 \end{proof}
 
 
-\begin{figure}\label{fig:lemmas}
+\begin{figure}
   \begin{mathpar}
     \inferrule*[right=SingleSubst]
     {M : \ctx\Gamma P \vdash A
@@ -582,6 +601,8 @@ a linear form of \emph{cut}.
     {\ctx\Gamma P \vdash A}
     {\ctx\Gamma P, \ctx\Delta{\vct0} \vdash A}
   \end{mathpar}
+  \caption{Admissible rules}
+  \label{fig:lemmas}
 \end{figure}
 
 % It is a refinement of simply typed $\lambda$-calculus sporting usage annotations
@@ -903,8 +924,8 @@ These additive type formers present no additional difficulty to the translation.
     }
     {\Gamma; \Delta_1, \Delta_2 \vdash C}
   \end{mathpar}
-  \label{fig:dill}
   \caption{The rules of DILL, extended with additive connectives}
+  \label{fig:dill}
 \end{figure}
 
 \begin{figure}
@@ -1100,7 +1121,7 @@ The translation to and from the modal system of Pfenning and Davies
 \cite{judgmental} (henceforth \emph{PD}) is similar to the translation to and
 from DILL.
 We present our variant of PD, again adding some common connectives, in
-\autoref{fig:pd}
+\autoref{fig:pd}.
 The main difference is the algebra at which \name{} is instantiated.
 
 \begin{figure}
@@ -1163,8 +1184,8 @@ The main difference is the algebra at which \name{} is instantiated.
     }
     {\Gamma; \Delta \vdash C\;\mathit{true}}
   \end{mathpar}
-  \label{fig:pd}
   \caption{The rules of PD, extended with several standard connectives}
+  \label{fig:pd}
 \end{figure}
 
 \begin{definition}
@@ -1380,6 +1401,7 @@ annotation $\rescomment 0$, which intuitively marks them as weakenable.
 The requirement $\mathit{psh}$ is new, and allows us to fix up usage contexts
 via skew algebraic reasoning.
 
+% TODO: link Agda names to GitHub or HTML.
 \begin{definition}[\AgdaRecord{Kit}]\label{def:kit}
   For any $\kitrel : \mathrm{Ctx} \times \mathrm{Ty} \to \mathrm{Set}$, let
   $\kit(\kitrel)$ denote the type of \emph{kits}.
