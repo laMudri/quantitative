@@ -477,13 +477,15 @@ exponential $\excl{r} A$ indexed by a usage $\rescomment{r}$.
 
 % TODO: Could do with a wee table explaining \ni, \sqni, and \vdash.
 We distinguish between \emph{plain} variables, values of type
-$\Gamma \ni A$, which are indices into a context with a specified
-type, and \emph{usage-checked} variables, values of type
-$\ctx{\Gamma}{R} \lvar A$ which are pairs of a plain variable
-$i : \Gamma \ni A$ and proof that
-$\resctx R \subres \langle i \rvert$. The force of the latter
-condition is that the selected variable $i$ must have a usage
-annotation $\subres \rescomment 1$ in $\resctx{R}$, and all other
+$\Gamma \ni A$, and \emph{usage-checked} variables, values of type
+$\ctx{\Gamma}{R} \lvar A$.
+A plain variable is an index into a context with a specified type, while a
+usage-checked variable of type $\ctx{\Gamma}{R} \lvar A$ is a plain variable
+$i : \Gamma \ni A$ together with a proof that
+$\resctx R \subres \langle i \rvert$.
+Expanding the vector notation, the latter
+condition says that the selected variable $i$ must have a usage
+annotation $\subres \rescomment 1$ in $\resctx{R}$, while all other
 variables must have a usage annotation $\subres \rescomment 0$. We
 will sometimes silently cast between the types $\Idx m$ and
 $\Gamma \ni A$, particularly when using the reindexing operation
