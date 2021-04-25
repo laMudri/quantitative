@@ -13,6 +13,7 @@
 \usepackage{amsthm}
 \usepackage{mathrsfs}
 \usepackage{mathtools}
+\usepackage{multicol}
 \usepackage{tabularx}
 \usepackage{tikz-cd}
 \usepackage[conor]{agda}
@@ -853,6 +854,31 @@ separate contexts for linear and intuitionistic free variables.
 Here we show that DILL is a fragment of the instantiation of \name{} at the
 linearity semiring $\{\zero, \linear, \unrestricted\}$.
 
+\begin{definition}
+  Let $\instDILL$ denote the following semiring on the partially ordered set
+  $\{\linear \triangleright \zero \triangleleft \unrestricted\}$.
+  \begin{multicols}{2}
+    \begin{itemize}
+      \item $0 := \zero$.
+      \item
+        \begin{tabular}{c|ccc}
+          $+$ & \zero & \linear & \unrestricted \\ \hline
+          \zero & \zero & \linear & \unrestricted \\
+          \linear & \linear & \unrestricted & \unrestricted \\
+          \unrestricted & \unrestricted & \unrestricted & \unrestricted \\
+        \end{tabular}
+      \item $1 := \linear$.
+      \item
+        \begin{tabular}{c|ccc}
+          $*$ & \zero & \linear & \unrestricted \\ \hline
+          \zero & \zero & \zero & \zero \\
+          \linear & \zero & \linear & \unrestricted \\
+          \unrestricted & \zero & \unrestricted & \unrestricted \\
+        \end{tabular}
+    \end{itemize}
+  \end{multicols}
+\end{definition}
+
 The types of DILL are the same as the types of \name, except for the
 restriction of $\excl{r}{}$ to just $\excl{\unrestricted}{}$.
 We will write the latter simply as $\oc$ when it appears in DILL\@.
@@ -1085,8 +1111,9 @@ premise of \TirName{$\excl{\unrestricted}{}$-I}.
 \begin{proposition}[\name{} $\to$ DILL]
   Given a $\name_{\instDILL}$ derivation of
   $\ctx{\Gamma}{\vct\unrestricted}, \ctx{\Delta}{\vct\linear},
-  \ctx{\Theta}{\vct\zero} \vdash A$ which contains only types expressible
-  in DILL, we can produce a DILL derivation of $\Gamma; \Delta \vdash A$.
+  \ctx{\Theta}{\vct\zero} \vdash A$ which does not contain type formers
+  $\excl 0$ and $\excl 1$, we can produce a DILL derivation of
+  $\Gamma; \Delta \vdash A$.
 \end{proposition}
 \begin{proof}
   By induction on the derivation having been translated to bottom-up form.
@@ -1193,18 +1220,20 @@ The main difference is the algebra at which \name{} is instantiated.
 \begin{definition}
   Let $\instPD$ denote the following semiring on the partially ordered set
   $\{\valid \triangleleft \true \triangleleft \unused\}$.
-  \begin{itemize}
-    \item $0 := \unused$.
-    \item $+$ is the meet ($\wedge$) according to the subusaging order.
-    \item $1 := \true$.
-    \item
-      \begin{tabular}{c|ccc}
-        $*$ & \unused & \true & \valid \\ \hline
-        \unused & \unused & \unused & \unused \\
-        \true & \unused & \true & \valid \\
-        \valid & \unused & \valid & \valid \\
-      \end{tabular}
-  \end{itemize}
+  \begin{multicols}{2}
+    \begin{itemize}
+      \item $0 := \unused$.
+      \item $+$ is the meet ($\wedge$) according to the subusaging order.
+      \item $1 := \true$.
+      \item
+        \begin{tabular}{c|ccc}
+          $*$ & \unused & \true & \valid \\ \hline
+          \unused & \unused & \unused & \unused \\
+          \true & \unused & \true & \valid \\
+          \valid & \unused & \valid & \valid \\
+        \end{tabular}
+    \end{itemize}
+  \end{multicols}
 \end{definition}
 
 The $\unused$ annotation plays only a formal role in this example.
@@ -1321,9 +1350,9 @@ presence of modalities.
 
 The motivating result of the following section is the admissibility of the
 single substitution principle.
-We derive single substitution from simultaneous substitution
-(\autoref{cor:single-subst}), which we in turn derive from a generic traversal
-of syntax (\autoref{cor:sub}).
+We derive single substitution (\autoref{cor:single-subst}) from simultaneous
+substitution (\autoref{cor:sub}), which we in turn derive from a generic
+traversal of syntax (\autoref{thm:trav}).
 Our statement of single substitution is somewhat standard, easy to intuit, and
 exactly what is called for to show preservation of typing by $\beta$ rules,
 whereas our statement of simultaneous substitution is novel and more abstract,
