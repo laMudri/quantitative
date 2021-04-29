@@ -186,7 +186,7 @@ interested in our metatheoretic methods may skip \autoref{sec:general} and
 \autoref{sec:translation} without issue.
 
 The Agda formalisation of this work can be found at
-\url{https://github.com/laMudri/generic-lr/tree/lin/tlla-submission/src/Specific}.
+\url{https://github.com/laMudri/generic-lr/tree/lin/tlla-submission-2021/src/Specific}.
 It contains our formalisation of vectors and
 matrices (approx.\ 790 lines) and the definition of \name{} and proofs of
 renaming and substitution (approx.\ 530 lines).
@@ -456,7 +456,7 @@ so it is unambiguous where there is a sum of dimensionalities.
 \end{figure}
 
 We present the syntax of \name{} as an \emph{intrinsically} typed
-syntax, as it is in our Agda formalisation. Intrinisic typing means
+syntax, as it is in our Agda formalisation. Intrinsic typing means
 that we define well typed terms as inhabitants of an inductive family
 $\ctx\Gamma{R} \vdash A$ indexed by typing contexts $\Gamma$, usage
 contexts $\resctx{R}$, and types $A$. Typing contexts are lists of
@@ -1409,9 +1409,12 @@ We prove simultaneous substitution using renaming.
 We take both renaming and substitution as corollaries of the \emph{traversal}
 principle (\autoref{thm:trav}) yielded from kits and environments.
 
-Definition of \emph{kit}s, \emph{environment}s and
-\hyperref[thm:trav]{traversal} are in the module
-\AgdaModule{Specific.Syntax.Traversal}.
+Throughout this section, we give definitions, lemmas, and proofs corresponding
+directly to parts of the Agda mechanisation.
+Agda type formers are highlighted \AgdaRecord{blue}, with other constructions
+highlighted \AgdaFunction{green}.
+In the PDF version of this paper, all Agda names are hyperlinked to a line of
+the source code hosted on GitHub.
 
 % Plan:
 % - Just define a kit, saying what it is used for (i.e. sketch the traversal we get)
@@ -1420,6 +1423,11 @@ Definition of \emph{kit}s, \emph{environment}s and
 % - 'psh' is new, to cope with subusaging
 
 \subsection{Kits, Environments, and Traversal}
+
+Agda definitions of \emph{kits}, \emph{environments}, and
+\hyperref[thm:trav]{traversal} are in the module
+\href{https://github.com/laMudri/generic-lr/blob/lin/tlla-submission-2021/src/Specific/Syntax/Traversal.agda\#L9}{\AgdaModule{Specific.Syntax.Traversal}}
+and are explained in this subsection.
 
 \paragraph{Kits}
 A kit is a structure on $\vdash$-like relations $\kitrel$, intuitively
@@ -1432,8 +1440,7 @@ annotation $\rescomment 0$, which intuitively marks them as weakenable.
 The requirement $\mathit{psh}$ is new, and allows us to fix up usage contexts
 via skew algebraic reasoning.
 
-% TODO: link Agda names to GitHub or HTML.
-\begin{definition}[\AgdaRecord{Kit}]\label{def:kit}
+\begin{definition}[\href{https://github.com/laMudri/generic-lr/blob/lin/tlla-submission-2021/src/Specific/Syntax/Traversal.agda\#L60}{\AgdaRecord{Kit}}]\label{def:kit}
   For any $\kitrel : \mathrm{Ctx} \times \mathrm{Ty} \to \mathrm{Set}$, let
   $\kit(\kitrel)$ denote the type of \emph{kits}.
   A kit comprises the following functions for all $\resctx P$, $\resctx Q$,
@@ -1493,7 +1500,7 @@ matrix $\rescomment\Psi$, we notice that the condition just described
 is stated succinctly via a vector-matrix multiplication
 $\resctx Q\rescomment\Psi$. This culminates to give us the following:
 
-\begin{definition}[\AgdaRecord{Env}]\label{def:env}
+\begin{definition}[\href{https://github.com/laMudri/generic-lr/blob/lin/tlla-submission-2021/src/Specific/Syntax/Traversal.agda\#L43}{\AgdaRecord{Env}}]\label{def:env}
   For any $\kitrel$, $\resctx P$, $\resctx Q$, $\Gamma$, and $\Delta$,
   where $\Gamma$ and $\Delta$ have lengths $m$ and $n$ respectively,
   let $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$ denote the
@@ -1521,17 +1528,20 @@ proof is in \autoref{sec:proof-of-traversal}.
   $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$, we get a function
   $\ctx{\Delta}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.%
 }
-\begin{theorem}[traversal, \AgdaFunction{trav}]\label{thm:trav}
+\begin{theorem}[traversal, \href{https://github.com/laMudri/generic-lr/blob/lin/tlla-submission-2021/src/Specific/Syntax/Traversal.agda\#L83}{\AgdaFunction{trav}}]\label{thm:trav}
   \thmtrav
 \end{theorem}
 
 \subsection{Renaming}
 
 We now show how to use traversals to prove that renaming (including
-weakening) and subusaging are admissible. This subsection corresponds
-to the Agda module \AgdaModule{Specific.Syntax.Renaming}.
+weakening) and subusaging are admissible.
+This subsection corresponds to the Agda modules
+\href{https://github.com/laMudri/generic-lr/blob/lin/tlla-submission-2021/src/Specific/Syntax/Renaming.agda\#L9}{\AgdaModule{Specific.Syntax.Renaming}}
+and
+\href{https://github.com/laMudri/generic-lr/blob/lin/tlla-submission-2021/src/Specific/Syntax/Subuse.agda\#L9}{\AgdaModule{Specific.Syntax.Subuse}}.
 
-\begin{definition}[\AgdaFunction{LVar-kit}]\label{def:lvar-kit}
+\begin{definition}[\href{https://github.com/laMudri/generic-lr/blob/lin/tlla-submission-2021/src/Specific/Syntax/Renaming.agda\#L54}{\AgdaFunction{LVar-kit}}]\label{def:lvar-kit}
   Let $\lvar\textrm{-kit} : \kit(\lvar)$ be defined with the following
   fields.
   \begin{description}
@@ -1556,7 +1566,7 @@ to the Agda module \AgdaModule{Specific.Syntax.Renaming}.
 Environments for renamings are special in that the matrix $\rescomment\Psi$ can
 be calculated from the action of the renaming on non-usage-checked variables.
 
-\begin{lemma}[\AgdaFunction{ren-env}]\label{lem:ren-env}
+\begin{lemma}[\href{https://github.com/laMudri/generic-lr/blob/lin/tlla-submission-2021/src/Specific/Syntax/Renaming.agda\#L62}{\AgdaFunction{ren-env}}]\label{lem:ren-env}
   Given a type-preserving mapping of plain variables
   $f : \Delta \ni A \to \Gamma \ni A$ such that
   $\resctx P \subres \resctx Q\rescomment I_{f\times\id}$,
@@ -1585,7 +1595,7 @@ be calculated from the action of the renaming on non-usage-checked variables.
 %  \]
 \end{proof}
 
-\begin{corollary}[renaming, \AgdaFunction{ren}]\label{cor:ren}
+\begin{corollary}[renaming, \href{https://github.com/laMudri/generic-lr/blob/lin/tlla-submission-2021/src/Specific/Syntax/Renaming.agda\#L67}{\AgdaFunction{ren}}]\label{cor:ren}
   Given a type-preserving mapping of plain variables
   $f : \Delta \ni A \to \Gamma \ni A$ such that
   $\resctx P \subres \resctx Q\rescomment I_{f\times\id}$,
@@ -1596,7 +1606,7 @@ be calculated from the action of the renaming on non-usage-checked variables.
 %   By the lemmas from this subsection and \autoref{thm:trav}.
 % \end{proof}
 
-\begin{corollary}[subusaging, \AgdaFunction{subuse}]\label{cor:subusage}
+\begin{corollary}[subusaging, \href{https://github.com/laMudri/generic-lr/blob/lin/tlla-submission-2021/src/Specific/Syntax/Subuse.agda\#L50}{\AgdaFunction{subuse}}]\label{cor:subusage}
   Given $\resctx P \subres \resctx Q$, then we have a function
   $\ctx{\Gamma}{Q} \vdash A \to \ctx{\Gamma}{P} \vdash A$.
 \end{corollary}
@@ -1606,9 +1616,9 @@ be calculated from the action of the renaming on non-usage-checked variables.
 Now that we have renaming, we can use it with traversals to prove that
 simultaneous well usaged substitution is admissible. This subsection
 corresponds to the Agda module
-\AgdaModule{Specific.Syntax.Substitution}.
+\href{https://github.com/laMudri/generic-lr/blob/lin/tlla-submission-2021/src/Specific/Syntax/Substitution.agda\#L9}{\AgdaModule{Specific.Syntax.Substitution}}.
 
-\begin{definition}[\AgdaFunction{Tm-kit}]\label{tm-kit}
+\begin{definition}[\href{https://github.com/laMudri/generic-lr/blob/lin/tlla-submission-2021/src/Specific/Syntax/Substitution.agda\#L63}{\AgdaFunction{Tm-kit}}]\label{tm-kit}
   Let $\vdash\textrm{-kit} : \kit(\vdash)$ be defined with the following
   fields.
   \begin{description}
@@ -1668,7 +1678,7 @@ $\ctx\Gamma P$ to $\ctx\Delta Q$ is a matrix $\rescomment\Psi$ such that
 $\resctx P \subres \resctx Q \rescomment\Psi$, and for each variable $j$ of
 type $A$ in $\Delta$, a term $(\langle j \rvert\rescomment\Psi)\Gamma \vdash A$.
 
-\begin{corollary}[substitution, \AgdaFunction{sub}]\label{cor:sub}
+\begin{corollary}[substitution, \href{https://github.com/laMudri/generic-lr/blob/lin/tlla-submission-2021/src/Specific/Syntax/Substitution.agda\#L69}{\AgdaFunction{sub}}]\label{cor:sub}
   Given an environment of type
   $\ctx{\Gamma}{P} \subst{\vdash} \ctx{\Delta}{Q}$ (i.e., a
   well usaged simultaneous substitution), we get a function of type
@@ -1712,7 +1722,7 @@ McBride's article, extended with proof obligations to show that we are
 correctly respecting the usage annotations. We must first prove a
 lemma that shows that environments can be pushed under binders.
 
-\begin{lemma}[bind, \AgdaFunction{bind}]\label{lem:bind}
+\begin{lemma}[bind, \href{https://github.com/laMudri/generic-lr/blob/lin/tlla-submission-2021/src/Specific/Syntax/Traversal.agda\#L70}{\AgdaFunction{bindEnv}}]\label{lem:bind}
   Given a kit on $\kitrel$, we can extend an environment of type
   $\ctx{\Gamma}{P} \subst{\kitrel} \ctx{\Delta}{Q}$, to an environment of type
   $\ctx{\Gamma}{P}, \ctx{\Theta}{R} \subst{\kitrel}
@@ -1766,7 +1776,7 @@ lemma that shows that environments can be pushed under binders.
 \end{proof}
 
 \newtheorem*{thm:trav}{\autoref{thm:trav}}
-\begin{thm:trav}[traversal, \AgdaFunction{trav}]
+\begin{thm:trav}[traversal, \href{https://github.com/laMudri/generic-lr/blob/lin/tlla-submission-2021/src/Specific/Syntax/Traversal.agda\#L83}{\AgdaFunction{trav}}]
   \thmtrav
 \end{thm:trav}
 \begin{proof}
