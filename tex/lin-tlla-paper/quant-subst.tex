@@ -286,7 +286,7 @@ ${-}_{{-}\times{-}}$ are defined as follows:
 \begin{mathpar}
   \begin{matrix*}[l]
     \langle {-} \rvert : \Idx n \to \mathbf{R}^n \\
-    \langle i \rvert_j :=
+    \langle i \rvert_j \coloneqq
     \begin{cases}
       1, & \textrm{if }i = j \\
       0, & \textrm{otherwise} \\
@@ -295,12 +295,12 @@ ${-}_{{-}\times{-}}$ are defined as follows:
   \and
   \begin{matrix*}[l]
     \mat I : \mathbf R^{m \times m} \\
-    \mat I_{ij} := \langle i \rvert_j
+    \mat I_{ij} \coloneqq \langle i \rvert_j
   \end{matrix*}
   \and
   \begin{matrix*}[l]
     * : \mathbf R^{m \times n} \times \mathbf R^{n \times o} \to \mathbf R^{m \times o} \\
-    (MN)_{ik} := \sum_j M_{ij}N_{jk}
+    (MN)_{ik} \coloneqq \sum_j M_{ij}N_{jk}
   \end{matrix*}
   \and
   \begin{matrix*}[l]
@@ -308,7 +308,7 @@ ${-}_{{-}\times{-}}$ are defined as follows:
     \times (\Idx m \to \Idx m')
     \times (\Idx n \to \Idx n')
     \to \mathbf R^{m \times n} \\
-    \left(M_{f \times g}\right)_{i,j} := M_{f\,i,g\,j}
+    \left(M_{f \times g}\right)_{i,j} \coloneqq M_{f\,i,g\,j}
   \end{matrix*}
 \end{mathpar}
 
@@ -325,7 +325,7 @@ so it is unambiguous where there is a sum of dimensionalities.
 
 \begin{figure}
   \begin{displaymath}
-    A,B,C ::= \base \mid \fun A B \mid \tensorOne \mid \tensor A B
+    A,B,C \Coloneqq \base \mid \fun A B \mid \tensorOne \mid \tensor A B
     \mid \sumTZero \mid \sumT A B \mid \withTOne \mid \withT A B \mid \excl{r} A
   \end{displaymath}
   \caption{Types of \name{}}
@@ -335,7 +335,7 @@ so it is unambiguous where there is a sum of dimensionalities.
 \begin{figure}
   \centering
   \begin{tabular}{ll}
-    $\Gamma \ni A$          & type of plain (non usage checked) variables \\
+    $\Gamma \ni A$          & type of plain (non-usage-checked) variables \\
     $\ctx\Gamma R \lvar A$  & type of usage-checked variables \\
     $\ctx\Gamma R \vdash A$ & type of usage-checked terms
   \end{tabular}
@@ -744,6 +744,9 @@ satisfying more structural rules.
   information.
   Because $\rescomment{\bullet} \subres \rescomment{\bullet}$, all
   $\subres$-constraints are satisfied.
+  By inspection, when usage contexts and constraints are ignored, the typing
+  rules of \autoref{fig:rules} become those of an intuitionistic
+  $\lambda$-calculus.
 \end{proof}
 
 An important class of skew semirings is those for which $0$ is the top
@@ -751,8 +754,8 @@ element of the $\subres$-order and $+$ acts as a meet (minimum).
 While $\name$ instantiated this way admits full weakening and
 contraction, the usage annotations can still play a part via the
 $\excl{r}{}$ modality.  We will see an example of such an
-instantiation in \autoref{sec:pd} when we embed Pfenning and Davis' S4
-modal $\lambda$-calculus..
+instantiation in \autoref{sec:pd} when we embed Pfenning and Davies' S4
+modal $\lambda$-calculus.
 
 \begin{lemma}\label{lem:top-meet}
   If \name{} is instantiated at a skew semiring such that $0$ is top and $+$ is
@@ -861,7 +864,7 @@ linearity semiring $\{\zero, \linear, \unrestricted\}$.
   $\{\linear \triangleright \zero \triangleleft \unrestricted\}$.
   \begin{multicols}{2}
     \begin{itemize}
-      \item $0 := \zero$
+      \item $0 \coloneqq \zero$
       \item
         \begin{tabular}{c|ccc}
           $+$ & \zero & \linear & \unrestricted \\ \hline
@@ -869,7 +872,7 @@ linearity semiring $\{\zero, \linear, \unrestricted\}$.
           \linear & \linear & \unrestricted & \unrestricted \\
           \unrestricted & \unrestricted & \unrestricted & \unrestricted \\
         \end{tabular}
-      \item $1 := \linear$
+      \item $1 \coloneqq \linear$
       \item
         \begin{tabular}{c|ccc}
           $*$ & \zero & \linear & \unrestricted \\ \hline
@@ -1224,9 +1227,9 @@ The main difference is the algebra at which \name{} is instantiated.
   $\{\valid \triangleleft \true \triangleleft \unused\}$.
   \begin{multicols}{2}
     \begin{itemize}
-      \item $0 := \unused$.
+      \item $0 \coloneqq \unused$.
       \item $+$ is the meet ($\wedge$) according to the subusaging order.
-      \item $1 := \true$.
+      \item $1 \coloneqq \true$.
       \item
         \begin{tabular}{c|ccc}
           $*$ & \unused & \true & \valid \\ \hline
@@ -1553,9 +1556,9 @@ and
       $\lvar$ is to the left of a $\subres$.
       Applying transitivity in this place gets us the required term.
     \item[$\mathit{vr} : \ctx{\Gamma}{P} \lvar A \to \ctx{\Gamma}{P} \lvar A
-      := \mathrm{id}$].
+      \coloneqq \mathrm{id}$].
     \item[$\mathit{tm} : \ctx{\Gamma}{P} \lvar A \to \ctx{\Gamma}{P} \vdash A
-      := \TirName{var}$].
+      \coloneqq \TirName{var}$].
     \item[$\mathit{wk} : \ctx{\Gamma}{P} \lvar A
       \to \ctx{\Gamma}{P}, \ctx{\Delta}{\vct 0} \lvar A$:]
       A basis vector extended by $\rescomment 0$s is still a basis
@@ -1576,7 +1579,7 @@ be calculated from the action of the renaming on non-usage-checked variables.
   $\ctx{\Gamma}{P} \subst{\lvar} \ctx{\Delta}{Q}$.
 \end{lemma}
 \begin{proof}
-  The environment has $\rescomment\Psi := \rescomment I_{f\times\id}$,
+  The environment has $\rescomment\Psi \coloneqq \rescomment I_{f\times\id}$,
   so the usage condition holds by assumption.
   Now, $\mathit{act}$ is required to have type
   $(j : \Delta \ni A) \to (\langle j \rvert\rescomment\Psi)\Gamma \lvar A$.
@@ -1641,9 +1644,9 @@ corresponds to the Agda module
       % $\subres$, so $\ctx{\Gamma}{R} \vdash A$ must be contravariant in
       % $\resctx R$.
     \item[$\mathit{vr} : \ctx{\Gamma}{P} \lvar A \to \ctx{\Gamma}{P} \vdash A
-      := \TirName{var}$].
+      \coloneqq \TirName{var}$].
     \item[$\mathit{tm} : \ctx{\Gamma}{P} \vdash A \to \ctx{\Gamma}{P} \vdash A
-      := \mathrm{id}$].
+      \coloneqq \mathrm{id}$].
     \item[$\mathit{wk} : \ctx{\Gamma}{P} \vdash A \to \ctx{\Gamma}{P},
       \ctx{\Delta}{\vct 0} \vdash A$:] We use \hyperref[cor:ren]{Corollary \ref*{cor:ren} (renaming)}, with
       $f : \Gamma \ni A \to \Gamma, \Delta \ni A$ being the embedding
@@ -1703,7 +1706,7 @@ type $A$ in $\Delta$, a term $(\langle j \rvert\rescomment\Psi)\Gamma \vdash A$.
   We must produce an environment of type
   $\ctx\Gamma R \subst{\vdash} \ctx\Gamma Q, \ctxvar x A r$.
   Let \(
-    \rescomment\Psi := \left(\begin{array}{c}
+    \rescomment\Psi \coloneqq \left(\begin{array}{c}
                                \rescomment{\mat I}
                                \\ \hline
                                \resctx P
@@ -1742,7 +1745,7 @@ lemma that shows that environments can be pushed under binders.
   with $\resctx P, \resctx R \subres (\resctx Q, \resctx R) \rescomment{\Psi'}$.
 %
   Let \(
-    \rescomment{\Psi'} := \left(\begin{array}{c|c}
+    \rescomment{\Psi'} \coloneqq \left(\begin{array}{c|c}
                                   \rescomment\Psi & \rescomment{\mat 0}
                                   \\ \hline
                                   \rescomment{\mat 0} & \rescomment{\mat I}
@@ -1797,7 +1800,7 @@ lemma that shows that environments can be pushed under binders.
   If the input usage context $\resctx Q$ is split up into a linear
   combination of zero or more usage contexts $\resctx Q_{i}$, obtain a
   similar splitting of $\resctx P$ by setting
-  $\resctx P_{i} := \resctx Q_{i}\rescomment\Psi$.  This works out
+  $\resctx P_{i} \coloneqq \resctx Q_{i}\rescomment\Psi$.  This works out
   because of the linearity of matrix multiplication (in particular,
   multiplication respects operations on the left). This yields
   environments of type
@@ -1856,9 +1859,9 @@ lemma that shows that environments can be pushed under binders.
     %   required.
 %
     %   Let
-    %   $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$
+    %   $\resctx P_{\rescomment M} \coloneqq \resctx Q_{\rescomment M}\rescomment\Psi$
     %   and
-    %   $\resctx P_{\rescomment N} := \resctx Q_{\rescomment N}\rescomment\Psi$,
+    %   $\resctx P_{\rescomment N} \coloneqq \resctx Q_{\rescomment N}\rescomment\Psi$,
     %   where $\rescomment\Psi$ comes from the environment.
     %   We must make environments of types
     %   $\ctx{\Gamma}{P_{\mathnormal M}}
@@ -1890,7 +1893,7 @@ lemma that shows that environments can be pushed under binders.
     %   $M : \ctx{\Delta}{Q_{\mathnormal M}} \vdash A$,
     %   $\resctx Q \subres \rescomment r \resctx Q_{\rescomment M}$:]
     %   Following a similar strategy to the case above, let
-    %   $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$.
+    %   $\resctx P_{\rescomment M} \coloneqq \resctx Q_{\rescomment M}\rescomment\Psi$.
     %   If we get a term $M' : \ctx{\Gamma}{P_{\mathnormal M}} \vdash A$, we will
     %   be able to apply \TirName{$\excl{r}{}$-I} to get the result because
     %   \[
@@ -1920,9 +1923,9 @@ lemma that shows that environments can be pushed under binders.
     %   \resctx Q_{\rescomment M} + \resctx Q_{\rescomment N}$:]
     %   This is the most complex rule, combining splitting, sharing, and binding.
     %   Let
-    %   $\resctx P_{\rescomment M} := \resctx Q_{\rescomment M}\rescomment\Psi$
+    %   $\resctx P_{\rescomment M} \coloneqq \resctx Q_{\rescomment M}\rescomment\Psi$
     %   and
-    %   $\resctx P_{\rescomment N} := \resctx Q_{\rescomment N}\rescomment\Psi$.
+    %   $\resctx P_{\rescomment N} \coloneqq \resctx Q_{\rescomment N}\rescomment\Psi$.
     %   In order to traverse $M$, we repurpose the environment at type
     %   $\ctx{\Gamma}{P_{\mathnormal M}}
     %   \subst{\kitrel} \ctx{\Delta}{Q_{\mathnormal M}}$.
@@ -1970,8 +1973,8 @@ linear and modal type theories by instantiation to different semirings.
 As we mentioned in the introduction, there have been several prior
 works focused on formalising substructural calculi in proof
 assistants. Many of these \cite{power99,XavierORN18,laurent18}
-concentrate on sequent calculi presentations of Linear Logic and use
-lists to represent contexts and explicit splitting along permutations
+concentrate on sequent calculus presentations of Linear Logic, using
+lists to represent contexts and using explicit splitting along permutations
 to account for the splitting of contexts in multiplicative rules. In
 comparison to \name{}, the use of permutations means that variables in
 the context do not have a ``stable name'', which complicates the use
