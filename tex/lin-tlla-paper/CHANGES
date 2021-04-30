@@ -1,0 +1,21 @@
+Thanks to the reviewers for their careful reading of our
+submission. We have made the following changes in the light of their
+comments:
+
+- The types and summary of the judgement forms are now separated into
+  their own figures instead of inlined in the text. We hope this makes
+  them easier to read, and clarifies the meanings of the judgements.
+
+- We have spelt out some more of the details of the translations
+  between Barber's DILL and the Pfenning-Davis system and our's.
+
+- Added two paragraphs to the conclusion to compare our method to
+  existing techniques for formalising Linear Logic, expanded the
+  comparison to Licata et al's work, and to Abel and Bernardy's ICFP
+  2020 work.
+
+- Explained the use of colour to highlight the Agda definitions and
+  terms, and linked them to the GitHub repository.
+
+- Minor grammatical tweaks throughout, and fixed various Lemma and
+  Figure references identified by the reviewers.
