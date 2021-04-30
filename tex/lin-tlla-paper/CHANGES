@@ -7,7 +7,7 @@ comments:
   them easier to read, and clarifies the meanings of the judgements.
 
 - We have spelt out some more of the details of the translations
-  between Barber's DILL and the Pfenning-Davis system and our's.
+  between Barber's DILL and the Pfenning-Davies system and ours.
 
 - Added two paragraphs to the conclusion to compare our method to
   existing techniques for formalising Linear Logic, expanded the
@@ -17,5 +17,5 @@ comments:
 - Explained the use of colour to highlight the Agda definitions and
   terms, and linked them to the GitHub repository.
 
-- Minor grammatical tweaks throughout, and fixed various Lemma and
-  Figure references identified by the reviewers.
+- Minor grammatical and notational tweaks throughout, and fixed
+  various Lemma and Figure references identified by the reviewers.
