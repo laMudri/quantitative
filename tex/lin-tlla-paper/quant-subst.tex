@@ -334,10 +334,10 @@ so it is unambiguous where there is a sum of dimensionalities.
 
 \begin{figure}
   \centering
-  \begin{tabular}{c|c|c}
-    set of plain variables & set of usage-checked variables & set of terms
-    \\\hline
-    $\Gamma \ni A$ & $\ctx\Gamma R \lvar A$ & $\ctx\Gamma R \vdash A$
+  \begin{tabular}{ll}
+    $\Gamma \ni A$          & type of plain (non usage checked) variables \\
+    $\ctx\Gamma R \lvar A$  & type of usage-checked variables \\
+    $\ctx\Gamma R \vdash A$ & type of usage-checked terms
   \end{tabular}
   \caption{Judgement forms of \name{}}
   \label{fig:judgements}
@@ -519,22 +519,22 @@ Thus the addition of usage contexts and constraints on them refines the usual si
 For instance, in the \TirName{$\otimes$-I} rule, the usage context $\resctx R$ on the conclusion is constrained to be able to supply the sum $\resctx P + \resctx Q$ of the usage contexts of the premises.
 If we instantiate $\mathbf R$ to be the
 $\zero \triangleright \unrestricted \triangleleft \linear$ semiring, then we
-obtain a system that is equivalent to Barber's DILL \cite{Barber1996}.
+obtain a system that is equivalent to Barber's DILL \cite{Barber1996}, as we will see in \autoref{sec:translation}.
 
-For the sake of \autoref{sec:metatheory}, the precise rules chosen here are
+For the purposes of our metatheoretical results in \autoref{sec:metatheory}, the precise rules chosen here are
 not too important.
 The salient point is that contexts can only be manipulated in specific ways.
 Typing contexts can only be modified by context extensions, i.e., binding new
 variables.
 Usage contexts can correspondingly be extended, but also can be
-\emph{linearly split}.
+\emph{linearly} split.
 A usage context $\resctx R$ can be split into zero pieces via constraint
 $\resctx R \subres \rescomment{\vct 0}$, into two pieces, $\resctx P$ and
 $\resctx Q$, via constraint $\resctx R \subres \resctx P + \resctx Q$, and an
 $\rescomment r$-scaled down piece $\resctx P$ via constraint
 $\resctx R \subres \rescomment r\resctx P$.
 
-However, the rules chosen are important in \autoref{sec:translation}, as they
+However, the precise set of rules that we have chosen will be important in \autoref{sec:translation}, as they
 correspond closely to the rules of Dual Intuitionistic Linear Logic and the
 modal calculus of Pfenning and Davies \cite{Barber1996,judgmental}.
 In fact, there are several similar calculi in the literature which do not
@@ -730,7 +730,7 @@ a linear form of \emph{cut}.
 \section{Intuitionistic and modal instantiations}\label{sec:general}
 
 As we will show in \autoref{sec:dill}, $\name$ can be instantiated with
-a semiring which makes it capture linearity.
+a semiring that makes the system linear in the sense of DILL.
 However, with different choices of semiring, $\name$ can become a calculus
 satisfying more structural rules.
 
@@ -746,11 +746,13 @@ satisfying more structural rules.
   $\subres$-constraints are satisfied.
 \end{proof}
 
-An important class of skew semirings is those for which $0$ is the top element
-of the $\subres$-order and $+$ acts as a meet (minimum).
-While $\name$ instantiated this way admits full weakening and contraction, the
-usage annotations can still play a part via the $\excl{r}{}$ modality.
-We will see an example of such an instantiation in \autoref{sec:pd}.
+An important class of skew semirings is those for which $0$ is the top
+element of the $\subres$-order and $+$ acts as a meet (minimum).
+While $\name$ instantiated this way admits full weakening and
+contraction, the usage annotations can still play a part via the
+$\excl{r}{}$ modality.  We will see an example of such an
+instantiation in \autoref{sec:pd} when we embed Pfenning and Davis' S4
+modal $\lambda$-calculus..
 
 \begin{lemma}\label{lem:top-meet}
   If \name{} is instantiated at a skew semiring such that $0$ is top and $+$ is
@@ -840,8 +842,8 @@ instances of it correspond to previously studied systems.
 In this section, we present translations from \name{} to Dual Intuitionistic
 Linear Logic \cite{Barber1996} and the modal system of Pfenning and Davies
 \cite{judgmental}, and vice versa.
-These translations are not mechanised, as part of the reason for developing
-\name{} was to avoid mechanising these systems directly.
+% These translations are not mechanised, as part of the reason for developing
+% \name{} was to avoid mechanising these systems directly.
 We cannot prove that the translations form an equivalence, because we have not
 written down an equational theory for \name{}, but we expect this to be easy
 enough to do.
@@ -859,7 +861,7 @@ linearity semiring $\{\zero, \linear, \unrestricted\}$.
   $\{\linear \triangleright \zero \triangleleft \unrestricted\}$.
   \begin{multicols}{2}
     \begin{itemize}
-      \item $0 := \zero$.
+      \item $0 := \zero$
       \item
         \begin{tabular}{c|ccc}
           $+$ & \zero & \linear & \unrestricted \\ \hline
@@ -867,7 +869,7 @@ linearity semiring $\{\zero, \linear, \unrestricted\}$.
           \linear & \linear & \unrestricted & \unrestricted \\
           \unrestricted & \unrestricted & \unrestricted & \unrestricted \\
         \end{tabular}
-      \item $1 := \linear$.
+      \item $1 := \linear$
       \item
         \begin{tabular}{c|ccc}
           $*$ & \zero & \linear & \unrestricted \\ \hline
@@ -1965,22 +1967,45 @@ linear and modal type theories by instantiation to different semirings.
 % constraints via annotations on variables.
 % For it, we have extended McBride's method of kits \cite{rensub05}.
 
+As we mentioned in the introduction, there have been several prior
+works focused on formalising substructural calculi in proof
+assistants. Many of these \cite{power99,XavierORN18,laurent18}
+concentrate on sequent calculi presentations of Linear Logic and use
+lists to represent contexts and explicit splitting along permutations
+to account for the splitting of contexts in multiplicative rules. In
+comparison to \name{}, the use of permutations means that variables in
+the context do not have a ``stable name'', which complicates the use
+of terms for other purposes, such as assigning a plain semantics that
+ignores the linearity. The use of permutations also complicates the
+matter of constructing terms within the proof assistant -- explicit
+permutations have to be provided at every rule application, making it
+difficult to see that a particular term matches an informal named
+presentation of a term.
 
-
-Our work is similar in spirit to the work of Licata, Shulman, and
-Riley \cite{LicataSR17}, which gives a proof of cut elimination for a
+In terms of attaining some level of generality, our work is similar in spirit to the work of Licata, Shulman, and
+Riley \cite{LicataSR17}. They give a proof of cut elimination for a
 large class of substructural single-conclusion sequent calculi.
-The class of natural deduction systems we consider here is likely less
+The class of natural deduction systems we consider here is less
 general, but is not directly comparable.
 In particular, we assume contexts form a commutative monoid up to admissible
 derivations, whereas Licata, Shulman, and Riley allow contexts to be composed
-of arbitrary finitiary operators.
+of arbitrary finitary operators. It would be interesting to see whether the approach of \name{}, and the technique of kits, can be extended to $n$-ary operators as they do.
 Our results are also different --- our simultaneous substitution as opposed to
 their cut elimination.
 We leave a complete comparison to future work.
 They have not mechanised their work.
 % In particular, we focus on ``at least linear'' systems, and prove an inherently
 % linear result.
+
+Abel and Bernardy \cite{AbelBernardy2020} have also presented a system
+similar to \name{}, along with a relational semantics that allows the
+proof of free theorems derived from the usage restrictions imposed by
+the chosen semiring. As we mentioned in \autoref{sec:translation},
+their system makes some choices that mean it cannot faithfully
+represent DILL or PD. Nevertheless, they use our framing of the
+metatheory of ``co-effect'' systems in terms of linear algebra, and
+the kit technique we have presented here adapts easily to their
+setting.
 
 We are currently building on this work to generalise the framework of Allais
 \emph{et al.}~\cite{AACMM20} to include usage annotations, allowing
